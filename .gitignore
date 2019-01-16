@@ -1,0 +1,80 @@
+
+*.kate-swp
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dirstamp
+*.dSYM/
+
+/autom4te.cache
+/aclocal.m4
+/m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/configure.scan
+Makefile.in
+Makefile
+
+.deps
+
+/config.*
+/settings.ini
+/src/gpuedit
+/data
+
+/*.png
+
+# ignore the external libs for now, i'll figure something out later for it
+/src/c3dlas
+/src/c_json
+#/src/text #merged into this project for now
+
+# these are not build files
+!/assets/**/*.obj
+
+# too much junk in the untracked list
+/assets/**/*
+
+
+
+# this is a symlink that was needed to get the game to run in nvidia's profiler
+/src/assets
+
+# saved sdf font data
+*.sdf
+*.atlas
+
+#log file
