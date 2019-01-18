@@ -388,14 +388,16 @@ void updateView(XStuff* xs, AppState* as, InputState* is) {
 	//printf("sun theta %f\n", as->sunTheta);
 	
 	msPush(&as->proj);
-	msPerspective(60, as->screen.aspect, as->nearClipPlane, as->farClipPlane, &as->proj);
-	
+// 	msPerspective(60, as->screen.aspect, as->nearClipPlane, as->farClipPlane, &as->proj);
+	msOrtho(-1, 1, -1, 1, 0, 1000, &as->proj);
+// 	printf("%f, %f, %f\n", as->screen.aspect, as->nearClipPlane, as->farClipPlane);
 	
 	msPush(&as->view);
 	
+	msIdent(&as->view);
 	// order matters! don't mess with this.
-	msTrans3f(0, -1, as->zoom, &as->view);
-	msRot3f(1, 0, 0, F_PI / 6, &as->view);
+// 	msTrans3f(0, -1, as->zoom, &as->view);
+// 	msRot3f(1, 0, 0, F_PI / 6, &as->view);
 // 	msRot3f(0,1,0, as->direction, &as->view);
 // 	msTrans3f(-as->lookCenter.x, 0, -as->lookCenter.y, &as->view);
 	
@@ -418,20 +420,19 @@ void updateView(XStuff* xs, AppState* as, InputState* is) {
 	
 	// eye space
 	mInverse(msGetTop(&as->proj), &invp);
-	vMatrixMul(&devCoord, &invp, &eyeCoord);
-	vNorm(&eyeCoord, &eyeCoord);
+	// 	vMatrixMul(&devCoord, &invp, &eyeCoord);
+// 	vNorm(&eyeCoord, &eyeCoord);
 	
 	// world space
 	mInverse(msGetTop(&as->view), &invv);
-	vMatrixMul(&eyeCoord, &invv, &worldCoord);
-	vNorm(&worldCoord, &worldCoord);
+	// 	vMatrixMul(&eyeCoord, &invv, &worldCoord);
+// 	vNorm(&worldCoord, &worldCoord);
 	
 	mFastMul(&invp, &invv, &as->mProjWorld);
 	
 	Vector zero = {0,0,0};
 	vMatrixMul(&zero, &invv, &as->eyePos);
 	
-
 }
 
 

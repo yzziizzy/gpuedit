@@ -72,8 +72,9 @@ int main(int argc, char* argv[]) {
 	while(1) {
 		processEvents(&xs, &input, &app.ifs, -1);
 		
-		if(xs.ready) {
+		if(first && xs.ready) {
 			initAppGL(&xs, &app);
+			first = 0;
 		}
 		else {
 			appLoop(&xs, &app, &input);

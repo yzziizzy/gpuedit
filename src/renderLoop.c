@@ -55,8 +55,8 @@ void SetUpPDP(AppState* as, PassDrawParams* pdp) {
 	pdp->mProjView = &as->invProj;
 	pdp->mViewWorld = &as->invView;
 	
-	mInverse(&pdp->mViewProj, &as->invProj);
-	mInverse(&pdp->mWorldView, &as->invView);
+	mInverse(pdp->mViewProj, &as->invProj);
+	mInverse(pdp->mWorldView, &as->invView);
 	
 	pdp->eyeVec = as->eyeDir;
 	pdp->eyePos = as->eyePos;
@@ -77,8 +77,6 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	
 
 	PassDrawParams pdp;
-	//pdp.mWorldView = msGetTop(&as->view);
-	//pdp.mViewProj = msGetTop(&as->proj);
 	
 	SetUpPDP(as, &pdp);
 	
@@ -90,7 +88,7 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	pfp.wallTime = as->frameTime;
 	
 	
-		
+	glexit("");
 	
 	glViewport(0, 0, as->screen.wh.x, as->screen.wh.y);
 	
@@ -100,14 +98,14 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	
-	query_queue_start(&as->queries.gui);
+	glexit("");
+// 	query_queue_start(&as->queries.gui);
 	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	
+	glexit("");
 	
 	glDisable(GL_DEPTH_TEST);
 	RenderPass_preFrameAll(as->guiPass, &pfp);
@@ -117,9 +115,9 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	
 	glDisable(GL_BLEND);
 	
-	query_queue_stop(&as->queries.gui);
+// 	query_queue_stop(&as->queries.gui);
 
-	
+	glexit("");
 	cleanUpView(xs, as, is);
 	
 	
