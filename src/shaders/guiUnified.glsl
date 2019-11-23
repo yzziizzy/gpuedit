@@ -239,8 +239,8 @@ void main(void) {
 // 		a = step(0.65, abs(d));
 		
 		if(a < 0.01) {
- 			out_Color = vec4(gs_tex.xy, 0, 1);
-			return; // show the overdraw
+//  			out_Color = vec4(gs_tex.xy, 0, 1);
+// 			return; // show the overdraw
 			discard;
 		};
 		

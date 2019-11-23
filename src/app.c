@@ -59,7 +59,8 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	srand((unsigned int)time(NULL));
 	
-	json_gl_init_lookup();
+	// this costs 5mb of ram
+// 	json_gl_init_lookup();
 	
 	
 // 	TextureAtlas* ta = TextureAtlas_alloc();
@@ -72,12 +73,31 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	
 	as->currentBuffer = Buffer_New(as->gui);
-	as->currentBuffer->font = FontManager_findFont(as->gui->fm, "Courier New");
-	Buffer_AddLineBelow(as->currentBuffer);
 	as->currentBuffer->curLine = 1;
 	as->currentBuffer->curCol = 1;
+	as->currentBuffer->font = FontManager_findFont(as->gui->fm, "Courier New");
 
-	Buffer_insertText(as->currentBuffer, "foobar", 0);
+	Buffer_AddLineBelow(as->currentBuffer);
+	Buffer_AdvanceLines(as->currentBuffer, 1);
+	Buffer_insertText(as->currentBuffer, "foobar1", 0);
+	test(as->currentBuffer);
+	
+	Buffer_AddLineBelow(as->currentBuffer);
+	Buffer_AdvanceLines(as->currentBuffer, 1);
+	Buffer_insertText(as->currentBuffer, "foobar2", 0);
+	test(as->currentBuffer);
+	
+	Buffer_AddLineBelow(as->currentBuffer);
+	Buffer_AdvanceLines(as->currentBuffer, 1);
+	Buffer_insertText(as->currentBuffer, "foobar3", 0);
+	test(as->currentBuffer);
+
+	Buffer_AppendLine(as->currentBuffer, "foobar4", 0);
+	Buffer_AppendLine(as->currentBuffer, "\tfoobar5", 0);
+	Buffer_AppendLine(as->currentBuffer, " foobar6", 0);
+	Buffer_AppendLine(as->currentBuffer, "longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg!", 0);
+	
+	Buffer_loadRawText(as->currentBuffer, "first\nabc\nabc\nabc\nabc\nlast", 0);
 	
 	GUIRegisterObject(as->currentBuffer, as->gui->root);
 	

@@ -80,13 +80,14 @@ int main(int argc, char* argv[]) {
 			appLoop(&xs, &app, &input);
 		}
 		
-		if(app.frameSpan < 1.0/60.0) {
+		if(app.frameSpan < 1.0/15.0) {
 			// shitty estimation based on my machine's heuristics, needs improvement
-			float sleeptime = (((1.0/60.0) * 1000000) - (app.frameSpan * 1000000)) * .7;
+			float sleeptime = (((1.0/15.0) * 1000000) - (app.frameSpan * 1000000)) * 1.7;
  			//printf("sleeptime: %f\n", sleeptime / 1000000);
 			//sleeptime = 1000;
 			if(sleeptime > 0) usleep(sleeptime); // problem... something is wrong in the math
 		}
+// 		sleep(1);
 	}
 	
 	
