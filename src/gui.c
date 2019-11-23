@@ -594,7 +594,6 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 	
 	PCBuffer_bind(&gm->instVB);
 	offset = PCBuffer_getOffset(&gm->instVB);
-	
 	glDrawArrays(GL_POINTS, offset / sizeof(GUIUnifiedVertex), gm->elementCount);
 	
 	glexit("");

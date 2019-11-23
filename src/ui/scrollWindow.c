@@ -45,10 +45,10 @@ GUIScrollWindow* GUIScrollWindow_new(GUIManager* gm) {
 	pcalloc(gw);
 	gui_headerInit(&gw->header, gm, &static_vt);
 	
-	gw->vscrollbar = GUIWindow_new(gm); 
-	gw->vscrollbar->color = (Vector){0,1,.7};
+// 	gw->vscrollbar = GUIWindow_new(gm); 
+// 	gw->vscrollbar->color = (Vector){0,1,.7};
 	
-	gw->hscrollbar = GUIWindow_new(gm);
+// 	gw->hscrollbar = GUIWindow_new(gm);
 	
 	return gw;
 }
@@ -62,8 +62,8 @@ static void render(GUIScrollWindow* gw, PassFrameParams* pfp) {
 	
 	if(gw->header.hidden || gw->header.deleted) return;
 	
-	GUIHeader_render(&gw->vscrollbar->header, pfp);
-	GUIHeader_render(&gw->hscrollbar->header, pfp);
+// 	GUIHeader_render(&gw->vscrollbar->header, pfp);
+// 	GUIHeader_render(&gw->hscrollbar->header, pfp);
 	
 	GUIHeader_renderChildren(&gw->header, pfp);
 }
@@ -79,7 +79,7 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	GUIHeader* h = &gw->header;
 	
 	
-	gw->scrollPos.x = 200 * fabs(sin(1 * pfp->appTime));
+	gw->scrollPos.x = 0;//200 * fabs(sin(1 * pfp->appTime));
 	gw->scrollPos.y = 200 * fabs(sin(1 * pfp->appTime));
 	
 	
@@ -97,24 +97,16 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 // 	h->absClip = gui_clipTo(grp->clip, (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}); // TODO: clip this to grp->clip
 	h->absClip = (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}; // TODO: clip this to grp->clip
 
-// 		printf("%f %f, \n", h->absClip.min.x, h->absClip.min.y);
-// 	printf(" - %f %f, \n", h->absClip.max.x, h->absClip.max.y);
-
-	
-	//h->absClip = (AABB2){{300,300}, {400,400}}; // TODO: clip this to grp->clip
 	h->absZ = grp->baseZ + h->z;
 	
 	
-	
-	
-		GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
-	
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
+
 	*v = (GUIUnifiedVertex){
-// 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
-// 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
 		.pos = {tl.x , tl.y,
 			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
-		.clip = {200, 200, 500, 500},
+		.clip = {tl.x , tl.y,
+			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
 		
 		.texIndex1 = 0,
 		.texIndex2 = 0,
@@ -135,6 +127,38 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	
 	
 	
+	// vertical scrollbar
+	v = GUIManager_reserveElements(gw->header.gm, 1);
+
+	float vscroll_barSize = 30;
+	float vscroll_offset = 0;
+	float vscroll_range = gw->header.size.y - vscroll_barSize;
+	
+	vscroll_offset = vscroll_range * fabs(sin(1 * pfp->appTime));
+
+	
+	*v = (GUIUnifiedVertex){
+		.pos = {tl.x + gw->header.size.x - 10, tl.y + vscroll_offset,
+			tl.x + gw->header.size.x, tl.y + vscroll_barSize + vscroll_offset},
+		.clip = {tl.x , tl.y,
+			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
+		
+		.texIndex1 = 0,
+		.texIndex2 = 0,
+		.texFade = .5,
+		.guiType = 0, // window (just a box)
+		
+		.texOffset1 = 0,
+		.texOffset2 = 0,
+		.texSize1 = 0,
+		.texSize2 = 0,
+		
+		.fg = {128, 255, 164, 255}, // TODO: border color
+		.bg = {128, 255, 164, 225}, // TODO: border color
+		
+		.z = gw->header.z,
+		.alpha = gw->header.alpha,
+	};
 	
 	
 	
@@ -144,8 +168,8 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 		.clip = h->absClip,
 		.size = clientArea,
 		.offset = (Vector2){
-			tl.x - gw->scrollPos.x,
-			tl.y - gw->scrollPos.y,
+			tl.x + gw->scrollPos.x,
+			tl.y + gw->scrollPos.y,
 		},
 		.baseZ = h->absZ,
 	};
@@ -173,8 +197,14 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	float smin = 20;
 	
 	float sh = fmax(smin, sratio * gw->internalSize.y / h->size.y);
-	gw->vscrollbar->header.size.y = sh;
-	gw->vscrollbar->header.size.x = gw->sbWidth;
+// 	gw->vscrollbar->header.size.y = sh;
+// 	gw->vscrollbar->header.size.x = gw->sbWidth;
+	
+	
+	
+	
+	
+	
 	
 	
 // 	GUIHeader_updatePos(&gw->vscrollbar->header, pfp);

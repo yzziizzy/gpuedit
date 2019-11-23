@@ -20,8 +20,29 @@
 typedef GUIObject* (*creator_fn)(GUIManager*, json_value_t*);
 
 
-static read_header(GUIHeader* h, json_value_t* cfg) {
+static void read_gravity(GUIHeader* h, json_value_t* cfg) {
+	char* s = json_obj_get_string(cfg, "gravity");
+	if(!s) return;
+	
+	int grav = GUI_GRAV_TOP_LEFT;
+	
+// 	if(0 == strcasecmp(s, "TOP_LEFT") grav = GUI_GRAV_TOP_LEFT;
+	     if(0 == strcasecmp(s, "CENTER_LEFT")) grav = GUI_GRAV_CENTER_LEFT;
+	else if(0 == strcasecmp(s, "BOTTOM_LEFT")) grav = GUI_GRAV_BOTTOM_LEFT;
+	else if(0 == strcasecmp(s, "BOTTOM_CENTER")) grav = GUI_GRAV_CENTER_BOTTOM;
+	else if(0 == strcasecmp(s, "BOTTOM_RIGHT")) grav = GUI_GRAV_BOTTOM_RIGHT;
+	else if(0 == strcasecmp(s, "CENTER_RIGHT")) grav = GUI_GRAV_CENTER_RIGHT;
+	else if(0 == strcasecmp(s, "TOP_RIGHT")) grav = GUI_GRAV_TOP_RIGHT;
+	else if(0 == strcasecmp(s, "TOP_CENTER")) grav = GUI_GRAV_CENTER_TOP;
+	else if(0 == strcasecmp(s, "CENTER")) grav = GUI_GRAV_CENTER;
+	
+	h->gravity = grav;
+}
+
+static void read_header(GUIHeader* h, json_value_t* cfg) {
 	json_value_t* v;
+	
+	read_gravity(h, cfg);
 	
 	if(!json_obj_get_key(cfg, "pos", &v)) {
 		json_as_vector(v, 2, &h->topleft);
@@ -35,6 +56,7 @@ static read_header(GUIHeader* h, json_value_t* cfg) {
 	
 	if(!json_obj_get_key(cfg, "size", &v)) {
 		json_as_vector(v, 2, &h->size);
+		guiResize(h, h->size);
 	}
 	
 	// TODO: all other other props 
@@ -79,6 +101,33 @@ static GUIObject* create_GUIText(GUIManager* gm, json_value_t* cfg) {
 	return (GUIObject*)obj;
 }
 
+static GUIObject* create_GUIPerformanceGraph(GUIManager* gm, json_value_t* cfg) {
+	GUIPerformanceGraph* obj;
+	Vector2 defaultSpacing = {0.01, 0.01};
+	
+	// TODO: read json for values
+	
+	obj = guiPerformanceGraphNew(gm, defaultSpacing, 0.02, 120);
+	
+	return (GUIObject*)obj;
+}
+
+static GUIObject* create_GUIImageButton(GUIManager* gm, json_value_t* cfg) {
+	GUIImageButton* obj;
+	float border;
+	char* defaultImgName = "pre/denied";
+	
+	border = json_obj_get_double(cfg, "border", 2);
+	char* s = json_obj_get_string(cfg, "image");
+	if(!s) s = defaultImgName;
+	
+	// TODO: read json for values
+	
+	obj = GUIImageButton_New(gm, border, s);
+	
+	return (GUIObject*)obj;
+}
+
 static GUIObject* create_GUIColumnLayout(GUIManager* gm, json_value_t* cfg) {
 	GUIColumnLayout* obj;
 	Vector2 defaultSpacing = {0.01, 0.01};
@@ -86,6 +135,24 @@ static GUIObject* create_GUIColumnLayout(GUIManager* gm, json_value_t* cfg) {
 	// TODO: read json for values
 	
 	obj = GUIColumnLayout_new(gm, defaultSpacing, 0.02, 0);
+	
+	return (GUIObject*)obj;
+}
+
+static GUIObject* create_GUIGridLayout(GUIManager* gm, json_value_t* cfg) {
+	GUIGridLayout* obj;
+	Vector2 defaultSpacing = {0.01, 0.01};
+	json_value_t* v;
+	float f;
+	
+	if(!json_obj_get_key(cfg, "cellSize", &v)) {
+		json_as_vector(v, 2, &defaultSpacing);
+	}
+	
+	obj = GUIGridLayout_new(gm, (Vector2){0,0}, defaultSpacing);
+	
+	obj->maxCols = json_obj_get_int(cfg, "maxCols", 10);
+	obj->maxRows = json_obj_get_int(cfg, "maxRows", 10);
 	
 	return (GUIObject*)obj;
 }
@@ -107,7 +174,9 @@ static void checkInitLookup() {
 		{"columnLayout", create_GUIColumnLayout},
 		{"window", create_GUIWindow},
 		{"image", create_GUIImage},
-// 		{"gridLayout", create_GUIGridLayout},
+		{"performanceGraph", create_GUIPerformanceGraph},
+		{"imageButton", create_GUIImageButton},
+		{"gridLayout", create_GUIGridLayout},
 	};
 	
 	for(int i = 0; i < sizeof(fns) / sizeof(fns[0]); i++) {

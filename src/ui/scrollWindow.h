@@ -11,9 +11,6 @@ typedef struct GUIScrollWindow {
 	
 	Vector2 scrollPos;// in pixels
 	
-	GUIWindow* vscrollbar;
-	GUIWindow* hscrollbar;
-	
 } GUIScrollWindow;
 
 

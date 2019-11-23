@@ -106,6 +106,7 @@ typedef struct GUIHeader {
 	struct GUIManager* gm;
 	GUIObject* parent;
 	struct gui_vtbl* vt;
+	struct InputEventHandler* input_vt;
 	char* name;
 
 	// fallback for easy hit testing
@@ -154,10 +155,16 @@ typedef struct GUIHeader {
 #include "ui/scrollWindow.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
+#include "ui/imgButton.h"
+#include "ui/tree.h"
 #include "ui/edit.h"
+#include "ui/slider.h"
 #include "ui/columnLayout.h"
 #include "ui/gridLayout.h"
 #include "ui/monitors.h"
+#include "ui/debugAdjuster.h"
+#include "ui/structAdjuster.h"
+#include "ui/performanceGraph.h"
 
 
 
@@ -171,6 +178,12 @@ union GUIObject {
 	GUIColumnLayout columnLayout;
 	GUIGridLayout gridLayout;
 	GUIValueMonitor valueMonitor;
+	GUIDebugAdjuster debugAdjuster;
+	GUISlider Slider;
+	GUIEdit Edit;
+	GUIStructAdjuster structAdjuster;
+	GUIImageButton ImageButton;
+	GUIPerformanceGraph PerformanceGraph;
 };
 
 
@@ -204,6 +217,8 @@ typedef struct GUIManager {
 	// temp 
 	GLuint fontAtlasID;
 	GLuint atlasID;
+	
+	VEC(GLuint64) texHandles;
 	
 } GUIManager;
 

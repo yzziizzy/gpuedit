@@ -30,7 +30,7 @@ static int closeClick(GUIEvent* e) {
 
 
 
-void guiSimpleWindowRender(GUISimpleWindow* sw, GameState* gs, PassFrameParams* pfp) {
+void guiSimpleWindowRender(GUISimpleWindow* sw, PassFrameParams* pfp) {
 	
 // 	guiRender(sw->bg, gs, pfp);
 // 	guiRender(sw->titlebar, gs, pfp);

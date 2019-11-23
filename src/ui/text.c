@@ -13,7 +13,7 @@
 
 
 
-static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp);
+static void render(GUIText* gt, PassFrameParams* pfp);
 static GUIObject* hitTest(GUIObject* go, Vector2 testPos);
 static void guiTextDelete(GUIText* gt);
 
@@ -60,7 +60,7 @@ static void updatePos(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	h->absZ = grp->baseZ + h->z;
 }*/
 
-static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void render(GUIText* gt, PassFrameParams* pfp) {
 	char* txt = gt->currentStr;
 	GUIFont* f = gt->font;
 	GUIManager* gm = gt->header.gm;
@@ -73,6 +73,7 @@ static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	float spaceadv = f->regular[' '].advance;
 	
+	// this algorithm needs to be kept in sync with the width calculation algorithm below
 	for(int n = 0; txt[n] != 0; n++) {
 		char c = txt[n];
 		
@@ -118,9 +119,30 @@ void guiTextDelete(GUIText* gt) {
 }
 
 
+// this algorithm needs to be kept in sync with the rendering algorithm above
 float guiTextGetTextWidth(GUIText* gt, int numChars) {
-//	return CalcTextWidth(gt->strRI, numChars);
-	return 0;
+	char* txt = gt->currentStr;
+	GUIFont* f = gt->font;
+	
+	float size = 0.45; // HACK
+	float hoff = gt->header.size.y * .75; // HACK
+	float adv = 0;
+	
+	float spaceadv = f->regular[' '].advance;
+	
+	for(int n = 0; txt[n] != 0 && n < numChars; n++) {
+		char c = txt[n];
+		struct charInfo* ci = &f->regular[c];
+		
+		if(c != ' ') {
+			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+		}
+		else {
+			adv += spaceadv;
+		}
+	}
+	
+	return adv;
 }
 
 

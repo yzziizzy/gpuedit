@@ -87,13 +87,13 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	pfp.appTime = as->frameTime; // this will get regenerated from save files later
 	pfp.wallTime = as->frameTime;
 	
-	
 	glexit("");
 	
 	glViewport(0, 0, as->screen.wh.x, as->screen.wh.y);
 	
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CW); // this is backwards, i think, because of the scaling inversion for z-up
+	
+// 	glEnable(GL_CULL_FACE);
+// 	glFrontFace(GL_CW); // this is backwards, i think, because of the scaling inversion for z-up
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -101,7 +101,7 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	glexit("");
 // 	query_queue_start(&as->queries.gui);
 	
-	glEnable(GL_DEPTH_TEST);
+// 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
@@ -109,11 +109,11 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	
 	glDisable(GL_DEPTH_TEST);
 	RenderPass_preFrameAll(as->guiPass, &pfp);
-	RenderPass_renderAll(as->guiPass, &pfp.dp);
+	RenderPass_renderAll(as->guiPass, pfp.dp);
 	RenderPass_postFrameAll(as->guiPass);
-	glEnable(GL_DEPTH_TEST);
+// 	glEnable(GL_DEPTH_TEST);
 	
-	glDisable(GL_BLEND);
+// 	glDisable(GL_BLEND);
 	
 // 	query_queue_stop(&as->queries.gui);
 

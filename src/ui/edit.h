@@ -23,13 +23,12 @@ typedef struct GUIEdit {
 	
 // 	float fontSize;
 	float blinkRate;
-	float cursorOffset; // in screen units
+	float cursorOffset; // in pixels
+	char hasFocus;
 	
 	// offsets, text align
 	
-	GUIWindow* bg;
 	GUIText* textControl;
-	GUIWindow* cursor; // just a thin window
 	
 	GUIEditOnChangeFn onChange;
 	void* onChangeData;
@@ -37,12 +36,12 @@ typedef struct GUIEdit {
 } GUIEdit;
 
 
-GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size);
+GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue, Vector2 size);
 
-void guiEditSetText(GUIEdit* ed, char* text);
-void guiEditSetInt(GUIEdit* ed, int64_t ival); 
-void guiEditSetDouble(GUIEdit* ed, double dval); 
-double guiEditGetDouble(GUIEdit* ed);
+void GUIEdit_SetText(GUIEdit* ed, char* text);
+void GUIEdit_SetInt(GUIEdit* ed, int64_t ival); 
+void GUIEdit_SetDouble(GUIEdit* ed, double dval); 
+double GUIEdit_GetDouble(GUIEdit* ed);
 
 
 #endif // __EACSMB_ui_edit_h__

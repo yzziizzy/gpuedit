@@ -160,36 +160,73 @@ static void render(GUIImage* im, PassFrameParams* pfp) {
 	
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(im->header.gm, 1);
-	*v = (GUIUnifiedVertex){
+	if(!im->texHandle) {
+		*v = (GUIUnifiedVertex){
+			
+			.pos.t = tl.y,
+			.pos.l = tl.x,
+			.pos.b = tl.y + im->header.size.y,
+			.pos.r = tl.x + im->header.size.x,
+			
+			.clip.l = im->header.absClip.min.x,
+			.clip.t = im->header.absClip.min.y,
+			.clip.r = im->header.absClip.max.x,
+			.clip.b = im->header.absClip.max.y,
+			
+			.texIndex1 = im->texIndex,
+			.texIndex2 = 0,
+			.texFade = .5,
+			
+			.guiType = 2, // simple image
+			
+			.texOffset1 = { im->offsetNorm.x * 65535, im->offsetNorm.y * 65535 },
+	// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
+			.texOffset2 = 0,
+			.texSize1 = { im->sizeNorm.x * 65535, im->sizeNorm.y * 65535 },
+	// 		.texSize1 = { .5 * 65535, .5 * 65535 },
+			.texSize2 = 0,
+			
+			.fg = {255, 128, 64, 255},
+			.bg = {64, 128, 255, 255},
+			
+		};
+	}
+	else {
+		*v = (GUIUnifiedVertex){
+			
+			.pos.t = tl.y,
+			.pos.l = tl.x,
+			.pos.b = tl.y + im->header.size.y,
+			.pos.r = tl.x + im->header.size.x,
+			
+			.clip.l = im->header.absClip.min.x,
+			.clip.t = im->header.absClip.min.y,
+			.clip.r = im->header.absClip.max.x,
+			.clip.b = im->header.absClip.max.y,
+			
+			.texIndex1 = VEC_LEN(&im->header.gm->texHandles),
+			.texIndex2 = 0,
+			.texFade = .5,
+			
+			.guiType = im->texHandle ? 3 : 2, // bindless texture
+			
+			.texOffset1 = { 0, 0 },
+	// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
+			.texOffset2 = 0,
+			.texSize1 = { 65535, 65535 },
+	// 		.texSize1 = { .5 * 65535, .5 * 65535 },
+			.texSize2 = 0,
+			
+			.fg = {255, 128, 64, 255},
+			.bg = {64, 128, 255, 255},
+			
+		};
 		
-		.pos.t = tl.y,
-		.pos.l = tl.x,
-		.pos.b = tl.y + im->header.size.y,
-		.pos.r = tl.x + im->header.size.x,
-		
-		.clip.l = im->header.absClip.min.x,
-		.clip.t = im->header.absClip.min.y,
-		.clip.r = im->header.absClip.max.x,
-		.clip.b = im->header.absClip.max.y,
-		
-		.texIndex1 = im->texIndex,
-		.texIndex2 = 0,
-		.texFade = .5,
-		
-		.guiType = 2, // simple image
-		
-		.texOffset1 = { im->offsetNorm.x * 65535, im->offsetNorm.y * 65535 },
-// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
-		.texOffset2 = 0,
-		.texSize1 = { im->sizeNorm.x * 65535, im->sizeNorm.y * 65535 },
-// 		.texSize1 = { .5 * 65535, .5 * 65535 },
-		.texSize2 = 0,
-		
-		.fg = {255, 128, 64, 255},
-		.bg = {64, 128, 255, 255},
-	};
-	
+		VEC_PUSH(&im->header.gm->texHandles, im->texHandle);
+	}
+//	printf("%p\n", im->texHandle);
 // 	
+	
 }
 
 
@@ -214,19 +251,21 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 // 	im->header.hitbox.max.x = pos.x + size.x;
 // 	im->header.hitbox.max.y = pos.y + size.y;
 	
-	TextureAtlasItem* it;
-	if(HT_get(&gm->ta->items, name, &it)) {
-		printf("could not find gui image '%s' %p \n", name);
+	if(name) {
+		TextureAtlasItem* it;
+		if(HT_get(&gm->ta->items, name, &it)) {
+			printf("could not find gui image '%s' %p \n", name);
+		}
+		else {
+			im->offsetNorm = it->offsetNorm;
+			im->sizeNorm = it->sizeNorm;
+			im->texIndex = it->index;
+			
+			im->header.size.x = it->sizePx.x;
+			im->header.size.y = it->sizePx.y;
+		}
+		printf("text index: %d\n", it->index);
 	}
-	else {
-		im->offsetNorm = it->offsetNorm;
-		im->sizeNorm = it->sizeNorm;
-		im->texIndex = it->index;
-		
-		im->header.size.x = it->sizePx.x;
-		im->header.size.y = it->sizePx.y;
-	}
-	printf("text index: %d\n", it->index);
 	
 	im->customTexID = 0;
 	
@@ -240,72 +279,50 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void guiRenderTargetRender(GUIRenderTarget* im, GameState* gs) {
-
-	Matrix proj = IDENT_MATRIX;
+static void rt_render(GUIRenderTarget* im, PassFrameParams* pfp) {
 	
-	static GLuint proj_ul;
-	static GLuint tlx_tly_w_h_ul;
-	static GLuint z_alpha__ul;
-	static GLuint sTexture_ul;
-	//static GLuint color_ul;
+	//just a clipped box
 	
-	if(!proj_ul) proj_ul = glGetUniformLocation(rtProg->id, "mProj");
-	if(!tlx_tly_w_h_ul) tlx_tly_w_h_ul = glGetUniformLocation(rtProg->id, "tlx_tly_w_h");
-	if(!z_alpha__ul) z_alpha__ul = glGetUniformLocation(rtProg->id, "z_alpha_");
-	if(!sTexture_ul) sTexture_ul = glGetUniformLocation(rtProg->id, "sTexture");
-	//if(!color_ul) color_ul = glGetUniformLocation(rtProg->id, "color");
+	Vector2 tl = im->header.absTopLeft; //gui_calcPosGrav(&im->header, grp);
 	
-	if(im->texID == 0) return;
 	
-	mOrtho(0, 1, 0, 1, 0, 1, &proj);
+	GUIUnifiedVertex* v = GUIManager_reserveElements(im->header.gm, 1);
+
+	*v = (GUIUnifiedVertex){
+		
+		.pos.t = tl.y,
+		.pos.l = tl.x,
+		.pos.b = tl.y + im->header.size.y,
+		.pos.r = tl.x + im->header.size.x,
+		
+		.clip.l = im->header.absClip.min.x,
+		.clip.t = im->header.absClip.min.y,
+		.clip.r = im->header.absClip.max.x,
+		.clip.b = im->header.absClip.max.y,
+		
+		.texIndex1 = VEC_LEN(&im->header.gm->texHandles),
+		.texIndex2 = 0,
+		.texFade = .5,
+		
+		.guiType = im->texHandle ? 4 : 0, // bindless texture, upside-down
+		
+		.texOffset1 = { 0, 0 },
+// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
+		.texOffset2 = 0,
+		.texSize1 = { 65535, 65535 },
+// 		.texSize1 = { .5 * 65535, .5 * 65535 },
+		.texSize2 = 0,
+		
+		.fg = {255, 128, 64, 255},
+		.bg = {64, 128, 255, 255},
+		
+	};
 	
-	glUseProgram(rtProg->id);
-	glexit("");
-	
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj.m);
-	glUniform4f(tlx_tly_w_h_ul, 
-		im->header.topleft.x, 
-		im->header.topleft.y, 
-		im->header.size.x, 
-		im->header.size.y 
-	);
-	glUniform4f(z_alpha__ul, -.1, 1, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
-	
-	glProgramUniform1i(rtProg->id, sTexture_ul, 30);
-	
-	glActiveTexture(GL_TEXTURE0 + 30);
-	glBindTexture(GL_TEXTURE_2D, im->texID);
-	
-	glBindVertexArray(vaoImage);
-	glBindBuffer(GL_ARRAY_BUFFER, vboImage);
-	
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glexit("");
+	VEC_PUSH(&im->header.gm->texHandles, im->texHandle);
 }
+
+
+
 
 void guiRenderTargetDelete(GUIRenderTarget* rt) {
 	RenderPipeline_destroy(rt->rpl);
@@ -319,8 +336,8 @@ void guiRenderTargetResize(GUIRenderTarget* rt, Vector2 newSz) {
 	printf("hack. need to get real pizel size here\n");
 	
 	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){
-		rt->header.size.x * rt->screenRes.x, 
-		rt->header.size.y * rt->screenRes.y
+		rt->header.size.x/* * rt->screenRes.x*/, 
+		rt->header.size.y/* * rt->screenRes.y*/
 	});
 }
 
@@ -331,14 +348,14 @@ void guiRenderTargetResize(GUIRenderTarget* rt, Vector2 newSz) {
 
 
 
-GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* rpl) {
+GUIRenderTarget* GUIRenderTarget_new(GUIManager* gm, Vector2 pos, Vector2 size, RenderPipeline* rpl) {
 	
 	GUIRenderTarget* im;
 	
 	float tbh = .03; // titleBarHeight
 	
 	static struct gui_vtbl static_vt = {
-		.Render = guiRenderTargetRender,
+		.Render = rt_render,
 		.Delete = guiRenderTargetDelete,
 		.Resize = guiRenderTargetResize
 	};
@@ -347,8 +364,7 @@ GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* r
 	im = calloc(1, sizeof(*im));
 	CHECK_OOM(im);
 	
-// 	guiHeaderInit(&im->header);
-	im->header.vt = &static_vt;
+ 	gui_headerInit(&im->header, gm, &static_vt);
 	
 	im->header.hitbox.min.x = pos.x;
 	im->header.hitbox.min.y = pos.y;
@@ -359,7 +375,7 @@ GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* r
 	im->header.size = size;
 	im->header.z = 0;
 	
-	im->texID = 0;
+	im->texHandle = 0;
 	im->rpl = rpl;
 	
 	// HACK. meh. just put in something so it renders at all in the beginning

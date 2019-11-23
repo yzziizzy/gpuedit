@@ -37,12 +37,17 @@ vec4 toNDC(vec4 positiveNorm) {
 void main() {
 	
 	// convert to NDC
- 	vertex.lt_rb = toNDC(lt_rb_in / vec4(targetSize.xy, targetSize.xy));
-//	vertex.lt_rb = vec4(.5, .5, -.5, -.5);
+	vertex.lt_rb = toNDC(lt_rb_in / vec4(targetSize.xy, targetSize.xy));
+
+	// flip y
+	vertex.clip = vec4(
+		clip_in.x,
+		targetSize.y - clip_in.w, // w and y are swapped on purpose
+		clip_in.z,
+		targetSize.y - clip_in.y
+	);
 	
-	// convert to clip space
-	vertex.clip = clip_in;
-	vertex.wh = vec2(abs(lt_rb_in.x - lt_rb_in.z), abs(lt_rb_in.y - lt_rb_in.w)) / 1000;
+	vertex.wh = vec2(abs(lt_rb_in.x - lt_rb_in.z), abs(lt_rb_in.y - lt_rb_in.w));
 	vertex.opacity = .7; 
 	
 	vertex.guiType = tex_type_in.w;
@@ -94,13 +99,14 @@ flat out int gs_guiType;
 void main() {
 	//if(vertex[0].opacity == 0.0) return;
 	
-	
+
 	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+// 	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 
@@ -111,6 +117,7 @@ void main() {
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+// 	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 	
@@ -120,6 +127,7 @@ void main() {
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+// 	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
@@ -129,6 +137,7 @@ void main() {
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+// 	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
@@ -159,15 +168,17 @@ uniform sampler2DArray atlasTex;
 
 void main(void) {
 	
+// 	out_Color  = vec4(1,.1,.1, 1);
+// 	return;
 	// clipping
-	if(gl_FragCoord.x < gs_clip.x || gl_FragCoord.x > gs_clip.z
-		|| gl_FragCoord.y < gs_clip.y || gl_FragCoord.y > gs_clip.w) {
-		
-		out_Color = vec4(1,.1,.1,.4);
-		return;
+// 	if(gl_FragCoord.x < gs_clip.x || gl_FragCoord.x > gs_clip.z
+// 		|| gl_FragCoord.y < gs_clip.y || gl_FragCoord.y > gs_clip.w) {
+// 		
+// 		out_Color = vec4(1,.1,.1,.4);
+// 		return;
 		
 	//	discard;
-	}
+// 	}
 	
 	//out_Color = vec4(1,.1,.1, 1);
 	//return;
@@ -228,8 +239,8 @@ void main(void) {
 // 		a = step(0.65, abs(d));
 		
 		if(a < 0.01) {
-// 			out_Color = vec4(gs_tex.xy, 0, 1);
-			//return; // show the overdraw
+ 			out_Color = vec4(gs_tex.xy, 0, 1);
+			return; // show the overdraw
 			discard;
 		};
 		

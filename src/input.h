@@ -98,8 +98,9 @@ typedef struct {
 } InputEvent;
 
 struct InputFocusStack;
-typedef void (*input_event_fn)(InputEvent*, void*);
-typedef void (*input_per_frame_fn)(InputState*, float, void*);
+// return 0 to stop bubbling
+typedef int (*input_event_fn)(InputEvent*, void*);
+typedef int (*input_per_frame_fn)(InputState*, float, void*);
 
 typedef struct InputEventHandler {
 	input_event_fn all;
@@ -153,10 +154,12 @@ typedef struct InputFocusStack {
 	_InputFocusStack_PushTarget((stack), (void*)(data), (void*)(&(data)->field) - (void*)(data))
 
 void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t vtoffset);
+void InputFocusStack_PushTarget2(InputFocusStack* stack, void* data, InputEventHandler** ptr);
 
+int InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev);
 void InputFocusStack_RevertTarget(InputFocusStack* stack);
-void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev);
-void InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan);
+int InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev);
+int InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan);
 
 void clearInputState(InputState* st);
 

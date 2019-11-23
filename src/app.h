@@ -8,6 +8,7 @@
 #include "settings.h"
 #include "window.h"
 #include "gui.h"
+#include "buffer.h"
 
 
 typedef struct AppScreen {
@@ -111,7 +112,7 @@ typedef struct AppState {
 	} queries;
 
 	
-
+	Buffer* currentBuffer;
 
 	
 } AppState;

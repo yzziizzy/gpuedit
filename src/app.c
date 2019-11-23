@@ -71,10 +71,15 @@ void initApp(XStuff* xs, AppState* as) {
 	as->gui = GUIManager_alloc(&as->globalSettings);
 	
 	
+	as->currentBuffer = Buffer_New(as->gui);
+	as->currentBuffer->font = FontManager_findFont(as->gui->fm, "Courier New");
+	Buffer_AddLineBelow(as->currentBuffer);
+	as->currentBuffer->curLine = 1;
+	as->currentBuffer->curCol = 1;
 
-	// CES system
-
-
+	Buffer_insertText(as->currentBuffer, "foobar", 0);
+	
+	GUIRegisterObject(as->currentBuffer, as->gui->root);
 	
 	// input handlers
 	as->defaultInputHandlers = calloc(1, sizeof(*as->defaultInputHandlers));
@@ -86,14 +91,6 @@ void initApp(XStuff* xs, AppState* as) {
 	InputFocusStack_PushTarget(&as->ifs, as, defaultInputHandlers);
 	
 	
-// 	as->settings.keyRotate = rotateFactor * fclampNorm(as->globalSettings.keyRotateSensitivity);
-// 	as->settings.keyScroll = scrollFactor * fclampNorm(as->globalSettings.keyScrollSensitivity);
-// 	as->settings.keyZoom = zoomFactor * fclampNorm(as->globalSettings.keyZoomSensitivity);
-// 	
-// 	as->settings.mouseRotate = rotateFactor * fclampNorm(as->globalSettings.mouseRotateSensitivity);
-// 	as->settings.mouseScroll = scrollFactor * fclampNorm(as->globalSettings.mouseScrollSensitivity);
-// 	as->settings.mouseZoom = 4 * zoomFactor * fclampNorm(as->globalSettings.mouseZoomSensitivity);
-// 	
 	as->frameCount = 0;
 
 	
@@ -114,8 +111,6 @@ void initApp(XStuff* xs, AppState* as) {
 	as->screen.resized = 0;
 	
 
-	
-	
 	// set up matrix stacks
 	MatrixStack* view, *proj;
 	
@@ -173,54 +168,6 @@ void initAppGL(XStuff* xs, AppState* as) {
 
 	
 	
-	
-	
-// 	char* iconNames[] = {
-// 		"pre/audio",
-// 		"pre/plane",
-// 		"pre/bag",
-// 		"pre/book",
-// 		"pre/calculator",
-// 		
-// 		"pre/camera",
-// 		"pre/car",
-// 		"pre/check",
-// 		"pre/clock",
-// 		"pre/cloud",
-// 		
-// 		"pre/crop",
-// 		"pre/cup",
-// 		"pre/cutlery",
-// 		"pre/denied",
-// 		"pre/down_arrow",
-// 		
-// 		"pre/entrance",
-// 		"pre/envelope",
-// 		"pre/file",
-// 		"pre/gear",
-// 		"pre/home",
-// 	};
-// 	
-// 	
-// 	
-	
-// 	gglTest = GUIGridLayout_new(as->gui, (Vector2){0,0}, (Vector2){35, 35});
-// 	gglTest->maxCols = 10;
-// 	gglTest->maxRows = 6;
-// 	gglTest->header.gravity = GUI_GRAV_CENTER_BOTTOM;
-// 	for(int i = 0; i < 20; i++) {
-// 		GUIImage* img = GUIImage_new(as->gui, iconNames[i]);
-// 		img->header.size = (Vector2){30, 30};
-// 		GUIRegisterObject(img, gglTest);
-// 	}
-// 	
-// 	GUIRegisterObject(gglTest, NULL);
-
-	
-	
-// 	GUIValueMonitor* gfm = GUIValueMonitor_new(as->gui, "dynamic meshes: %d", &as->world->dmm->totalInstances, 'i');
-// 	gfm->header.topleft = (Vector2){200,200};
-// 	GUIRegisterObject(gfm, asw);
 	
 /*	
 	json_file_t* guijsf;
