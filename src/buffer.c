@@ -136,12 +136,13 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount,
 	int charsDrawn = 0;
 	GUIFont* f = tdp->font;
 	float size = tdp->fontSize; // HACK
-	float hoff = 0;//gt->header.size.y * .75; // HACK
+	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
 	float adv = 0;
+	
+	
 	
 	float spaceadv = f->regular[' '].advance;
 	
-	// this algorithm needs to be kept in sync with the width calculation algorithm below
 	for(int n = 0; txt[n] != 0 && charsDrawn < charCount; n++) {
 		char c = txt[n];
 		
@@ -161,9 +162,9 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount,
 			float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
 			float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
 			
-			v->pos.t = off.y - ci->topLeftOffset.y * size;
+			v->pos.t = off.y + hoff - ci->topLeftOffset.y * size;
 			v->pos.l = off.x + adv + ci->topLeftOffset.x * size;
-			v->pos.b = off.y + ci->size.y * size - ci->topLeftOffset.y * size;
+			v->pos.b = off.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size;
 			v->pos.r = off.x + adv + ci->size.x * size + ci->topLeftOffset.x * size;
 			
 			v->guiType = 1; // text

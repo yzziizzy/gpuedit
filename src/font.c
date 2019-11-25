@@ -49,11 +49,11 @@ void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 	if(FontManager_loadAtlas(fm, "fonts.atlas")) {
 		
 		FontManager_addFont(fm, "Arial");
-		FontManager_addFont(fm, "Impact");
-		FontManager_addFont(fm, "Modern");
-		FontManager_addFont(fm, "Times New Roman");
+// 		FontManager_addFont(fm, "Impact");
+// 		FontManager_addFont(fm, "Modern");
+// 		FontManager_addFont(fm, "Times New Roman");
 		FontManager_addFont(fm, "Courier New");
-		FontManager_addFont(fm, "Copperplate");
+// 		FontManager_addFont(fm, "Copperplate");
 		
 		FontManager_finalize(fm);
 
@@ -455,6 +455,10 @@ void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic) {
 		HT_set(&fm->fonts, name, f);
 	}
 	
+	f->ascender = fontFace->ascender >> 6;
+	f->descender = fontFace->descender >> 6;
+	f->height= fontFace->height >> 6;
+	
 	for(int i = 0; i < len; i++) {
 // 		printf("calc: '%s':%d:%d %c\n", name, bold, italic, defaultCharset[i]);
 		FontGen* fg = addChar(fm, &fontFace, defaultCharset[i], fontSize, bold, italic);
@@ -469,9 +473,9 @@ void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic) {
 
 void FontManager_addFont(FontManager* fm, char* name) {
 	FontManager_addFont2(fm, name, 0, 0);
-	FontManager_addFont2(fm, name, 1, 0);
-	FontManager_addFont2(fm, name, 0, 1);
-	FontManager_addFont2(fm, name, 1, 1);
+// 	FontManager_addFont2(fm, name, 1, 0); // DEBUG: temporarily disabled for testing metrics
+// 	FontManager_addFont2(fm, name, 0, 1);
+// 	FontManager_addFont2(fm, name, 1, 1);
 }
 
 void FontManager_createAtlas(FontManager* fm) {
@@ -599,7 +603,7 @@ void FontManager_createAtlas(FontManager* fm) {
 
 
 // bump on format changes. there is no backward compatibility. saving is for caching only.
-static uint16_t GUIFONT_ATLAS_FILE_VERSION = 2;
+static uint16_t GUIFONT_ATLAS_FILE_VERSION = 3;
 
 void FontManager_saveAtlas(FontManager* fm, char* path) {
 	FILE* f;
@@ -625,6 +629,11 @@ void FontManager_saveAtlas(FontManager* fm, char* path) {
 		
 		//name 
 		fwrite(font->name, 1, nlen, f);
+		
+		// global metrics
+		fwrite(&font->ascender, 1, 4, f);
+		fwrite(&font->descender, 1, 4, f);
+		fwrite(&font->height, 1, 4, f);
 		
 		// number of charInfo structs
 		uint32_t clen = font->charsLen;
@@ -697,6 +706,11 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 			gf->name[u16] = 0;
 			
 			HT_set(&fm->fonts, gf->name, gf);
+			
+			// global metrics
+			fread(&gf->ascender, 1, 4, f);
+			fread(&gf->descender, 1, 4, f);
+			fread(&gf->height, 1, 4, f);
 			
 			// charInfo array length
 			fread(&u32, 1, 4, f);

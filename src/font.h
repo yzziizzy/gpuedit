@@ -31,7 +31,7 @@ struct charInfo {
 	
 	// typographic info
 	float advance; // horizonatal distance to advance after this char
-	Vector2 topLeftOffset; // offset from the baseline to the top left vertex of the quad
+	Vector2 topLeftOffset; // offset from the baseline to the top left vertex of the *quad*
 	Vector2 size;
 	
 };
@@ -48,6 +48,9 @@ typedef struct GUIFont {
 	struct charInfo* bold;
 	struct charInfo* boldItalic;
 	
+	int ascender;
+	int descender;
+	int height;
 	// TODO: kerning info
 	
 } GUIFont;
