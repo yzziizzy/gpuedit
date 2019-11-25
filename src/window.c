@@ -237,7 +237,7 @@ int initXWindow(XStuff* xs) {
 
 
 
-void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_events) {
+int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 	
 	XEvent xev;
 	int evcnt;
@@ -251,10 +251,8 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 	Vector2i pixelPos;
 	Vector2 normPos;
 	Vector2 invNormPos;
-
-	InputEvent iev;
 	
-	iev.is = st;
+	iev->is = st;
 	
 	if(max_events <= 0) max_events = INT_MAX;
 	
@@ -295,9 +293,8 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			if(xs->onExpose)
 				(*xs->onExpose)(xs, xs->onExposeData);
 			
-			
-			
 			xs->ready = 1;
+			continue;
 		}
 		
 		if(xev.type == KeyPress) {
@@ -307,14 +304,15 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
 			
-			iev.type = EVENT_KEYDOWN;
-			iev.time = gt;
-			iev.keysym = sym;
-			iev.character = c;
-			//.iev.keycode = xev.xkey.keycode;
-			iev.kbmods = TranslateModState(xev.xkey.state);
+			iev->type = EVENT_KEYDOWN;
+			iev->time = gt;
+			iev->keysym = sym;
+			iev->character = c;
+			//.iev->keycode = xev.xkey.keycode;
+			iev->kbmods = TranslateModState(xev.xkey.state);
 			
-			InputFocusStack_Dispatch(ifs, &iev);
+// 			InputFocusStack_Dispatch(ifs, &iev);
+			return 1;
 		}
 		if(xev.type == KeyRelease) {
 			double gt = GameTimeFromXTime(xev.xkey.time);
@@ -323,18 +321,19 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
 			
-			iev.type = EVENT_KEYUP;
-			iev.time = gt;
-			iev.keysym = sym;
-			iev.character = c;
-			iev.kbmods = TranslateModState(xev.xkey.state);
+			iev->type = EVENT_KEYUP;
+			iev->time = gt;
+			iev->keysym = sym;
+			iev->character = c;
+			iev->kbmods = TranslateModState(xev.xkey.state);
 			
-			InputFocusStack_Dispatch(ifs, &iev);
+// 			InputFocusStack_Dispatch(ifs, &iev);
 			
 			if(isprint(c)) {
-				iev.type = EVENT_TEXT;
-				InputFocusStack_Dispatch(ifs, &iev);
+				iev->type = EVENT_TEXT;
+// 				InputFocusStack_Dispatch(ifs, &iev);
 			}
+			return 1;
 		}
 		
 		// mouse events
@@ -347,12 +346,12 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			double gt = GameTimeFromXTime(xev.xbutton.time);
 			
-			iev.type = EVENT_MOUSEDOWN;
-			iev.time = gt;
-			iev.button = xev.xbutton.button;
-			iev.kbmods = TranslateModState(xev.xbutton.state);
+			iev->type = EVENT_MOUSEDOWN;
+			iev->time = gt;
+			iev->button = xev.xbutton.button;
+			iev->kbmods = TranslateModState(xev.xbutton.state);
 			
-			InputFocusStack_Dispatch(ifs, &iev);
+// 			InputFocusStack_Dispatch(ifs, &iev);
 			
 			if(st->inDrag) {
 				// what? shouldn't get here.
@@ -364,7 +363,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 				st->lastPressPosPixels = pixelPos;
 				st->lastPressPosNorm = normPos;
 			}
-			
+			return 1;
 		}
 		if(xev.type == ButtonRelease) {
 			
@@ -376,39 +375,41 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			double gt = GameTimeFromXTime(xev.xbutton.time);
 			
-			iev.intPos = pixelPos;
-			iev.normPos = normPos;
+			iev->intPos = pixelPos;
+			iev->normPos = normPos;
 			
-			iev.time = gt;
-			iev.button = xev.xbutton.button;
-			iev.kbmods = TranslateModState(xev.xbutton.state);
+			iev->time = gt;
+			iev->button = xev.xbutton.button;
+			iev->kbmods = TranslateModState(xev.xbutton.state);
 
 			if(st->inDrag) { //printf("release in drag\n");
-				iev.type = EVENT_DRAGSTOP;
+				iev->type = EVENT_DRAGSTOP;
 				
-				iev.intDragStart = st->lastPressPosPixels;
-				iev.normDragStart = st->lastPressPosNorm;
+				iev->intDragStart = st->lastPressPosPixels;
+				iev->normDragStart = st->lastPressPosNorm;
 				
-				InputFocusStack_Dispatch(ifs, &iev);
+// 				InputFocusStack_Dispatch(ifs, &iev);
 				
 				st->inDrag = 0;
 			}
 			else { //printf("released not in drag\n");
 				//printf("non-drag: %f , %f, %f\n", gt, st->lastClickTime, st->doubleClickTime);
 				if(gt - st->lastClickTime > st->doubleClickTime ) { //printf("  click\n");
-					iev.type = EVENT_CLICK; // BUG: pause and wait for doubleclick?
+					iev->type = EVENT_CLICK; // BUG: pause and wait for doubleclick?
 				}
 				else { //printf("  doubleclick\n");
-					iev.type = EVENT_DOUBLECLICK; // BUG: only issued after initial click
+					iev->type = EVENT_DOUBLECLICK; // BUG: only issued after initial click
 				}
-				InputFocusStack_Dispatch(ifs, &iev);
+// 				InputFocusStack_Dispatch(ifs, &iev);
 				
-				iev.type = EVENT_MOUSEUP;
-				InputFocusStack_Dispatch(ifs, &iev);
+				iev->type = EVENT_MOUSEUP;
+// 				InputFocusStack_Dispatch(ifs, &iev);
 			}
 			
 			st->lastClickTime = gt;
 			st->lastPressTime = -1;
+			
+			return 1;
 		}
 		
 		if(xev.type == MotionNotify) {
@@ -429,6 +430,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 				// not sure if X sends events without actual movment.
 				// let's find out
 				printf("mouse didn't move in XMotionNotify event.\n");
+				continue;
 			}
 			
 			// check for drag start
@@ -442,33 +444,33 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			// mouse move event
 			if(st->inDrag) {
-				iev.type = EVENT_DRAGMOVE;
+				iev->type = EVENT_DRAGMOVE;
 			}
 			else {
-				iev.type = EVENT_MOUSEMOVE;
+				iev->type = EVENT_MOUSEMOVE;
 			}
-			iev.intPos = pixelPos;
-			iev.normPos = normPos;
+			iev->intPos = pixelPos;
+			iev->normPos = normPos;
 			
-			iev.time = gt;
-			iev.button = -1;
-			iev.kbmods = TranslateModState(xev.xmotion.state);
+			iev->time = gt;
+			iev->button = -1;
+			iev->kbmods = TranslateModState(xev.xmotion.state);
 			
-			InputFocusStack_Dispatch(ifs, &iev);
+// 			InputFocusStack_Dispatch(ifs, &iev);
 			
 			
 			
 			st->lastCursorPos = normPos;
 			st->lastCursorPosPixels = pixelPos;
 			st->lastMoveTime = gt;
+			
+			return 1;
 		}
-		
-		
 		
 	}
 	
-	
-	
+	// out of events
+	return 0;
 }
 
 

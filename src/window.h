@@ -41,7 +41,7 @@ char xLastErrorStr[1024];
  
 int initXWindow(XStuff* xs);
 
-void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_events);
+int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events);
 
 
 

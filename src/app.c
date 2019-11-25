@@ -7,7 +7,7 @@
 #include <time.h>
 
 
-
+#include <unistd.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -350,82 +350,9 @@ static void main_move_handler(InputEvent* ev, AppState* as) {
 }
 
 
-void updateView(XStuff* xs, AppState* as, InputState* is) {
-
-	//printf("sun theta %f\n", as->sunTheta);
-	
-	msPush(&as->proj);
-// 	msPerspective(60, as->screen.aspect, as->nearClipPlane, as->farClipPlane, &as->proj);
-	msOrtho(-1, 1, -1, 1, 0, 1000, &as->proj);
-// 	printf("%f, %f, %f\n", as->screen.aspect, as->nearClipPlane, as->farClipPlane);
-	
-	msPush(&as->view);
-	
-	msIdent(&as->view);
-	// order matters! don't mess with this.
-// 	msTrans3f(0, -1, as->zoom, &as->view);
-// 	msRot3f(1, 0, 0, F_PI / 6, &as->view);
-// 	msRot3f(0,1,0, as->direction, &as->view);
-// 	msTrans3f(-as->lookCenter.x, 0, -as->lookCenter.y, &as->view);
-	
-	
-	// y-up to z-up rotation
-// 	msRot3f(1, 0, 0, F_PI_2, &as->view);
-// 	msScale3f(1, 1, -1, &as->view);
-	
-	// calculate cursor position
-	Vector cursorp;
-	Vector eyeCoord;
-	Vector worldCoord;
-	Matrix p, invp, invv;
-	
-	// device space (-1:1)
-	Vector devCoord;
-	devCoord.x = 0.50;
-	devCoord.y = 0.50;
-	devCoord.z = -1.0;
-	
-	// eye space
-	mInverse(msGetTop(&as->proj), &invp);
-	// 	vMatrixMul(&devCoord, &invp, &eyeCoord);
-// 	vNorm(&eyeCoord, &eyeCoord);
-	
-	// world space
-	mInverse(msGetTop(&as->view), &invv);
-	// 	vMatrixMul(&eyeCoord, &invv, &worldCoord);
-// 	vNorm(&worldCoord, &worldCoord);
-	
-	mFastMul(&invp, &invv, &as->mProjWorld);
-	
-	Vector zero = {0,0,0};
-	vMatrixMul(&zero, &invv, &as->eyePos);
-	
-}
 
 
 
-
-// deprecated, use above
-void checkCursor(AppState* as, InputState* is) {
-	
-	union {
-		unsigned char rgb[4];
-		uint32_t in;
-	} u;
-	glexit("pre selection buff");
-	
-
-	
-	int w = (int)as->screen.wh.x;
-	int h = (int)as->screen.wh.y;
-	
-	int x = (int)is->lastCursorPosPixels.x;
-	int y = (int)is->lastCursorPosPixels.y;
-
-	
-	// wove a window with the cursor
-	//gw_test->header.topleft = (Vector2){x, h - y};
-}
 
 Vector2i viewWH = {
 	.x = 0,
@@ -454,35 +381,76 @@ void checkResize(XStuff* xs, AppState* as) {
 
 
 
+void handleEvent(AppState* as, InputEvent* ev) {
+	
+	if(ev->type == EVENT_KEYUP) {
+		if(ev->keysym == XK_Up) {
+			as->currentBuffer->curLine--;
+		}
+		else if(ev->keysym == XK_Down) {
+			as->currentBuffer->curLine++;
+		}
+		else if(ev->keysym == XK_Left) {
+			as->currentBuffer->curCol--;
+		}
+		else if(ev->keysym == XK_Right) {
+			as->currentBuffer->curCol++;
+		}
+	}
+	
+	
+}
+
+
+void prefilterEvent(AppState* as, InputState* is, InputEvent* ev) {
+	// drags, etc
+	
+	handleEvent(as, ev);
+	
+}
+
+
 
 
 #define PF_START(x) as->perfTimes.x = getCurrentTime()
 #define PF_STOP(x) as->perfTimes.x = timeSince(as->perfTimes.x)
 
 void appLoop(XStuff* xs, AppState* as, InputState* is) {
-	as->frameCount++;
 	
-// 	printf("-----------frame------------\n");
+	// main running loop
+	while(1) {
+		InputEvent iev;
+		
+		for(int i = 0; i < 1000; i++) {
+			int drawRequired = 0;
+			if(processEvents(xs, is, &iev, -1)) {
+	// 			// handle the event
+				prefilterEvent(as, is, &iev);
+			}
+			
+			
+			if(drawRequired) break;
+		}
+		
+		
+		checkResize(xs, as);
+		
+		preFrame(as); // updates timers
+		
+		drawFrame(xs, as, is);
+		
+		as->screen.resized = 0;
+		
+		postFrame(as); // finishes frame-draw timer
 	
-
-	checkResize(xs,as);
-	
-		PF_START(preframe);
-	preFrame(as);
-		PF_STOP(preframe);
-	
-	InputFocusStack_DispatchPerFrame(&as->ifs, is, as->frameSpan);
-	
-	updateView(xs, as, is);
-	
-	checkCursor(as, is);
-	
-	
-	drawFrame(xs, as, is);
-	
-	
-	as->screen.resized = 0;
-
-	postFrame(as);
-// 	printf("^^^^^^^^^^frame^^^^^^^^^^\n");
+		
+		if(as->frameSpan < 1.0/15.0) {
+			// shitty estimation based on my machine's heuristics, needs improvement
+			float sleeptime = (((1.0/15.0) * 1000000) - (as->frameSpan * 1000000)) * 1.7;
+			//printf("sleeptime: %f\n", sleeptime / 1000000);
+			//sleeptime = 1000;
+			if(sleeptime > 0) usleep(sleeptime); // problem... something is wrong in the math
+		}
+// 		sleep(1);
+	}
 }

@@ -136,7 +136,7 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount,
 	int charsDrawn = 0;
 	GUIFont* f = tdp->font;
 	float size = tdp->fontSize; // HACK
-	float hoff = 50;//gt->header.size.y * .75; // HACK
+	float hoff = 0;//gt->header.size.y * .75; // HACK
 	float adv = 0;
 	
 	float spaceadv = f->regular[' '].advance;
@@ -208,7 +208,7 @@ void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFro
 	tdp.charWidth = 10;
 	tdp.lineHeight = 20;
 	tdp.tabWidth = 4;
-	Vector2 tl = (Vector2){50, tdp.lineHeight};
+	Vector2 tl = (Vector2){50, 0};
 	
 	BufferLine* bl = b->first; // BUG broken 
 	while(bl) {
