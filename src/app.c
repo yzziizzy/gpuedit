@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <math.h>
 #include <time.h>
@@ -73,24 +74,20 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	
 	as->currentBuffer = Buffer_New(as->gui);
-	as->currentBuffer->curLine = 1;
 	as->currentBuffer->curCol = 1;
 	as->currentBuffer->font = FontManager_findFont(as->gui->fm, "Courier New");
 
-	Buffer_AddLineBelow(as->currentBuffer);
-	Buffer_AdvanceLines(as->currentBuffer, 1);
-	Buffer_insertText(as->currentBuffer, "foobar1", 0);
-	test(as->currentBuffer);
-	
-	Buffer_AddLineBelow(as->currentBuffer);
-	Buffer_AdvanceLines(as->currentBuffer, 1);
-	Buffer_insertText(as->currentBuffer, "foobar2", 0);
-	test(as->currentBuffer);
-	
-	Buffer_AddLineBelow(as->currentBuffer);
-	Buffer_AdvanceLines(as->currentBuffer, 1);
-	Buffer_insertText(as->currentBuffer, "foobar3", 0);
-	test(as->currentBuffer);
+// 	Buffer_AddLineBelow(as->currentBuffer);
+// 	Buffer_insertText(as->currentBuffer, "foobar1", 0);
+// 	test(as->currentBuffer);
+// 	
+// 	Buffer_AddLineBelow(as->currentBuffer);
+// 	Buffer_insertText(as->currentBuffer, "foobar2", 0);
+// 	test(as->currentBuffer);
+// 	
+// 	Buffer_AddLineBelow(as->currentBuffer);
+// 	Buffer_insertText(as->currentBuffer, "foobar3", 0);
+// 	test(as->currentBuffer);
 
 	Buffer_AppendLine(as->currentBuffer, "foobar4", 0);
 	Buffer_AppendLine(as->currentBuffer, "\tfoobar5", 0);
@@ -382,20 +379,40 @@ void checkResize(XStuff* xs, AppState* as) {
 
 
 void handleEvent(AppState* as, InputEvent* ev) {
-	
+// 	printf("%d %c/* */%d-\n", ev->type, ev->character, ev->keysym);
 	if(ev->type == EVENT_KEYUP) {
 		if(ev->keysym == XK_Up) {
-			as->currentBuffer->curLine--;
+			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+				BufferCmd_MoveCursorV, -1
+			});
 		}
 		else if(ev->keysym == XK_Down) {
-			as->currentBuffer->curLine++;
+			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+				BufferCmd_MoveCursorV, 1
+			});
 		}
 		else if(ev->keysym == XK_Left) {
-			as->currentBuffer->curCol--;
+			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+				BufferCmd_MoveCursorH, -1
+			});
 		}
 		else if(ev->keysym == XK_Right) {
-			as->currentBuffer->curCol++;
+			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+				BufferCmd_MoveCursorH, 1
+			});
 		}
+		else if(ev->keysym == XK_Return) {
+			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+				BufferCmd_SplitLine, 0
+			});
+		}
+	}
+	else if(ev->type == EVENT_TEXT) {
+// 		printf("char\n");
+		Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+			BufferCmd_InsertChar, ev->keysym
+		});
+	
 	}
 	
 	

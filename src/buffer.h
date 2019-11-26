@@ -28,7 +28,6 @@ typedef struct Buffer {
 	
 	int numLines;
 	int curCol;
-	int curLine;
 	
 	// TODO: move elsewhere
 	GUIFont* font;
@@ -64,8 +63,25 @@ typedef struct BufferDrawParams {
 } BufferDrawParams;
 
 
+enum BufferCmdType {
+	BufferCmd_MoveCursorV,
+	BufferCmd_MoveCursorH,
+	BufferCmd_InsertChar,
+	BufferCmd_SplitLine,
+};
+
+typedef struct BufferCmd {
+	enum BufferCmdType type;
+	int amt;
+} BufferCmd;
+
+
+
 struct GUIManager;
 typedef struct GUIManager GUIManager;
+
+
+void Buffer_processCommand(Buffer* b, BufferCmd* cmd);
 
 
 
@@ -75,6 +91,7 @@ void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFro
 static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount, Vector2 tl);
 
 
+void BufferLine_ensureAlloc(BufferLine* l, size_t len);
 void Buffer_insertText(Buffer* b, char* text, size_t len);
 void BufferLine_SetText(BufferLine* l, char* text, size_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len);

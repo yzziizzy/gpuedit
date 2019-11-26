@@ -30,6 +30,7 @@ void BufferLine_SetText(BufferLine* l, char* text, size_t len) {
 	}
 	
 	strncpy(l->buf, text, len);
+	l->length = len;
 }
 
 
@@ -89,18 +90,18 @@ void test(Buffer* b) {
 }
 
 
-BufferLine* Buffer_AdvanceLines(Buffer* b, int n) {
-	
-	BufferLine* l = b->current;
-	while(l->next && n) {
-		l = l->next;
-		b->curLine++;
-		n--;
+void BufferLine_ensureAlloc(BufferLine* l, size_t len) {
+	if(l->buf == NULL) {
+		l->allocSz = MAX(32, nextPOT(len + 1));
+		l->buf = calloc(1, l->allocSz);
+		l->style = calloc(1, l->allocSz);
 	}
-	
-	b->current = l;
-	
-	return l;
+	else if(l->allocSz < len + 1) {
+		l->allocSz = nextPOT(len + 1);
+		l->buf = realloc(l->buf, l->allocSz);
+		l->style = realloc(l->style, l->allocSz);
+		// BUG: check OOM and maybe try to crash gracefully
+	}
 }
 
 
@@ -110,23 +111,15 @@ void Buffer_insertText(Buffer* b, char* text, size_t len) {
 	
 	BufferLine* l = b->current; 
 	
-	if(l->buf == NULL) {
-		l->allocSz = nextPOT(len + 1);
-		l->buf = calloc(1, l->allocSz);
-		l->style = calloc(1, l->allocSz);
-	}
-	else if(l->allocSz < l->length + len + 1) {
-		l->allocSz = nextPOT(l->length + len + 1);
-		l->buf = realloc(l->buf, l->allocSz);
-		l->style = realloc(l->style, l->allocSz);
-		// BUG: check OOM and maybe try to crash gracefully
-	}
+	BufferLine_ensureAlloc(l, l->length + len);
 	
 	if(b->curCol - 1 < l->length) {
 		memmove(l->buf + b->curCol - 1 + len, l->buf + b->curCol - 1, l->length - b->curCol);
 	}
 	
 	memcpy(l->buf + b->curCol - 1, text, len);
+	
+	l->length += len;
 }
 
 
@@ -196,6 +189,65 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount,
 	
 }
 
+size_t getColOffset(char* txt, int col, int tabWidth) {
+	size_t w = 0;
+	for(int i = 0; i < col && txt[i] != 0; i++) {
+		if(txt[i] == '\t') w += tabWidth;
+		else w++;
+	}
+	
+	return w;
+}
+
+void Buffer_insertChar(Buffer* b, char c) {
+	BufferLine* l = b->current;
+	BufferLine_ensureAlloc(l, l->length + 1);
+	
+	if(b->curCol - 1 < l->length) {
+		memmove(l->buf + b->curCol, l->buf + b->curCol - 1, l->length - b->curCol + 1);
+	}
+	
+	l->buf[b->curCol-1] = c;
+	b->curCol++;
+	
+	l->length += 1;
+}
+
+
+void Buffer_insertLinebreak(Buffer* b, char c) {
+	BufferLine* l = b->current;
+// 	BufferLine_ensureAlloc(l, l->length + 1);
+	
+// 	if(b->curCol - 1 < l->length) {
+// 		memmove(l->buf + b->curCol, l->buf + b->curCol - 1, l->length - b->curCol + 1);
+// 	}
+	
+// 	l->buf[b->curCol-1] = c;
+// 	b->curCol++;
+	
+// 	l->length += 1;
+}
+
+void Buffer_processCommand(Buffer* b, BufferCmd* cmd) {
+	if(cmd->type == BufferCmd_MoveCursorV) {
+		int i = cmd->amt;
+		
+		if(i > 0) while(i-- > 0 && b->current->next) {
+			b->current = b->current->next;
+		}
+		else while(i++ < 0 && b->current->prev) {
+			b->current = b->current->prev;
+		}
+	}
+	else if(cmd->type == BufferCmd_MoveCursorH) {
+		b->curCol = MAX(MIN(b->current->length + 1, b->curCol + cmd->amt), 1);
+	}
+	else if(cmd->type == BufferCmd_InsertChar) {
+		Buffer_insertChar(b, cmd->amt);
+	}
+	
+// 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
+}
 
 void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
 	GUIFont* f = b->font;
@@ -227,9 +279,10 @@ void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFro
 	}
 	
 	// draw cursor
+	tl = (Vector2){50, 0};
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-	float cursorOff = (b->curCol - 1) * tdp.charWidth;
-	float cursory = (b->curLine - 1) * tdp.lineHeight;
+	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp.tabWidth) * tdp.charWidth;
+	float cursory = (b->current->lineNum - 1) * tdp.lineHeight;
 	*v = (GUIUnifiedVertex){
 		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp.lineHeight},
 		.clip = {0, 0, 18000, 18000},
@@ -308,8 +361,12 @@ void Buffer_loadRawText(Buffer* b, char* source, size_t len) {
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
 	BufferLine* l = pcalloc(l);
 	
-	l->lineNum = b->last->lineNum + 1;
+	if(b->numLines == 0) l->lineNum = 1;
+	else l->lineNum = b->last->lineNum + 1;
+	b->numLines++;
 	
+	BufferLine_SetText(l, text, len);
+		
 	if(b->last == NULL) {
 		b->first = l;
 		b->last = l;
@@ -322,7 +379,7 @@ BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
 	b->last->next = l;
 	b->last = l;
 	
-	BufferLine_SetText(l, text, len);
+	
 	
 	return l;
 }
