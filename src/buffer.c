@@ -34,45 +34,16 @@ void BufferLine_SetText(BufferLine* l, char* text, size_t len) {
 }
 
 
-BufferLine* Buffer_AddLineBelow(Buffer* b) {
-	BufferLine* l = pcalloc(l);
-	b->numLines++;
-	
-	// special cases first
-	if(b->first == NULL) {
-		b->first = l;
-		b->last = l;
-		b->current = l;
-		l->lineNum = 1;
-		return l;
-	}
-	
-	l->lineNum = b->current->lineNum + 1;
-	
-	if(b->current == b->last) {
-		l->prev = b->last;
-		b->last->next = l;
-		b->last = l;
-		return l;
-	}
-	
-	// insert the link
-	l->prev = b->current;
-	l->next = b->current->next;
-	
-	b->current->next = l;
-	if(l->next) l->next->prev = l;
-	
-	// renumber the rest of the lines
-	BufferLine* q = l->next;
+void Buffer_RenumberLines(BufferLine* start, size_t num) {
+		// renumber the rest of the lines
+	BufferLine* q = start;
+	q->lineNum = num++;
 	while(q) {
-		q->lineNum++;
+		q->lineNum = num++;
 		q = q->next;
 	}
-	
-	
-	return l;
 }
+
 
 
 void test(Buffer* b) {
@@ -90,7 +61,32 @@ void test(Buffer* b) {
 }
 
 
-void BufferLine_ensureAlloc(BufferLine* l, size_t len) {
+BufferLine* BufferLine_New() {
+	BufferLine* l = pcalloc(l);
+	return l;
+}
+
+void BufferLine_Delete(BufferLine* l) {
+	if(l->buf) free(l->buf);
+	if(l->style) free(l->style);
+}
+
+BufferLine* BufferLine_FromStr(char* text, size_t len) {
+	BufferLine* l = BufferLine_New();
+	BufferLine_SetText(l, text, len);
+	return l;
+}
+
+BufferLine* BufferLine_Copy(BufferLine* orig) {
+	BufferLine* l = BufferLine_New();
+	l->length = orig->length;
+	l->allocSz = orig->allocSz;
+	l->buf = calloc(1, l->allocSz);
+	strncpy(l->buf, orig->buf, l->length);
+	return l;
+}
+
+void BufferLine_EnsureAlloc(BufferLine* l, size_t len) {
 	if(l->buf == NULL) {
 		l->allocSz = MAX(32, nextPOT(len + 1));
 		l->buf = calloc(1, l->allocSz);
@@ -105,19 +101,30 @@ void BufferLine_ensureAlloc(BufferLine* l, size_t len) {
 }
 
 
-void Buffer_insertText(Buffer* b, char* text, size_t len) {
+// does NOT handle embedded linebreak chars
+void BufferLine_InsertText(BufferLine* l, char* text, size_t len, size_t col) {
 	if(len == 0) len = strlen(text);
 	if(len == 0) return;
 	
-	BufferLine* l = b->current; 
+	BufferLine_EnsureAlloc(l, l->length + len);
 	
-	BufferLine_ensureAlloc(l, l->length + len);
-	
-	if(b->curCol - 1 < l->length) {
-		memmove(l->buf + b->curCol - 1 + len, l->buf + b->curCol - 1, l->length - b->curCol);
+	if(col - 1 < l->length) {
+		memmove(l->buf + col - 1 + len, l->buf + col - 1, l->length - col);
 	}
 	
-	memcpy(l->buf + b->curCol - 1, text, len);
+	memcpy(l->buf + col - 1, text, len);
+	
+	l->length += len;
+}
+
+// does NOT handle embedded linebreak chars
+void BufferLine_AppendText(BufferLine* l, char* text, size_t len) {
+	if(len == 0) len = strlen(text);
+	if(len == 0) return;
+	
+	BufferLine_EnsureAlloc(l, l->length + len);
+	
+	memcpy(l->buf + l->length, text, len);
 	
 	l->length += len;
 }
@@ -126,6 +133,8 @@ void Buffer_insertText(Buffer* b, char* text, size_t len) {
 // assumes no linebreaks
 void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount, Vector2 tl) {
 // 		printf("'%s'\n", bl->buf);
+	if(txt == NULL || charCount == 0) return;
+	
 	int charsDrawn = 0;
 	GUIFont* f = tdp->font;
 	float size = tdp->fontSize; // HACK
@@ -189,46 +198,163 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount,
 	
 }
 
-size_t getColOffset(char* txt, int col, int tabWidth) {
-	size_t w = 0;
-	for(int i = 0; i < col && txt[i] != 0; i++) {
-		if(txt[i] == '\t') w += tabWidth;
-		else w++;
-	}
-	
-	return w;
-}
 
-void Buffer_insertChar(Buffer* b, char c) {
-	BufferLine* l = b->current;
-	BufferLine_ensureAlloc(l, l->length + 1);
+
+void BufferLine_InsertChar(BufferLine* l, char c, size_t col) {
+	BufferLine_EnsureAlloc(l, l->length + 1);
 	
-	if(b->curCol - 1 < l->length) {
-		memmove(l->buf + b->curCol, l->buf + b->curCol - 1, l->length - b->curCol + 1);
+	if(col - 1 < l->length) {
+		memmove(l->buf + col, l->buf + col - 1, l->length - col + 1);
 	}
 	
-	l->buf[b->curCol-1] = c;
-	b->curCol++;
-	
+	l->buf[col - 1] = c;
 	l->length += 1;
 }
 
 
-void Buffer_insertLinebreak(Buffer* b, char c) {
-	BufferLine* l = b->current;
-// 	BufferLine_ensureAlloc(l, l->length + 1);
+void BufferLine_DeleteChar(BufferLine* l, size_t col) {
+	if(l->length == 0) return;
+	if(col > l->length + 2) return; // strange overrun
 	
-// 	if(b->curCol - 1 < l->length) {
-// 		memmove(l->buf + b->curCol, l->buf + b->curCol - 1, l->length - b->curCol + 1);
-// 	}
+	if(col - 2 < l->length) {
+		memmove(l->buf + col - 2, l->buf + col - 1, l->length - col + 3);
+	}
 	
-// 	l->buf[b->curCol-1] = c;
-// 	b->curCol++;
-	
-// 	l->length += 1;
+	l->length -= 1;
 }
 
-void Buffer_processCommand(Buffer* b, BufferCmd* cmd) {
+
+BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before) {
+	
+	if(before == NULL && b->first) {
+		printf("before is null in InsertLineAfter\n");
+		return NULL;
+	}
+	
+	b->numLines++;
+	BufferLine* after = BufferLine_New();
+	
+	if(b->first == NULL) {
+		b->first = after;
+		b->last = after;
+		b->current = after;
+		after->lineNum = 1;
+		return after;
+	}
+	
+	after->next = before->next;
+	after->prev = before;
+	before->next = after;
+	if(after->next) after->next->prev = after;
+	
+	if(before == b->last) {
+		b->last = after;
+	}
+	
+	Buffer_RenumberLines(after, before->lineNum);
+	
+	return after;
+}
+
+BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after) {
+	
+	if(after == NULL && b->first) {
+		printf("after is null in InsertLineBefore\n");
+		return NULL;
+	}
+	
+	b->numLines++;
+	BufferLine* before = BufferLine_New();
+	
+	if(b->first == NULL) {
+		b->first = before;
+		b->last = before;
+		b->current = before;
+		before->lineNum = 1;
+		return before;
+	}
+	
+	before->next = after;
+	before->prev = after->prev;
+	after->prev = before;
+	if(before->prev) before->prev->next = before;
+	
+	if(after == b->first) {
+		b->first = before;
+	}
+	
+	Buffer_RenumberLines(before, after->lineNum - 1);
+	
+	return before;
+}
+
+void Buffer_DeleteLine(Buffer* b, BufferLine* l) {
+	
+	if(l->next) l->next->prev = l->prev;
+	if(l->prev) l->prev->next = l->next;
+	
+	if(l == b->first) b->first = l->next;
+	if(l == b->last) b->last = l->prev;
+	
+	if(l == b->current) {
+		if(l->prev) b->current = l->prev;
+		else if(l->prev) b->current = l->next;
+		else {
+			printf("current line set to null in DeleteLine\n");
+			b->current = NULL;
+		}
+	}
+	
+	BufferLine_Delete(l);
+	
+	b->numLines--;
+}
+
+void Buffer_InsertLinebreak(Buffer* b) {
+	BufferLine* l = b->current;
+	
+	if(b->curCol == 1) {
+		Buffer_InsertLineBefore(b, b->current);
+	}
+	else {
+		BufferLine* n = Buffer_InsertLineAfter(b, l);
+		BufferLine_SetText(n, l->buf + b->curCol - 1, 0);
+		
+		l->buf[b->curCol - 1] = 0;
+		l->length = b->curCol;
+		
+		b->current = b->current->next;
+	}
+	
+	b->curCol = 1;
+	
+	// TODO: maybe shrink the alloc
+}
+
+
+// deletes chars but also handles line removal and edge cases
+// does not move the cursor
+void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col) {
+	if(!b->first) return; // empty buffer
+	
+	if(col == 1) {
+		// first col of first row; do nothing
+		if(b->first == l) return;
+		
+		if(l->length > 0) {
+			// merge with the previous line
+			BufferLine_AppendText(l->prev, l->buf, l->length);
+		}
+		
+		Buffer_DeleteLine(b, l);
+		
+		return;
+	} 
+	
+	BufferLine_DeleteChar(l, col);
+}
+
+void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 	if(cmd->type == BufferCmd_MoveCursorV) {
 		int i = cmd->amt;
 		
@@ -238,15 +364,34 @@ void Buffer_processCommand(Buffer* b, BufferCmd* cmd) {
 		else while(i++ < 0 && b->current->prev) {
 			b->current = b->current->prev;
 		}
+// 		printf("current: %p\n", b->current);
 	}
 	else if(cmd->type == BufferCmd_MoveCursorH) {
 		b->curCol = MAX(MIN(b->current->length + 1, b->curCol + cmd->amt), 1);
 	}
 	else if(cmd->type == BufferCmd_InsertChar) {
-		Buffer_insertChar(b, cmd->amt);
+		BufferLine_InsertChar(b->current, cmd->amt, b->curCol);
+		b->curCol++;
+	}
+	else if(cmd->type == BufferCmd_Backspace) {
+		Buffer_BackspaceAt(b, b->current, b->curCol);
+		b->curCol--;
+	}
+	else if(cmd->type == BufferCmd_SplitLine) {
+		Buffer_InsertLinebreak(b);
 	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
+}
+
+size_t getColOffset(char* txt, int col, int tabWidth) {
+	size_t w = 0;
+	for(int i = 0; i < col && txt[i] != 0; i++) {
+		if(txt[i] == '\t') w += tabWidth;
+		else w++;
+	}
+	
+	return w;
 }
 
 void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
@@ -326,9 +471,8 @@ Buffer* Buffer_New(GUIManager* gm) {
 }
 
 
-void Buffer_loadRawText(Buffer* b, char* source, size_t len) {
+void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 	if(len == 0) len = strlen(source);
-	
 	
 	for(size_t i = 0; i < len; i++) {
 		char* s = source + i;
@@ -348,25 +492,19 @@ void Buffer_loadRawText(Buffer* b, char* source, size_t len) {
 			Buffer_AppendLine(b, s, e-s);
 			i += e - s + 1;
 		}
-		
-		
 	}
-	
-	
 }
 
 
 
 
-BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
+BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len) {
 	BufferLine* l = pcalloc(l);
 	
-	if(b->numLines == 0) l->lineNum = 1;
-	else l->lineNum = b->last->lineNum + 1;
 	b->numLines++;
 	
 	BufferLine_SetText(l, text, len);
-		
+	
 	if(b->last == NULL) {
 		b->first = l;
 		b->last = l;
@@ -375,12 +513,26 @@ BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
 		return l;
 	}
 	
-	l->prev = b->last;
-	b->last->next = l;
-	b->last = l;
+	l->prev = b->current->prev;
+	l->next = b->current;
+	b->current->prev = l;
+	if(b->current->next) b->current->next->prev = l;
 	
+	Buffer_RenumberLines(l, b->current->lineNum);
 	
+	if(b->current->prev == NULL) {
+		b->first = l;
+		l->lineNum = 1;
+		return l;
+	}
 	
+	return l;
+}
+
+
+BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
+	BufferLine* l = Buffer_InsertLineAfter(b, b->last);
+	BufferLine_SetText(l, text, len);
 	return l;
 }
 

@@ -94,7 +94,7 @@ void initApp(XStuff* xs, AppState* as) {
 	Buffer_AppendLine(as->currentBuffer, " foobar6", 0);
 	Buffer_AppendLine(as->currentBuffer, "longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg!", 0);
 	
-	Buffer_loadRawText(as->currentBuffer, "first\nabc\nabc\nabc\nabc\nlast", 0);
+	Buffer_AppendRawText(as->currentBuffer, "first\nabc\nabc\nabc\nabc\nlast", 0);
 	
 	GUIRegisterObject(as->currentBuffer, as->gui->root);
 	
@@ -382,34 +382,39 @@ void handleEvent(AppState* as, InputEvent* ev) {
 // 	printf("%d %c/* */%d-\n", ev->type, ev->character, ev->keysym);
 	if(ev->type == EVENT_KEYUP) {
 		if(ev->keysym == XK_Up) {
-			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
 				BufferCmd_MoveCursorV, -1
 			});
 		}
 		else if(ev->keysym == XK_Down) {
-			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
 				BufferCmd_MoveCursorV, 1
 			});
 		}
 		else if(ev->keysym == XK_Left) {
-			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
 				BufferCmd_MoveCursorH, -1
 			});
 		}
 		else if(ev->keysym == XK_Right) {
-			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
 				BufferCmd_MoveCursorH, 1
 			});
 		}
 		else if(ev->keysym == XK_Return) {
-			Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
 				BufferCmd_SplitLine, 0
+			});
+		}
+		else if(ev->keysym == XK_BackSpace) {
+			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
+				BufferCmd_Backspace, 0
 			});
 		}
 	}
 	else if(ev->type == EVENT_TEXT) {
 // 		printf("char\n");
-		Buffer_processCommand(as->currentBuffer, &(BufferCmd){
+		Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
 			BufferCmd_InsertChar, ev->keysym
 		});
 	
