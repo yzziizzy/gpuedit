@@ -423,8 +423,12 @@ size_t getColOffset(char* txt, int col, int tabWidth) {
 	return w;
 }
 
-void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
-	GUIFont* f = b->font;
+void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
+	Buffer* b = gbe->buffer;
+	
+	if(!b) return;
+	
+	GUIFont* f = gbe->font;
 	int line = 1;
 	int linesRendered = 0;
 	char lnbuf[32];
@@ -450,7 +454,7 @@ void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFro
 	*/
 	
 	TextDrawParams tdp;
-	tdp.font = b->font;
+	tdp.font = f;
 	tdp.fontSize = .5;
 	tdp.charWidth = 10;
 	tdp.lineHeight = 20;
@@ -501,76 +505,10 @@ void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFro
 }
 
 
-static void render(Buffer* w, PassFrameParams* pfp) {
-// HACK
-	Buffer_Draw(w, w->header.gm, 0, 100, 0, 100);
-	
-}
 
-static void keyUp(GUIObject* o_, GUIEvent* gev) {
-	Buffer* b = (Buffer*)o_;
-	
-	
-	if(gev->keycode == XK_Up) {
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_MoveCursorV, -1
-		});
-	}
-	else if(gev->keycode == XK_Down) {
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_MoveCursorV, 1
-		});
-	}
-	else if(gev->keycode == XK_Left) {
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_MoveCursorH, -1
-		});
-	}
-	else if(gev->keycode == XK_Right) {
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_MoveCursorH, 1
-		});
-	}
-	else if(gev->keycode == XK_Return) {
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_SplitLine, 0
-		});
-	}
-	else if(gev->keycode == XK_BackSpace) {
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_Backspace, 0
-		});
-	}
-	else if(gev->keycode == XK_Delete) {
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_Delete, 0
-		});
-	}
-	else if(isprint(gev->character)) {
-		
-		Buffer_ProcessCommand(b, &(BufferCmd){
-			BufferCmd_InsertChar, gev->character
-		});
-		
-	}
-	
-}
-
-Buffer* Buffer_New(GUIManager* gm) {
-	
-	static struct gui_vtbl static_vt = {
-		.Render = (void*)render,
-	};
-	
-	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyUp = keyUp,
-	};
-	
+Buffer* Buffer_New() {
 	
 	Buffer* b = pcalloc(b);
-	
-	gui_headerInit(&b->header, gm, &static_vt);
-	b->header.event_vt = &event_vt;
 	
 	return b;
 }
@@ -714,4 +652,100 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	fclose(f);
 	
 	return 0;
+}
+
+
+
+
+
+
+    //////////////////////////////////
+   //                              //
+  //       GUIBufferEditor        //
+ //                              //
+//////////////////////////////////
+
+
+
+static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
+// HACK
+	GUIBufferEditor_Draw(w, w->header.gm, 0, 100, 0, 100);
+	
+}
+
+static void click(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	
+	// TODO: reverse calculate cursor position
+	
+}
+
+static void keyUp(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	
+	
+	if(gev->keycode == XK_Up) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_MoveCursorV, -1
+		});
+	}
+	else if(gev->keycode == XK_Down) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_MoveCursorV, 1
+		});
+	}
+	else if(gev->keycode == XK_Left) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_MoveCursorH, -1
+		});
+	}
+	else if(gev->keycode == XK_Right) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_MoveCursorH, 1
+		});
+	}
+	else if(gev->keycode == XK_Return) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_SplitLine, 0
+		});
+	}
+	else if(gev->keycode == XK_BackSpace) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_Backspace, 0
+		});
+	}
+	else if(gev->keycode == XK_Delete) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_Delete, 0
+		});
+	}
+	else if(isprint(gev->character)) {
+		
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_InsertChar, gev->character
+		});
+		
+	}
+	
+}
+
+
+GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
+	
+	static struct gui_vtbl static_vt = {
+		.Render = (void*)render,
+	};
+	
+	static struct GUIEventHandler_vtbl event_vt = {
+		.KeyUp = keyUp,
+		.Click = click,
+	};
+	
+	
+	GUIBufferEditor* w = pcalloc(w);
+	
+	gui_headerInit(&w->header, gm, &static_vt);
+	w->header.event_vt = &event_vt;
+	
+	return w;
 }

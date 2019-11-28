@@ -22,7 +22,6 @@ typedef struct BufferLine {
 
 
 typedef struct Buffer {
-	GUIHeader header;
 	
 	BufferLine* first, *last, *current; 
 	
@@ -31,10 +30,9 @@ typedef struct Buffer {
 	
 	char* filePath;
 	
-	// TODO: move elsewhere
-	GUIFont* font;
-	
 } Buffer;
+
+
 
 typedef struct TextDrawParams {
 	GUIFont* font;
@@ -63,6 +61,20 @@ typedef struct BufferDrawParams {
 	TextDrawParams* tdp;
 	ThemeDrawParams* theme;
 } BufferDrawParams;
+
+
+
+typedef struct GUIBufferEditor {
+	GUIHeader header;
+	
+	Buffer* buffer;
+	BufferDrawParams* bdp;
+	
+	// TODO: move elsewhere
+	GUIFont* font;
+	
+} GUIBufferEditor;
+
 
 
 enum BufferCmdType {
@@ -115,18 +127,30 @@ BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
 
 
-Buffer* Buffer_New(GUIManager* gm);
+Buffer* Buffer_New();
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);
 
-void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
-static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount, Vector2 tl);
 
 
 // These functions operate on and with the cursor
 BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
 void Buffer_InsertLinebreak(Buffer* b);
+
+
+
+
+
+
+
+// GUIBufferEditor
+
+
+
+void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
+static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount, Vector2 tl);
+GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 
 
 

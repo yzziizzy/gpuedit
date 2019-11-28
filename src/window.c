@@ -328,18 +328,13 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			iev->kbmods = TranslateModState(xev.xkey.state);
 			
 // 			InputFocusStack_Dispatch(ifs, &iev);
-			
-			if(isprint(c)) {
-				iev->type = EVENT_TEXT;
-// 				InputFocusStack_Dispatch(ifs, &iev);
-			}
 			return 1;
 		}
 		
 		// mouse events
 		if(xev.type == ButtonPress) {
 			pixelPos.x = CLAMP(0, xev.xbutton.x, xs->winAttr.width);
-			pixelPos.y = CLAMP(0, xs->winAttr.height - xev.xbutton.y, xs->winAttr.height);
+			pixelPos.y = CLAMP(0, xev.xbutton.y, xs->winAttr.height);
 			
 			normPos.x = (float)xev.xbutton.x / (float)xs->winAttr.width;
 			normPos.y = 1.0 - ((float)xev.xbutton.y / (float)xs->winAttr.height); // opengl is inverted to X
@@ -353,22 +348,16 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 // 			InputFocusStack_Dispatch(ifs, &iev);
 			
-			if(st->inDrag) {
-				// what? shouldn't get here.
-				fprintf(stderr, "got ButtonPress during a drag.\n");
-			}
-			else { // for determining when to start a drag
-				//printf("lastpress\n");
-				st->lastPressTime = gt;
-				st->lastPressPosPixels = pixelPos;
-				st->lastPressPosNorm = normPos;
-			}
+			//printf("lastpress\n");
+			st->lastPressTime = gt;
+			st->lastPressPosPixels = pixelPos;
+			st->lastPressPosNorm = normPos;
 			return 1;
 		}
 		if(xev.type == ButtonRelease) {
 			
 			pixelPos.x = CLAMP(0, xev.xbutton.x, xs->winAttr.width);
-			pixelPos.y = CLAMP(0, xs->winAttr.height - xev.xbutton.y, xs->winAttr.height);
+			pixelPos.y = CLAMP(0, xev.xbutton.y, xs->winAttr.height);
 			
 			normPos.x = (float)xev.xbutton.x / (float)xs->winAttr.width;
 			normPos.y = 1.0 - ((float)xev.xbutton.y / (float)xs->winAttr.height); // opengl is inverted to X
@@ -381,30 +370,8 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			iev->time = gt;
 			iev->button = xev.xbutton.button;
 			iev->kbmods = TranslateModState(xev.xbutton.state);
-
-			if(st->inDrag) { //printf("release in drag\n");
-				iev->type = EVENT_DRAGSTOP;
-				
-				iev->intDragStart = st->lastPressPosPixels;
-				iev->normDragStart = st->lastPressPosNorm;
-				
-// 				InputFocusStack_Dispatch(ifs, &iev);
-				
-				st->inDrag = 0;
-			}
-			else { //printf("released not in drag\n");
-				//printf("non-drag: %f , %f, %f\n", gt, st->lastClickTime, st->doubleClickTime);
-				if(gt - st->lastClickTime > st->doubleClickTime ) { //printf("  click\n");
-					iev->type = EVENT_CLICK; // BUG: pause and wait for doubleclick?
-				}
-				else { //printf("  doubleclick\n");
-					iev->type = EVENT_DOUBLECLICK; // BUG: only issued after initial click
-				}
-// 				InputFocusStack_Dispatch(ifs, &iev);
-				
-				iev->type = EVENT_MOUSEUP;
-// 				InputFocusStack_Dispatch(ifs, &iev);
-			}
+			
+			iev->type = EVENT_MOUSEUP;
 			
 			st->lastClickTime = gt;
 			st->lastPressTime = -1;
@@ -415,7 +382,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		if(xev.type == MotionNotify) {
 			
 			pixelPos.x = CLAMP(0, xev.xmotion.x, xs->winAttr.width);
-			pixelPos.y = CLAMP(0, xs->winAttr.height - xev.xmotion.y, xs->winAttr.height);
+			pixelPos.y = CLAMP(0, xev.xmotion.y, xs->winAttr.height);
 			
 			normPos.x = (float)xev.xmotion.x / (float)xs->winAttr.width;
 			normPos.y = 1.0 - ((float)xev.xmotion.y / (float)xs->winAttr.height); // opengl is inverted to X
@@ -457,8 +424,6 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			iev->kbmods = TranslateModState(xev.xmotion.state);
 			
 // 			InputFocusStack_Dispatch(ifs, &iev);
-			
-			
 			
 			st->lastCursorPos = normPos;
 			st->lastCursorPosPixels = pixelPos;

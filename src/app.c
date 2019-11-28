@@ -70,9 +70,12 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	as->currentBuffer = Buffer_New(as->gui);
 	as->currentBuffer->curCol = 1;
-	as->currentBuffer->font = FontManager_findFont(as->gui->fm, "Courier New");
-
-	GUIManager_pushFocusedObject(as->gui, as->currentBuffer);
+	
+	GUIBufferEditor* gbe = GUIBufferEditor_New(as->gui);
+	gbe->buffer = as->currentBuffer;
+	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
+	
+	GUIManager_pushFocusedObject(as->gui, gbe);
 	
 // 	Buffer_AddLineBelow(as->currentBuffer);
 // 	Buffer_insertText(as->currentBuffer, "foobar1", 0);
@@ -96,7 +99,7 @@ void initApp(XStuff* xs, AppState* as) {
 	Buffer_LoadFromFile(as->currentBuffer, "LICENSE");
 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
-	GUIRegisterObject(as->currentBuffer, as->gui->root);
+	GUIRegisterObject(gbe, as->gui->root);
 	
 	as->frameCount = 0;
 
@@ -303,25 +306,27 @@ void checkResize(XStuff* xs, AppState* as) {
 
 void handleEvent(AppState* as, InputState* is, InputEvent* ev) {
 // 	printf("%d %c/* */%d-\n", ev->type, ev->character, ev->keysym);
-	if(ev->type == EVENT_KEYUP) {
-		GUIManager_HandleKeyInput(as->gui, is, ev);
-	}
-	else if(ev->type == EVENT_TEXT) {
-		GUIManager_HandleKeyInput(as->gui, is, ev);
-	}
-	else if(ev->type == EVENT_KEYDOWN) {
-		GUIManager_HandleKeyInput(as->gui, is, ev);
-	}
-	else if(ev->type == EVENT_CLICK) {
-		GUIManager_HandleKeyInput(as->gui, is, ev);
-	}
 	
+	switch(ev->type) {
+		case EVENT_KEYUP:
+		case EVENT_KEYDOWN:
+			GUIManager_HandleKeyInput(as->gui, is, ev);
+			break;
+		case EVENT_MOUSEUP:
+		case EVENT_MOUSEDOWN:
+			GUIManager_HandleMouseClick(as->gui, is, ev);
+			break;
+		case EVENT_MOUSEMOVE:
+			GUIManager_HandleMouseMove(as->gui, is, ev);
+			break;
+	}
 }
 
 
 void prefilterEvent(AppState* as, InputState* is, InputEvent* ev) {
 	// drags, etc
 	
+	// TODO: fix; passthrough atm
 	handleEvent(as, is, ev);
 	
 }

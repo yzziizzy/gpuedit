@@ -98,6 +98,8 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 #define GUIEEVENTTYPE_LIST \
 	X(Any, 0) \
 	X(Click, 1) \
+	X(MouseDown, 2) \
+	X(MouseUp, 2) \
 	X(MouseMove, 2) \
 	X(KeyDown, 1) \
 	X(KeyUp, 1) \
@@ -354,7 +356,7 @@ void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);
 void GUITriggerEvent_(GUIHeader* o, GUIEvent* gev);
 void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
 
-void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, Vector2 newPos);
+void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev);
 

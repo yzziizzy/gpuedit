@@ -768,7 +768,11 @@ GUIObject* GUIObject_findChild(GUIObject* obj, char* childName) {
 
 
 
-void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, Vector2 newPos) {
+void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev) {
+	Vector2 newPos = {
+		iev->intPos.x, iev->intPos.y
+	};
+	
 	if(vEq(&newPos.x, &gm->lastMousePos)) {
 		return; // mouse did not move
 	};
@@ -796,7 +800,41 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, Vector2 newPos) 
 }
 
 void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev) {
-	fprintf(stderr, "!!!NYI: GUIManager_HandleMouseClick\n");
+	
+	Vector2 newPos = {
+		iev->intPos.x, iev->intPos.y
+	};
+	
+	// find the deepest target
+	GUIObject* t = GUIManager_hitTest(gm, newPos);
+	if(!t) return; // TODO handle mouse leaves;
+	
+	GUIEvent gev = {
+		.type = GUIEVENT_MouseUp,
+		.originalTarget = t,
+		.currentTarget = t,
+		.eventTime = 0,
+		.pos = newPos,
+		.character = 0, // N/A
+		.keycode = 0, // N/A
+		.modifiers = 0, // TODO
+		.cancelled = 0,
+		.requestRedraw = 0,
+	};
+	
+	if(iev->type == EVENT_MOUSEDOWN) {
+		gev.type = GUIEVENT_MouseDown;
+		GUIManager_BubbleEvent(gm, t, &gev);
+	} else if(iev == EVENT_MOUSEUP) {
+		GUIManager_BubbleEvent(gm, t, &gev);
+		
+		// TODO: replace when better input management exists
+		gev.type = GUIEVENT_Click;
+		gev.currentTarget = t;
+		gev.cancelled = 0;
+		GUIManager_BubbleEvent(gm, t, &gev);
+	}
+	
 }
 
 void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) {
