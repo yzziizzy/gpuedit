@@ -114,7 +114,7 @@ GUISlider* GUISlider_New(GUIManager* gm, double min, double max, double initialV
 	CHECK_OOM(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt);
-	w->header.input_vt = &input_vt;
+// 	w->header.input_vt = &input_vt;
 	w->header.size = (Vector2){150, 25}; 
 	
 	

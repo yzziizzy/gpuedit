@@ -154,7 +154,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue, Vector2 size) {
 	CHECK_OOM(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt);
-	w->header.input_vt = &input_vt;
+// 	w->header.input_vt = &input_vt;
 	w->header.size = size; 
 	
 	w->blinkRate = 1.5;

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "common_math.h"
 
@@ -411,6 +412,9 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 
 size_t getColOffset(char* txt, int col, int tabWidth) {
 	size_t w = 0;
+	
+	if(!txt) return 0;
+	
 	for(int i = 0; i < col && txt[i] != 0; i++) {
 		if(txt[i] == '\t') w += tabWidth;
 		else w++;
@@ -503,16 +507,70 @@ static void render(Buffer* w, PassFrameParams* pfp) {
 	
 }
 
+static void keyUp(GUIObject* o_, GUIEvent* gev) {
+	Buffer* b = (Buffer*)o_;
+	
+	
+	if(gev->keycode == XK_Up) {
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_MoveCursorV, -1
+		});
+	}
+	else if(gev->keycode == XK_Down) {
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_MoveCursorV, 1
+		});
+	}
+	else if(gev->keycode == XK_Left) {
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_MoveCursorH, -1
+		});
+	}
+	else if(gev->keycode == XK_Right) {
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_MoveCursorH, 1
+		});
+	}
+	else if(gev->keycode == XK_Return) {
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_SplitLine, 0
+		});
+	}
+	else if(gev->keycode == XK_BackSpace) {
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_Backspace, 0
+		});
+	}
+	else if(gev->keycode == XK_Delete) {
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_Delete, 0
+		});
+	}
+	else if(isprint(gev->character)) {
+		
+		Buffer_ProcessCommand(b, &(BufferCmd){
+			BufferCmd_InsertChar, gev->character
+		});
+		
+	}
+	
+}
+
 Buffer* Buffer_New(GUIManager* gm) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 	};
 	
+	static struct GUIEventHandler_vtbl event_vt = {
+		.KeyUp = keyUp,
+	};
+	
 	
 	Buffer* b = pcalloc(b);
 	
 	gui_headerInit(&b->header, gm, &static_vt);
+	b->header.event_vt = &event_vt;
 	
 	return b;
 }

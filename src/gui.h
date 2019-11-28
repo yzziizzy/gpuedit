@@ -86,12 +86,85 @@ struct gui_vtbl {
 };
 
 
+struct GUIEvent;
+typedef struct GUIEvent GUIEvent;
+typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
+
+// bubbling: 0=none, just the target
+//           1=rise until cancelled
+//           2=all parents
+
+//  X(name, bubbling) 
+#define GUIEEVENTTYPE_LIST \
+	X(Any, 0) \
+	X(Click, 1) \
+	X(MouseMove, 2) \
+	X(KeyDown, 1) \
+	X(KeyUp, 1) \
+	X(MouseEnter, 1) \
+	X(MouseLeave, 1) \
+	X(MouseEnterChild, 2) \
+	X(MouseLeaveChild, 2) \
+	\
+	X(Scroll, 1)
+
+
+enum GUIEventType {
+#define X(name, b) GUIEVENT_##name,
+	GUIEEVENTTYPE_LIST
+#undef X
+};
+enum GUIEventType_Bit {
+#define X(name, b) GUIEVENT_##name##_BIT = (1 << GUIEVENT_##name),
+	GUIEEVENTTYPE_LIST
+#undef X
+};
+
+struct GUIEventHandler_vtbl {
+#define X(name, b) GUI_EventHandlerFn name;
+	GUIEEVENTTYPE_LIST
+#undef X
+};
+
+static char GUIEventBubbleBehavior[] = {
+	#define X(name, bubble) [GUIEVENT_##name] = bubble,
+		GUIEEVENTTYPE_LIST
+	#undef X
+};
+
+// specific keys
+#define GUIMODKEY_LSHIFT (1 << 1);
+#define GUIMODKEY_RSHIFT (1 << 2);
+#define GUIMODKEY_LCTRL  (1 << 3);
+#define GUIMODKEY_RCTRL  (1 << 4);
+#define GUIMODKEY_LALT   (1 << 5);
+#define GUIMODKEY_RALT   (1 << 6);
+#define GUIMODKEY_LTUX   (1 << 7);
+#define GUIMODKEY_RTUX   (1 << 8);
+#define GUIMODKEY_MENU   (1 << 9);
+
+// set if either L or R is pressed
+#define GUIMODKEY_CTRL   (1 << 30);
+#define GUIMODKEY_ALT    (1 << 29);
+#define GUIMODKEY_TUX    (1 << 28);
+
 
 typedef struct GUIEvent {
+	enum GUIEventType type;
+	
 	double eventTime;
 	Vector2 eventPos;
 	GUIObject* originalTarget;
 	GUIObject* currentTarget;
+	
+	Vector2 pos; // for mouse events
+	int character;
+	int keycode;
+	
+	unsigned int modifiers;
+	
+	char cancelled;
+	char requestRedraw;
 	
 } GUIEvent;
 
@@ -106,7 +179,7 @@ typedef struct GUIHeader {
 	struct GUIManager* gm;
 	GUIObject* parent;
 	struct gui_vtbl* vt;
-	struct InputEventHandler* input_vt;
+	struct GUIEventHandler_vtbl* event_vt;
 	char* name;
 
 	// fallback for easy hit testing
@@ -180,6 +253,7 @@ union GUIObject {
 	GUIValueMonitor valueMonitor;
 	GUIDebugAdjuster debugAdjuster;
 	GUISlider Slider;
+// 	GUIScrollbar Scrollbar;
 	GUIEdit Edit;
 	GUIStructAdjuster structAdjuster;
 	GUIImageButton ImageButton;
@@ -214,6 +288,11 @@ typedef struct GUIManager {
 	FontManager* fm;
 	TextureAtlas* ta;
 	
+	// input 
+	Vector2 lastMousePos;
+	char mouseIsOutOfWindow;
+	VEC(GUIObject*) focusStack;
+	
 	// temp 
 	GLuint fontAtlasID;
 	GLuint atlasID;
@@ -236,29 +315,6 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
 
 
 
-// --------------temp----------------
-typedef struct GUITextArea {
-	GUIHeader header;
-	
-	
-	char* current;
-	
-	Vector pos;
-	float size;
-	
-	// align, height, width wrapping
-	
-	GUIFont* font;
-//	TextRenderInfo* strRI;
-	
-	
-} GUITextArea;
-// ^^^^^^^^^^^^^temp^^^^^^^^^^^^^^^^
-
-
-
-
-
 
 void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
 
@@ -271,6 +327,11 @@ GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos);
 
 GUIObject* GUIObject_findChild(GUIObject* obj, char* childName);
 
+// focus stack
+GUIObject* GUIManager_getFocusedObject(GUIManager* gm);
+#define GUIManager_pushFocusedObject(gm, o) GUIManager_pushFocusedObject_(gm, &(o)->header)
+void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h);
+GUIObject* GUIManager_popFocusedObject(GUIManager* gm);
 
 // GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
@@ -282,8 +343,21 @@ int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
 void guiTriggerClick(GUIEvent* e); 
 
+
+
 #define GUIRegisterObject(o, p) GUIRegisterObject_(&(o)->header, (p) ? (&((GUIObject*)(p))->header) : NULL)
 void GUIRegisterObject_(GUIHeader* o, GUIHeader* parent);
+
+
+void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);
+#define GUITriggerEvent(o, gev) GUITriggerEvent_(&(o)->header, gev)
+void GUITriggerEvent_(GUIHeader* o, GUIEvent* gev);
+void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
+
+void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, Vector2 newPos);
+void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev);
+void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev);
+
 
 
 void guiSetClientSize(GUIObject* go, Vector2 cSize);

@@ -48,11 +48,6 @@ void setupFBOs(AppState* as, int resized);
 // TerrainBlock* terrain;
 
 
-static void main_drag_handler(InputEvent* ev, AppState* as);
-static void main_key_handler(InputEvent* ev, AppState* as);
-static void main_perframe_handler(InputState* is, float frameSpan, AppState* as);
-static void main_click_handler(InputEvent* ev, AppState* as);
-static void main_move_handler(InputEvent* ev, AppState* as);
 
 
 // nothing in here can use opengl at all.
@@ -77,6 +72,8 @@ void initApp(XStuff* xs, AppState* as) {
 	as->currentBuffer->curCol = 1;
 	as->currentBuffer->font = FontManager_findFont(as->gui->fm, "Courier New");
 
+	GUIManager_pushFocusedObject(as->gui, as->currentBuffer);
+	
 // 	Buffer_AddLineBelow(as->currentBuffer);
 // 	Buffer_insertText(as->currentBuffer, "foobar1", 0);
 // 	test(as->currentBuffer);
@@ -100,16 +97,6 @@ void initApp(XStuff* xs, AppState* as) {
 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
 	GUIRegisterObject(as->currentBuffer, as->gui->root);
-	
-	// input handlers
-	as->defaultInputHandlers = calloc(1, sizeof(*as->defaultInputHandlers));
-	as->defaultInputHandlers->dragStop = (void*)main_drag_handler;
-	as->defaultInputHandlers->keyUp = (void*)main_key_handler;
-	as->defaultInputHandlers->perFrame = (void*)main_perframe_handler;
-	as->defaultInputHandlers->click = (void*)main_click_handler;
-	as->defaultInputHandlers->mouseMove = (void*)main_move_handler;
-	InputFocusStack_PushTarget(&as->ifs, as, defaultInputHandlers);
-	
 	
 	as->frameCount = 0;
 
@@ -283,73 +270,6 @@ void postFrame(AppState* as) {
 
 
 
-static void main_perframe_handler(InputState* is, float frameSpan, AppState* as) {
-	
-}
-
-
-
-static void main_drag_handler(InputEvent* ev, AppState* as) {
-	
-
-	
-}
-
-static void main_key_handler(InputEvent* ev, AppState* as) {
-	
-	if(ev->character == 'c') {
-		exit(0);
-	}
-	
-	if(ev->keysym == XK_Delete) {
-
-	}
-	
-	if(ev->keysym == XK_Insert) {
-// 		GUIText_setString(gtSelectionDisabled, as->selectionPassDisabled ? "Selection Disabled" : "");
-	}
-
-	
-	if(ev->character == 'k') {
-
-
-
-		
-	}
-}  
-
-
-static void main_click_handler(InputEvent* ev, AppState* as) {
-
-	if(ev->button == 1) {
-		
-		// BUG: used inverse cursor pos. changed to compile temporarily
-		GUIObject* hit;
-		
-		Vector2 pos = (Vector2){ev->intPos.x, as->screen.wh.y - ev->intPos.y};
-// 		hit = GUIManager_hitTest(as->gui, pos);
-		
-		hit = GUIManager_triggerClick(as->gui, pos);
-		
-		
-		printf("\n\n----> %f, %f \n", ev->normPos.x, ev->normPos.y);
-		if(hit) {
-			printf("@@clicked in window %p %p  %f,%f\n", as->gui->root, hit, hit->header.size.x, hit->header.size.y);
-		}
-		else {
-		}
-	}
-}
-
-
-
-
-static void main_move_handler(InputEvent* ev, AppState* as) {
-	
-
-}
-
-
 
 
 
@@ -381,53 +301,20 @@ void checkResize(XStuff* xs, AppState* as) {
 
 
 
-void handleEvent(AppState* as, InputEvent* ev) {
+void handleEvent(AppState* as, InputState* is, InputEvent* ev) {
 // 	printf("%d %c/* */%d-\n", ev->type, ev->character, ev->keysym);
 	if(ev->type == EVENT_KEYUP) {
-		if(ev->keysym == XK_Up) {
-			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-				BufferCmd_MoveCursorV, -1
-			});
-		}
-		else if(ev->keysym == XK_Down) {
-			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-				BufferCmd_MoveCursorV, 1
-			});
-		}
-		else if(ev->keysym == XK_Left) {
-			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-				BufferCmd_MoveCursorH, -1
-			});
-		}
-		else if(ev->keysym == XK_Right) {
-			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-				BufferCmd_MoveCursorH, 1
-			});
-		}
-		else if(ev->keysym == XK_Return) {
-			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-				BufferCmd_SplitLine, 0
-			});
-		}
-		else if(ev->keysym == XK_BackSpace) {
-			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-				BufferCmd_Backspace, 0
-			});
-		}
-		else if(ev->keysym == XK_Delete) {
-			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-				BufferCmd_Delete, 0
-			});
-		}
+		GUIManager_HandleKeyInput(as->gui, is, ev);
 	}
 	else if(ev->type == EVENT_TEXT) {
-// 		printf("char\n");
-		Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
-			BufferCmd_InsertChar, ev->keysym
-		});
-	
+		GUIManager_HandleKeyInput(as->gui, is, ev);
 	}
-	
+	else if(ev->type == EVENT_KEYDOWN) {
+		GUIManager_HandleKeyInput(as->gui, is, ev);
+	}
+	else if(ev->type == EVENT_CLICK) {
+		GUIManager_HandleKeyInput(as->gui, is, ev);
+	}
 	
 }
 
@@ -435,7 +322,7 @@ void handleEvent(AppState* as, InputEvent* ev) {
 void prefilterEvent(AppState* as, InputState* is, InputEvent* ev) {
 	// drags, etc
 	
-	handleEvent(as, ev);
+	handleEvent(as, is, ev);
 	
 }
 

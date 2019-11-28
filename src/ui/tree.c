@@ -45,7 +45,7 @@ GUITreeControl* GUITreeControl_New(GUIManager* gm) {
 	pcalloc(tc);
 	
 	gui_headerInit(&tc->header, gm, &static_vt);
-	tc->header.input_vt = &input_vt;
+// 	tc->header.input_vt = &input_vt;
 	
 	
 	tc->root = GUITreeControlItem_New(gm);

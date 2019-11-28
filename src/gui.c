@@ -106,6 +106,9 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt); // TODO: vtable?
+	
+	VEC_INIT(&gm->focusStack);
+	VEC_PUSH(&gm->focusStack, gm->root);
 }
 
 
@@ -193,276 +196,6 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 	//////////////////////////////////
 	
 }
-
-
-
-
-
-static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, float sz, float adv, float line) {
-	
-	float offx = ci->texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
-	float offy = ci->texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
-	float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
-	float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
-	
-	v->pos.t = 200 + line - ci->topLeftOffset.y * sz;
-	v->pos.l= 200 + adv + ci->topLeftOffset.x * sz;
-	v->pos.b = 200 + line + ci->size.y * sz - ci->topLeftOffset.y * sz;
-	v->pos.r = 200 + adv + ci->size.x * sz + ci->topLeftOffset.x * sz;
-	
-	v->guiType = 1; // text
-	
-	v->texOffset1.x = offx * 65535.0;
-	v->texOffset1.y = offy * 65535.0;
-	v->texSize1.x = widx *  65535.0;
-	v->texSize1.y = widy * 65535.0;
-	v->texIndex1 = ci->texIndex;
-}
-
-
-
-
-
-// returns 0 if the line wraps, 1 if the text ended before reaching the end of the line 
-int scanTextLine2(GUIFont* f, char* txt, float maxWidth,
-	int* _numSpaces, 
-	int* _numInternalWordBreaks, 
-	int* _firstChar,
-	int* _lastChar,
-	float* _safeLen
-) {
-	int i;
-	int eot = 0;
-	int firstChar = 0;
-	float adv = 0.0;
-	
-	// consume leading whitespace
-	for(i = 0; txt[i] != 0; i++) {
-		char c = txt[i];
-		if(c != ' ' && c != '\t') break;
-	}
-	
-	// check for end of text
-	if(txt[i] == 0) {
-		eot = 1;
-		goto EOT;
-	}
-	
-	firstChar = i;
-	if(_firstChar) *_firstChar = firstChar;
-	
-	
-	// consume one word at a time
-	for(i = firstChar; txt[i] != 0; i++) {
-		float wordAdv = 0.0;;
-		int lastWordChar;
-		
-		// look for the end of the next word
-		int j;
-		for(j = 0; txt[i + j] != 0; j++) {
-			char c = txt[i + j];
-			
-			if(c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-				break;
-			}
-			
-			struct charInfo* ci = &f->regular[c];
-			
-			wordAdv += ci->advance;
-		}
-		
-		// check for end of text
-		// BUG: do something here
-		if(txt[i + j] == 0) {
-			eot = 1;
-		}
-		
-		
-		lastWordChar = i + j - 1;
-		
-		// check for overflow
-		if(adv + wordAdv > maxWidth) {
-			
-		}
-		
-		
-		// consume trailing whitespace, contracting as desired
-		int k;
-		for(k = 0; txt[i+j+k] != 0; k++) {
-			char c = txt[i+j+k];
-			if(c != ' ' && c != '\t') break;
-			
-		}
-		
-		// check for end of text
-		// BUG: do something
-		if(txt[i+j+k] == 0) {
-			eot = 1;
-		}
-		
-		
-		
-		i += j;
-	}
-	
-	// check for end of text
-	if(txt[i] == 0) {
-		eot = 1;
-		goto EOT;
-	}
-	
-	
-EOT: // end of text reached early
-	
-	return 1;
-}
-
-void scanTextLine(GUIFont* f, char* txt, float maxWidth, 
-	int* numSpaces, 
-	int* lastChar,
-	float* safeLen
-) {
-	
-	int spacenum = 0;
-	float adv = 0.0;
-	
-	int i;
-	
-
-	int hasNonSpace = 0;
-	for(i = 0; txt[i] != 0; i++) {
-		char c = txt[i];
-		struct charInfo* ci = &f->regular[c];
-		
-		
-		adv += ci->advance; // BUG: needs sdfDataSize added in?
-		if(isspace(c)) spacenum++;
-// 		
-// 		if(hasNonSpace) {
-			if(adv >= maxWidth) {
-				break;
-			}
-// 			if(c == '\n') break;
-// 		}
-		
-	}
-	
-	if(adv > maxWidth) {
-		int hasSpace = 0;
-		while(i >= 0) {
-			if(isspace(txt[i])) {
-				hasSpace = 1;
-				spacenum--;
-			}
-			else if(hasSpace) {
-				break;
-			}
-			i--;
-			adv -= f->regular[txt[i]].advance;
-		}
-	}
-	// i should be the last non-space character before the last space
-	
-	if(lastChar) *lastChar = i;
-	if(safeLen) *safeLen = adv;
-	if(numSpaces) *numSpaces = spacenum;
-}
-
-
-GUITextArea_draw(GUIManager* gm, GUIFont* f) {
-	
-	int n = gm->elementCount;
-	GUIUnifiedVertex* v;// = gm->elemBuffer + n;
-	
-	char* txt = "( j | l )When in the Course of human events, it becomes necessary for one people to" \
-	" dissolve the political bands which have connected them with another, and to assume among" \
-	" the powers of the earth, the separate and equal station to which the Laws of Nature and" \
-	" of Nature's God entitle them, a decent respect to the opinions of mankind requires that" \
-	" they should declare the causes which impel them to the separation.\n" \
-	" We hold these truths to be self-evident, that all men are created equal, that they are" \
-	" endowed by their Creator with certain unalienable Rights, that among these are Life," \
-	" Liberty and the pursuit of Happiness.\n" \
-	" That to secure these rights, Governments are instituted among Men, deriving their just" \
-	" powers from the consent of the governed, That whenever any Form of Government becomes" \
-	" destructive of these ends, it is the Right of the People to alter or to abolish it, and" \
-	" to institute new Government, laying its foundation on such principles and organizing its" \
-	" powers in such form, as to them shall seem most likely to effect their Safety and" \
-	" Happiness. Prudence, indeed, will dictate that Governments long established should not" \
-	" be changed for light and transient causes; and accordingly all experience hath shewn," \
-	" that mankind are more disposed to suffer, while evils are sufferable, than to right" \
-	" themselves by abolishing the forms to which they are accustomed. But when a long train" \
-	" of abuses and usurpations, pursuing invariably the same Object evinces a design to reduce" \
-	" them under absolute Despotism, it is their right, it is their duty, to throw off such" \
-	" Government, and to provide new Guards for their future security.";
-	
-	
-	
-	
-	int len = strlen(txt);
-	
-	float adv = 0.0;
-	float size = 1;
-	
-	float maxw = 650;
-	float lineh = 21;
-	float line = 0;
-	
-	
-	int line_num = 0;
-	for(int i = 0; i < len; i++) {
-		int numSpaces; 
-		int lastChar;
-		float safeLen;
-		
-		line_num++;
-		
-		scanTextLine(f, txt + i, maxw, &numSpaces, &lastChar, &safeLen);
-	//	printf("%d> ns:%d, lc:%d, slen:%f\n", line_num, numSpaces, lastChar, safeLen);
-		
-		// broken
-		float spaceadv = f->regular[' '].advance;
-		//spaceadv = (maxw - safeLen) / (numSpaces - 1);
-		adv = maxw - safeLen - spaceadv;
-		
-		int onlySpace = 1;
-		for(int n = 0; n <= lastChar; n++) {
-			char c = txt[i + n];
-			// skip leading space on a new line
-			if(!isspace(c)) onlySpace = 0; 
-			if(onlySpace) {
-				continue;
-			}
-			
-			
-			struct charInfo* ci = &f->regular[c];
-			
-			
-			if(c != ' ') {
-				v = GUIManager_checkElemBuffer(gm, 1);
-				writeCharacterGeom(v, ci, size, adv, line);
-				adv += ci->advance * size; // BUG: needs sdfDataSize added in?
-				v->fg = (struct Color4){255, 128, 64, 255},
-				//v++;
-				gm->elementCount++;
-			}
-			else {
-				adv += spaceadv;
-			}
-			
-			
-			
-		}
-		
-		i += lastChar;
-		
-		adv = 0;
-		line += lineh;
-	}
-	
-	
-	//exit(1);
-}
-
 
 
 
@@ -646,34 +379,6 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 	
 	return pd;;
 }
-
-
-
-
-
-/*
-	//arial = LoadFont("Arial", 32, NULL);
-	glerr("clearing before text program load");
-	
-	printf("text prog %d\n", textProg->id);
-	unsigned int colors[] = {
-		0xFF0000FF, 2,
-		0x00FF00FF, 4,
-		0x0000FFFF, INT_MAX
-	};
-	
-	//strRI = prepareText(arial, "FPS: --", -1, colors);
-	strRI = prepareText(arialsdf, "FPS: --", -1, colors);
-	
-	
-		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", sdtime);
-// 		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->perfTimes.draw * 1000);
-		
-		//printf("--->%s\n", frameCounterBuf);
-		
-		updateText(strRI, frameCounterBuf, -1, fpsColors);
-		*/
-	
 
 
 
@@ -1060,3 +765,168 @@ GUIObject* GUIObject_findChild(GUIObject* obj, char* childName) {
 	}
 	return NULL;
 }
+
+
+
+void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, Vector2 newPos) {
+	if(vEq(&newPos.x, &gm->lastMousePos)) {
+		return; // mouse did not move
+	};
+	
+	// find the deepest target
+	GUIObject* t = GUIManager_hitTest(gm, newPos);
+	if(!t) return; // TODO handle mouse leaves;
+	
+	GUIEvent gev = {
+		.type = GUIEVENT_MouseMove,
+		.originalTarget = t,
+		.currentTarget = t,
+		.eventTime = 0,
+		.pos = newPos,
+		.character = 0, // N/A
+		.keycode = 0, // N/A
+		.modifiers = 0, // TODO
+		.cancelled = 0,
+		.requestRedraw = 0,
+	};
+	
+	GUIManager_BubbleEvent(gm, t, &gev);
+	
+	// TODO: handle redraw request
+}
+
+void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev) {
+	fprintf(stderr, "!!!NYI: GUIManager_HandleMouseClick\n");
+}
+
+void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) {
+	
+	int type;
+	
+	// translate event type
+	switch(iev->type) {
+		case EVENT_KEYDOWN: type = GUIEVENT_KeyDown; break; 
+		case EVENT_KEYUP: type = GUIEVENT_KeyUp; break; 
+		case EVENT_TEXT: type = GUIEVENT_KeyUp; break; 
+		default:
+			fprintf(stderr, "!!! Non-keyboard event in GUIManager_HandleKeyInput: %d\n", iev->type);
+			return; // not actually a kb event
+	}
+	
+	GUIObject* t = GUIManager_getFocusedObject(gm);
+	if(!t) {
+		fprintf(stderr, "key input with no focused object\n");
+		return; // TODO ???
+	}
+	
+	GUIEvent gev = {
+		.type = type,
+		.originalTarget = t,
+		.currentTarget = t,
+		.eventTime = 0,
+		.pos = {0,0}, // N/A
+		.character = iev->character, 
+		.keycode = iev->keysym, 
+		.modifiers = 0, // TODO
+		.cancelled = 0,
+		.requestRedraw = 0,
+	};
+	
+	GUIManager_BubbleEvent(gm, t, &gev);
+}
+
+
+// handles event bubbling and logic
+void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
+	
+	GUIObject* obj = target;
+	
+	int bubble = GUIEventBubbleBehavior[gev->type];
+	
+	if(bubble == 0) {
+		// no bubbling, just the target
+		GUITriggerEvent(obj, gev);
+	}
+	else if(bubble == 1) {
+		// bubble until cancelled
+		while(obj && !gev->cancelled) {
+			gev->currentTarget = obj;
+			GUITriggerEvent(obj, gev);
+			
+			obj = obj->h.parent;
+		}
+	}
+	else if(bubble = 2) {
+		// trigger on all parents
+		while(obj) {
+			gev->currentTarget = obj;
+			GUITriggerEvent(obj, gev);
+			
+			obj = obj->h.parent;
+		}
+	}
+	else {
+		fprintf(stderr, "!!! unknown bubbling behavior: %d\n", bubble);
+	}
+	
+}
+
+
+// lowest level of event triggering
+// does not do bubbling
+void GUITriggerEvent_(GUIHeader* o, GUIEvent* gev) {
+	
+	if(!o->event_vt) return;
+	
+	switch(gev->type) {
+		#define X(name, b) case GUIEVENT_##name: \
+				if(o->event_vt->name) (*o->event_vt->name)((GUIObject*)o, gev); \
+				break;
+			
+			GUIEEVENTTYPE_LIST
+		#undef X
+	}
+	
+	if(o->event_vt->Any) (*o->event_vt->Any)((GUIObject*)o, gev);
+}
+
+
+
+// focus stack functions
+
+GUIObject* GUIManager_getFocusedObject(GUIManager* gm) {
+	if(VEC_LEN(&gm->focusStack) == 0) return NULL;
+	return VEC_TAIL(&gm->focusStack);
+}
+
+GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
+	GUIObject* o;
+	
+	// can't pop off the root element at the bottom
+	if(VEC_LEN(&gm->focusStack) <= 1) return VEC_TAIL(&gm->focusStack);
+	
+	VEC_POP(&gm->focusStack, o);
+	return o;
+}
+
+void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
+	VEC_PUSH(&gm->focusStack, (GUIObject*)h);
+}
+
+
+
+/*
+int GUIManager_DispatchEvent(GUIManager* gm, GUIEvent* ev) {
+	int ret = 99;
+	if(VEC_LEN(&stack->stack) == 0) return;
+	
+	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
+		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
+	
+		ret = InputFocusTarget_Dispatch(h, ev);
+		if(ret == 0) return 0; 
+	}
+	
+	return ret;
+}
+*/
