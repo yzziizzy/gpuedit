@@ -75,6 +75,28 @@ void initApp(XStuff* xs, AppState* as) {
 	gbe->buffer = as->currentBuffer;
 	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
 	
+	TextDrawParams* tdp = pcalloc(tdp);
+	tdp->font = gbe->font;
+	tdp->fontSize = .5;
+	tdp->charWidth = 10;
+	tdp->lineHeight = 20;
+	tdp->tabWidth = 4;
+	
+	ThemeDrawParams* theme = pcalloc(theme);
+	theme->bgColor =      (struct Color4){15,   15,  15, 255};
+	theme->textColor =    (struct Color4){240, 240, 240, 255};
+	theme->cursorColor =  (struct Color4){255,   0, 255, 180};
+	theme->hl_bgColor =   (struct Color4){0,   200, 200, 255};
+	theme->hl_textColor = (struct Color4){250, 250, 250, 255};
+	
+	BufferDrawParams* bdp = pcalloc(bdp);
+	bdp->tdp = tdp;
+	bdp->theme = theme;
+	bdp->showLineNums = 1;
+	bdp->lineNumWidth = 50;
+	
+	gbe->bdp = bdp;
+	
 	GUIManager_pushFocusedObject(as->gui, gbe);
 	
 // 	Buffer_AddLineBelow(as->currentBuffer);

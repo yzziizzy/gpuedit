@@ -45,6 +45,7 @@ typedef struct TextDrawParams {
 } TextDrawParams;
 
 
+// TODO: switch to HDR colors
 typedef struct ThemeDrawParams {
 	struct Color4 bgColor; 
 	struct Color4 textColor; 
@@ -149,7 +150,7 @@ void Buffer_InsertLinebreak(Buffer* b);
 
 
 void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
-static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount, Vector2 tl);
+static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, char* txt, int charCount, Vector2 tl);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 
 

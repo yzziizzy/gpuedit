@@ -131,7 +131,7 @@ void BufferLine_AppendText(BufferLine* l, char* text, size_t len) {
 
 
 // assumes no linebreaks
-void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount, Vector2 tl) {
+void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, char* txt, int charCount, Vector2 tl) {
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
@@ -183,7 +183,7 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount,
 			v->clip.r = 1000000;
 			
 			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
-			v->fg = (struct Color4){255, 128, 64, 255},
+			v->fg = theme->textColor,
 			//v++;
 			gm->elementCount++;
 			charsDrawn++;
@@ -428,13 +428,16 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	
 	if(!b) return;
 	
+	BufferDrawParams* bdp = gbe->bdp;
+	TextDrawParams* tdp = bdp->tdp;
+	ThemeDrawParams* theme = bdp->theme;
 	GUIFont* f = gbe->font;
 	int line = 1;
 	int linesRendered = 0;
 	char lnbuf[32];
 	GUIUnifiedVertex* v;
-	/*
-		// draw background
+	
+	// draw background
 	v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
 		.pos = {0,0, 800, 800},
@@ -446,30 +449,27 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = {65535.0,65535.0}, .texSize2 = 1,
 		
 		.fg = {0, 0, 255, 255}, // TODO: border color
-		.bg = {12, 12, 12, 255}, 
+		.bg = theme->bgColor, 
 		
 		.z = .025,
 		.alpha = 1,
 	};
-	*/
 	
-	TextDrawParams tdp;
-	tdp.font = f;
-	tdp.fontSize = .5;
-	tdp.charWidth = 10;
-	tdp.lineHeight = 20;
-	tdp.tabWidth = 4;
-	Vector2 tl = (Vector2){50, 0};
+	
+	Vector2 tl = (Vector2){0, 0};
+	if(bdp->showLineNums) tl.x += bdp->lineNumWidth;
 	
 	BufferLine* bl = b->first; // BUG broken 
 	while(bl) {
 		
-		sprintf(lnbuf, "%d", bl->lineNum);
-		drawTextLine(gm, &tdp, lnbuf, 100, (Vector2){tl.x - 50, tl.y});
+		if(bdp->showLineNums) {
+			sprintf(lnbuf, "%d", bl->lineNum);
+			drawTextLine(gm, tdp, theme, lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
+		}
 		
-		drawTextLine(gm, &tdp, bl->buf, 100, tl);
+		drawTextLine(gm, tdp, theme, bl->buf, 100, tl);
 		
-		tl.y += tdp.lineHeight;
+		tl.y += tdp->lineHeight;
 		bl = bl->next;
 		linesRendered++;
 		if(linesRendered > lineTo - lineFrom) break;
@@ -481,10 +481,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	// draw cursor
 	tl = (Vector2){50, 0};
 	v = GUIManager_reserveElements(gm, 1);
-	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp.tabWidth) * tdp.charWidth;
-	float cursory = (b->current->lineNum - 1) * tdp.lineHeight;
+	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp->tabWidth) * tdp->charWidth;
+	float cursory = (b->current->lineNum - 1) * tdp->lineHeight;
 	*v = (GUIUnifiedVertex){
-		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp.lineHeight},
+		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
 		.clip = {0, 0, 18000, 18000},
 		
 		.guiType = 0, // window (just a box)
@@ -493,7 +493,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
 		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = {255, 255, 255, 255}, 
+		.bg = theme->cursorColor, 
 		
 		.z = 2.5,
 		.alpha = 1,
