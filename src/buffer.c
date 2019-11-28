@@ -11,7 +11,6 @@
 
 
 void BufferLine_SetText(BufferLine* l, char* text, size_t len) {
-	if(len == 0) len = strlen(text);
 	if(len == 0) {
 		l->length = 0;
 		return;
@@ -318,7 +317,7 @@ void Buffer_InsertLinebreak(Buffer* b) {
 	}
 	else {
 		BufferLine* n = Buffer_InsertLineAfter(b, l);
-		BufferLine_SetText(n, l->buf + b->curCol - 1, 0);
+		BufferLine_SetText(n, l->buf + b->curCol - 1, strlen(l->buf + b->curCol - 1));
 		
 		l->buf[b->curCol - 1] = 0;
 		l->length = b->curCol;
@@ -354,6 +353,29 @@ void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col) {
 	BufferLine_DeleteChar(l, col);
 }
 
+
+// deletes chars but also handles line removal and edge cases
+// does not move the cursor
+void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col) {
+	if(!b->first) return; // empty buffer
+	
+	if(col == l->length + 1) {
+		// last col of last row; do nothing
+		if(b->last == l) return;
+		
+		if(l->next->length > 0) {
+			// merge with the next line
+			BufferLine_AppendText(l, l->next->buf, l->next->length);
+		}
+		
+		Buffer_DeleteLine(b, l->next);
+		
+		return;
+	} 
+	
+	BufferLine_DeleteChar(l, col + 1);
+}
+
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 	if(cmd->type == BufferCmd_MoveCursorV) {
 		int i = cmd->amt;
@@ -377,6 +399,9 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		Buffer_BackspaceAt(b, b->current, b->curCol);
 		b->curCol--;
 	}
+	else if(cmd->type == BufferCmd_Delete) {
+		Buffer_DeleteAt(b, b->current, b->curCol);
+	}
 	else if(cmd->type == BufferCmd_SplitLine) {
 		Buffer_InsertLinebreak(b);
 	}
@@ -399,6 +424,26 @@ void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFro
 	int line = 1;
 	int linesRendered = 0;
 	char lnbuf[32];
+	GUIUnifiedVertex* v;
+	/*
+		// draw background
+	v = GUIManager_reserveElements(gm, 1);
+	*v = (GUIUnifiedVertex){
+		.pos = {0,0, 800, 800},
+		.clip = {0, 0, 18000, 18000},
+		
+		.guiType = 0, // window (just a box)
+		
+		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
+		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = {65535.0,65535.0}, .texSize2 = 1,
+		
+		.fg = {0, 0, 255, 255}, // TODO: border color
+		.bg = {12, 12, 12, 255}, 
+		
+		.z = .025,
+		.alpha = 1,
+	};
+	*/
 	
 	TextDrawParams tdp;
 	tdp.font = b->font;
@@ -423,9 +468,11 @@ void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFro
 		
 	}
 	
+
+	
 	// draw cursor
 	tl = (Vector2){50, 0};
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	v = GUIManager_reserveElements(gm, 1);
 	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp.tabWidth) * tdp.charWidth;
 	float cursory = (b->current->lineNum - 1) * tdp.lineHeight;
 	*v = (GUIUnifiedVertex){
@@ -474,8 +521,11 @@ Buffer* Buffer_New(GUIManager* gm) {
 void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 	if(len == 0) len = strlen(source);
 	
-	for(size_t i = 0; i < len; i++) {
-		char* s = source + i;
+	char* s = source;
+	for(size_t i = 0; s < source + len; i++) {
+		
+		if(*s == 0) break;
+		
 		char* e = strpbrk(s, "\r\n");
 		
 		if(e == NULL) {
@@ -483,15 +533,13 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 			return;
 		}
 		
-		if(*e == '\n') {
+		// TODO: robust input handling with unicode later
+// 		if(*e == '\n') {
 			Buffer_AppendLine(b, s, e-s);
-			i += e - s;
-		}
+// 		}
 		
-		if(*e == '\r') {
-			Buffer_AppendLine(b, s, e-s);
-			i += e - s + 1;
-		}
+		
+		s = e + 1;
 	}
 }
 
@@ -536,3 +584,76 @@ BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
 	return l;
 }
 
+
+void Buffer_ToRawText(Buffer* b, char** out, size_t* outLen) {
+	
+	// calculate the buffer size
+	size_t len = 0;
+	BufferLine* l = b->first;
+	while(l) {
+		len += l->length + 1;
+		l = l->next;
+	}
+	
+	char* o = malloc(len + 1);
+	char* end = o;
+	
+	int i = 0;
+	// copy the lines one at a time
+	l = b->first;
+	while(l) {
+		if(l->buf) strncpy(end, l->buf, l->length);
+		end += l->length;
+		*end = '\n';
+		end++;
+		l = l->next;
+		
+		i++;
+	}
+	
+	*out = o;
+	*outLen = len;
+}
+
+
+int Buffer_SaveToFile(Buffer* b, char* path) {
+	FILE* f;
+	
+	f = fopen(path, "wb");
+	if(!f) return 1;
+	
+	char* o;
+	size_t len;
+	Buffer_ToRawText(b, &o, &len);
+	
+	fwrite(o, 1, len, f);
+	
+	free(o);
+	fclose(f);
+	
+	return 0;
+}
+
+
+int Buffer_LoadFromFile(Buffer* b, char* path) {
+	FILE* f;
+	char* o;
+	
+	f = fopen(path, "rb");
+	if(!f) return 1;
+	
+	
+	fseek(f, 0, SEEK_END); 
+	size_t len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	
+	o = malloc(len + 1);
+	o[len] = 0;
+	fread(o, 1, len, f);
+	Buffer_AppendRawText(b, o, len);
+	
+	free(o);
+	fclose(f);
+	
+	return 0;
+}

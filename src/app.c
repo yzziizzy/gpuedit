@@ -89,12 +89,15 @@ void initApp(XStuff* xs, AppState* as) {
 // 	Buffer_insertText(as->currentBuffer, "foobar3", 0);
 // 	test(as->currentBuffer);
 
-	Buffer_AppendLine(as->currentBuffer, "foobar4", 0);
-	Buffer_AppendLine(as->currentBuffer, "\tfoobar5", 0);
-	Buffer_AppendLine(as->currentBuffer, " foobar6", 0);
-	Buffer_AppendLine(as->currentBuffer, "longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg!", 0);
+// 	Buffer_AppendLine(as->currentBuffer, "foobar4", 0);
+// 	Buffer_AppendLine(as->currentBuffer, "\tfoobar5", 0);
+// 	Buffer_AppendLine(as->currentBuffer, " foobar6", 0);
+// 	Buffer_AppendLine(as->currentBuffer, "longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg!", 0);
 	
-	Buffer_AppendRawText(as->currentBuffer, "first\nabc\nabc\nabc\nabc\nlast", 0);
+// 	Buffer_AppendRawText(as->currentBuffer, "first\nabc\nabc\nabc\nabc\nlast", 0);
+	
+	Buffer_LoadFromFile(as->currentBuffer, "LICENSE");
+	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
 	GUIRegisterObject(as->currentBuffer, as->gui->root);
 	
@@ -409,6 +412,11 @@ void handleEvent(AppState* as, InputEvent* ev) {
 		else if(ev->keysym == XK_BackSpace) {
 			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
 				BufferCmd_Backspace, 0
+			});
+		}
+		else if(ev->keysym == XK_Delete) {
+			Buffer_ProcessCommand(as->currentBuffer, &(BufferCmd){
+				BufferCmd_Delete, 0
 			});
 		}
 	}

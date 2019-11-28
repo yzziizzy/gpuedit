@@ -29,6 +29,8 @@ typedef struct Buffer {
 	int numLines;
 	int curCol;
 	
+	char* filePath;
+	
 	// TODO: move elsewhere
 	GUIFont* font;
 	
@@ -69,6 +71,7 @@ enum BufferCmdType {
 	BufferCmd_InsertChar,
 	BufferCmd_SplitLine,
 	BufferCmd_Backspace,
+	BufferCmd_Delete,
 };
 
 typedef struct BufferCmd {
@@ -104,6 +107,7 @@ BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after);
 BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before);
 void Buffer_DeleteLine(Buffer* b, BufferLine* l);
 void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col);
+void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col);
 
 // these functions operate on absolute positions
 void Buffer_AppendRawText(Buffer* b, char* source, size_t len);
@@ -112,6 +116,9 @@ BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
 
 
 Buffer* Buffer_New(GUIManager* gm);
+void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
+int Buffer_SaveToFile(Buffer* b, char* path);
+int Buffer_LoadFromFile(Buffer* b, char* path);
 
 void Buffer_Draw(Buffer* b, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
 static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, char* txt, int charCount, Vector2 tl);
