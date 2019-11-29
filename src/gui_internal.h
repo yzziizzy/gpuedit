@@ -5,15 +5,15 @@
 
 
 typedef struct GUIRenderParams {
-	Vector2 offset; // from the top left
-	Vector2 size; // of the parent's client area
-	AABB2 clip;
-	float baseZ;
+	Vector2 offset; // parent-defined absolute from the top left of the screen
+	Vector2 size; // of the parent's client area that the child lives in
+	AABB2 clip; // absolute clipping region
+	float baseZ; // accumulated absolute Z from the parent
 } GUIRenderParams;
 
 
 
-void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt); 
+void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt, struct GUIEventHandler_vtbl* event_vt); 
 void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
 Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
 GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos);

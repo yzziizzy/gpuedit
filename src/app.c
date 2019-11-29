@@ -67,11 +67,14 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	as->gui = GUIManager_alloc(&as->globalSettings);
 	
+	Buffer* buf2 = Buffer_New(as->gui);
+	buf2->curCol = 1;
 	
 	as->currentBuffer = Buffer_New(as->gui);
 	as->currentBuffer->curCol = 1;
 	
 	Buffer_LoadFromFile(as->currentBuffer, "LICENSE");
+	Buffer_LoadFromFile(buf2, "config.h");
 // 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
 	
@@ -87,6 +90,12 @@ void initApp(XStuff* xs, AppState* as) {
 	gbe->buffer = as->currentBuffer;
 	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
 	gbe->scrollLines = 0;
+
+	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
+	gbe2->header.size = (Vector2){800, 800}; // TODO update dynamically
+	gbe2->buffer = buf2;
+	gbe2->font = FontManager_findFont(as->gui->fm, "Courier New");
+	gbe2->scrollLines = 0;
 	
 	TextDrawParams* tdp = pcalloc(tdp);
 	tdp->font = gbe->font;
@@ -96,11 +105,11 @@ void initApp(XStuff* xs, AppState* as) {
 	tdp->tabWidth = 4;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
-	theme->bgColor =      (struct Color4){15,   15,  15, 255};
+	theme->bgColor =      (struct Color4){ 15,  15,  15, 255};
 	theme->textColor =    (struct Color4){240, 240, 240, 255};
 	theme->cursorColor =  (struct Color4){255,   0, 255, 180};
-	theme->hl_bgColor =   (struct Color4){0,   200, 200, 255};
-	theme->hl_textColor = (struct Color4){250, 0, 50, 255};
+	theme->hl_bgColor =   (struct Color4){  0, 200, 200, 255};
+	theme->hl_textColor = (struct Color4){250,   0,  50, 255};
 	
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;
@@ -109,29 +118,20 @@ void initApp(XStuff* xs, AppState* as) {
 	bdp->lineNumWidth = 50;
 	
 	gbe->bdp = bdp;
+	gbe2->bdp = bdp;
+	
+	GUITabControl* tabs = GUITabControl_New(as->gui);
+	GUIRegisterObject(tabs, as->gui->root);
+	as->tc = tabs;
+	
+	GUIRegisterObject(gbe2, tabs);
+	GUIRegisterObject(gbe, tabs);
 	
 	GUIManager_pushFocusedObject(as->gui, gbe);
 	
-// 	Buffer_AddLineBelow(as->currentBuffer);
-// 	Buffer_insertText(as->currentBuffer, "foobar1", 0);
-// 	test(as->currentBuffer);
-// 	
-// 	Buffer_AddLineBelow(as->currentBuffer);
-// 	Buffer_insertText(as->currentBuffer, "foobar2", 0);
-// 	test(as->currentBuffer);
-// 	
-// 	Buffer_AddLineBelow(as->currentBuffer);
-// 	Buffer_insertText(as->currentBuffer, "foobar3", 0);
-// 	test(as->currentBuffer);
-
-// 	Buffer_AppendLine(as->currentBuffer, "foobar4", 0);
-// 	Buffer_AppendLine(as->currentBuffer, "\tfoobar5", 0);
-// 	Buffer_AppendLine(as->currentBuffer, " foobar6", 0);
-// 	Buffer_AppendLine(as->currentBuffer, "longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg!", 0);
 	
-// 	Buffer_AppendRawText(as->currentBuffer, "first\nabc\nabc\nabc\nabc\nlast", 0);
 	
-	GUIRegisterObject(gbe, as->gui->root);
+	
 	
 	as->frameCount = 0;
 
@@ -338,6 +338,18 @@ void checkResize(XStuff* xs, AppState* as) {
 
 void handleEvent(AppState* as, InputState* is, InputEvent* ev) {
 // 	printf("%d %c/* */%d-\n", ev->type, ev->character, ev->keysym);
+	
+	if(ev->type == EVENT_KEYUP && is->keyState[64]) {
+		if(ev->keysym == XK_Right) {
+			GUITabControl_NextTab(as->tc, 1);
+			return;
+		}
+		else if(ev->keysym == XK_Left) {
+			GUITabControl_PrevTab(as->tc, 1);
+			return;
+		}
+	}
+	
 	
 	switch(ev->type) {
 		case EVENT_KEYUP:

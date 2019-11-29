@@ -228,6 +228,7 @@ typedef struct GUIHeader {
 #include "ui/window.h"
 #include "ui/text.h"
 #include "ui/scrollWindow.h"
+#include "ui/tabControl.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "ui/imgButton.h"
@@ -255,6 +256,7 @@ union GUIObject {
 	GUIValueMonitor valueMonitor;
 	GUIDebugAdjuster debugAdjuster;
 	GUISlider Slider;
+	GUITabControl TabControl;
 // 	GUIScrollbar Scrollbar;
 	GUIEdit Edit;
 	GUIStructAdjuster structAdjuster;

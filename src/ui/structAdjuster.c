@@ -60,7 +60,7 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, void* target, GUISA_Fie
 	
 	
 	pcalloc(sa);
-	gui_headerInit(&sa->header, gm, &static_vt);
+	gui_headerInit(&sa->header, gm, &static_vt, NULL);
 // 	sa->header.input_vt = &input_vt;
 	
 	sa->target = target;

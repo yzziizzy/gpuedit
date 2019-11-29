@@ -26,7 +26,7 @@ GUIValueMonitor* GUIValueMonitor_new(GUIManager* gm, char* format, void* target,
 	
 	
 	pcalloc(gfm);
-	gui_headerInit(&gfm->header, gm, &static_vt);
+	gui_headerInit(&gfm->header, gm, &static_vt, NULL);
 	
 	gfm->target = target;
 	gfm->type = type;

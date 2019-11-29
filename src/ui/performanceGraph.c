@@ -107,7 +107,7 @@ GUIPerformanceGraph* guiPerformanceGraphNew(GUIManager* gm, Vector2 size, float 
 	sw = calloc(1, sizeof(*sw));
 	CHECK_OOM(sw);
 	
-	gui_headerInit(&sw->header, gm, &static_vt);
+	gui_headerInit(&sw->header, gm, &static_vt, NULL);
 	
 	sw->header.size = (Vector2){0, 20};
 	

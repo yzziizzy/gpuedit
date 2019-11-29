@@ -43,7 +43,7 @@ GUIScrollWindow* GUIScrollWindow_new(GUIManager* gm) {
 	
 	
 	pcalloc(gw);
-	gui_headerInit(&gw->header, gm, &static_vt);
+	gui_headerInit(&gw->header, gm, &static_vt, NULL);
 	
 // 	gw->vscrollbar = GUIWindow_new(gm); 
 // 	gw->vscrollbar->color = (Vector){0,1,.7};

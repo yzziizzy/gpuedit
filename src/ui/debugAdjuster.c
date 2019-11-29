@@ -38,7 +38,7 @@ GUIDebugAdjuster* GUIDebugAdjuster_new(GUIManager* gm, char* format, void* targe
 	
 	
 	pcalloc(da);
-	gui_headerInit(&da->header, gm, &static_vt);
+	gui_headerInit(&da->header, gm, &static_vt, NULL);
 // 	da->header.input_vt = &input_vt;
 	
 	da->target = target;

@@ -105,7 +105,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
-	gui_headerInit(gm->root, NULL, &root_vt); // TODO: vtable?
+	gui_headerInit(gm->root, NULL, &root_vt, NULL); 
 	
 	VEC_INIT(&gm->focusStack);
 	VEC_PUSH(&gm->focusStack, gm->root);
@@ -460,10 +460,11 @@ int guiRemoveChild(GUIObject* parent, GUIObject* child) {
 
 
 
-void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt) {
+void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt, struct GUIEventHandler_vtbl* event_vt) {
 	VEC_INIT(&gh->children);
 	gh->gm = gm;
 	gh->vt = vt;
+	gh->event_vt = event_vt;
 	
 	gh->scale = 1.0;
 	gh->alpha = 1.0;
@@ -485,7 +486,7 @@ void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp) {
 }
 
 // grp is data about the parent's positioning. 
-// the child must calculate its own position based on the parent's info passed in.
+// the child must calculate its own (absolute) position based on the parent's info passed in.
 // this info is then passed down to its children
 // the default behavior is:
 //   position according to gravity

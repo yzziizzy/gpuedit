@@ -41,7 +41,7 @@ GUIWindow* GUIWindow_new(GUIManager* gm) {
 	
 	
 	pcalloc(gw);
-	gui_headerInit(&gw->header, gm, &static_vt);
+	gui_headerInit(&gw->header, gm, &static_vt, NULL);
 /*	
 	gw->header.topleft = pos;
 	gw->header.size = size;

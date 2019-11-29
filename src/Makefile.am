@@ -44,6 +44,7 @@ gpuedit_SOURCES = main.c \
 	ui/simpleWindow.c \
 	ui/slider.c \
 	ui/structAdjuster.c \
+	ui/tabControl.c \
 	ui/text.c \
 	ui/tree.c \
 	ui/window.c \

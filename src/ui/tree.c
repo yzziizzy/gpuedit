@@ -22,7 +22,7 @@ static GUITreeControlItem* GUITreeControlItem_New(GUIManager* gm) {
 	};
 	
 	pcalloc(tci);
-	gui_headerInit(&tci->header, gm, &static_vt);
+	gui_headerInit(&tci->header, gm, &static_vt, NULL);
 	
 	return tci;
 }
@@ -44,7 +44,7 @@ GUITreeControl* GUITreeControl_New(GUIManager* gm) {
 	
 	pcalloc(tc);
 	
-	gui_headerInit(&tc->header, gm, &static_vt);
+	gui_headerInit(&tc->header, gm, &static_vt, NULL);
 // 	tc->header.input_vt = &input_vt;
 	
 	

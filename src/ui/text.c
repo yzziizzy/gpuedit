@@ -34,7 +34,7 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	pcalloc(gt);
 	
 // 	gt->header.gm = gm;
-	gui_headerInit(&gt->header, gm, &static_vt);
+	gui_headerInit(&gt->header, gm, &static_vt, NULL);
 // 	gt->header.vt = &static_vt; 
 	
 	// TODO: x size, fix y size

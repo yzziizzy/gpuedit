@@ -86,7 +86,7 @@ GUIImageButton* GUIImageButton_New(GUIManager* gm, float border, char* imgName) 
 	w = calloc(1, sizeof(*w));
 	CHECK_OOM(w);
 	
-	gui_headerInit(&w->header, gm, &static_vt);
+	gui_headerInit(&w->header, gm, &static_vt, NULL);
 // 	w->header.input_vt = &input_vt;
 	
 // 	w->header.z = zIndex;

@@ -244,7 +244,7 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 	GUIImage* im;
 	pcalloc(im);
 	
-	gui_headerInit(&im->header, gm, &static_vt);
+	gui_headerInit(&im->header, gm, &static_vt, NULL);
 	
 // 	im->header.hitbox.min.x = pos.x;
 // 	im->header.hitbox.min.y = pos.y;
@@ -364,7 +364,7 @@ GUIRenderTarget* GUIRenderTarget_new(GUIManager* gm, Vector2 pos, Vector2 size, 
 	im = calloc(1, sizeof(*im));
 	CHECK_OOM(im);
 	
- 	gui_headerInit(&im->header, gm, &static_vt);
+ 	gui_headerInit(&im->header, gm, &static_vt, NULL);
 	
 	im->header.hitbox.min.x = pos.x;
 	im->header.hitbox.min.y = pos.y;

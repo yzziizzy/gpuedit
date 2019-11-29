@@ -31,7 +31,7 @@ GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing,
 	w = calloc(1, sizeof(*w));
 	CHECK_OOM(w);
 	
-	gui_headerInit(&w->header, gm, &static_vt);
+	gui_headerInit(&w->header, gm, &static_vt, NULL);
 	
 	w->spacing = spacing;
 	

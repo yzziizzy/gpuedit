@@ -113,6 +113,7 @@ typedef struct AppState {
 
 	
 	Buffer* currentBuffer;
+	GUITabControl* tc;
 	
 } AppState;
 

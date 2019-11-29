@@ -291,8 +291,83 @@ void vec_resize_to(void** data, size_t* size, size_t elem_size, size_t new_size)
 
 
 
+// Doubly-linked list helpers
+
+#define DLL_INSERT_AFTER(new, before, cont) \
+do { \
+	if((cont)->first == NULL) { \
+		(cont)->first = (new); \
+		(cont)->last = (new); \
+	}  \
+	else { \
+		(new)->next = (before)->next; \
+		(new)->prev = (before); \
+		(before)->next = (new); \
+		if((new)->next) (new)->next->prev = (new); \
+		 \
+		if((cont)->last == (before)) (cont)->last = (new); \
+	} \
+} while(0)
+
+#define DLL_INSERT_BEFORE(new, after, cont) \
+do { \
+	if((cont)->first == NULL) { \
+		(cont)->first = (new); \
+		(cont)->last = (new); \
+	} \
+	else { \
+		(new)->next = (after); \
+		(new)->prev = (after)->prev; \
+		(after)->prev = (new); \
+		if((new)->prev) (new)->prev->next = (new); \
+		\
+		if((cont)->first == (after)) (cont)->first = (new); \
+	} \
+} while(0)
 
 
+#define DLL_DELETE(doomed, cont) \
+do { \
+	if((doomed) == (cont)->first) (cont)->first = (doomed)->next; \
+	if((doomed) == (cont)->last) (cont)->last = (doomed)->prev; \
+	if((doomed)->prev) (doomed)->prev->next = (doomed)->next; \
+	if((doomed)->next) (doomed)->next->prev = (doomed)->prev; \
+} while(0)
+
+
+// circular double linked lists
+#define CDLL_INSERT_AFTER(new, before, cont) \
+do { \
+	if((cont)->first == NULL) { \
+		(cont)->first = (new); \
+		(cont)->current = (new); \
+		(new)->next = (new); \
+		(new)->prev = (new); \
+	}  \
+	else { \
+		(new)->next = (before)->next; \
+		(new)->prev = (before); \
+		(before)->next = (new); \
+		(new)->next->prev = (new); \
+	} \
+} while(0)
+
+
+#define CDLL_INSERT_BEFORE(new, after, cont) \
+do { \
+	if((cont)->first == NULL) { \
+		(cont)->first = (new); \
+		(cont)->current = (new); \
+		(new)->next = (new); \
+		(new)->prev = (new); \
+	} \
+	else { \
+		(new)->next = (after); \
+		(new)->prev = (after)->prev; \
+		(after)->prev = (new); \
+		(new)->prev->next = (new); \
+	} \
+} while(0)
 
 
 

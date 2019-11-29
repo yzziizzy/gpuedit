@@ -556,12 +556,12 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		if(bl->buf) {
 
 			for(int i = 0; i < maxCols; i++) { 
-				if(b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
+				if(b->sel && b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
 					inSelection = 1;
 					fg = &theme->hl_textColor;
 					bg = &theme->hl_bgColor;
 				}
-				if(b->sel->endLine == bl && b->sel->endCol <= i + gbe->scrollCols) {
+				if(b->sel && b->sel->endLine == bl && b->sel->endCol <= i + gbe->scrollCols) {
 					inSelection = 0;
 					fg = &theme->textColor;
 					bg = &theme->bgColor;
@@ -959,8 +959,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	GUIBufferEditor* w = pcalloc(w);
 	
-	gui_headerInit(&w->header, gm, &static_vt);
-	w->header.event_vt = &event_vt;
+	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
 	return w;
 }
