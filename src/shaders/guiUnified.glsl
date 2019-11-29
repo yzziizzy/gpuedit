@@ -245,8 +245,8 @@ void main(void) {
 		};
 		
 		//if(dd < .35) discard;
-// 		out_Color = vec4(gs_fg_color.rgb, a); 
-		out_Color = vec4(.9,.9,.9, a); 
+		out_Color = vec4(gs_fg_color.rgb, a); 
+// 		out_Color = vec4(.9,.9,.9, a); 
 		return;
 	}
 	else if(gs_guiType == 2) { // simple image

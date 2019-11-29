@@ -71,9 +71,22 @@ void initApp(XStuff* xs, AppState* as) {
 	as->currentBuffer = Buffer_New(as->gui);
 	as->currentBuffer->curCol = 1;
 	
+	Buffer_LoadFromFile(as->currentBuffer, "LICENSE");
+// 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
+	
+	
+	BufferSelection* sel = pcalloc(sel);
+	sel->startLine = as->currentBuffer->first->next->next->next->next->next->next->next->next->next->next->next->next;
+	sel->endLine = sel->startLine->next->next->next;
+	sel->startCol = 3;
+	sel->endCol = 12;
+	as->currentBuffer->sel = sel;
+	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(as->gui);
+	gbe->header.size = (Vector2){800, 800}; // TODO update dynamically
 	gbe->buffer = as->currentBuffer;
 	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
+	gbe->scrollLines = 0;
 	
 	TextDrawParams* tdp = pcalloc(tdp);
 	tdp->font = gbe->font;
@@ -87,7 +100,7 @@ void initApp(XStuff* xs, AppState* as) {
 	theme->textColor =    (struct Color4){240, 240, 240, 255};
 	theme->cursorColor =  (struct Color4){255,   0, 255, 180};
 	theme->hl_bgColor =   (struct Color4){0,   200, 200, 255};
-	theme->hl_textColor = (struct Color4){250, 250, 250, 255};
+	theme->hl_textColor = (struct Color4){250, 0, 50, 255};
 	
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;
@@ -117,9 +130,6 @@ void initApp(XStuff* xs, AppState* as) {
 // 	Buffer_AppendLine(as->currentBuffer, "longggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg!", 0);
 	
 // 	Buffer_AppendRawText(as->currentBuffer, "first\nabc\nabc\nabc\nabc\nlast", 0);
-	
-	Buffer_LoadFromFile(as->currentBuffer, "LICENSE");
-	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
 	GUIRegisterObject(gbe, as->gui->root);
 	

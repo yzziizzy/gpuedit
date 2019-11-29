@@ -20,6 +20,12 @@ typedef struct BufferLine {
 	
 } BufferLine;
 
+typedef struct BufferSelection {
+	BufferLine* startLine, *endLine;
+	size_t startCol, endCol;
+	
+	// type?
+} BufferSelection;
 
 typedef struct Buffer {
 	
@@ -30,7 +36,10 @@ typedef struct Buffer {
 	
 	char* filePath;
 	
+	BufferSelection* sel;
+	
 } Buffer;
+
 
 
 
@@ -70,6 +79,9 @@ typedef struct GUIBufferEditor {
 	
 	Buffer* buffer;
 	BufferDrawParams* bdp;
+	
+	size_t scrollLines; 
+	size_t scrollCols; // NYI, waiting on next line draw fn iteration
 	
 	// TODO: move elsewhere
 	GUIFont* font;

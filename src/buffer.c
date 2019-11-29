@@ -130,6 +130,146 @@ void BufferLine_AppendText(BufferLine* l, char* text, size_t len) {
 }
 
 
+size_t drawCharacter(
+	GUIManager* gm, 
+	TextDrawParams* tdp, 
+	struct Color4* fgColor, 
+	struct Color4* bgColor, 
+	int c, 
+	Vector2 tl
+) {
+// 		printf("'%s'\n", bl->buf);
+	GUIFont* f = tdp->font;
+	float size = tdp->fontSize; // HACK
+	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+		
+	struct charInfo* ci = &f->regular[c];
+	GUIUnifiedVertex* v;
+	
+	// background
+	if(bgColor->a > 0) {
+		v = GUIManager_reserveElements(gm, 1);
+		
+		*v = (GUIUnifiedVertex){
+			.pos.t = tl.y,
+			.pos.l = tl.x,
+			.pos.b = tl.y + tdp->lineHeight,
+			.pos.r = tl.x + tdp->charWidth,
+			
+			.guiType = 0, // box
+			
+			.texOffset1.x = ci->texNormOffset.x * 65535.0,
+			.texOffset1.y = ci->texNormOffset.y * 65535.0,
+			.texSize1.x = ci->texNormSize.x *  65535.0,
+			.texSize1.y = ci->texNormSize.y * 65535.0,
+			.texIndex1 = ci->texIndex,
+			
+			.bg = *bgColor,
+			
+			// disabled in the shader right now
+			.clip = {0,0, 1000000,1000000},
+		};
+	}
+	
+	// character
+	if(c != ' ' && c != '\t') { // TODO: proper printable character check
+		v = GUIManager_reserveElements(gm, 1);
+		
+		*v = (GUIUnifiedVertex){
+			.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
+			.pos.l = tl.x + ci->topLeftOffset.x * size,
+			.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
+			.pos.r = tl.x + ci->size.x * size + ci->topLeftOffset.x * size,
+			
+			.guiType = 1, // text
+			
+			.texOffset1.x = ci->texNormOffset.x * 65535.0,
+			.texOffset1.y = ci->texNormOffset.y * 65535.0,
+			.texSize1.x = ci->texNormSize.x *  65535.0,
+			.texSize1.y = ci->texNormSize.y * 65535.0,
+			.texIndex1 = ci->texIndex,
+			
+			.fg = *fgColor,
+			
+			// disabled in the shader right now
+			.clip = {0,0, 1000000,1000000},
+		};
+	}
+	
+
+}
+
+// assumes no linebreaks, draws a segment of text
+// returns the *number of columns advanced*
+size_t drawTextSeg(
+	GUIManager* gm, 
+	TextDrawParams* tdp, 
+	struct Color4* fgColor, 
+	struct Color4* bgColor, 
+	char* txt, 
+	size_t maxCols, 
+	size_t maxChars, 
+	Vector2 tl 
+) {
+// 		printf("'%s'\n", bl->buf);
+	if(txt == NULL || maxChars == 0 || maxCols == 0) return 0;
+	
+	int charsDrawn = 0;
+	int colsDrawn = 0;
+	GUIFont* f = tdp->font;
+	float size = tdp->fontSize; // HACK
+	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+	float adv = 0;
+	
+	float spaceadv = f->regular[' '].advance;
+	
+	for(int n = 0; txt[n] != 0 && charsDrawn < maxChars; n++) {
+		char c = txt[n];
+		
+		struct charInfo* ci = &f->regular[c];
+		
+		if(c == '\t') {
+			adv += tdp->charWidth * tdp->tabWidth;
+			colsDrawn += tdp->tabWidth;
+		}
+		else if(c != ' ') {
+			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+			
+			*v = (GUIUnifiedVertex){
+				.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
+				.pos.l = tl.x + adv + ci->topLeftOffset.x * size,
+				.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
+				.pos.r = tl.x + adv + ci->size.x * size + ci->topLeftOffset.x * size,
+				
+				.guiType = 1, // text
+				
+				.texOffset1.x = ci->texNormOffset.x * 65535.0,
+				.texOffset1.y = ci->texNormOffset.y * 65535.0,
+				.texSize1.x = ci->texNormSize.x *  65535.0,
+				.texSize1.y = ci->texNormSize.y * 65535.0,
+				.texIndex1 = ci->texIndex,
+				
+				.fg = *fgColor,
+				.bg = * bgColor,
+				
+				// disabled in the shader right now
+				.clip = {0,0, 1000000,1000000},
+			};
+		
+			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
+			colsDrawn++;
+		}
+		else {
+			adv += tdp->charWidth;
+			colsDrawn++;
+		}
+		
+		charsDrawn++;
+	}
+	
+	return colsDrawn;
+}
+
 // assumes no linebreaks
 void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, char* txt, int charCount, Vector2 tl) {
 // 		printf("'%s'\n", bl->buf);
@@ -437,7 +577,8 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	char lnbuf[32];
 	GUIUnifiedVertex* v;
 	
-	// draw background
+	
+	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
 		.pos = {0,0, 800, 800},
@@ -460,6 +601,18 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	if(bdp->showLineNums) tl.x += bdp->lineNumWidth;
 	
 	BufferLine* bl = b->first; // BUG broken 
+	
+	// scroll down
+	// TODO: cache a pointer
+	for(size_t i = 0; i < gbe->scrollLines && bl->next; i++) bl = bl->next; 
+	
+	int inSelection = 0;
+	int maxCols = 100;
+	
+	struct Color4* fg = &theme->textColor; 
+	struct Color4* bg = &theme->bgColor;
+	
+	// draw
 	while(bl) {
 		
 		if(bdp->showLineNums) {
@@ -467,13 +620,42 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			drawTextLine(gm, tdp, theme, lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
 		}
 		
-		drawTextLine(gm, tdp, theme, bl->buf, 100, tl);
+		float adv = 0;
+
+		
+		if(bl->buf) {
+
+			for(int i = 0; i < maxCols; i++) { 
+				if(b->sel->startLine == bl && b->sel->startCol >= i + gbe->scrollCols) {
+					inSelection = 1;
+					fg = &theme->hl_textColor;
+					bg = &theme->hl_bgColor;
+				}
+				if(b->sel->endLine == bl && b->sel->endCol <= i + gbe->scrollCols) {
+					inSelection = 0;
+					fg = &theme->textColor;
+					bg = &theme->bgColor;
+				} 
+				
+				int c = bl->buf[gbe->scrollCols + i]; 
+				if(c == 0) break;
+				
+				if(c == '\t') {
+					adv += tdp->charWidth * tdp->tabWidth;
+				}
+				else {
+					drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y});
+					adv += tdp->charWidth;
+				}
+			}
+		}
 		
 		tl.y += tdp->lineHeight;
 		bl = bl->next;
 		linesRendered++;
 		if(linesRendered > lineTo - lineFrom) break;
 		
+		if(tl.y > gbe->header.size.y) break; // end of control
 	}
 	
 
@@ -482,7 +664,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	tl = (Vector2){50, 0};
 	v = GUIManager_reserveElements(gm, 1);
 	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp->tabWidth) * tdp->charWidth;
-	float cursory = (b->current->lineNum - 1) * tdp->lineHeight;
+	float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 	*v = (GUIUnifiedVertex){
 		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
 		.clip = {0, 0, 18000, 18000},
