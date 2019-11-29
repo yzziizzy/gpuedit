@@ -78,8 +78,8 @@ void initApp(XStuff* xs, AppState* as) {
 	BufferSelection* sel = pcalloc(sel);
 	sel->startLine = as->currentBuffer->first->next->next->next->next->next->next->next->next->next->next->next->next;
 	sel->endLine = sel->startLine->next->next->next;
-	sel->startCol = 3;
-	sel->endCol = 12;
+	sel->startCol = 5;
+	sel->endCol = 15;
 	as->currentBuffer->sel = sel;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(as->gui);

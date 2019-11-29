@@ -113,7 +113,6 @@ typedef struct AppState {
 
 	
 	Buffer* currentBuffer;
-
 	
 } AppState;
 

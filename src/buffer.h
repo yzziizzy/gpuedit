@@ -86,7 +86,9 @@ typedef struct GUIBufferEditor {
 	// TODO: move elsewhere
 	GUIFont* font;
 	
+	
 } GUIBufferEditor;
+
 
 
 
@@ -141,6 +143,8 @@ BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
 
 
 Buffer* Buffer_New();
+Buffer* Buffer_Copy(Buffer* src);
+Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);

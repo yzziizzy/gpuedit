@@ -199,76 +199,6 @@ size_t drawCharacter(
 
 }
 
-// assumes no linebreaks, draws a segment of text
-// returns the *number of columns advanced*
-size_t drawTextSeg(
-	GUIManager* gm, 
-	TextDrawParams* tdp, 
-	struct Color4* fgColor, 
-	struct Color4* bgColor, 
-	char* txt, 
-	size_t maxCols, 
-	size_t maxChars, 
-	Vector2 tl 
-) {
-// 		printf("'%s'\n", bl->buf);
-	if(txt == NULL || maxChars == 0 || maxCols == 0) return 0;
-	
-	int charsDrawn = 0;
-	int colsDrawn = 0;
-	GUIFont* f = tdp->font;
-	float size = tdp->fontSize; // HACK
-	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
-	float adv = 0;
-	
-	float spaceadv = f->regular[' '].advance;
-	
-	for(int n = 0; txt[n] != 0 && charsDrawn < maxChars; n++) {
-		char c = txt[n];
-		
-		struct charInfo* ci = &f->regular[c];
-		
-		if(c == '\t') {
-			adv += tdp->charWidth * tdp->tabWidth;
-			colsDrawn += tdp->tabWidth;
-		}
-		else if(c != ' ') {
-			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-			
-			*v = (GUIUnifiedVertex){
-				.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
-				.pos.l = tl.x + adv + ci->topLeftOffset.x * size,
-				.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
-				.pos.r = tl.x + adv + ci->size.x * size + ci->topLeftOffset.x * size,
-				
-				.guiType = 1, // text
-				
-				.texOffset1.x = ci->texNormOffset.x * 65535.0,
-				.texOffset1.y = ci->texNormOffset.y * 65535.0,
-				.texSize1.x = ci->texNormSize.x *  65535.0,
-				.texSize1.y = ci->texNormSize.y * 65535.0,
-				.texIndex1 = ci->texIndex,
-				
-				.fg = *fgColor,
-				.bg = * bgColor,
-				
-				// disabled in the shader right now
-				.clip = {0,0, 1000000,1000000},
-			};
-		
-			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
-			colsDrawn++;
-		}
-		else {
-			adv += tdp->charWidth;
-			colsDrawn++;
-		}
-		
-		charsDrawn++;
-	}
-	
-	return colsDrawn;
-}
 
 // assumes no linebreaks
 void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, char* txt, int charCount, Vector2 tl) {
@@ -626,7 +556,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		if(bl->buf) {
 
 			for(int i = 0; i < maxCols; i++) { 
-				if(b->sel->startLine == bl && b->sel->startCol >= i + gbe->scrollCols) {
+				if(b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
 					inSelection = 1;
 					fg = &theme->hl_textColor;
 					bg = &theme->hl_bgColor;
@@ -658,7 +588,6 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		if(tl.y > gbe->header.size.y) break; // end of control
 	}
 	
-
 	
 	// draw cursor
 	tl = (Vector2){50, 0};
@@ -686,6 +615,110 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 // 	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
 }
 
+
+Buffer* Buffer_Copy(Buffer* src) {
+	Buffer* b = Buffer_New();
+	BufferLine* blc, *blc_prev, *bl;
+	
+	b->numLines = src->numLines;
+	b->curCol = src->curCol;
+	
+	// filePath is not copied
+	// selections are not copied
+	
+	if(src->first) {
+		bl = src->first;
+		blc = BufferLine_Copy(src->first);
+		
+		b->first = blc;
+		bl = bl->next;
+		blc_prev = blc;
+		
+		while(bl) {
+			
+			blc = BufferLine_Copy(bl);
+			
+			blc->prev = blc_prev;
+			blc_prev->next = blc; 
+			
+			if(bl == src->current) {
+				b->current = blc;
+			}
+			
+			blc_prev = blc;
+			bl = bl->next;
+		}
+		
+		b->last = blc;
+	}
+	
+	return b;
+}
+
+Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel) {
+	Buffer* b = Buffer_New();
+	
+	
+	BufferLine* blc, *blc_prev, *bl;
+	
+	if(!src->first || !sel->startLine) return b;
+	
+	b->curCol = 1;
+	
+	// single-line selection
+	if(sel->startLine == sel->endLine) {
+		blc = BufferLine_FromStr(sel->startLine->buf + sel->startCol - 1, sel->endCol - sel->startCol);
+		
+		b->first = blc;
+		b->last = blc;
+		b->current = blc;
+		
+		return b;
+	}
+	
+	// multi-line selection
+	bl = sel->startLine;
+	if(sel->startCol == 1) {
+		blc = BufferLine_Copy(src->first);
+	}
+	else {
+		// copy only the end
+		char* start = sel->startLine->buf + sel->startCol - 1;
+		blc = BufferLine_FromStr(start, strlen(start));
+	}
+	
+	b->numLines++;
+	b->first = blc;
+	b->current = blc;
+	bl = bl->next;
+	blc_prev = blc;
+	
+	while(bl && bl != sel->endLine) {
+		
+		blc = BufferLine_Copy(bl);
+		
+		blc->prev = blc_prev;
+		blc_prev->next = blc; 
+		
+		if(bl == src->current) {
+			b->current = blc;
+		}
+		
+		b->numLines++;
+		blc_prev = blc;
+		bl = bl->next;
+	}
+	
+	// copy the beginning of the last line
+	blc = BufferLine_FromStr(sel->endLine->buf, sel->endCol);
+	blc->prev = blc_prev;
+	blc_prev->next = blc;
+		
+	b->numLines++;
+	b->last = blc;
+	
+	return b;
+}
 
 
 Buffer* Buffer_New() {
@@ -931,3 +964,4 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	return w;
 }
+
