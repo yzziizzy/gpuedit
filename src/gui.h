@@ -108,7 +108,10 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 	X(MouseEnterChild, 2) \
 	X(MouseLeaveChild, 2) \
 	\
-	X(Scroll, 1)
+	X(Scroll, 1) \
+	\
+	X(GainedFocus, 0) \
+	X(LostFocus, 0)
 
 
 enum GUIEventType {

@@ -124,8 +124,8 @@ void initApp(XStuff* xs, AppState* as) {
 	GUIRegisterObject(tabs, as->gui->root);
 	as->tc = tabs;
 	
-	GUIRegisterObject(gbe2, tabs);
 	GUIRegisterObject(gbe, tabs);
+	GUIRegisterObject(gbe2, tabs);
 	
 	GUIManager_pushFocusedObject(as->gui, gbe);
 	
@@ -341,11 +341,15 @@ void handleEvent(AppState* as, InputState* is, InputEvent* ev) {
 	
 	if(ev->type == EVENT_KEYUP && is->keyState[64]) {
 		if(ev->keysym == XK_Right) {
-			GUITabControl_NextTab(as->tc, 1);
+			GUIObject* o = GUITabControl_NextTab(as->tc, 1);
+			GUIManager_popFocusedObject(as->gui);
+			GUIManager_pushFocusedObject(as->gui, o);
 			return;
 		}
 		else if(ev->keysym == XK_Left) {
-			GUITabControl_PrevTab(as->tc, 1);
+			GUIObject* o = GUITabControl_PrevTab(as->tc, 1);
+			GUIManager_popFocusedObject(as->gui);
+			GUIManager_pushFocusedObject(as->gui, o);
 			return;
 		}
 	}
