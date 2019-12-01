@@ -5,6 +5,9 @@
 
 #include "gui.h"
 #include "font.h"
+#include "highlight.h"
+
+
 
 typedef struct BufferLine {
 	
@@ -14,7 +17,7 @@ typedef struct BufferLine {
 	size_t length; // of the text itself
 	char* buf;
 	
-	char* style;
+	TextStyleMeta* style;
 	
 	struct BufferLine* prev, *next;
 	
@@ -136,10 +139,13 @@ void Buffer_DeleteLine(Buffer* b, BufferLine* l);
 void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col);
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col);
 
+
 // these functions operate on absolute positions
 void Buffer_AppendRawText(Buffer* b, char* source, size_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
+void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol);
+
 
 
 Buffer* Buffer_New();

@@ -541,6 +541,11 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	
 	struct Color4* fg = &theme->textColor; 
 	struct Color4* bg = &theme->bgColor;
+	struct Color4* fg2 = &theme->hl_textColor; 
+	struct Color4* bg2 = &theme->hl_bgColor;
+	
+	struct Color4* fga[] = {fg, fg2};
+	struct Color4* bga[] = {bg, bga};
 	
 	// draw
 	while(bl) {
@@ -574,7 +579,8 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
 				else {
-					drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y});
+					TextStyleMeta* meta = bl->style;
+					drawCharacter(gm, tdp, fga[meta->src[i].styleIndex - 1], bg, c, (Vector2){tl.x + adv, tl.y});
 					adv += tdp->charWidth;
 				}
 			}
@@ -721,6 +727,45 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel) {
 }
 
 
+void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol) {
+	
+	BufferLine* blc, *bl;
+	
+	// check for easy special  cases
+	if(graft->numLines == 0) return;
+	if(graft->numLines == 1) {
+		BufferLine_InsertText(tline, graft->first, graft->first->length, tcol);
+		return;
+	}
+	
+	// cutting the remainder of the first line to a temporary buffer
+	size_t tmplen = tline->length - tcol + 1;
+	char* tmp = malloc(tmplen);
+	tmp[tmplen] = 0;
+	memcpy(tmp, tline->buf + tcol, tmplen);
+	
+	tline->length = tcol;
+	tline->buf[tcol] = 0;
+	BufferLine_AppendText(tline, graft->first, graft->first->length);
+	
+	// copy in the middle lines
+	BufferLine* gbl = graft->first->next;
+	BufferLine* t = tline;
+	while(gbl && gbl != graft->last) {
+		
+		t = Buffer_InsertLineAfter(target, t);
+		BufferLine_SetText(t, gbl->buf, gbl->length);
+		
+		gbl = gbl->next;
+	}
+	
+	// prepend the last line to the temp buffer
+	t = Buffer_InsertLineAfter(target, t);
+	BufferLine_SetText(t, graft->last->buf, graft->last->length);
+	BufferLine_AppendText(t, tmp, tmplen);
+}
+
+
 Buffer* Buffer_New() {
 	
 	Buffer* b = pcalloc(b);
@@ -749,6 +794,10 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 			Buffer_AppendLine(b, s, e-s);
 // 		}
 		
+		if(b->last->buf && b->last->length > 0) {
+			b->last->style = calloc(1, sizeof(*b->last->style));
+			HL_acceptLine(b->last->buf, b->last->length, b->last->style);
+		}
 		
 		s = e + 1;
 	}
