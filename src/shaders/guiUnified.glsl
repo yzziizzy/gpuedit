@@ -166,6 +166,19 @@ uniform sampler2DArray fontTex;
 uniform sampler2DArray atlasTex;
 
 
+float scaleSDFValue(float d) {
+	float o;
+	if(d > .75) {
+		o = 0;// (d - .75) * -4;
+	}
+	else {
+		o = 1 - ((d / 3) * 4);
+	}
+	
+	return o;
+}
+
+
 void main(void) {
 	
 // 	out_Color  = vec4(1,.1,.1, 1);
@@ -220,6 +233,8 @@ void main(void) {
 		
 		float dd;
 		float d = dd = texture(fontTex, gs_tex).r;
+		float dleft = textureOffset(fontTex, gs_tex, ivec2(-1,  0)).r;
+		float dright = textureOffset(fontTex, gs_tex, ivec2( 1,  0)).r;
 /*		
 		out_Color = vec4(d,d,d, 1.0); 
 		return;
@@ -227,25 +242,57 @@ void main(void) {
 		float a;
 		
 		
-		if(d > .75) {
-			d = 1;// (d - .75) * -4;
-		}
-		else {
-			d = (d / 3) * 4;
-		}
-		d = 1 - d;
-
+// 		if(d > .75) {
+// 			d = 1;// (d - .75) * -4;
+// 		}
+// 		else {
+// 			d = (d / 3) * 4;
+// 		}
+// 		d = 1 - d;
+		
+		d = scaleSDFValue(d);
+		dleft = scaleSDFValue(dleft);
+		dright = scaleSDFValue(dright);
+		
+		float sub_scale = 2.0;
+		
+		float hgrad = clamp(dleft - d, -1.0, 1.0) * sub_scale;
+		float hgrad2 = clamp(dright - d, -1.0, 1.0) * sub_scale;
+		
 		a = smoothstep(0.35, 0.9, abs(d));
+// 		a = smoothstep(0.2, 0.99, abs(d));
 // 		a = step(0.65, abs(d));
 		
-		if(a < 0.01) {
+		float a3 = max(max(
+			smoothstep(0.35, 0.9, abs(d)),
+			smoothstep(0.35, 0.9, abs(dleft))),
+			smoothstep(0.35, 0.9, abs(dright))
+		);
+		
+		if(a3 < (1.0 / 256.0)) {
 //  			out_Color = vec4(gs_tex.xy, 0, 1);
 // 			return; // show the overdraw
 			discard;
 		};
 		
+		
+		
+		
+// 		a = smoothstep(0.35, 0.9, abs(d * abs(hgrad)));
+	
+		vec3 n = clamp(vec3(hgrad2, 0, hgrad) - vec3(abs(hgrad) * a), vec3(0.0), vec3(1.0));
+		
 		//if(dd < .35) discard;
-		out_Color = vec4(gs_fg_color.rgb, a); 
+// 		out_Color = vec4(mix(gs_fg_color.rgb, vec3(0, 0, 0), n), a); 
+		out_Color = vec4(mix(vec3(0, 0, 0), vec3(1,1,1), n), 1.0); 
+		
+		float f = max(max(hgrad, hgrad2), a);
+		vec3 u = vec3(hgrad2, (hgrad2 * .5 + hgrad * .5), hgrad); 
+		out_Color = vec4(vec3(1) - u, f); 
+		
+// 		vec3 foo = vec3(hgrad2, 0, hgrad) * 5;
+// 		out_Color = vec4(vec3(1) - foo , max(a, abs(max(hgrad, hgrad2)))); 
+
 // 		out_Color = vec4(.9,.9,.9, a); 
 		return;
 	}
