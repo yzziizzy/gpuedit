@@ -493,134 +493,6 @@ size_t getColOffset(char* txt, int col, int tabWidth) {
 	return w;
 }
 
-void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
-	Buffer* b = gbe->buffer;
-	
-	if(!b) return;
-	
-	BufferDrawParams* bdp = gbe->bdp;
-	TextDrawParams* tdp = bdp->tdp;
-	ThemeDrawParams* theme = bdp->theme;
-	GUIFont* f = gbe->font;
-	int line = 1;
-	int linesRendered = 0;
-	char lnbuf[32];
-	GUIUnifiedVertex* v;
-	
-	
-	// draw general background
-	v = GUIManager_reserveElements(gm, 1);
-	*v = (GUIUnifiedVertex){
-		.pos = {0,0, 800, 800},
-		.clip = {0, 0, 18000, 18000},
-		
-		.guiType = 0, // window (just a box)
-		
-		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
-		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = {65535.0,65535.0}, .texSize2 = 1,
-		
-		.fg = {0, 0, 255, 255}, // TODO: border color
-		.bg = theme->bgColor, 
-		
-		.z = .025,
-		.alpha = 1,
-	};
-	
-	
-	Vector2 tl = (Vector2){0, 0};
-	if(bdp->showLineNums) tl.x += bdp->lineNumWidth;
-	
-	BufferLine* bl = b->first; // BUG broken 
-	
-	// scroll down
-	// TODO: cache a pointer
-	for(size_t i = 0; i < gbe->scrollLines && bl->next; i++) bl = bl->next; 
-	
-	int inSelection = 0;
-	int maxCols = 100;
-	
-	struct Color4* fg = &theme->textColor; 
-	struct Color4* bg = &theme->bgColor;
-	struct Color4* fg2 = &theme->hl_textColor; 
-	struct Color4* bg2 = &theme->hl_bgColor;
-	
-	struct Color4* fga[] = {fg, fg2};
-	struct Color4* bga[] = {bg, bga};
-	
-	// draw
-	while(bl) {
-		
-		if(bdp->showLineNums) {
-			sprintf(lnbuf, "%d", bl->lineNum);
-			drawTextLine(gm, tdp, theme, lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
-		}
-		
-		float adv = 0;
-
-		
-		if(bl->buf) {
-
-			for(int i = 0; i < maxCols; i++) { 
-				if(b->sel && b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
-					inSelection = 1;
-					fg = &theme->hl_textColor;
-					bg = &theme->hl_bgColor;
-				}
-				if(b->sel && b->sel->endLine == bl && b->sel->endCol <= i + gbe->scrollCols) {
-					inSelection = 0;
-					fg = &theme->textColor;
-					bg = &theme->bgColor;
-				} 
-				
-				int c = bl->buf[gbe->scrollCols + i]; 
-				if(c == 0) break;
-				
-				if(c == '\t') {
-					adv += tdp->charWidth * tdp->tabWidth;
-				}
-				else {
-					TextStyleMeta* meta = bl->style;
-					drawCharacter(gm, tdp, fga[meta->src[i].styleIndex - 1], bg, c, (Vector2){tl.x + adv, tl.y});
-					adv += tdp->charWidth;
-				}
-			}
-		}
-		
-		tl.y += tdp->lineHeight;
-		bl = bl->next;
-		linesRendered++;
-		if(linesRendered > lineTo - lineFrom) break;
-		
-		if(tl.y > gbe->header.size.y) break; // end of control
-	}
-	
-	
-	// draw cursor
-	tl = (Vector2){50, 0};
-	v = GUIManager_reserveElements(gm, 1);
-	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp->tabWidth) * tdp->charWidth;
-	float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
-	*v = (GUIUnifiedVertex){
-		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
-		.clip = {0, 0, 18000, 18000},
-		
-		.guiType = 0, // window (just a box)
-		
-		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
-		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
-		
-		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = theme->cursorColor, 
-		
-		.z = 2.5,
-		.alpha = 1,
-	};
-	
-	
-	// HACK
-// 	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
-}
-
 
 Buffer* Buffer_Copy(Buffer* src) {
 	Buffer* b = Buffer_New();
@@ -1013,3 +885,163 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	return w;
 }
 
+
+void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
+	Buffer* b = gbe->buffer;
+	
+	if(!b) return;
+	
+	BufferDrawParams* bdp = gbe->bdp;
+	TextDrawParams* tdp = bdp->tdp;
+	ThemeDrawParams* theme = bdp->theme;
+	GUIFont* f = gbe->font;
+	int line = 1;
+	int linesRendered = 0;
+	char lnbuf[32];
+	GUIUnifiedVertex* v;
+	
+	
+	// draw general background
+	v = GUIManager_reserveElements(gm, 1);
+	*v = (GUIUnifiedVertex){
+		.pos = {gbe->header.absTopLeft.x, gbe->header.absTopLeft.y, gbe->header.absTopLeft.x + 800, gbe->header.absTopLeft.y + 800},
+		.clip = {0, 0, 18000, 18000},
+		
+		.guiType = 0, // window (just a box)
+		
+		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
+		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = {65535.0,65535.0}, .texSize2 = 1,
+		
+		.fg = {0, 0, 255, 255}, // TODO: border color
+		.bg = theme->bgColor, 
+		
+		.z = .025,
+		.alpha = 1,
+	};
+	
+	
+	Vector2 tl = gbe->header.absTopLeft;
+	if(bdp->showLineNums) tl.x += bdp->lineNumWidth;
+	
+	BufferLine* bl = b->first; // BUG broken 
+	
+	// scroll down
+	// TODO: cache a pointer
+	for(size_t i = 0; i < gbe->scrollLines && bl->next; i++) bl = bl->next; 
+	
+	int inSelection = 0;
+	int maxCols = 100;
+	
+	struct Color4* fg = &theme->textColor; 
+	struct Color4* bg = &theme->bgColor;
+	struct Color4* fg2 = &theme->hl_textColor; 
+	struct Color4* bg2 = &theme->hl_bgColor;
+	
+	struct Color4* fga[] = {fg, fg2};
+	struct Color4* bga[] = {bg, bga};
+	
+	// draw
+	while(bl) {
+		
+		if(bdp->showLineNums) {
+			sprintf(lnbuf, "%d", bl->lineNum);
+			drawTextLine(gm, tdp, theme, lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
+		}
+		
+		float adv = 0;
+
+		
+		if(bl->buf) {
+
+			for(int i = 0; i < maxCols; i++) { 
+				if(b->sel && b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
+					inSelection = 1;
+					fg = &theme->hl_textColor;
+					bg = &theme->hl_bgColor;
+				}
+				if(b->sel && b->sel->endLine == bl && b->sel->endCol <= i + gbe->scrollCols) {
+					inSelection = 0;
+					fg = &theme->textColor;
+					bg = &theme->bgColor;
+				} 
+				
+				int c = bl->buf[gbe->scrollCols + i]; 
+				if(c == 0) break;
+				
+				if(c == '\t') {
+					adv += tdp->charWidth * tdp->tabWidth;
+				}
+				else {
+					TextStyleMeta* meta = bl->style;
+					drawCharacter(gm, tdp, fga[meta->src[i].styleIndex - 1], bg, c, (Vector2){tl.x + adv, tl.y});
+					adv += tdp->charWidth;
+				}
+			}
+		}
+		
+		tl.y += tdp->lineHeight;
+		bl = bl->next;
+		linesRendered++;
+		if(linesRendered > lineTo - lineFrom) break;
+		
+		if(tl.y > gbe->header.size.y) break; // end of control
+	}
+	
+	
+	// draw cursor
+	tl = (Vector2){gbe->header.absTopLeft.x + 50, gbe->header.absTopLeft.y};
+	v = GUIManager_reserveElements(gm, 1);
+	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp->tabWidth) * tdp->charWidth;
+	float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+	*v = (GUIUnifiedVertex){
+		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
+		.clip = {0, 0, 18000, 18000},
+		
+		.guiType = 0, // window (just a box)
+		
+		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
+		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
+		
+		.fg = {255, 128, 64, 255}, // TODO: border color
+		.bg = theme->cursorColor, 
+		
+		.z = 2.5,
+		.alpha = 1,
+	};
+	
+	
+	// draw scrollbar
+	
+	float sbWidth = 20;
+	float sbMinHeight = 20;
+	
+	// calculate scrollbar height
+	float wh = gbe->header.size.y;
+	float sbh = fmax(wh / b->numLines, sbMinHeight);
+	
+	// calculate scrollbar offset
+	float sboff = ((wh - sbh) / b->numLines) * (b->current->lineNum - 1);
+	
+	tl = (Vector2){gbe->header.absTopLeft.x + gbe->header.size.x - sbWidth, gbe->header.absTopLeft.y};
+// 	tl = (Vector2){0,0};
+	v = GUIManager_reserveElements(gm, 1);
+	*v = (GUIUnifiedVertex){
+		.pos = {tl.x, tl.y + sboff, tl.x + sbWidth, tl.y + sboff + sbh},
+		.clip = {0, 0, 18000, 18000},
+		
+		.guiType = 0, // window (just a box)
+		
+		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
+		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
+		
+		.fg = {255, 255, 255, 255}, // TODO: border color
+		.bg = {255, 255, 255, 255}, 
+		
+		.z = 2.5,
+		.alpha = 1,
+	};
+	
+	
+	// HACK
+// 	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
+}
