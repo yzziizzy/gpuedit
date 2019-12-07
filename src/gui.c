@@ -198,6 +198,10 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 }
 
 
+static int gui_elem_sort_fn(GUIUnifiedVertex* a, GUIUnifiedVertex* b) {
+	return a->z == b->z ? 0 : (a->z > b->z ? 1 : -1);
+}
+
 
 static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	GUIUnifiedVertex* vmem = PCBuffer_beginWrite(&gm->instVB);
@@ -255,9 +259,17 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 // 	
 // 	vmem++;
 //	GUITextArea_draw(gm, f);
-
+	double sort;
+	
+	
+// 	sort = getCurrentTime();
+	qsort(gm->elemBuffer, gm->elementCount, sizeof(*gm->elemBuffer), (void*)gui_elem_sort_fn);
+	
+// 	printf("sort time: [%d elem] %f\n", gm->elementCount, timeSince(sort)  * 1000.0);
+	
+// 	sort = getCurrentTime();
 	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
-
+// printf("memcpy time: %f\n", timeSince(sort) * 1000.0);
 	
 	
 	/*

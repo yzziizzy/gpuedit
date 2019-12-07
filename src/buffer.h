@@ -7,7 +7,7 @@
 #include "font.h"
 #include "highlight.h"
 
-
+struct hlinfo;
 
 typedef struct BufferLine {
 	
@@ -17,7 +17,7 @@ typedef struct BufferLine {
 	size_t length; // of the text itself
 	char* buf;
 	
-	TextStyleMeta* style;
+	VEC(TextStyleAtom) style;
 	
 	struct BufferLine* prev, *next;
 	
@@ -40,6 +40,8 @@ typedef struct Buffer {
 	char* filePath;
 	
 	BufferSelection* sel;
+	
+	struct hlinfo* hl;
 	
 } Buffer;
 
@@ -75,6 +77,12 @@ typedef struct BufferDrawParams {
 	ThemeDrawParams* theme;
 } BufferDrawParams;
 
+
+
+
+
+// HACK
+void hlfn(hlinfo* hl);
 
 
 typedef struct GUIBufferEditor {
@@ -150,6 +158,9 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol);
+
+// HACK: temporary junk
+void Buffer_RefreshHighlight(Buffer* b);
 
 
 

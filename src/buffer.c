@@ -20,12 +20,12 @@ void BufferLine_SetText(BufferLine* l, char* text, size_t len) {
 	if(l->buf == NULL) {
 		l->allocSz = nextPOT(len + 1);
 		l->buf = calloc(1, l->allocSz);
-		l->style = calloc(1, l->allocSz);
+// 		l->style = calloc(1, l->allocSz);
 	}
 	else if(l->allocSz < len + 1) {
 		l->allocSz = nextPOT(len + 1);
 		l->buf = realloc(l->buf, l->allocSz);
-		l->style = realloc(l->style, l->allocSz);
+// 		l->style = realloc(l->style, l->allocSz);
 		// BUG: check OOM and maybe try to crash gracefully
 	}
 	
@@ -68,7 +68,7 @@ BufferLine* BufferLine_New() {
 
 void BufferLine_Delete(BufferLine* l) {
 	if(l->buf) free(l->buf);
-	if(l->style) free(l->style);
+	VEC_FREE(&l->style);
 }
 
 BufferLine* BufferLine_FromStr(char* text, size_t len) {
@@ -83,6 +83,7 @@ BufferLine* BufferLine_Copy(BufferLine* orig) {
 	l->allocSz = orig->allocSz;
 	l->buf = calloc(1, l->allocSz);
 	strncpy(l->buf, orig->buf, l->length);
+	VEC_COPY(&l->style, &orig->style);
 	return l;
 }
 
@@ -90,12 +91,12 @@ void BufferLine_EnsureAlloc(BufferLine* l, size_t len) {
 	if(l->buf == NULL) {
 		l->allocSz = MAX(32, nextPOT(len + 1));
 		l->buf = calloc(1, l->allocSz);
-		l->style = calloc(1, l->allocSz);
+// 		l->style = calloc(1, l->allocSz);
 	}
 	else if(l->allocSz < len + 1) {
 		l->allocSz = nextPOT(len + 1);
 		l->buf = realloc(l->buf, l->allocSz);
-		l->style = realloc(l->style, l->allocSz);
+// 		l->style = realloc(l->style, l->allocSz);
 		// BUG: check OOM and maybe try to crash gracefully
 	}
 }
@@ -166,6 +167,8 @@ size_t drawCharacter(
 			
 			.bg = *bgColor,
 			
+			.z = .5,
+			
 			// disabled in the shader right now
 			.clip = {0,0, 1000000,1000000},
 		};
@@ -190,6 +193,8 @@ size_t drawCharacter(
 			.texIndex1 = ci->texIndex,
 			
 			.fg = *fgColor,
+			
+			.z = 1,
 			
 			// disabled in the shader right now
 			.clip = {0,0, 1000000,1000000},
@@ -668,8 +673,8 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 // 		}
 		
 		if(b->last->buf && b->last->length > 0) {
-			b->last->style = calloc(1, sizeof(*b->last->style));
-			HL_acceptLine(b->last->buf, b->last->length, b->last->style);
+// 			b->last->style = calloc(1, sizeof(*b->last->style));
+// 			HL_acceptLine(b->last->buf, b->last->length, b->last->style);
 		}
 		
 		s = e + 1;
@@ -788,11 +793,77 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	free(o);
 	fclose(f);
 	
+	// HACK
+	Buffer_RefreshHighlight(b);
+	
 	return 0;
 }
 
 
+int getNextLine(hlinfo* hl, char** txt, size_t* len) {
+	BufferLine* l = hl->readLine;
+	
+	if(!hl->readLine) return 1;
+	
+	// TODO: end of file
+	hl->readLine = hl->readLine->next;
+	
+	*txt = l->buf;
+	*len = l->length;
+	
+	return 0;
+}
 
+void writeSection(hlinfo* hl, unsigned char style, unsigned char len) {
+	if(len == 0) return;
+	
+	
+	VEC_INC(&hl->writeLine->style);
+	VEC_TAIL(&hl->writeLine->style).length = len;
+	VEC_TAIL(&hl->writeLine->style).styleIndex = style;
+	
+	hl->writeCol += len;
+	
+	// TODO: handle overlapping style segments
+	// TODO: handle segments spanning linebreaks
+	
+	if(hl->writeCol > hl->writeLine->length) {
+		hl->writeCol = 0;
+		hl->writeLine = hl->writeLine->next;
+		hl->dirtyLines--;
+	}
+	
+}
+
+#include "highlighters/c.h"
+
+void Buffer_RefreshHighlight(Buffer* b) {
+	
+	if(!b->first) return;
+	
+	hlinfo hl = {
+		.getNextLine = getNextLine,
+		.writeSection = writeSection,
+		
+		.dirtyLines = 10,
+		
+		.b = b,
+		.readLine = b->first,
+		.writeLine = b->first,
+		.writeCol = 0,
+	};
+	
+	// clear existing styles
+	BufferLine* bl = b->first;
+	for(int i = 0; i < 10 && bl; i++) {
+		VEC_TRUNC(&bl->style);
+		
+		bl = bl->next;
+	}
+	
+	hlfn(&hl);
+	
+}
 
 
 
@@ -898,7 +969,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	return w;
 }
 
-
+// makes sure the cursor is on screen, with minimal necessary movement
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 	Buffer* b = gbe->buffer;
 	
@@ -984,7 +1055,15 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 
 		
 		if(bl->buf) {
-
+			
+			size_t styleIndex = 0;
+			size_t styleCols = 0;
+			TextStyleAtom* atom = NULL;
+			if(VEC_LEN(&bl->style)) {
+				atom = &VEC_HEAD(&bl->style);
+				styleCols = atom->length;
+			}
+			
 			for(int i = 0; i < maxCols; i++) { 
 				if(b->sel && b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
 					inSelection = 1;
@@ -1004,9 +1083,25 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
 				else {
-					TextStyleMeta* meta = bl->style;
-					drawCharacter(gm, tdp, fga[meta->src[i].styleIndex - 1], bg, c, (Vector2){tl.x + adv, tl.y});
+					if(atom) 
+						drawCharacter(gm, tdp, fga[atom->styleIndex], bg, c, (Vector2){tl.x + adv, tl.y});
+					else 
+						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y});
+					
+					
 					adv += tdp->charWidth;
+				}
+				
+				// check on the style
+				styleCols--;
+				
+				if(atom && styleCols <= 0) {
+					styleIndex++;
+					if(styleIndex < VEC_LEN(&bl->style)) {
+						atom = &VEC_ITEM(&bl->style, styleIndex);
+						styleCols = atom->length;
+					} 
+					else atom = NULL;
 				}
 			}
 		}
