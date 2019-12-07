@@ -86,6 +86,11 @@ typedef struct GUIBufferEditor {
 	size_t scrollLines; 
 	size_t scrollCols; // NYI, waiting on next line draw fn iteration
 	
+	// read only
+	int linesOnScreen; // number of *full* lines that fit on screen
+	// TODO: padding lines on vscroll
+	
+	
 	// TODO: move elsewhere
 	GUIFont* font;
 	
@@ -175,6 +180,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, char* txt, int charCount, Vector2 tl);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 
+void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 
 
 void test(Buffer* b);

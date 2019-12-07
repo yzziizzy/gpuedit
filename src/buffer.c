@@ -457,6 +457,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		else while(i++ < 0 && b->current->prev) {
 			b->current = b->current->prev;
 		}
+		
 // 		printf("current: %p\n", b->current);
 	}
 	else if(cmd->type == BufferCmd_MoveCursorH) {
@@ -805,7 +806,7 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 
 static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 // HACK
-	GUIBufferEditor_Draw(w, w->header.gm, 0, 100, 0, 100);
+	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
 	
 }
 
@@ -824,36 +825,48 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_MoveCursorV, -1
 		});
+		
+		GUIBufferEditor_scrollToCursor(w);
 	}
 	else if(gev->keycode == XK_Down) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_MoveCursorV, 1
 		});
+		
+		GUIBufferEditor_scrollToCursor(w);
 	}
 	else if(gev->keycode == XK_Left) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_MoveCursorH, -1
 		});
+		GUIBufferEditor_scrollToCursor(w);
 	}
 	else if(gev->keycode == XK_Right) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_MoveCursorH, 1
 		});
+		GUIBufferEditor_scrollToCursor(w);
 	}
 	else if(gev->keycode == XK_Return) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_SplitLine, 0
 		});
+		
+		GUIBufferEditor_scrollToCursor(w);
 	}
 	else if(gev->keycode == XK_BackSpace) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_Backspace, 0
 		});
+		
+		GUIBufferEditor_scrollToCursor(w);
 	}
 	else if(gev->keycode == XK_Delete) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_Delete, 0
 		});
+		
+		GUIBufferEditor_scrollToCursor(w);
 	}
 	else if(isprint(gev->character)) {
 		
@@ -886,6 +899,23 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 }
 
 
+void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
+	Buffer* b = gbe->buffer;
+	
+	if(!b || !b->current) return;
+	
+	size_t scroll_first = gbe->scrollLines;
+	size_t scroll_last = gbe->scrollLines + gbe->linesOnScreen;
+	
+	if(b->current->lineNum <= scroll_first) {
+		gbe->scrollLines = b->current->lineNum - 1;
+	}
+	else if(b->current->lineNum > scroll_last) {
+		gbe->scrollLines = scroll_first + (b->current->lineNum - scroll_last);
+	}
+}
+
+
 void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
 	Buffer* b = gbe->buffer;
 	
@@ -900,6 +930,8 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	char lnbuf[32];
 	GUIUnifiedVertex* v;
 	
+	// TODO: move to gbe->resize or somewhere appropriate
+	gbe->linesOnScreen = gbe->header.size.y / tdp->lineHeight;
 	
 	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
