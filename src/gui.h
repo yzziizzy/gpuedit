@@ -98,6 +98,9 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 #define GUIEEVENTTYPE_LIST \
 	X(Any, 0) \
 	X(Click, 1) \
+	X(MiddleClick, 1) \
+	X(RightClick, 1) \
+	X(AuxClick, 1) \
 	X(MouseDown, 2) \
 	X(MouseUp, 2) \
 	X(MouseMove, 2) \
@@ -109,6 +112,8 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 	X(MouseLeaveChild, 2) \
 	\
 	X(Scroll, 1) \
+	X(ScrollDown, 1) \
+	X(ScrollUp, 1) \
 	\
 	X(GainedFocus, 0) \
 	X(LostFocus, 0)

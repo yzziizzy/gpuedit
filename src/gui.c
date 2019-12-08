@@ -753,6 +753,17 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	GUIObject* t = GUIManager_hitTest(gm, newPos);
 	if(!t) return; // TODO handle mouse leaves;
 	
+	// buttons: 
+	// 1 - left
+	// 2 - mid
+	// 3 - right
+	// 4 - scroll up
+	// 5 - scroll down
+	// 6 - scroll left
+	// 7 - scroll right
+	// 8 - front left side
+	// 9 - rear left side
+	
 	GUIEvent gev = {
 		.type = GUIEVENT_MouseUp,
 		.originalTarget = t,
@@ -775,6 +786,46 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		if(iev->button == 1) {
 			// TODO: replace when better input management exists
 			gev.type = GUIEVENT_Click;
+			gev.currentTarget = t;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, t, &gev);
+		}
+		else if(iev->button == 2) {
+			// TODO: replace when better input management exists
+			gev.type = GUIEVENT_MiddleClick;
+			gev.currentTarget = t;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, t, &gev);
+		}
+		else if(iev->button == 3) {
+			// TODO: replace when better input management exists
+			gev.type = GUIEVENT_RightClick;
+			gev.currentTarget = t;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, t, &gev);
+		}
+		else if(iev->button == 4 || iev->button == 5) {
+			
+			if(iev->button == 4) {
+				gev.type = GUIEVENT_ScrollUp;
+				gev.currentTarget = t;
+				gev.cancelled = 0;
+				GUIManager_BubbleEvent(gm, t, &gev);
+			}
+			else {
+				gev.type = GUIEVENT_ScrollDown;
+				gev.currentTarget = t;
+				gev.cancelled = 0;
+				GUIManager_BubbleEvent(gm, t, &gev);
+			}
+			
+			gev.type = GUIEVENT_Scroll;
+			gev.currentTarget = t;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, t, &gev);
+		}
+		else {
+			gev.type = GUIEVENT_AuxClick;
 			gev.currentTarget = t;
 			gev.cancelled = 0;
 			GUIManager_BubbleEvent(gm, t, &gev);

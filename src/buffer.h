@@ -91,8 +91,8 @@ typedef struct GUIBufferEditor {
 	Buffer* buffer;
 	BufferDrawParams* bdp;
 	
-	size_t scrollLines; 
-	size_t scrollCols; // NYI, waiting on next line draw fn iteration
+	ptrdiff_t scrollLines; 
+	ptrdiff_t scrollCols; // NYI, waiting on next line draw fn iteration
 	
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen

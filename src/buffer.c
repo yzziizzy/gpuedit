@@ -881,6 +881,16 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 	
 }
 
+static void scrollUp(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	w->scrollLines = MAX(0, w->scrollLines - 1);
+}
+
+static void scrollDown(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + 1);
+}
+
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	Buffer* b = w->buffer;
@@ -906,12 +916,14 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	
 	b->current = bl;
 	
-	size_t col = floor((gev->pos.x - tl.x - 50) / w->bdp->tdp->charWidth) + 1;
+	size_t col = floor((gev->pos.x - tl.x - 50) / w->bdp->tdp->charWidth) + 1 + w->scrollCols;
 	b->curCol = MAX(0, MIN(col, bl->length + 1));
 	
 	// maybe nudge the screen down a tiny bit
 	GUIBufferEditor_scrollToCursor(w);
 }
+
+
 
 static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
@@ -984,6 +996,8 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	static struct GUIEventHandler_vtbl event_vt = {
 		.KeyUp = keyUp,
 		.Click = click,
+		.ScrollUp = scrollUp,
+		.ScrollDown = scrollDown,
 	};
 	
 	
