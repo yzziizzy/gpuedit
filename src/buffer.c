@@ -883,9 +883,34 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	Buffer* b = w->buffer;
+	
+	if(!b->current) return;
+	
+	Vector2 tl = w->header.absTopLeft;
+	Vector2 sz = w->header.size;
 	
 	// TODO: reverse calculate cursor position
+	if(gev->pos.x < tl.x + 50 || gev->pos.x > tl.x + sz.x) return;   
+	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
 	
+	size_t line = floor(gev->pos.y / w->bdp->tdp->lineHeight) + w->scrollLines;
+	
+	BufferLine* bl = b->current;;
+	if(line < b->current->lineNum) {
+		while(bl->lineNum > line && bl->prev) bl = bl->prev; 
+	}
+	else if(line > b->current->lineNum) {
+		while(bl->lineNum <= line - 1 && bl->next) bl = bl->next;
+	}
+	
+	b->current = bl;
+	
+	size_t col = floor((gev->pos.x - tl.x - 50) / w->bdp->tdp->charWidth) + 1;
+	b->curCol = MAX(0, MIN(col, bl->length + 1));
+	
+	// maybe nudge the screen down a tiny bit
+	GUIBufferEditor_scrollToCursor(w);
 }
 
 static void keyUp(GUIObject* w_, GUIEvent* gev) {
@@ -969,6 +994,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	return w;
 }
 
+
 // makes sure the cursor is on screen, with minimal necessary movement
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 	Buffer* b = gbe->buffer;
@@ -1008,16 +1034,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
 		.pos = {gbe->header.absTopLeft.x, gbe->header.absTopLeft.y, gbe->header.absTopLeft.x + 800, gbe->header.absTopLeft.y + 800},
-		.clip = {0, 0, 18000, 18000},
-		
+		.clip = {0, 0, 18000, 18000},		
 		.guiType = 0, // window (just a box)
-		
-		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
-		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = {65535.0,65535.0}, .texSize2 = 1,
-		
 		.fg = {0, 0, 255, 255}, // TODO: border color
 		.bg = theme->bgColor, 
-		
 		.z = .025,
 		.alpha = 1,
 	};
@@ -1123,15 +1143,9 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	*v = (GUIUnifiedVertex){
 		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
 		.clip = {0, 0, 18000, 18000},
-		
 		.guiType = 0, // window (just a box)
-		
-		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
-		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
-		
 		.fg = {255, 128, 64, 255}, // TODO: border color
 		.bg = theme->cursorColor, 
-		
 		.z = 2.5,
 		.alpha = 1,
 	};
@@ -1155,15 +1169,9 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	*v = (GUIUnifiedVertex){
 		.pos = {tl.x, tl.y + sboff, tl.x + sbWidth, tl.y + sboff + sbh},
 		.clip = {0, 0, 18000, 18000},
-		
 		.guiType = 0, // window (just a box)
-		
-		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
-		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
-		
 		.fg = {255, 255, 255, 255}, // TODO: border color
 		.bg = {255, 255, 255, 255}, 
-		
 		.z = 2.5,
 		.alpha = 1,
 	};

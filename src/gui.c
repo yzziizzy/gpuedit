@@ -226,84 +226,15 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	GUIHeader_render(gm->root, pfp);
 	
 	
-	
-	
-	GUIFont* f = gm->fm->helv;
-	
-// 	GUITextArea_draw(gm, f);
-// 	
-// 	printf("\n elementCount: %d \n\n", gm->elementCount);
-// 	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
-// 		
-// 	
-
-	//just a clipped box
-// 	*vmem = (GUIUnifiedVertex){
-// 		.pos = {200, 200, 900, 200+650},
-// 		.clip = {150, 110, 800, 600},
-// 		
-// 		.texIndex1 = 0,
-// 		.texIndex2 = 0,
-// 		.texFade = .5,
-// 		.guiType = 0, // window
-// 		
-// 		.texOffset1 = 0,
-// 		.texOffset2 = 0,
-// 		.texSize1 = 0,
-// 		.texSize2 = 0,
-// 		
-// 		.fg = {255, 128, 64, 255},
-// 		.bg = {64, 128, 255, 255},
-// 	};
-// 	
-// 	
-// 	vmem++;
-//	GUITextArea_draw(gm, f);
 	double sort;
-	
 	
 // 	sort = getCurrentTime();
 	qsort(gm->elemBuffer, gm->elementCount, sizeof(*gm->elemBuffer), (void*)gui_elem_sort_fn);
-	
-// 	printf("sort time: [%d elem] %f\n", gm->elementCount, timeSince(sort)  * 1000.0);
+// 	printf("qsort time: [%d elem] %f\n", gm->elementCount, timeSince(sort)  * 1000.0);
 	
 // 	sort = getCurrentTime();
 	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
 // printf("memcpy time: %f\n", timeSince(sort) * 1000.0);
-	
-	
-	/*
-	float off = gm->fm->helv->regular['I'].texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
-	float offy = gm->fm->helv->regular['I'].texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
-	float wid = gm->fm->helv->regular['I'].texNormSize.x;//TextRes_charWidth(gm->font, 'A');
-	float widy = gm->fm->helv->regular['I'].texNormSize.y;//TextRes_charWidth(gm->font, 'A');
-	*vmem = (GUIUnifiedVertex){
-		.pos = {200, 200, 
-			200 + gm->fm->helv->regular['I'].size.y * 5,
-			200 + gm->fm->helv->regular['I'].size.x * 5
-			
-		},
-		.clip = {150, 110, 800, 600},
-		
-		.texIndex1 = 0,
-		.texIndex2 = 0,
-		.texFade = .5,
-		.guiType = 1, // text
-		
-// 		.texOffset1 = { off * 65535.0, 0},
-		.texOffset1 = { off * 65535.0, offy * 65535.0},
-		.texOffset2 = {0, 0},
-// 		.texSize1 = { wid * 65535.0, 65535},
-		.texSize1 = { wid *  65535.0, widy * 65535.0},
-		.texSize2 = {5000, 5000},
-		
-		.fg = {255, 128, 64, 255},
-		.bg = {64, 128, 255, 255},
-	};
-	
-	*/
-	
-	//printf("FONT INFO: %f, %f\n", off, wid);
 	
 }
 
@@ -828,7 +759,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		.currentTarget = t,
 		.eventTime = 0,
 		.pos = newPos,
-		.character = 0, // N/A
+		.button = iev->button, 
 		.keycode = 0, // N/A
 		.modifiers = 0, // TODO
 		.cancelled = 0,
@@ -838,14 +769,16 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	if(iev->type == EVENT_MOUSEDOWN) {
 		gev.type = GUIEVENT_MouseDown;
 		GUIManager_BubbleEvent(gm, t, &gev);
-	} else if(iev == EVENT_MOUSEUP) {
+	} else if(iev->type == EVENT_MOUSEUP) {
 		GUIManager_BubbleEvent(gm, t, &gev);
 		
-		// TODO: replace when better input management exists
-		gev.type = GUIEVENT_Click;
-		gev.currentTarget = t;
-		gev.cancelled = 0;
-		GUIManager_BubbleEvent(gm, t, &gev);
+		if(iev->button == 1) {
+			// TODO: replace when better input management exists
+			gev.type = GUIEVENT_Click;
+			gev.currentTarget = t;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, t, &gev);
+		}
 	}
 	
 }

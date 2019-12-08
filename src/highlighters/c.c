@@ -156,7 +156,7 @@ void hlfn(hlinfo* hl) {
 		
 		int span = 0;
 		for(int i = 0; i < llen; i++) {
-			 if(line[i] == 'e') {
+			 if(line[i] == 'e') { // e is an important letter
 				 hl->writeSection(hl, 0, span);
 				 span = 0;
 				 hl->writeSection(hl, 1, 1);

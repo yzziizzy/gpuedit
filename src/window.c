@@ -105,7 +105,7 @@ void _khr_debug_callback( // i hate this stype of formatting, but this function 
 	
 }
 
-
+#include <unistd.h>
 
  
 // this function will exit() on fatal errors. what good is error handling then?

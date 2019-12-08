@@ -162,8 +162,11 @@ typedef struct GUIEvent {
 	GUIObject* originalTarget;
 	GUIObject* currentTarget;
 	
-	Vector2 pos; // for mouse events
-	int character;
+	Vector2 pos; // for mouse events; absolute position
+	union {
+		int character; // for kb events
+		int button; // for mouse events
+	};
 	int keycode;
 	
 	unsigned int modifiers;

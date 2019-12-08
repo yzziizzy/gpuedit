@@ -11,7 +11,7 @@ struct hlinfo;
 
 typedef struct BufferLine {
 	
-	int lineNum;
+	ptrdiff_t lineNum;
 	
 	size_t allocSz;
 	size_t length; // of the text itself

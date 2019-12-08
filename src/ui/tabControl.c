@@ -45,12 +45,19 @@ static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* p
 }
 
 
+GUIObject* hitTest(GUITabControl* w, Vector2 absTestPos) {
+// 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
+	return gui_defaultHitTest(VEC_ITEM(&w->header.children, w->currentIndex), absTestPos);
+}
+
+
 
 GUITabControl* GUITabControl_New(GUIManager* gm) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
+		.HitTest = (void*)hitTest,
 	};
 	
 	

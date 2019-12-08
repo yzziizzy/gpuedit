@@ -5,12 +5,6 @@
 #include <stddef.h>
 
 
-enum HighlightMode {
-	HLMODE_PER_WORD = 0,
-	HLMODE_PER_LINE,
-	HLMODE_PER_CHUNK,
-};
-
 
 
 typedef struct TextStyleAtom {
@@ -48,14 +42,14 @@ typedef struct hlinfo {
 
 
 typedef struct Highlighter {
-	enum HighlightMode mode;
 	
-// 	union {
-// 		void (*AcceptWord)(struct Highlighter*, char*, size_t, TextStyleMeta*);
+	void (*refreshStyle)(struct Highlighter*, hlinfo*);
 	
-		// returns 0 when no more chunks are needed
-// 		int (*AcceptLine)(struct Highlighter*, char*, size_t, TextStyleMeta*);
-// 	};
+	// for listing in the style editor
+	void (*getStyleNames)(char** /*nameList*/, size_t* /*len*/);
+// 	void (*getStyleDefaults)(char** /*nameList*/, size_t* /*len*/);
+	
+	
 	
 } Highlighter;
 

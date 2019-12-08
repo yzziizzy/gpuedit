@@ -86,13 +86,13 @@ void initApp(XStuff* xs, AppState* as) {
 	as->currentBuffer->sel = sel;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(as->gui);
-	gbe->header.size = (Vector2){800, 800}; // TODO update dynamically
+	gbe->header.size = (Vector2){800, 800-20}; // TODO update dynamically
 	gbe->buffer = as->currentBuffer;
 	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
 	gbe->scrollLines = 0;
 
 	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
-	gbe2->header.size = (Vector2){800, 800}; // TODO update dynamically
+	gbe2->header.size = (Vector2){800, 800-20}; // TODO update dynamically
 	gbe2->buffer = buf2;
 	gbe2->font = FontManager_findFont(as->gui->fm, "Courier New");
 	gbe2->scrollLines = 0;
