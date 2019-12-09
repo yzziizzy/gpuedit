@@ -212,6 +212,12 @@ int initXWindow(XStuff* xs) {
 
 	glXMakeCurrent(xs->display, xs->clientWin, xs->glctx);
 	
+	glexit("");
+	// disable vsync; it causes glXSwapBuffers to block on (at least) nVidia drivers
+	PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((const GLubyte*)"glXSwapIntervalEXT");
+	glexit("");
+	glXSwapIntervalEXT(xs->display, xs->clientWin, 0); 
+	glexit("");
 	
 	// have to have a current GLX context before initializing GLEW
 	initGLEW();
@@ -400,22 +406,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 				continue;
 			}
 			
-			// check for drag start
-			if(!st->inDrag && st->lastPressTime > 0) {
-				float dist = vDist2i(&st->lastPressPosPixels, &pixelPos);
-				if(dist > st->dragMinDist) {
-					//printf("-motion drag start\n");
-					st->inDrag = 1;
-				}
-			}
-			
-			// mouse move event
-			if(st->inDrag) {
-				iev->type = EVENT_DRAGMOVE;
-			}
-			else {
-				iev->type = EVENT_MOUSEMOVE;
-			}
+			iev->type = EVENT_MOUSEMOVE;
 			iev->intPos = pixelPos;
 			iev->normPos = normPos;
 			
