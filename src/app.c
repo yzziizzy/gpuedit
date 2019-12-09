@@ -405,6 +405,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		
 		checkResize(xs, as);
 		
+		double now = getCurrentTime();
 		preFrame(as); // updates timers
 		
 		drawFrame(xs, as, is);
@@ -412,7 +413,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		as->screen.resized = 0;
 		
 		postFrame(as); // finishes frame-draw timer
-	
+		printf("frame time: %fms\n", timeSince(now) * 1000.0);
 		
 		if(as->frameSpan < 1.0/15.0) {
 			// shitty estimation based on my machine's heuristics, needs improvement

@@ -98,6 +98,7 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 #define GUIEEVENTTYPE_LIST \
 	X(Any, 0) \
 	X(Click, 1) \
+	X(DoubleClick, 1) \
 	X(MiddleClick, 1) \
 	X(RightClick, 1) \
 	X(AuxClick, 1) \
@@ -110,6 +111,10 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 	X(MouseLeave, 1) \
 	X(MouseEnterChild, 2) \
 	X(MouseLeaveChild, 2) \
+	\
+	X(DragStart, 1) \
+	X(DragStop, 1) \
+	X(DragMove, 1) \
 	\
 	X(Scroll, 1) \
 	X(ScrollDown, 1) \
@@ -168,11 +173,15 @@ typedef struct GUIEvent {
 	GUIObject* currentTarget;
 	
 	Vector2 pos; // for mouse events; absolute position
+	
 	union {
 		int character; // for kb events
 		int button; // for mouse events
 	};
-	int keycode;
+	union {
+		Vector2 dragStartPos;
+		int keycode;
+	};
 	
 	unsigned int modifiers;
 	
@@ -306,7 +315,21 @@ typedef struct GUIManager {
 	// input 
 	Vector2 lastMousePos;
 	char mouseIsOutOfWindow;
+	
+	char isDragging;
+	char isMouseDown;
+	int dragButton;
+	Vector2 dragStartPos;
+	float dragStartTime;
+	GUIObject* dragStartTarget;
+	float minDragDist;
+	
+	float lastClickTime;
+	float multiClickSpan;
+	
 	VEC(GUIObject*) focusStack;
+	
+	
 	
 	// temp 
 	GLuint fontAtlasID;

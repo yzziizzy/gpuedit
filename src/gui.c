@@ -103,6 +103,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
 	TextureAtlas_finalize(gm->ta);
 	
+	gm->minDragDist = 4;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt, NULL); 
@@ -717,13 +718,10 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		iev->intPos.x, iev->intPos.y
 	};
 	
-	if(vEq(&newPos.x, &gm->lastMousePos)) {
-		return; // mouse did not move
-	};
-	
 	// find the deepest target
 	GUIObject* t = GUIManager_hitTest(gm, newPos);
 	if(!t) return; // TODO handle mouse leaves;
+	
 	
 	GUIEvent gev = {
 		.type = GUIEVENT_MouseMove,
@@ -737,6 +735,25 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		.cancelled = 0,
 		.requestRedraw = 0,
 	};
+	
+	
+	// check for dragging
+	if(gm->isMouseDown && !gm->isDragging && gm->dragStartTarget) {
+		float dragDist = vDist2(&newPos, &gm->dragStartPos);
+		if(dragDist >= gm->minDragDist) {
+			gm->isDragging = 1;
+		};
+	}
+	
+	// DragMove event
+	if(gm->isDragging) {
+		gev.type = GUIEVENT_DragMove;
+		gev.currentTarget = t;
+		gev.dragStartPos = gm->dragStartPos;
+		gev.cancelled = 0;
+		GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
+	}
+	
 	
 	GUIManager_BubbleEvent(gm, t, &gev);
 	
@@ -761,8 +778,8 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	// 5 - scroll down
 	// 6 - scroll left
 	// 7 - scroll right
-	// 8 - front left side
-	// 9 - rear left side
+	// 8 - front left side (on my mouse)
+	// 9 - rear left side (on my mouse)
 	
 	GUIEvent gev = {
 		.type = GUIEVENT_MouseUp,
@@ -777,10 +794,38 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		.requestRedraw = 0,
 	};
 	
+	
+	
+	// TODO: check requestRedraw between each dispatch
 	if(iev->type == EVENT_MOUSEDOWN) {
 		gev.type = GUIEVENT_MouseDown;
+		gev.currentTarget = t,
+		gev.cancelled = 0;
 		GUIManager_BubbleEvent(gm, t, &gev);
+		
+		gm->isMouseDown = 1;
+		gm->dragStartPos = newPos;
+		gm->dragStartTarget = t;
+		gev.dragStartPos = gm->dragStartPos;
+		
 	} else if(iev->type == EVENT_MOUSEUP) {
+		// check for drag end
+		if(gm->isDragging) {
+			gev.type = GUIEVENT_DragStop,
+			gev.currentTarget = t,
+			gev.cancelled = 0;
+			gev.dragStartPos = gm->dragStartPos;
+			GUIManager_BubbleEvent(gm, t, &gev);
+			
+			// end dragging
+			gm->dragStartTarget = NULL;
+			gm->isDragging = 0;
+			gm->dragButton = 0;
+		}
+		
+		gev.type = GUIEVENT_MouseUp,
+		gev.currentTarget = t,
+		gev.cancelled = 0;
 		GUIManager_BubbleEvent(gm, t, &gev);
 		
 		if(iev->button == 1) {

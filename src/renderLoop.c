@@ -108,9 +108,12 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	glexit("");
 	
 	glDisable(GL_DEPTH_TEST);
+	
+// 	double now = getCurrentTime();
 	RenderPass_preFrameAll(as->guiPass, &pfp);
 	RenderPass_renderAll(as->guiPass, pfp.dp);
 	RenderPass_postFrameAll(as->guiPass);
+// 	printf("gui render time: %fms\n", timeSince(now) * 1000.0);
 // 	glEnable(GL_DEPTH_TEST);
 	
 // 	glDisable(GL_BLEND);
@@ -120,8 +123,9 @@ void drawFrame(XStuff* xs, AppState* as, InputState* is) {
 	glexit("");
 	cleanUpView(xs, as, is);
 	
-	
+// 	double now2 = getCurrentTime();
 	glXSwapBuffers(xs->display, xs->clientWin);
+// 	printf("swap time: %fms\n", timeSince(now2) * 1000.0);
 }
 
 
