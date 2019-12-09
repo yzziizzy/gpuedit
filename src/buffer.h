@@ -91,13 +91,19 @@ typedef struct GUIBufferEditor {
 	Buffer* buffer;
 	BufferDrawParams* bdp;
 	
-	ptrdiff_t scrollLines; 
+	ptrdiff_t scrollLines; // current scroll position, 0-based
 	ptrdiff_t scrollCols; // NYI, waiting on next line draw fn iteration
 	
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
 	// TODO: padding lines on vscroll
 	
+	
+	int linesPerScrollWheel;
+	
+	// stating point of a mouse-drag selection
+	BufferLine* selectPivotLine;
+	size_t selectPivotCol;
 	
 	// TODO: move elsewhere
 	GUIFont* font;
@@ -158,6 +164,10 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol);
+BufferLine* Buffer_GetLine(Buffer* b, size_t line);
+void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC);
+void Buffer_ClearCurrentSelection(Buffer* b);
+
 
 // HACK: temporary junk
 void Buffer_RefreshHighlight(Buffer* b);
@@ -194,7 +204,6 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 
 
-void test(Buffer* b);
 
 
 

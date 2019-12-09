@@ -45,22 +45,6 @@ void Buffer_RenumberLines(BufferLine* start, size_t num) {
 }
 
 
-
-void test(Buffer* b) {
-	BufferLine* q;
-	
-	printf("\n");
-	
-	q = b->first;
-	while(q) {
-		printf("line %d: %p '%s'\n", q->lineNum, q, q->buf); 
-		q = q->next;
-	}
-	
-	printf("\n");
-}
-
-
 BufferLine* BufferLine_New() {
 	BufferLine* l = pcalloc(l);
 	return l;
@@ -866,6 +850,61 @@ void Buffer_RefreshHighlight(Buffer* b) {
 }
 
 
+BufferLine* Buffer_GetLine(Buffer* b, size_t line) {
+	if(line > b->numLines) return b->last;
+	
+	// TODO: faster algorithm
+	
+	BufferLine* bl = b->current;;
+	if(line < b->current->lineNum) {
+		while(bl->lineNum > line && bl->prev) bl = bl->prev; 
+	}
+	else if(line > b->current->lineNum) {
+		while(bl->lineNum <= line - 1 && bl->next) bl = bl->next;
+	}
+	
+	return bl;
+}
+
+
+void Buffer_ClearCurrentSelection(Buffer* b) {
+	if(b->sel) free(b->sel);
+	b->sel = NULL;
+}
+
+void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC) {
+	if(!b->sel) pcalloc(b->sel);
+	
+	assert(startL != NULL);
+	assert(endL != NULL);
+	
+	if(startL->lineNum < endL->lineNum) {
+		b->sel->startLine = startL;
+		b->sel->endLine = endL;
+		b->sel->startCol = startC;
+		b->sel->endCol = endC;
+	}
+	else if(startL->lineNum > endL->lineNum) {
+		b->sel->startLine = endL;
+		b->sel->endLine = startL;
+		b->sel->startCol = endC;
+		b->sel->endCol = startC;
+	}
+	else { // same line
+		b->sel->startLine = startL;
+		b->sel->endLine = startL;
+		
+		if(startC < endC) {
+			b->sel->startCol = startC;
+			b->sel->endCol = endC;
+		}
+		else {
+			b->sel->startCol = endC;
+			b->sel->endCol = startC;
+		}
+	}
+}
+
 
     //////////////////////////////////
    //                              //
@@ -873,6 +912,16 @@ void Buffer_RefreshHighlight(Buffer* b) {
  //                              //
 //////////////////////////////////
 
+
+static size_t lineFromPos(GUIBufferEditor* w, Vector2 pos) {
+	return floor(pos.y / w->bdp->tdp->lineHeight) + w->scrollLines;
+}
+
+static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
+	size_t col = floor((x - w->header.absTopLeft.x - 50) / w->bdp->tdp->charWidth) + 1 + w->scrollCols;
+	return MAX(0, MIN(col, bl->length + 1));
+
+}
 
 
 static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
@@ -883,12 +932,65 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	w->scrollLines = MAX(0, w->scrollLines - 1);
+	w->scrollLines = MAX(0, w->scrollLines - w->linesPerScrollWheel);
 }
 
 static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + 1);
+	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
+}
+
+static void dragStart(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	Buffer* b = w->buffer;
+	
+	BufferLine* bl = Buffer_GetLine(b, lineFromPos(w, gev->pos));
+	size_t col = getColForPos(w, bl, gev->pos.x);
+	
+	w->selectPivotLine = bl;
+	w->selectPivotCol = col;
+}
+
+static void dragStop(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+// 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
+}
+
+static void dragMove(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	Buffer* b = w->buffer;
+	
+	BufferLine* bl = Buffer_GetLine(b, lineFromPos(w, gev->pos));
+	size_t col = getColForPos(w, bl, gev->pos.x);
+	
+	Buffer_SetCurrentSelection(b, bl, col, w->selectPivotLine, w->selectPivotCol);
+	/*
+	if(bl->lineNum < w->selectPivotLine->lineNum) {
+		b->sel->startLine = bl;
+		b->sel->endLine = w->selectPivotLine;
+		b->sel->startCol = col;
+		b->sel->endCol = w->selectPivotCol - 1;
+	}
+	else if(bl->lineNum > w->selectPivotLine->lineNum) {
+		b->sel->startLine = w->selectPivotLine;
+		b->sel->endLine = bl;
+		b->sel->startCol = w->selectPivotCol;
+		b->sel->endCol = col;
+	}
+	else { // same line
+		b->sel->startLine = bl;
+		b->sel->endLine = bl;
+		
+		if(col < w->selectPivotCol) {
+			b->sel->startCol = col;
+			b->sel->endCol = w->selectPivotCol - 1;
+		}
+		else {
+			b->sel->startCol = w->selectPivotCol;
+			b->sel->endCol = col;
+		}
+	}*/
+	
 }
 
 static void click(GUIObject* w_, GUIEvent* gev) {
@@ -897,6 +999,8 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	
 	if(!b->current) return;
 	
+	Buffer_ClearCurrentSelection(b);
+	
 	Vector2 tl = w->header.absTopLeft;
 	Vector2 sz = w->header.size;
 	
@@ -904,20 +1008,11 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	if(gev->pos.x < tl.x + 50 || gev->pos.x > tl.x + sz.x) return;   
 	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
 	
-	size_t line = floor(gev->pos.y / w->bdp->tdp->lineHeight) + w->scrollLines;
+	size_t line = lineFromPos(w, gev->pos);
 	
-	BufferLine* bl = b->current;;
-	if(line < b->current->lineNum) {
-		while(bl->lineNum > line && bl->prev) bl = bl->prev; 
-	}
-	else if(line > b->current->lineNum) {
-		while(bl->lineNum <= line - 1 && bl->next) bl = bl->next;
-	}
+	b->current = Buffer_GetLine(b, line);
 	
-	b->current = bl;
-	
-	size_t col = floor((gev->pos.x - tl.x - 50) / w->bdp->tdp->charWidth) + 1 + w->scrollCols;
-	b->curCol = MAX(0, MIN(col, bl->length + 1));
+	b->curCol = getColForPos(w, b->current, gev->pos.x);
 	
 	// maybe nudge the screen down a tiny bit
 	GUIBufferEditor_scrollToCursor(w);
@@ -998,12 +1093,18 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 		.Click = click,
 		.ScrollUp = scrollUp,
 		.ScrollDown = scrollDown,
+		.DragStart = dragStart,
+		.DragStop = dragStop,
+		.DragMove = dragMove,
 	};
 	
 	
 	GUIBufferEditor* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
+	
+	// HACK
+	w->linesPerScrollWheel = 3;
 	
 	return w;
 }
@@ -1080,6 +1181,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	// draw
 	while(bl) {
 		
+		// line numbers
 		if(bdp->showLineNums) {
 			sprintf(lnbuf, "%d", bl->lineNum);
 			drawTextLine(gm, tdp, theme, lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
@@ -1088,7 +1190,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		float adv = 0;
 
 		
-		if(bl->buf) {
+		if(bl->buf) { // only draw lines with text
 			
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
@@ -1098,6 +1200,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 				styleCols = atom->length;
 			}
 			
+			// main text
 			for(int i = 0; i < maxCols; i++) { 
 				if(b->sel && b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
 					inSelection = 1;
@@ -1140,12 +1243,13 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			}
 		}
 		
+		// advance to the next line
 		tl.y += tdp->lineHeight;
 		bl = bl->next;
 		linesRendered++;
 		if(linesRendered > lineTo - lineFrom) break;
 		
-		if(tl.y > gbe->header.size.y) break; // end of control
+		if(tl.y > gbe->header.size.y) break; // end of buffer control
 	}
 	
 	

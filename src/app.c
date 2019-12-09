@@ -405,7 +405,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		
 		checkResize(xs, as);
 		
-		double now = getCurrentTime();
+// 		double now = getCurrentTime();
 		preFrame(as); // updates timers
 		
 		drawFrame(xs, as, is);
@@ -413,11 +413,11 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		as->screen.resized = 0;
 		
 		postFrame(as); // finishes frame-draw timer
-		printf("frame time: %fms\n", timeSince(now) * 1000.0);
+// 		printf("frame time: %fms\n", timeSince(now) * 1000.0);
 		
-		if(as->frameSpan < 1.0/15.0) {
+		if(as->frameSpan < 1.0/60.0) {
 			// shitty estimation based on my machine's heuristics, needs improvement
-			float sleeptime = (((1.0/15.0) * 1000000) - (as->frameSpan * 1000000)) * 1.7;
+			float sleeptime = (((1.0/60.0) * 1000000) - (as->frameSpan * 1000000)) * 1.7;
 			//printf("sleeptime: %f\n", sleeptime / 1000000);
 			//sleeptime = 1000;
 			if(sleeptime > 0) usleep(sleeptime); // problem... something is wrong in the math

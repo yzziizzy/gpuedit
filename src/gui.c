@@ -103,7 +103,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
 	TextureAtlas_finalize(gm->ta);
 	
-	gm->minDragDist = 4;
+	gm->minDragDist = 8;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt, NULL); 
@@ -742,6 +742,12 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		float dragDist = vDist2(&newPos, &gm->dragStartPos);
 		if(dragDist >= gm->minDragDist) {
 			gm->isDragging = 1;
+			
+			gev.type = GUIEVENT_DragStart;
+			gev.currentTarget = t;
+			gev.dragStartPos = gm->dragStartPos;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
 		};
 	}
 	
@@ -822,6 +828,8 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 			gm->isDragging = 0;
 			gm->dragButton = 0;
 		}
+		
+		gm->isMouseDown = 0;
 		
 		gev.type = GUIEVENT_MouseUp,
 		gev.currentTarget = t,
