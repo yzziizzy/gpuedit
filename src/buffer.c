@@ -35,7 +35,9 @@ void BufferLine_SetText(BufferLine* l, char* text, size_t len) {
 
 
 void Buffer_RenumberLines(BufferLine* start, size_t num) {
-		// renumber the rest of the lines
+	if(!start) return;
+	
+	// renumber the rest of the lines
 	BufferLine* q = start;
 	q->lineNum = num++;
 	while(q) {
@@ -349,22 +351,28 @@ BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after) {
 
 void Buffer_DeleteLine(Buffer* b, BufferLine* l) {
 	
-	if(l->next) l->next->prev = l->prev;
-	if(l->prev) l->prev->next = l->next;
-	
 	if(l == b->first) b->first = l->next;
 	if(l == b->last) b->last = l->prev;
 	
 	if(l == b->current) {
-		if(l->prev) b->current = l->prev;
-		else if(l->prev) b->current = l->next;
+		if(l->next) b->current = l->next;
+		else if(l->prev) b->current = l->prev;
 		else {
 			printf("current line set to null in DeleteLine\n");
 			b->current = NULL;
 		}
 	}
+
+	if(l->next) l->next->prev = l->prev;
+	if(l->prev) l->prev->next = l->next;
+
+	
+	// TODO check selections
+	// TODO renumber lines 
+	Buffer_RenumberLines(l->next, l->lineNum - 1);
 	
 	BufferLine_Delete(l);
+	
 	
 	b->numLines--;
 }
@@ -465,6 +473,9 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 	}
 	else if(cmd->type == BufferCmd_SplitLine) {
 		Buffer_InsertLinebreak(b);
+	}
+	else if(cmd->type == BufferCmd_DeleteCurLine) {
+		Buffer_DeleteLine(b, b->current);
 	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
@@ -867,10 +878,57 @@ BufferLine* Buffer_GetLine(Buffer* b, size_t line) {
 }
 
 
+void Buffer_CommentLine(Buffer* b, BufferLine* bl) {
+	if(!b->ep->lineCommentPrefix) return;
+	
+	BufferLine_InsertText(bl, b->ep->lineCommentPrefix, strlen(b->ep->lineCommentPrefix), 0);
+}
+
+
+void Buffer_CommentSelection(Buffer* b, BufferSelection* sel) {
+	if(!sel) return;
+	
+	BufferLine_InsertText(
+		sel->startLine, 
+		b->ep->selectionCommentPrefix, 
+		strlen(b->ep->selectionCommentPrefix), 
+		sel->startCol
+	);
+	
+	BufferLine_InsertText(
+		sel->endLine, 
+		b->ep->selectionCommentPostfix, 
+		strlen(b->ep->selectionCommentPostfix), 
+		sel->endCol
+	);
+}
+
+/*
+void Buffer_AddCurrentSelectionToRing(Buffer* b) {
+	if(!b->selectionRing->first) {
+		b->selectionRing->first = b->sel;
+		b->selectionRing->last = b->sel;
+		return;
+	}
+	
+	// find where to insert
+	BufferSelection* bs = b->selectionRing->first;
+	while(bs != b->selectionRing->last) {
+		
+		if(bs->startLine->lineNum < b->sel->startLine->lineNum) {
+			
+		}
+		
+	}
+	
+}
+*/
+
 void Buffer_ClearCurrentSelection(Buffer* b) {
 	if(b->sel) free(b->sel);
 	b->sel = NULL;
 }
+
 
 void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC) {
 	if(!b->sel) pcalloc(b->sel);
@@ -1024,58 +1082,54 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	
 	
-	if(gev->keycode == XK_Up) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_MoveCursorV, -1
-		});
-		
-		GUIBufferEditor_scrollToCursor(w);
-	}
-	else if(gev->keycode == XK_Down) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_MoveCursorV, 1
-		});
-		
-		GUIBufferEditor_scrollToCursor(w);
-	}
-	else if(gev->keycode == XK_Left) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_MoveCursorH, -1
-		});
-		GUIBufferEditor_scrollToCursor(w);
-	}
-	else if(gev->keycode == XK_Right) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_MoveCursorH, 1
-		});
-		GUIBufferEditor_scrollToCursor(w);
-	}
-	else if(gev->keycode == XK_Return) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_SplitLine, 0
-		});
-		
-		GUIBufferEditor_scrollToCursor(w);
-	}
-	else if(gev->keycode == XK_BackSpace) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_Backspace, 0
-		});
-		
-		GUIBufferEditor_scrollToCursor(w);
-	}
-	else if(gev->keycode == XK_Delete) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_Delete, 0
-		});
-		
-		GUIBufferEditor_scrollToCursor(w);
-	}
-	else if(isprint(gev->character)) {
-		
+	
+	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
 		});
+	
+	}
+	else if(gev->type == GUIEVENT_KeyUp) {
+		// special commands
+		struct {
+			unsigned int mods;
+			int keysym;
+			enum BufferCmdType bcmd;
+			int amt_action;
+			int amt;
+			char scrollToCursor;
+		} cmds[] = {
+			{GUIMODKEY_CTRL, 'k', BufferCmd_DeleteCurLine, 0, 0, 1},
+			{0, XK_Left,      BufferCmd_MoveCursorH,  1, -1, 1},
+			{0, XK_Right,     BufferCmd_MoveCursorH,  1,  1, 1},
+			{0, XK_Up,        BufferCmd_MoveCursorV,  1, -1, 1},
+			{0, XK_Down,      BufferCmd_MoveCursorV,  1,  1, 1},
+			{0, XK_BackSpace, BufferCmd_Backspace,    0,  0, 1},
+			{0, XK_Delete,    BufferCmd_Delete,       0,  0, 1},
+			{0, XK_Return,    BufferCmd_SplitLine,    0,  0, 1},
+			{0, XK_Prior,     BufferCmd_MovePage,     1, -1, 1}, // PageUp
+			{0, XK_Next,      BufferCmd_MovePage,     1,  1, 1}, // PageDown
+			{0, XK_Home,      BufferCmd_Home,         0,  0, 1},
+			{0, XK_End,       BufferCmd_End,          0,  0, 1}, 
+			{0,0,0,0,0},
+		};
+		
+		unsigned int ANY = (GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
+		for(int i = 0; cmds[i].bcmd != 0; i++) {
+			if(cmds[i].keysym != gev->keycode) continue;
+			if(cmds[i].mods & GUIMODKEY_CTRL && !(gev->modifiers && GUIMODKEY_CTRL)) continue;
+			if(cmds[i].mods & GUIMODKEY_ALT && !(gev->modifiers && GUIMODKEY_ALT)) continue;
+			if(cmds[i].mods & GUIMODKEY_TUX && !(gev->modifiers && GUIMODKEY_TUX)) continue;
+			
+			// TODO: specific mods
+			Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+				cmds[i].bcmd, cmds[i].amt 
+			});
+			
+			if(cmds[i].scrollToCursor) {
+				GUIBufferEditor_scrollToCursor(w);
+			}
+		}
 		
 	}
 	

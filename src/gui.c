@@ -713,6 +713,30 @@ GUIObject* GUIObject_findChild(GUIObject* obj, char* childName) {
 
 
 
+static unsigned int translateModKeys(GUIManager* gm, InputEvent* iev) {
+	unsigned int m = 0;
+	
+	if(iev->kbmods & IS_CONTROL) {
+		m |= GUIMODKEY_CTRL;
+		// check which one
+	}
+	if(iev->kbmods & IS_ALT) {
+		m |= GUIMODKEY_ALT;
+		// check which one
+	}
+	if(iev->kbmods & IS_SHIFT) {
+		m |= GUIMODKEY_SHIFT;
+		// check which one
+	}
+	if(iev->kbmods & IS_TUX) {
+		m |= GUIMODKEY_TUX;
+		// check which one
+	}
+	
+	return m;
+}
+
+
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev) {
 	Vector2 newPos = {
 		iev->intPos.x, iev->intPos.y
@@ -731,7 +755,7 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		.pos = newPos,
 		.character = 0, // N/A
 		.keycode = 0, // N/A
-		.modifiers = 0, // TODO
+		.modifiers = translateModKeys(gm, iev), 
 		.cancelled = 0,
 		.requestRedraw = 0,
 	};
@@ -795,7 +819,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		.pos = newPos,
 		.button = iev->button, 
 		.keycode = 0, // N/A
-		.modifiers = 0, // TODO
+		.modifiers = translateModKeys(gm, iev),
 		.cancelled = 0,
 		.requestRedraw = 0,
 	};
@@ -815,6 +839,8 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		gev.dragStartPos = gm->dragStartPos;
 		
 	} else if(iev->type == EVENT_MOUSEUP) {
+		char suppressClick = 0;
+		
 		// check for drag end
 		if(gm->isDragging) {
 			gev.type = GUIEVENT_DragStop,
@@ -827,6 +853,8 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 			gm->dragStartTarget = NULL;
 			gm->isDragging = 0;
 			gm->dragButton = 0;
+			
+			suppressClick = 1;
 		}
 		
 		gm->isMouseDown = 0;
@@ -838,10 +866,12 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		
 		if(iev->button == 1) {
 			// TODO: replace when better input management exists
-			gev.type = GUIEVENT_Click;
-			gev.currentTarget = t;
-			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, t, &gev);
+			if(!suppressClick) {
+				gev.type = GUIEVENT_Click;
+				gev.currentTarget = t;
+				gev.cancelled = 0;
+				GUIManager_BubbleEvent(gm, t, &gev);
+			}
 		}
 		else if(iev->button == 2) {
 			// TODO: replace when better input management exists
@@ -915,7 +945,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 		.pos = {0,0}, // N/A
 		.character = iev->character, 
 		.keycode = iev->keysym, 
-		.modifiers = 0, // TODO
+		.modifiers = translateModKeys(gm, iev),
 		.cancelled = 0,
 		.requestRedraw = 0,
 	};

@@ -67,11 +67,22 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	as->gui = GUIManager_alloc(&as->globalSettings);
 	
+	EditorParams* ep = pcalloc(ep);
+	ep->lineCommentPrefix = "// ";
+	ep->selectionCommentPrefix = "/*";
+	ep->selectionCommentPostfix= "*/";
+// 	ep->indentIncreaseTerminals = (char**){
+// 		"{",
+// 		NULL,
+// 	};
+	
 	Buffer* buf2 = Buffer_New(as->gui);
 	buf2->curCol = 1;
+	buf2->ep = ep;
 	
 	as->currentBuffer = Buffer_New(as->gui);
 	as->currentBuffer->curCol = 1;
+	as->currentBuffer->ep = ep;
 	
 	Buffer_LoadFromFile(as->currentBuffer, "LICENSE");
 	Buffer_LoadFromFile(buf2, "config.h");

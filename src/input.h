@@ -12,6 +12,8 @@
 #define IS_SHIFT      0x08
 #define IS_ALT        0x10
 #define IS_TUX        0x20 // aka "windows key"
+// #define IS_MOD2       0x40  // numlock
+// #define IS_MOD3       0x80 // unused
 
 
 enum InputMode {

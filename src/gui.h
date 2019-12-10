@@ -148,20 +148,21 @@ static char GUIEventBubbleBehavior[] = {
 };
 
 // specific keys
-#define GUIMODKEY_LSHIFT (1 << 1);
-#define GUIMODKEY_RSHIFT (1 << 2);
-#define GUIMODKEY_LCTRL  (1 << 3);
-#define GUIMODKEY_RCTRL  (1 << 4);
-#define GUIMODKEY_LALT   (1 << 5);
-#define GUIMODKEY_RALT   (1 << 6);
-#define GUIMODKEY_LTUX   (1 << 7);
-#define GUIMODKEY_RTUX   (1 << 8);
-#define GUIMODKEY_MENU   (1 << 9);
+#define GUIMODKEY_LSHIFT (1 << 1)
+#define GUIMODKEY_RSHIFT (1 << 2)
+#define GUIMODKEY_LCTRL  (1 << 3)
+#define GUIMODKEY_RCTRL  (1 << 4)
+#define GUIMODKEY_LALT   (1 << 5)
+#define GUIMODKEY_RALT   (1 << 6)
+#define GUIMODKEY_LTUX   (1 << 7)
+#define GUIMODKEY_RTUX   (1 << 8)
+#define GUIMODKEY_MENU   (1 << 9)
 
 // set if either L or R is pressed
-#define GUIMODKEY_CTRL   (1 << 30);
-#define GUIMODKEY_ALT    (1 << 29);
-#define GUIMODKEY_TUX    (1 << 28);
+#define GUIMODKEY_SHIFT  (1 << 30)
+#define GUIMODKEY_CTRL   (1 << 29)
+#define GUIMODKEY_ALT    (1 << 28)
+#define GUIMODKEY_TUX    (1 << 27)
 
 
 typedef struct GUIEvent {

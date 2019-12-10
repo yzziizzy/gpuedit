@@ -24,6 +24,9 @@
 * Cursor blink
 * Custom X cursor
 * Hide cursor when typing
+* Shortcut config presets
+* Pause on lose focus
+
 
 
 == Editor Features ==
@@ -35,4 +38,19 @@
 * Delete current line
 * Duplicate lines up/down
 * Move by words
+* Multi-line indent and un-indent
+* Bulk comment and uncomment 
+* Duplicate selection
+* Language sensitive auto-complete and type/param hints (low priority)
+* Delete contents of line but leave indentation
+* Create new line after, indented, and jump to the end 
+* Bookmarks
+* Fix spacing of items in tables
+
+
+== BUGS ==
+* Mouse select flakes out on empty lines
+* Selection pivot is not consistent
+
+
 

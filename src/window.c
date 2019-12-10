@@ -324,6 +324,8 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			double gt = GameTimeFromXTime(xev.xkey.time);
 			
 			st->keyState[xev.xkey.keycode] &= !IS_KEYDOWN;
+// 			int keysym = XKeycodeToKeysym(xs->display, xev.xkey.keycode, 0);
+// 			printf("sym: %d '%c'\n", keysym, keysym);
 			
 			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
 			

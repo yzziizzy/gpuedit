@@ -27,8 +27,19 @@ typedef struct BufferSelection {
 	BufferLine* startLine, *endLine;
 	size_t startCol, endCol;
 	
+	struct BufferSelection* next, *prev;
 	// type?
 } BufferSelection;
+
+
+typedef struct EditorParams {
+// 	char** indentIncreaseTerminals; // {, do, (, [, etc.
+	char* lineCommentPrefix; // "// "
+	char* selectionCommentPrefix; // "/*"
+	char* selectionCommentPostfix; // "*/"
+	
+} EditorParams;
+
 
 typedef struct Buffer {
 	
@@ -39,10 +50,14 @@ typedef struct Buffer {
 	
 	char* filePath;
 	
-	BufferSelection* sel;
+	struct {
+		BufferSelection* first, *last;
+	} selectionRing;
+	
+	BufferSelection* sel; // dynamic selection
 	
 	struct hlinfo* hl;
-	
+	EditorParams* ep;
 } Buffer;
 
 
@@ -69,6 +84,7 @@ typedef struct ThemeDrawParams {
 } ThemeDrawParams;
 
 
+
 typedef struct BufferDrawParams {
 	char showLineNums;
 	float lineNumWidth;
@@ -91,6 +107,7 @@ typedef struct GUIBufferEditor {
 	Buffer* buffer;
 	BufferDrawParams* bdp;
 	
+	
 	ptrdiff_t scrollLines; // current scroll position, 0-based
 	ptrdiff_t scrollCols; // NYI, waiting on next line draw fn iteration
 	
@@ -102,7 +119,7 @@ typedef struct GUIBufferEditor {
 	int linesPerScrollWheel;
 	
 	// stating point of a mouse-drag selection
-	BufferLine* selectPivotLine;
+	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
 	size_t selectPivotCol;
 	
 	// TODO: move elsewhere
@@ -115,12 +132,17 @@ typedef struct GUIBufferEditor {
 
 
 enum BufferCmdType {
+	BufferCmd_NULL = 0,
 	BufferCmd_MoveCursorV,
 	BufferCmd_MoveCursorH,
 	BufferCmd_InsertChar,
 	BufferCmd_SplitLine,
 	BufferCmd_Backspace,
 	BufferCmd_Delete,
+	BufferCmd_DeleteCurLine,
+	BufferCmd_MovePage,
+	BufferCmd_Home,
+	BufferCmd_End,
 };
 
 typedef struct BufferCmd {
@@ -157,6 +179,8 @@ BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before);
 void Buffer_DeleteLine(Buffer* b, BufferLine* l);
 void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col);
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col);
+void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC);
+void Buffer_ClearCurrentSelection(Buffer* b);
 
 
 // these functions operate on absolute positions
@@ -165,8 +189,9 @@ BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol);
 BufferLine* Buffer_GetLine(Buffer* b, size_t line);
-void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC);
-void Buffer_ClearCurrentSelection(Buffer* b);
+void Buffer_CommentLine(Buffer* b, BufferLine* bl);
+void Buffer_CommentSelection(Buffer* b, BufferSelection* sel);
+
 
 
 // HACK: temporary junk
