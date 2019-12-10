@@ -145,6 +145,7 @@ enum BufferCmdType {
 	BufferCmd_MovePage,
 	BufferCmd_Home,
 	BufferCmd_End,
+	BufferCmd_DuplicateLine,
 };
 
 typedef struct BufferCmd {
@@ -183,6 +184,9 @@ void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col);
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col);
 void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC);
 void Buffer_ClearCurrentSelection(Buffer* b);
+void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
+
+
 
 
 // these functions operate on absolute positions
@@ -213,6 +217,9 @@ int Buffer_LoadFromFile(Buffer* b, char* path);
 // These functions operate on and with the cursor
 BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
 void Buffer_InsertLinebreak(Buffer* b);
+void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines);
+void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols);
+void Buffer_MoveCursor(Buffer* b, ptrdiff_t lines, ptrdiff_t cols);
 
 
 

@@ -377,6 +377,28 @@ void Buffer_DeleteLine(Buffer* b, BufferLine* l) {
 	b->numLines--;
 }
 
+void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt) {
+	if(amt == 0) return;
+	BufferLine* bl;
+	
+	if(amt > 0) {
+		while(amt-- > 0) {
+			bl = Buffer_InsertLineAfter(b, src);
+			BufferLine_SetText(bl, src->buf, src->length);
+		}
+	}
+	else {
+		amt = -amt;
+		
+		while(amt-- > 0) {
+			bl = Buffer_InsertLineBefore(b, src);
+			BufferLine_SetText(bl, src->buf, src->length);
+		}
+	}
+}
+
+
+
 void Buffer_InsertLinebreak(Buffer* b) {
 	BufferLine* l = b->current;
 	
@@ -444,18 +466,22 @@ void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col) {
 	BufferLine_DeleteChar(l, col + 1);
 }
 
+
+void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines) {
+	int i = lines;
+	
+	if(i > 0) while(i-- > 0 && b->current->next) {
+		b->current = b->current->next;
+	}
+	else while(i++ < 0 && b->current->prev) {
+		b->current = b->current->prev;
+	}
+}
+
+
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 	if(cmd->type == BufferCmd_MoveCursorV) {
-		int i = cmd->amt;
-		
-		if(i > 0) while(i-- > 0 && b->current->next) {
-			b->current = b->current->next;
-		}
-		else while(i++ < 0 && b->current->prev) {
-			b->current = b->current->prev;
-		}
-		
-// 		printf("current: %p\n", b->current);
+		Buffer_MoveCursorV(b, cmd->amt);
 	}
 	else if(cmd->type == BufferCmd_MoveCursorH) {
 		b->curCol = MAX(MIN(b->current->length + 1, b->curCol + cmd->amt), 1);
@@ -485,8 +511,9 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		b->current = b->last;
 		if(b->last) b->curCol = b->last->length + 1;
 	}
-	else if(cmd->type == BufferCmd_MovePage) {
-// 		BufferMove_CursorPage(b, cmd->amt);
+	else if(cmd->type == BufferCmd_DuplicateLine) {
+		Buffer_DuplicateLines(b, b->current, cmd->amt);
+		Buffer_MoveCursorV(b, cmd->amt);
 	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
@@ -1118,6 +1145,11 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	}
 	else if(gev->type == GUIEVENT_KeyUp) {
 		// special commands
+		unsigned int S = GUIMODKEY_SHIFT;
+		unsigned int C = GUIMODKEY_CTRL;
+		unsigned int A = GUIMODKEY_ALT;
+		unsigned int T = GUIMODKEY_TUX;
+		
 		struct {
 			unsigned int mods;
 			int keysym;
@@ -1138,17 +1170,16 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 			{0, XK_Next,      BufferCmd_MovePage,     1,  1, 0}, // PageDown
 			{0, XK_Home,      BufferCmd_Home,         0,  0, 1},
 			{0, XK_End,       BufferCmd_End,          0,  0, 1}, 
+			{C|A,  XK_Down,   BufferCmd_DuplicateLine,1,  1, 1}, 
+			{C|A,  XK_Up,     BufferCmd_DuplicateLine,1, -1, 1}, 
 			{0,0,0,0,0},
 		};
 		
-		unsigned int ANY = (GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
+		unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
+		unsigned int ANY_MASK = ~ANY;
 		for(int i = 0; cmds[i].bcmd != 0; i++) {
 			if(cmds[i].keysym != gev->keycode) continue;
-			if(cmds[i].mods & GUIMODKEY_CTRL && !(gev->modifiers && GUIMODKEY_CTRL)) continue;
-			if(cmds[i].mods & GUIMODKEY_SHIFT && !(gev->modifiers && GUIMODKEY_SHIFT)) continue;
-			if(cmds[i].mods & GUIMODKEY_ALT && !(gev->modifiers && GUIMODKEY_ALT)) continue;
-			if(cmds[i].mods & GUIMODKEY_TUX && !(gev->modifiers && GUIMODKEY_TUX)) continue;
-			
+			if((cmds[i].mods & ANY) != (gev->modifiers & ANY)) continue;
 			// TODO: specific mods
 			
 			
