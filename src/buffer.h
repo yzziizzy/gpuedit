@@ -101,6 +101,8 @@ typedef struct BufferDrawParams {
 void hlfn(hlinfo* hl);
 
 
+
+
 typedef struct GUIBufferEditor {
 	GUIHeader header;
 	
@@ -228,7 +230,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 
-
+void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd);
 
 
 

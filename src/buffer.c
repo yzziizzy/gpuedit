@@ -477,6 +477,33 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 	else if(cmd->type == BufferCmd_DeleteCurLine) {
 		Buffer_DeleteLine(b, b->current);
 	}
+	else if(cmd->type == BufferCmd_Home) {
+		b->current = b->first;
+		b->curCol = 1;
+	}
+	else if(cmd->type == BufferCmd_End) {
+		b->current = b->last;
+		if(b->last) b->curCol = b->last->length + 1;
+	}
+	else if(cmd->type == BufferCmd_MovePage) {
+// 		BufferMove_CursorPage(b, cmd->amt);
+	}
+	
+// 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
+}
+
+void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd) {
+	if(cmd->type == BufferCmd_MovePage) {
+		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			BufferCmd_MoveCursorV, 
+			cmd->amt * w->linesOnScreen
+		});
+		
+		w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
+	}
+	else { // pass it on
+		Buffer_ProcessCommand(w->buffer, cmd);
+	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
@@ -1107,8 +1134,8 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 			{0, XK_BackSpace, BufferCmd_Backspace,    0,  0, 1},
 			{0, XK_Delete,    BufferCmd_Delete,       0,  0, 1},
 			{0, XK_Return,    BufferCmd_SplitLine,    0,  0, 1},
-			{0, XK_Prior,     BufferCmd_MovePage,     1, -1, 1}, // PageUp
-			{0, XK_Next,      BufferCmd_MovePage,     1,  1, 1}, // PageDown
+			{0, XK_Prior,     BufferCmd_MovePage,     1, -1, 0}, // PageUp
+			{0, XK_Next,      BufferCmd_MovePage,     1,  1, 0}, // PageDown
 			{0, XK_Home,      BufferCmd_Home,         0,  0, 1},
 			{0, XK_End,       BufferCmd_End,          0,  0, 1}, 
 			{0,0,0,0,0},
@@ -1118,13 +1145,18 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 		for(int i = 0; cmds[i].bcmd != 0; i++) {
 			if(cmds[i].keysym != gev->keycode) continue;
 			if(cmds[i].mods & GUIMODKEY_CTRL && !(gev->modifiers && GUIMODKEY_CTRL)) continue;
+			if(cmds[i].mods & GUIMODKEY_SHIFT && !(gev->modifiers && GUIMODKEY_SHIFT)) continue;
 			if(cmds[i].mods & GUIMODKEY_ALT && !(gev->modifiers && GUIMODKEY_ALT)) continue;
 			if(cmds[i].mods & GUIMODKEY_TUX && !(gev->modifiers && GUIMODKEY_TUX)) continue;
 			
 			// TODO: specific mods
-			Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+			
+			
+			// GUIBufferEditor will pass on commands to the buffer
+			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
 				cmds[i].bcmd, cmds[i].amt 
 			});
+			
 			
 			if(cmds[i].scrollToCursor) {
 				GUIBufferEditor_scrollToCursor(w);
