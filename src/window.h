@@ -35,6 +35,8 @@ typedef struct XStuff {
 	Atom secondaryID;
 	Atom selDataID;
 	Atom utf8ID;
+	Atom textID;
+	Atom targetsID;
 	
 	
 	Bool ready;

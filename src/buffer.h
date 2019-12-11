@@ -146,6 +146,12 @@ enum BufferCmdType {
 	BufferCmd_Home,
 	BufferCmd_End,
 	BufferCmd_DuplicateLine,
+	BufferCmd_SelectNone,
+	BufferCmd_SelectAll,
+	BufferCmd_SelectLine,
+	BufferCmd_SelectToEOL, // end of line
+	BufferCmd_SelectFromSOL, // start of line
+
 	
 	// NYI
 	BufferCmd_Cut,
@@ -163,11 +169,6 @@ enum BufferCmdType {
 	BufferCmd_CommentSmart,
 	BufferCmd_GrowSelH,
 	BufferCmd_GrowSelV,
-	BufferCmd_SelectAll,
-	BufferCmd_SelectNone,
-	BufferCmd_SelectLine,
-	BufferCmd_SelectToEOL, // end of line
-	BufferCmd_SelectFromSOL, // start of line
 	BufferCmd_MoveCursorToEOL,
 	BufferCmd_MoveCursorToSOL,
 	BufferCmd_MoveCursorToSOLT, // start of line text, ignoring leading whitespace
@@ -210,7 +211,7 @@ void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col);
 void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC);
 void Buffer_ClearCurrentSelection(Buffer* b);
 void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
-
+void Buffer_ClearAllSelections(Buffer* b);
 
 
 

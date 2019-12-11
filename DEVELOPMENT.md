@@ -26,7 +26,15 @@
 * Hide cursor when typing
 * Shortcut config presets
 * Pause on lose focus
-
+* Typing with a selection overwrites it
+* Implement INCR selection handling for X
+* Undo/redo
+* Drop file onto existing editor to open it
+* Save/reload workspace
+* File/path in titlebar
+* Persist bookmarks
+* Monitor file changes on disk
+* Scroll when dragging
 
 
 == Editor Features ==
@@ -45,10 +53,11 @@
 * Create new line after, indented, and jump to the end 
 * Bookmarks
 * Fix spacing of items in tables
+* Drag selection to new spot
+* Quick find/replace on current line only
 
 
 == BUGS ==
-* Mouse select flakes out on empty lines
 * Selection pivot is not consistent
 
 

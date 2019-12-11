@@ -8,6 +8,7 @@
 #include "buffer.h"
 #include "gui.h"
 #include "gui_internal.h"
+#include "clipboard.h"
 
 
 
@@ -466,6 +467,13 @@ void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col) {
 	BufferLine_DeleteChar(l, col + 1);
 }
 
+void Buffer_ClearAllSelections(Buffer* b) {
+	if(!b->sel) return;
+	free(b->sel);
+	b->sel = NULL;
+	
+	// TODO: clear the selection list too
+}
 
 void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines) {
 	int i = lines;
@@ -480,56 +488,97 @@ void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines) {
 
 
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
-	if(cmd->type == BufferCmd_MoveCursorV) {
-		Buffer_MoveCursorV(b, cmd->amt);
-	}
-	else if(cmd->type == BufferCmd_MoveCursorH) {
-		b->curCol = MAX(MIN(b->current->length + 1, b->curCol + cmd->amt), 1);
-	}
-	else if(cmd->type == BufferCmd_InsertChar) {
-		BufferLine_InsertChar(b->current, cmd->amt, b->curCol);
-		b->curCol++;
-	}
-	else if(cmd->type == BufferCmd_Backspace) {
-		Buffer_BackspaceAt(b, b->current, b->curCol);
-		b->curCol--;
-	}
-	else if(cmd->type == BufferCmd_Delete) {
-		Buffer_DeleteAt(b, b->current, b->curCol);
-	}
-	else if(cmd->type == BufferCmd_SplitLine) {
-		Buffer_InsertLinebreak(b);
-	}
-	else if(cmd->type == BufferCmd_DeleteCurLine) {
-		Buffer_DeleteLine(b, b->current);
-	}
-	else if(cmd->type == BufferCmd_Home) {
-		b->current = b->first;
-		b->curCol = 1;
-	}
-	else if(cmd->type == BufferCmd_End) {
-		b->current = b->last;
-		if(b->last) b->curCol = b->last->length + 1;
-	}
-	else if(cmd->type == BufferCmd_DuplicateLine) {
-		Buffer_DuplicateLines(b, b->current, cmd->amt);
-		Buffer_MoveCursorV(b, cmd->amt);
-	}
-	else if(cmd->type == BufferCmd_Copy) {
-		if(b->sel) {
-			
-		}
-	}
-	else if(cmd->type == BufferCmd_Cut) {
-		if(b->sel) {
-			
-		}
-	}
-	else if(cmd->type == BufferCmd_Paste) {
-		
-		
-	}
 	
+	switch(cmd->type) {
+		case BufferCmd_MoveCursorV:
+			Buffer_MoveCursorV(b, cmd->amt);
+			break;
+		
+		case BufferCmd_MoveCursorH:
+			b->curCol = MAX(MIN(b->current->length + 1, b->curCol + cmd->amt), 1);
+			break;
+		
+		case BufferCmd_InsertChar:
+			BufferLine_InsertChar(b->current, cmd->amt, b->curCol);
+			b->curCol++;
+			break;
+		
+		case BufferCmd_Backspace:
+			Buffer_BackspaceAt(b, b->current, b->curCol);
+			b->curCol--;
+			break;
+		
+		case BufferCmd_Delete:
+			Buffer_DeleteAt(b, b->current, b->curCol);
+			break;
+		
+		case BufferCmd_SplitLine:
+			Buffer_InsertLinebreak(b);
+			break;
+		
+		case BufferCmd_DeleteCurLine:
+			Buffer_DeleteLine(b, b->current);
+			break;
+		
+		case BufferCmd_Home:
+			b->current = b->first;
+			b->curCol = 1;
+			break;
+		
+		case BufferCmd_End:
+			b->current = b->last;
+			if(b->last) b->curCol = b->last->length + 1;
+			break;
+		
+		case BufferCmd_DuplicateLine:
+			Buffer_DuplicateLines(b, b->current, cmd->amt);
+			Buffer_MoveCursorV(b, cmd->amt);
+			break;
+		
+		case BufferCmd_Copy:
+			if(b->sel) {
+				
+			}
+			break;
+		
+		case BufferCmd_Cut:
+			if(b->sel) {
+				{
+				char* s;
+				size_t* l;
+				Buffer* b2 = Buffer_FromSelection(b, b->sel);
+				Buffer_ToRawText(b2, &s, &l);
+				Clipboard_SendToOS(CLIP_SELECTION, s, l, 0);
+				}
+			}
+			break;
+		
+		case BufferCmd_Paste:
+			
+			
+			break;
+		
+		case BufferCmd_SelectNone:
+			printf("select none\n");
+			Buffer_ClearAllSelections(b);
+			break;
+		
+		case BufferCmd_SelectAll:
+			Buffer_SetCurrentSelection(b, b->first, 1, b->last, b->last->length+1);
+			break;
+		
+		case BufferCmd_SelectLine:
+			Buffer_SetCurrentSelection(b, b->current, 1, b->current, b->current->length);
+			break;
+			
+		case BufferCmd_SelectToEOL:
+			Buffer_SetCurrentSelection(b, b->current, b->curCol, b->current, b->current->length);
+			break;
+			
+		case BufferCmd_SelectFromSOL:
+			Buffer_SetCurrentSelection(b, b->current, 1, b->current, b->curCol - 1);
+			break;
+	}
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
 
@@ -1004,6 +1053,9 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, Bu
 	assert(startL != NULL);
 	assert(endL != NULL);
 	
+	startC = MIN(startL->length, MAX(startC, 1));
+	endC = MIN(endL->length, MAX(endC, 1));
+	
 	if(startL->lineNum < endL->lineNum) {
 		b->sel->startLine = startL;
 		b->sel->endLine = endL;
@@ -1189,13 +1241,18 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 			{C,    'x',       BufferCmd_Cut          ,0,  0, 0}, 
 			{C,    'c',       BufferCmd_Copy         ,0,  0, 0}, 
 			{C,    'v',       BufferCmd_Paste        ,0,  0, 0}, 
+			{C,    'a',       BufferCmd_SelectAll    ,0,  0, 0}, 
+			{C|S,  'a',       BufferCmd_SelectNone   ,0,  0, 0}, 
+			{C,    'l',       BufferCmd_SelectToEOL  ,0,  0, 0}, 
+			{C|S,  'l',       BufferCmd_SelectFromSOL ,0,  0, 0}, 
 			{0,0,0,0,0},
 		};
 		
 		unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 		unsigned int ANY_MASK = ~ANY;
 		for(int i = 0; cmds[i].bcmd != 0; i++) {
-			if(cmds[i].keysym != gev->keycode) continue;
+// 			printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+			if(cmds[i].keysym != tolower(gev->keycode)) continue;
 			if((cmds[i].mods & ANY) != (gev->modifiers & ANY)) continue;
 			// TODO: specific mods
 			
@@ -1322,7 +1379,14 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		}
 		
 		float adv = 0;
-
+		
+		// handle selections ending on empty lines
+		if(b->sel && b->sel->endLine == bl && bl->length == 0) {
+			inSelection = 0;
+			fg = &theme->textColor;
+			bg = &theme->bgColor;
+		}
+		
 		
 		if(bl->buf) { // only draw lines with text
 			

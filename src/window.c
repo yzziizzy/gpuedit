@@ -121,6 +121,7 @@ static void clipNotify(int which, XStuff* xs) {
 		default: return;
 	}
 	XSetSelectionOwner(xs->display, a, xs->clientWin, CurrentTime);
+	printf("mine\n");
 }
 
 // this function will exit() on fatal errors. what good is error handling then?
@@ -212,6 +213,8 @@ int initXWindow(XStuff* xs) {
 	xs->secondaryID = XInternAtom(xs->display, "SECONDARY", False);
 	xs->selDataID = XInternAtom(xs->display, "XSEL_DATA", False);
 	xs->utf8ID = XInternAtom(xs->display, "UTF8_STRING", False);
+	xs->textID = XInternAtom(xs->display, "TEXT", False);
+	xs->targetsID = XInternAtom(xs->display, "TARGETS", False);
 	
 	
 	Clipboard_RegisterOnChange(clipNotify, xs);
@@ -344,12 +347,15 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			continue;
 		}
 		else if(xev.type == SelectionClear) {
-// 			printf("selection clear\n");
+			printf("selection clear\n");
 // 			xev.xselectionclear
 			continue;
 		}
 		else if(xev.type == xs->XFixes_eventBase + XFixesSelectionNotify) {
 // 			printf("xfixes selection notify\n");
+			// ignore our own actions
+			if(((XFixesSelectionNotifyEvent*)&xev)->owner == xs->clientWin) continue;
+			
 			Atom buf = ((XFixesSelectionNotifyEvent*)&xev)->selection;
 			XConvertSelection(xs->display, buf, xs->utf8ID, xs->selDataID, xs->clientWin, CurrentTime);
 			
@@ -377,7 +383,8 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 				unsigned long *bytes_after_return, 
 				unsigned char **prop_return
 			);*/ 
-			 
+			
+			
 			XGetWindowProperty(xs->display, xs->clientWin, 
 				xev.xselection.property, //xs->selDataID, // property id
 				0, LONG_MAX/4,  // offset/max
@@ -402,12 +409,11 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			XFree(result);
 			continue;
-// 			printf("selection Notify\n");
+			printf("selection Notify\n");
 		}
 		else if(xev.type == SelectionRequest) {
 // 			xev.xselectionrequest.selection
 			printf("selection request\n");
-			
 			int which;
 			if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_PRIMARY;
 			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;
@@ -417,29 +423,56 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			char* txt;
 			size_t len;
 			Clipboard_GetFromOS(which, &txt, &len, NULL);
+// 			printf("sel req 2 '%.*s'\n", len, txt);
 			
-			XChangeProperty(
-				xs->display,
-				xev.xselectionrequest.requestor, 
-				xev.xselectionrequest.property,
-				xs->utf8ID,
-				8,
-				PropModeReplace,
-				txt,
-				len
-			);
 			
+			if(xev.xselectionrequest.target == xs->targetsID) {
+// 				printf("senfing target list\n");
+				Atom alist[3];
+				alist[0] = xs->targetsID;
+				alist[1] = xs->textID;
+				alist[2] = xs->utf8ID;
+				XChangeProperty(
+					xs->display, 
+					xev.xselectionrequest.requestor,
+					xev.xselectionrequest.property, 
+					xev.xselectionrequest.target,
+					32, 
+					PropModeReplace,
+					(unsigned char*)alist, 
+					3
+				);
+			}
+			else {
+// 				printf("sending regular data\n");
+				XChangeProperty(
+					xs->display,
+					xev.xselectionrequest.requestor, 
+					xev.xselectionrequest.property,
+	// 				xev.xselectionrequest.target,
+					xs->utf8ID,
+					8,
+					PropModeReplace,
+					txt,
+					len
+				);
+			}
+			
+// 			printf("atom name: %s\n", XGetAtomName(xs->display, xev.xselectionrequest.target));
+// 			printf("prop name: %s\n", XGetAtomName(xs->display, xev.xselectionrequest.property));
+// 			printf("target name: %s\n", XGetAtomName(xs->display, xev.xselectionrequest.target));
+// 			printf("selectoin name: %s\n", XGetAtomName(xs->display, xev.xselectionrequest.selection));
 			XSelectionEvent selevt = {
 				.type = SelectionNotify,
 				.display = xs->display,
 				.requestor = xev.xselectionrequest.requestor,
-				.selection = xev.xselectionrequest.requestor,
+				.selection = xev.xselectionrequest.selection,
 				.time = xev.xselectionrequest.time,
 				.target = xev.xselectionrequest.target,
 				.property = xev.xselectionrequest.property,
 			};
 			
-			XSendEvent(xs->display, selevt.requestor, 0, 0, (XEvent*)&selevt);
+			XSendEvent(xs->display, selevt.requestor, True, NoEventMask, (XEvent*)&selevt);
 			
 			continue;
 		}
