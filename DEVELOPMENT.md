@@ -35,8 +35,7 @@
 * Go to line
 * Plain/escaped/regex search and replace
 * Copy/paste, with X interaction
-* Delete current line
-* Duplicate lines up/down
+* Duplicate selection up/down
 * Move by words
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 

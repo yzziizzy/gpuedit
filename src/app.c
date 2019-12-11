@@ -55,6 +55,9 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	srand((unsigned int)time(NULL));
 	
+	
+	
+	
 	// this costs 5mb of ram
 // 	json_gl_init_lookup();
 	
@@ -64,6 +67,10 @@ void initApp(XStuff* xs, AppState* as) {
 // 	TextureAtlas_addFolder(ta, "pre", "assets/ui/icons", 0);
 // 	TextureAtlas_finalize(ta);
 // 	
+	
+
+	
+	
 	
 	as->gui = GUIManager_alloc(&as->globalSettings);
 	

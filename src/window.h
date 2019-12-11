@@ -27,6 +27,15 @@ typedef struct XStuff {
 	int targetMSAA;
 	char* windowTitle;
 	
+	int XFixes_eventBase;
+	int XFixes_errorBase;
+	
+	Atom clipboardID;
+	Atom primaryID;
+	Atom secondaryID;
+	Atom selDataID;
+	Atom utf8ID;
+	
 	
 	Bool ready;
 } XStuff;

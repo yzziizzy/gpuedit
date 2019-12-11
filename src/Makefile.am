@@ -10,6 +10,7 @@ gpuedit_SOURCES = main.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
+	clipboard.c \
 	ds.c \
 	dumpImage.c \
 	fbo.c \
@@ -55,7 +56,7 @@ gpuedit_SOURCES = main.c \
 
 gpuedit_LDADD =  \
 	-lm \
-	-lX11 -lfreetype -lfontconfig -lpng \
+	-lX11 -lXfixes -lfreetype -lfontconfig -lpng \
 	-lGL -lGLU -lGLEW 
 
 # -ffast-math but without reciprocal approximations 

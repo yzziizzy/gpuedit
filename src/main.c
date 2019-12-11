@@ -28,6 +28,7 @@
 #include "shader.h"
 #include "window.h"
 #include "app.h"
+#include "clipboard.h"
 
 
 
@@ -62,6 +63,9 @@ int main(int argc, char* argv[]) {
 	
 	xs.targetMSAA = 4;
 	xs.windowTitle = "gpuedit";
+	
+	// before the window is initialized
+	Clipboard_Init();
 	
 	initXWindow(&xs);
 	

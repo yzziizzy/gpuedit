@@ -146,6 +146,31 @@ enum BufferCmdType {
 	BufferCmd_Home,
 	BufferCmd_End,
 	BufferCmd_DuplicateLine,
+	
+	// NYI
+	BufferCmd_Cut,
+	BufferCmd_Copy,
+	BufferCmd_Paste,
+	BufferCmd_Save,
+	BufferCmd_Indent,
+	BufferCmd_MatchPrevIndent,
+	BufferCmd_TruncateLine,
+	BufferCmd_TruncateLineExceptLeadingWS, // whitespace
+	BufferCmd_TruncateLineAfterCursor,
+	BufferCmd_TruncateBeforeAfterCursor, // not the meaning of truncate, but it matches the prior
+	BufferCmd_CommentLine,
+	BufferCmd_CommentSelection,
+	BufferCmd_CommentSmart,
+	BufferCmd_GrowSelH,
+	BufferCmd_GrowSelV,
+	BufferCmd_SelectAll,
+	BufferCmd_SelectNone,
+	BufferCmd_SelectLine,
+	BufferCmd_SelectToEOL, // end of line
+	BufferCmd_SelectFromSOL, // start of line
+	BufferCmd_MoveCursorToEOL,
+	BufferCmd_MoveCursorToSOL,
+	BufferCmd_MoveCursorToSOLT, // start of line text, ignoring leading whitespace
 };
 
 typedef struct BufferCmd {

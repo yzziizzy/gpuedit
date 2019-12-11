@@ -9,6 +9,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/extensions/Xfixes.h> // clipboard notification
 
 #include <GL/glew.h>
 #include <GL/glx.h>
@@ -17,6 +18,7 @@
 #include "utilities.h"
 #include "c3dlas/c3dlas.h"
 #include "window.h"
+#include "clipboard.h"
 
 
 
@@ -107,7 +109,20 @@ void _khr_debug_callback( // i hate this stype of formatting, but this function 
 
 #include <unistd.h>
 
- 
+int event_base, error_base;
+
+// called when the user changes a clipboard buffer inside this app
+static void clipNotify(int which, XStuff* xs) {
+	Atom a;
+	switch(which) {
+		case CLIP_PRIMARY: a = xs->primaryID; break;
+		case CLIP_SECONDARY: a = xs->secondaryID; break;
+		case CLIP_SELECTION: a = xs->clipboardID; break;
+		default: return;
+	}
+	XSetSelectionOwner(xs->display, a, xs->clientWin, CurrentTime);
+}
+
 // this function will exit() on fatal errors. what good is error handling then?
 int initXWindow(XStuff* xs) {
 	
@@ -173,13 +188,39 @@ int initXWindow(XStuff* xs) {
 	
 	xs->colorMap = XCreateColormap(xs->display, xs->rootWin, xs->vi->visual, AllocNone);
 	setWinAttr.colormap = xs->colorMap;
-	setWinAttr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | PropertyChangeMask;
+	setWinAttr.event_mask = 
+		  ExposureMask 
+		| KeyPressMask 
+		| KeyReleaseMask 
+		| ButtonPressMask 
+		| ButtonReleaseMask 
+		| PointerMotionMask 
+		| PropertyChangeMask
+// 		| SelectionClear
+// 		| SelectionRequestMask
+// 		| SelectionMask
+		;
 
 	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 800, 800, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
 
 	XMapWindow(xs->display, xs->clientWin);
 	
 	XStoreName(xs->display, xs->clientWin, xs->windowTitle);
+	
+	xs->clipboardID = XInternAtom(xs->display, "CLIPBOARD", False);
+	xs->primaryID = XInternAtom(xs->display, "PRIMARY", False);
+	xs->secondaryID = XInternAtom(xs->display, "SECONDARY", False);
+	xs->selDataID = XInternAtom(xs->display, "XSEL_DATA", False);
+	xs->utf8ID = XInternAtom(xs->display, "UTF8_STRING", False);
+	
+	
+	Clipboard_RegisterOnChange(clipNotify, xs);
+	
+	XFixesQueryExtension(xs->display, &xs->XFixes_eventBase, &xs->XFixes_errorBase);
+	XFixesSelectSelectionInput(xs->display, xs->clientWin, xs->clipboardID, XFixesSetSelectionOwnerNotifyMask);
+	XFixesSelectSelectionInput(xs->display, xs->clientWin, xs->primaryID, XFixesSetSelectionOwnerNotifyMask);
+	XFixesSelectSelectionInput(xs->display, xs->clientWin, xs->secondaryID, XFixesSetSelectionOwnerNotifyMask);
+
 	
 	// figure out the X server's time
 	XEvent xev;
@@ -302,7 +343,106 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			xs->ready = 1;
 			continue;
 		}
-		
+		else if(xev.type == SelectionClear) {
+// 			printf("selection clear\n");
+// 			xev.xselectionclear
+			continue;
+		}
+		else if(xev.type == xs->XFixes_eventBase + XFixesSelectionNotify) {
+// 			printf("xfixes selection notify\n");
+			Atom buf = ((XFixesSelectionNotifyEvent*)&xev)->selection;
+			XConvertSelection(xs->display, buf, xs->utf8ID, xs->selDataID, xs->clientWin, CurrentTime);
+			
+			continue;
+		}
+		else if(xev.type == SelectionNotify) {
+// 			xev.xselection
+// 			.property
+			Atom actualType;
+			unsigned int resultBitsPerItem;
+			unsigned long resultItemCount;
+			unsigned long remainingBytes;
+			unsigned char* result;
+			 /*
+			XGetWindowProperty(
+				Display *display, Window w, 
+				Atom property, 
+				long long_offset, 
+				long long_length, 
+				Bool delete, 
+				Atom req_type, 
+				Atom *actual_type_return, 
+				int *actual_format_return, 
+				unsigned long *nitems_return, 
+				unsigned long *bytes_after_return, 
+				unsigned char **prop_return
+			);*/ 
+			 
+			XGetWindowProperty(xs->display, xs->clientWin, 
+				xev.xselection.property, //xs->selDataID, // property id
+				0, LONG_MAX/4,  // offset/max
+				False, // delete 
+				AnyPropertyType, // requested type
+				&actualType, 
+				&resultBitsPerItem, 
+				&resultItemCount, 
+				&remainingBytes, 
+				&result
+			);
+			
+			int which;
+			if(xev.xselection.property == xs->primaryID) which = CLIP_PRIMARY;
+			else if(xev.xselection.property == xs->secondaryID) which = CLIP_SECONDARY;
+			else if(xev.xselection.property == xs->clipboardID) which = CLIP_SELECTION;
+			else continue;
+			
+			Clipboard_SetFromOS(which, result, (resultBitsPerItem / 8) * resultItemCount, 1);
+			
+// 			printf("result %d '%.*s'\n", resultBitsPerItem, resultItemCount, result);
+			
+			XFree(result);
+			continue;
+// 			printf("selection Notify\n");
+		}
+		else if(xev.type == SelectionRequest) {
+// 			xev.xselectionrequest.selection
+			printf("selection request\n");
+			
+			int which;
+			if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_PRIMARY;
+			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;
+			else if(xev.xselectionrequest.selection == xs->clipboardID) which = CLIP_SELECTION;
+			else continue;
+			
+			char* txt;
+			size_t len;
+			Clipboard_GetFromOS(which, &txt, &len, NULL);
+			
+			XChangeProperty(
+				xs->display,
+				xev.xselectionrequest.requestor, 
+				xev.xselectionrequest.property,
+				xs->utf8ID,
+				8,
+				PropModeReplace,
+				txt,
+				len
+			);
+			
+			XSelectionEvent selevt = {
+				.type = SelectionNotify,
+				.display = xs->display,
+				.requestor = xev.xselectionrequest.requestor,
+				.selection = xev.xselectionrequest.requestor,
+				.time = xev.xselectionrequest.time,
+				.target = xev.xselectionrequest.target,
+				.property = xev.xselectionrequest.property,
+			};
+			
+			XSendEvent(xs->display, selevt.requestor, 0, 0, (XEvent*)&selevt);
+			
+			continue;
+		}
 		if(xev.type == KeyPress) {
 			double gt = GameTimeFromXTime(xev.xkey.time);
 			

@@ -515,6 +515,20 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		Buffer_DuplicateLines(b, b->current, cmd->amt);
 		Buffer_MoveCursorV(b, cmd->amt);
 	}
+	else if(cmd->type == BufferCmd_Copy) {
+		if(b->sel) {
+			
+		}
+	}
+	else if(cmd->type == BufferCmd_Cut) {
+		if(b->sel) {
+			
+		}
+	}
+	else if(cmd->type == BufferCmd_Paste) {
+		
+		
+	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
@@ -1172,6 +1186,9 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 			{0, XK_End,       BufferCmd_End,          0,  0, 1}, 
 			{C|A,  XK_Down,   BufferCmd_DuplicateLine,1,  1, 1}, 
 			{C|A,  XK_Up,     BufferCmd_DuplicateLine,1, -1, 1}, 
+			{C,    'x',       BufferCmd_Cut          ,0,  0, 0}, 
+			{C,    'c',       BufferCmd_Copy         ,0,  0, 0}, 
+			{C,    'v',       BufferCmd_Paste        ,0,  0, 0}, 
 			{0,0,0,0,0},
 		};
 		
