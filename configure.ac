@@ -15,8 +15,8 @@ AC_CHECK_LIB([GL], [glFlush])
 AC_CHECK_LIB([GLEW], [glewInit])
 AC_CHECK_LIB([GLU], [gluCheckExtension])
 AC_CHECK_LIB([X11], [XOpenDisplay])
-AC_CHECK_LIB([freetype], [FT_Init_FreeType])
-AC_CHECK_LIB([fontconfig], [FcInitLoadConfigAndFonts])
+# AC_CHECK_LIB([freetype], [FT_Init_FreeType])
+# AC_CHECK_LIB([fontconfig], [FcInitLoadConfigAndFonts])
 AC_CHECK_LIB([m], [sin])
 
 # Checks for header files.

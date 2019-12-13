@@ -55,8 +55,8 @@ gpuedit_SOURCES = main.c \
 	window.c 
 
 gpuedit_LDADD =  \
-	-lm \
-	-lX11 -lXfixes -lfreetype -lfontconfig -lpng \
+	-lm -ldl \
+	-lX11 -lXfixes -lpng \
 	-lGL -lGLU -lGLEW 
 
 # -ffast-math but without reciprocal approximations 

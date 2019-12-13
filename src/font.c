@@ -7,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <dlfcn.h>
 #include <pthread.h>
 #include <sys/sysinfo.h>
 
@@ -19,6 +20,15 @@
 
 #include "utilities.h"
 #include "font.h"
+
+
+
+static FT_Error (*_FT_Init_FreeType)(FT_Library *alibrary);
+static FT_Error (*_FT_Set_Pixel_Sizes)(FT_Face face, FT_UInt pixel_width, FT_UInt pixel_height);
+static FT_Error (*_FT_Load_Char)(FT_Face face, FT_ULong char_code, FT_Int32 load_flags);
+static FT_Error (*_FT_New_Face)(FT_Library library, const char* filepathname, FT_Long face_index, FT_Face *aface);
+
+
 
 
 
@@ -116,12 +126,27 @@ static void blit(
 }
 
 static FT_Library ftLib = NULL;
-	
 
 static void checkFTlib() {
 	FT_Error err;
+	void* lib;
+	char* liberr = NULL;
+	
+	dlerror();
+	lib = dlopen("libfreetype.so", RTLD_LAZY | RTLD_GLOBAL);
+	liberr = dlerror();
+	if(liberr) {
+		fprintf(stderr, "Could not load libfreetype: %s\n", liberr);
+		exit(1);
+	}
+	
+	_FT_Init_FreeType = dlsym(lib, "FT_Init_FreeType");
+	_FT_Set_Pixel_Sizes = dlsym(lib, "FT_Set_Pixel_Sizes");
+	_FT_Load_Char = dlsym(lib, "FT_Load_Char");
+	_FT_New_Face = dlsym(lib, "FT_New_Face");
+	
 	if(!ftLib) {
-		err = FT_Init_FreeType(&ftLib);
+		err = _FT_Init_FreeType(&ftLib);
 		if(err) {
 			fprintf(stderr, "Could not initialize FreeType library.\n");
 			return NULL;
@@ -284,7 +309,7 @@ static FontGen* addChar(FontManager* fm, FT_Face* ff, int code, int fontSize, ch
 	int rawSize = fontSize * fm->oversample;
 	
 	
-	err = FT_Set_Pixel_Sizes(*ff, 0, rawSize);
+	err = _FT_Set_Pixel_Sizes(*ff, 0, rawSize);
 	if(err) {
 		fprintf(stderr, "Could not set pixel size to %dpx.\n", rawSize);
 		free(fg);
@@ -292,12 +317,12 @@ static FontGen* addChar(FontManager* fm, FT_Face* ff, int code, int fontSize, ch
 	}
 	
 	
-	err = FT_Load_Char(*ff, code, FT_LOAD_DEFAULT | FT_LOAD_MONOCHROME);
+	err = _FT_Load_Char(*ff, code, FT_LOAD_DEFAULT | FT_LOAD_MONOCHROME);
 	
 	//f2f(slot->metrics.horiBearingY);
 	
 	// draw character to freetype's internal buffer and copy it here
-	FT_Load_Char(*ff, code, FT_LOAD_RENDER);
+	_FT_Load_Char(*ff, code, FT_LOAD_RENDER);
 	// slot is a pointer
 	slot = (*ff)->glyph;
 	
@@ -444,7 +469,7 @@ void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic) {
 	}
 	printf("font path: %s: %s\n", name, fontPath);
 
-	err = FT_New_Face(ftLib, fontPath, 0, &fontFace);
+	err = _FT_New_Face(ftLib, fontPath, 0, &fontFace);
 	if(err) {
 		fprintf(stderr, "Could not access font '%s' at '%'.\n", name, fontPath);
 		return;
