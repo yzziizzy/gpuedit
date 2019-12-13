@@ -86,13 +86,13 @@ do { \
 do { \
 	VEC_CHECK(x); \
 	(e) = VEC_PEEK(x); \
-	VEC_LEN(x)--; \
+	if(VEC_LEN(x) > 0) VEC_LEN(x)--; \
 } while(0)
 
 #define VEC_POP1(x) \
 do { \
 	VEC_CHECK(x); \
-	VEC_LEN(x)--; \
+	if(VEC_LEN(x) > 0) VEC_LEN(x)--; \
 } while(0)
 
 

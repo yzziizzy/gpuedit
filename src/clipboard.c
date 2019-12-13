@@ -56,6 +56,9 @@ void Clipboard_PushBuffer(Buffer* b) {
 	cc->b = Buffer_Copy(b);
 	Buffer_ToRawText(b, &cc->flatText, &cc->flatTextLen);
 	
+	Clipboard_SendToOS(CLIP_SELECTION, cc->flatText, cc->flatTextLen, 0);
+	
+	VEC_POP1(&clipboard->stack); // HACK, effectively disabling the unfinished stack behavior
 	VEC_PUSH(&clipboard->stack, cc);
 }
 
@@ -82,14 +85,20 @@ Buffer* Clipboard_PeekBuffer() {
 
 
 Buffer* Clipboard_PopBuffer() {
+	Buffer* b;
 	
-	ClipboardClip* cc = VEC_TAIL(&clipboard->stack);
-	Buffer* b = cc->b;
+	if(clipboard->selfOwned) {
+		ClipboardClip* cc = VEC_TAIL(&clipboard->stack);
+		b = cc->b;
+	}
+	else {
+		b = Buffer_New();
+		Buffer_AppendRawText(b, clipboard->os[CLIP_SELECTION].buf, clipboard->os[CLIP_SELECTION].length);
+	}
+// 	VEC_POP1(&clipboard->stack);
 	
-	VEC_POP1(&clipboard->stack);
-	
-	free(cc->flatText);
-	free(cc);
+// 	free(cc->flatText);
+// 	free(cc);
 	
 	return b;
 }
@@ -97,9 +106,11 @@ Buffer* Clipboard_PopBuffer() {
 
 void Clipboard_SendToOS(unsigned int which, char* text, size_t len, int encoding) {
 	Clipboard_SetFromOS(which, text, len, encoding);
-	printf("'%.*s'",len, text);
+// 	printf("'%.*s'",len, text);
 	clipboard->selfOwned = 1;
 	callOnChangeFns(which);
+	
+	printf("self owned\n");
 }
 
 
@@ -111,7 +122,7 @@ void Clipboard_SetFromOS(unsigned int which, char* text, size_t len, int encodin
 		b->allocSize = nextPOT(len + 1);
 		b->buf = realloc(b->buf, b->allocSize);
 	}
-	
+	printf("> %d '%.*s'\n", which, len, text);
 	memcpy(b->buf, text, len);
 	b->buf[len] = 0;
 	

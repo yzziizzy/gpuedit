@@ -29,12 +29,13 @@
 * Typing with a selection overwrites it
 * Implement INCR selection handling for X
 * Undo/redo
-* Drop file onto existing editor to open it
+* Drop file from X onto existing editor to open it
 * Save/reload workspace
 * File/path in titlebar
 * Persist bookmarks
 * Monitor file changes on disk
 * Scroll when dragging
+* Speed scrolling with ctrl
 
 
 == Editor Features ==
@@ -43,7 +44,7 @@
 * Go to line
 * Plain/escaped/regex search and replace
 * Copy/paste, with X interaction
-* Duplicate selection up/down
+* Duplicate selected lines up/down
 * Move by words
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
@@ -51,7 +52,7 @@
 * Language sensitive auto-complete and type/param hints (low priority)
 * Delete contents of line but leave indentation
 * Create new line after, indented, and jump to the end 
-* Bookmarks
+* Bookmarks, bookmark categories?
 * Fix spacing of items in tables
 * Drag selection to new spot
 * Quick find/replace on current line only
@@ -59,6 +60,15 @@
 
 == BUGS ==
 * Selection pivot is not consistent
+* Extra linebreak at beginning or end when pasting a selection
 
 
 
+== Low Priority ==
+* Optimize all buffer operations for minimal line renumbering
+
+
+
+
+== Language Notes ==
+"i don't care about member layout" flag for structs

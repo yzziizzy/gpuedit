@@ -121,7 +121,7 @@ static void clipNotify(int which, XStuff* xs) {
 		default: return;
 	}
 	XSetSelectionOwner(xs->display, a, xs->clientWin, CurrentTime);
-	printf("mine\n");
+	printf("clipboard is mine\n");
 }
 
 // this function will exit() on fatal errors. what good is error handling then?
@@ -384,6 +384,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 				unsigned char **prop_return
 			);*/ 
 			
+// 			 printf("selnotify\n");
 			
 			XGetWindowProperty(xs->display, xs->clientWin, 
 				xev.xselection.property, //xs->selDataID, // property id
@@ -398,10 +399,13 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			);
 			
 			int which;
-			if(xev.xselection.property == xs->primaryID) which = CLIP_PRIMARY;
-			else if(xev.xselection.property == xs->secondaryID) which = CLIP_SECONDARY;
-			else if(xev.xselection.property == xs->clipboardID) which = CLIP_SELECTION;
-			else continue;
+			if(xev.xselection.selection == xs->primaryID) which = CLIP_PRIMARY;
+			else if(xev.xselection.selection == xs->secondaryID) which = CLIP_SECONDARY;
+			else if(xev.xselection.selection == xs->clipboardID) which = CLIP_SELECTION;
+			else {
+// 				printf("wrong buffer\n");
+				continue;
+			}
 			
 			Clipboard_SetFromOS(which, result, (resultBitsPerItem / 8) * resultItemCount, 1);
 			
@@ -409,11 +413,11 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			XFree(result);
 			continue;
-			printf("selection Notify\n");
+// 			printf("selection Notify\n");
 		}
 		else if(xev.type == SelectionRequest) {
 // 			xev.xselectionrequest.selection
-			printf("selection request\n");
+// 			printf("selection request\n");
 			int which;
 			if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_PRIMARY;
 			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;

@@ -23,6 +23,7 @@ typedef struct BufferLine {
 	
 } BufferLine;
 
+
 typedef struct BufferSelection {
 	BufferLine* startLine, *endLine;
 	size_t startCol, endCol;
@@ -194,9 +195,11 @@ BufferLine* BufferLine_Copy(BufferLine* orig);
 void BufferLine_EnsureAlloc(BufferLine* l, size_t len);
 void BufferLine_InsertChar(BufferLine* l, char c, size_t col);
 void BufferLine_DeleteChar(BufferLine* l, size_t col);
+void BufferLine_TruncateAfter(BufferLine* l, size_t col);
 void BufferLine_SetText(BufferLine* l, char* text, size_t len);
 void BufferLine_InsertText(BufferLine* l, char* text, size_t len, size_t col);
 void BufferLine_AppendText(BufferLine* l, char* text, size_t len);
+void BufferLine_AppendLine(BufferLine* l, BufferLine* src);
 
 
 void Buffer_RenumberLines(BufferLine* start, size_t num);
@@ -204,7 +207,8 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd);
 
 // these functions operate independently of the cursor
 BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after);
-BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before);
+void Buffer_InsertLineAfter(Buffer* b, BufferLine* before, BufferLine* after);
+BufferLine* Buffer_InsertEmptyLineAfter(Buffer* b, BufferLine* before);
 void Buffer_DeleteLine(Buffer* b, BufferLine* l);
 void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col);
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col);
@@ -212,7 +216,7 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, Bu
 void Buffer_ClearCurrentSelection(Buffer* b);
 void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
 void Buffer_ClearAllSelections(Buffer* b);
-
+void Buffer_DeleteSelectionContents(Buffer* b, BufferSelection* sel);
 
 
 // these functions operate on absolute positions
@@ -249,6 +253,7 @@ void Buffer_MoveCursor(Buffer* b, ptrdiff_t lines, ptrdiff_t cols);
 
 
 
+void Buffer_DebugPrint(Buffer* b);
 
 
 

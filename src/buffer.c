@@ -91,6 +91,7 @@ void BufferLine_EnsureAlloc(BufferLine* l, size_t len) {
 
 // does NOT handle embedded linebreak chars
 void BufferLine_InsertText(BufferLine* l, char* text, size_t len, size_t col) {
+	if(text == NULL) return;
 	if(len == 0) len = strlen(text);
 	if(len == 0) return;
 	
@@ -117,6 +118,29 @@ void BufferLine_AppendText(BufferLine* l, char* text, size_t len) {
 	l->length += len;
 }
 
+
+void BufferLine_TruncateAfter(BufferLine* l, size_t col) {
+	if(l->length < col) return;
+	l->buf[col - 1] = 0;
+	l->length = col - 1;
+}
+
+void BufferLine_DeleteRange(BufferLine* l, size_t startC, size_t endC) {
+	
+	assert(startC > 0);
+	assert(endC > 0);
+	
+	startC = MIN(MIN(endC, startC), l->length + 1);
+	endC = MIN(MAX(endC, startC), l->length + 1);
+	
+	if(startC == endC) return;
+	
+	memmove(l->buf + startC - 1, l->buf + endC, l->length - endC);
+	
+	
+	l->length -= endC - startC + 1;
+	l->buf[l->length] = 0;
+}
 
 size_t drawCharacter(
 	GUIManager* gm, 
@@ -286,7 +310,8 @@ void BufferLine_DeleteChar(BufferLine* l, size_t col) {
 }
 
 
-BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before) {
+void Buffer_InsertLineAfter(Buffer* b, BufferLine* before, BufferLine* after) {
+	if(after == NULL) return NULL;
 	
 	if(before == NULL && b->first) {
 		printf("before is null in InsertLineAfter\n");
@@ -294,7 +319,6 @@ BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before) {
 	}
 	
 	b->numLines++;
-	BufferLine* after = BufferLine_New();
 	
 	if(b->first == NULL) {
 		b->first = after;
@@ -315,6 +339,13 @@ BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before) {
 	
 	Buffer_RenumberLines(after, before->lineNum);
 	
+	return after;
+}
+
+
+BufferLine* Buffer_InsertEmptyLineAfter(Buffer* b, BufferLine* before) {
+	BufferLine* after = BufferLine_New();
+	Buffer_InsertLineAfter(b, before, after);
 	return after;
 }
 
@@ -351,6 +382,7 @@ BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after) {
 }
 
 void Buffer_DeleteLine(Buffer* b, BufferLine* l) {
+	if(l == NULL) return;
 	
 	if(l == b->first) b->first = l->next;
 	if(l == b->last) b->last = l->prev;
@@ -384,7 +416,7 @@ void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt) {
 	
 	if(amt > 0) {
 		while(amt-- > 0) {
-			bl = Buffer_InsertLineAfter(b, src);
+			bl = Buffer_InsertEmptyLineAfter(b, src);
 			BufferLine_SetText(bl, src->buf, src->length);
 		}
 	}
@@ -407,7 +439,7 @@ void Buffer_InsertLinebreak(Buffer* b) {
 		Buffer_InsertLineBefore(b, b->current);
 	}
 	else {
-		BufferLine* n = Buffer_InsertLineAfter(b, l);
+		BufferLine* n = Buffer_InsertEmptyLineAfter(b, l);
 		BufferLine_SetText(n, l->buf + b->curCol - 1, strlen(l->buf + b->curCol - 1));
 		
 		l->buf[b->curCol - 1] = 0;
@@ -421,6 +453,44 @@ void Buffer_InsertLinebreak(Buffer* b) {
 	// TODO: maybe shrink the alloc
 }
 
+void BufferLine_AppendLine(BufferLine* l, BufferLine* src) {
+	printf("nyi bufferline_appendline\n");
+}
+/*
+void Buffer_InsertBufferAt(Buffer* dest, BufferLine* l, size_t col, Buffer* src) {
+	if(src == NULL || l == NULL) return;
+	if(src->numLines == 0) return;
+	
+	assert(col > 0);
+	
+	// TODO: handle single-line cases
+	
+	// cache remainder of target line
+	size_t tlen = l->length - col;
+	char* tmp = malloc(l->length - col + 1);
+	memcpy(tmp, l->buf + col, tlen);
+	tmp[tlen] = 0;
+	
+	BufferLine_TruncateAfter(l, col);
+	
+	// append the first line
+	BufferLine_AppendLine(l, src->first);
+	
+	BufferLine* c, *c2;
+	// insert middle lines
+	BufferLine* bl = src->first->next;
+	c = l;
+	while(bl) {
+		c2 = BufferLine_Copy(bl);
+		Buffer_InsertLineAfter(b, c, c2); // TODO: change this fn
+		
+		c = c2;
+		bl = bl->next;
+	}
+	
+	// append cached remainder to last line
+	BufferLine_InsertText(c, tmp, tlen, 1);
+}*/
 
 // deletes chars but also handles line removal and edge cases
 // does not move the cursor
@@ -475,6 +545,36 @@ void Buffer_ClearAllSelections(Buffer* b) {
 	// TODO: clear the selection list too
 }
 
+
+void Buffer_DeleteSelectionContents(Buffer* b, BufferSelection* sel) {
+	if(!sel) return;
+	
+	if(sel->startLine == sel->endLine) {
+		// move the end down
+		BufferLine_DeleteRange(sel->startLine, sel->startCol, sel->endCol);
+	}
+	else {
+		// truncate start line after selection start
+		BufferLine_TruncateAfter(sel->startLine, sel->startCol);
+
+		// append end line after selection ends to first line
+		BufferLine_AppendText(sel->startLine, sel->endLine->buf + sel->endCol, strlen(sel->endLine->buf + sel->endCol));
+		
+		// delete lines 1-n
+		BufferLine* bl = sel->startLine->next;
+		BufferLine* next;
+		while(bl) {
+			next = bl->next; 
+			Buffer_DeleteLine(b, bl);
+			
+			if(bl == sel->endLine) break;
+			bl = next;
+		}
+	}
+	
+	Buffer_ClearCurrentSelection(b);
+}
+
 void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines) {
 	int i = lines;
 	
@@ -488,6 +588,8 @@ void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines) {
 
 
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
+	Buffer* b2;
+	
 	
 	switch(cmd->type) {
 		case BufferCmd_MoveCursorV:
@@ -537,29 +639,28 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		
 		case BufferCmd_Copy:
 			if(b->sel) {
-				
+				b2 = Buffer_FromSelection(b, b->sel);
+				Clipboard_PushBuffer(b2);
 			}
 			break;
 		
 		case BufferCmd_Cut:
 			if(b->sel) {
-				{
-				char* s;
-				size_t* l;
-				Buffer* b2 = Buffer_FromSelection(b, b->sel);
-				Buffer_ToRawText(b2, &s, &l);
-				Clipboard_SendToOS(CLIP_SELECTION, s, l, 0);
-				}
+				b2 = Buffer_FromSelection(b, b->sel);
+				Clipboard_PushBuffer(b2);
+				Buffer_DeleteSelectionContents(b, b->sel);
 			}
 			break;
 		
 		case BufferCmd_Paste:
-			
+			b2 = Clipboard_PopBuffer();
+			if(b2) {
+				Buffer_InsertBufferAt(b, b2, b->current, b->curCol);
+			}
 			
 			break;
 		
 		case BufferCmd_SelectNone:
-			printf("select none\n");
 			Buffer_ClearAllSelections(b);
 			break;
 		
@@ -717,14 +818,41 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel) {
 }
 
 
+void Buffer_DebugPrint(Buffer* b) {
+	BufferLine* bl;
+	size_t i = 1, actualLines = 0;
+	
+	// count real lines
+	bl = b->first;
+	while(bl) {
+		actualLines++;
+		bl = bl->next;
+	}
+	
+	printf("Buffer %p: expected lines: %ld, actual lines: %ld\n", b, b->numLines, actualLines);
+	
+	
+	bl = b->first;
+	while(bl) {
+		printf("%ld: [%ld/%ld] '%.*s'\n", i, bl->length, bl->allocSz, bl->length, bl->buf);
+		bl = bl->next;
+		i++;
+	}
+}
+
+
+
+// BUG doesn't paste first and last line properly
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol) {
 	
 	BufferLine* blc, *bl;
 	
+	Buffer_DebugPrint(graft);
+	
 	// check for easy special  cases
 	if(graft->numLines == 0) return;
 	if(graft->numLines == 1) {
-		BufferLine_InsertText(tline, graft->first, graft->first->length, tcol);
+		BufferLine_InsertText(tline, graft->first->buf, graft->first->length, tcol);
 		return;
 	}
 	
@@ -743,14 +871,14 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, siz
 	BufferLine* t = tline;
 	while(gbl && gbl != graft->last) {
 		
-		t = Buffer_InsertLineAfter(target, t);
+		t = Buffer_InsertEmptyLineAfter(target, t);
 		BufferLine_SetText(t, gbl->buf, gbl->length);
 		
 		gbl = gbl->next;
 	}
 	
 	// prepend the last line to the temp buffer
-	t = Buffer_InsertLineAfter(target, t);
+	t = Buffer_InsertEmptyLineAfter(target, t);
 	BufferLine_SetText(t, graft->last->buf, graft->last->length);
 	BufferLine_AppendText(t, tmp, tmplen);
 }
@@ -766,6 +894,8 @@ Buffer* Buffer_New() {
 
 void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 	if(len == 0) len = strlen(source);
+	
+	if(len == 0) return; 
 	
 	char* s = source;
 	for(size_t i = 0; s < source + len; i++) {
@@ -829,7 +959,7 @@ BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len) {
 
 
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
-	BufferLine* l = Buffer_InsertLineAfter(b, b->last);
+	BufferLine* l = Buffer_InsertEmptyLineAfter(b, b->last);
 	BufferLine_SetText(l, text, len);
 	return l;
 }
@@ -1187,7 +1317,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
 	
 	size_t line = lineFromPos(w, gev->pos);
-	
+	printf("%d\n", line);
 	b->current = Buffer_GetLine(b, line);
 	
 	b->curCol = getColForPos(w, b->current, gev->pos.x);
@@ -1198,7 +1328,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 
 
 
-static void keyUp(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	
 	
@@ -1209,7 +1339,7 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 		});
 	
 	}
-	else if(gev->type == GUIEVENT_KeyUp) {
+	else {
 		// special commands
 		unsigned int S = GUIMODKEY_SHIFT;
 		unsigned int C = GUIMODKEY_CTRL;
@@ -1280,7 +1410,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyUp = keyUp,
+		.KeyDown = keyDown,
 		.Click = click,
 		.ScrollUp = scrollUp,
 		.ScrollDown = scrollDown,
