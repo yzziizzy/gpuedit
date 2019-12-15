@@ -91,18 +91,18 @@ void initApp(XStuff* xs, AppState* as) {
 	as->currentBuffer->curCol = 1;
 	as->currentBuffer->ep = ep;
 	
-	Buffer_LoadFromFile(as->currentBuffer, "LICENSE");
+	Buffer_LoadFromFile(as->currentBuffer, "Makefile.am");
 	Buffer_LoadFromFile(buf2, "config.h");
 // 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
 	
-	BufferSelection* sel = pcalloc(sel);
-	sel->startLine = as->currentBuffer->first->next->next->next->next->next->next->next->next->next->next->next->next;
-	sel->endLine = sel->startLine->next->next->next;
-	sel->startCol = 5;
-	sel->endCol = 15;
-	as->currentBuffer->sel = sel;
-	
+// 	BufferSelection* sel = pcalloc(sel);
+// 	sel->startLine = as->currentBuffer->first->next->next->next->next->next->next->next->next->next->next->next->next;
+// 	sel->endLine = sel->startLine->next->next->next;
+// 	sel->startCol = 5;
+// 	sel->endCol = 15;
+// 	as->currentBuffer->sel = sel;
+// 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(as->gui);
 	gbe->header.size = (Vector2){800, 800-20}; // TODO update dynamically
 	gbe->buffer = as->currentBuffer;

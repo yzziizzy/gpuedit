@@ -656,8 +656,8 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 			b2 = Clipboard_PopBuffer();
 			if(b2) {
 				Buffer_InsertBufferAt(b, b2, b->current, b->curCol);
+				// TODO: move cursor to end of pasted text
 			}
-			
 			break;
 		
 		case BufferCmd_SelectNone:
@@ -769,6 +769,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel) {
 		b->first = blc;
 		b->last = blc;
 		b->current = blc;
+		b->numLines = 1;
 		
 		return b;
 	}
@@ -847,7 +848,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, siz
 	
 	BufferLine* blc, *bl;
 	
-	Buffer_DebugPrint(graft);
+	
 	
 	// check for easy special  cases
 	if(graft->numLines == 0) return;
@@ -864,7 +865,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, siz
 	
 	tline->length = tcol;
 	tline->buf[tcol] = 0;
-	BufferLine_AppendText(tline, graft->first, graft->first->length);
+	BufferLine_AppendText(tline, graft->first->buf, graft->first->length);
 	
 	// copy in the middle lines
 	BufferLine* gbl = graft->first->next;
@@ -881,6 +882,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, siz
 	t = Buffer_InsertEmptyLineAfter(target, t);
 	BufferLine_SetText(t, graft->last->buf, graft->last->length);
 	BufferLine_AppendText(t, tmp, tmplen);
+	
 }
 
 
@@ -1226,9 +1228,19 @@ static size_t lineFromPos(GUIBufferEditor* w, Vector2 pos) {
 }
 
 static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
-	size_t col = floor((x - w->header.absTopLeft.x - 50) / w->bdp->tdp->charWidth) + 1 + w->scrollCols;
-	return MAX(0, MIN(col, bl->length + 1));
-
+	// must handle tabs
+	ptrdiff_t screenCol = floor((x - w->header.absTopLeft.x - 50) / w->bdp->tdp->charWidth) + 1 + w->scrollCols;
+	
+	int tabwidth = w->bdp->tdp->tabWidth;
+	ptrdiff_t charCol = 0;
+	
+	while(screenCol > 0) {
+		if(bl->buf[charCol] == '\t') screenCol -= tabwidth;
+		else screenCol--;
+		charCol++;
+	}
+	
+	return MAX(0, MIN(charCol, bl->length + 1));
 }
 
 
@@ -1317,7 +1329,6 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
 	
 	size_t line = lineFromPos(w, gev->pos);
-	printf("%d\n", line);
 	b->current = Buffer_GetLine(b, line);
 	
 	b->curCol = getColForPos(w, b->current, gev->pos.x);
