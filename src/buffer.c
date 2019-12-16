@@ -679,6 +679,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		case BufferCmd_SelectFromSOL:
 			Buffer_SetCurrentSelection(b, b->current, 1, b->current, b->curCol - 1);
 			break;
+			
 	}
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
@@ -691,6 +692,23 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd) {
 		});
 		
 		w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
+	}
+	else if(cmd->type == BufferCmd_GoToLine) {
+		
+		if(!w->lineNumTypingMode) {
+			w->lineNumTypingMode = 1;
+			// activate the line number entry box
+			w->lineNumEntryBox = GUIEdit_New(w->header.gm, "");
+			GUIResize(&w->lineNumEntryBox->header, (Vector2){200, 20});
+			w->lineNumEntryBox->header.topleft = (Vector2){20,20};
+			w->lineNumEntryBox->header.gravity = GUI_GRAV_TOP_LEFT;
+			
+			GUIRegisterObject(w->lineNumEntryBox, w);
+			
+			GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
+		}
+		// TODO: change hooks
+		
 	}
 	else { // pass it on
 		Buffer_ProcessCommand(w->buffer, cmd);
@@ -1061,7 +1079,6 @@ int getNextLine(hlinfo* hl, char** txt, size_t* len) {
 void writeSection(hlinfo* hl, unsigned char style, unsigned char len) {
 	if(len == 0) return;
 	
-	
 	VEC_INC(&hl->writeLine->style);
 	VEC_TAIL(&hl->writeLine->style).length = len;
 	VEC_TAIL(&hl->writeLine->style).styleIndex = style;
@@ -1089,7 +1106,7 @@ void Buffer_RefreshHighlight(Buffer* b) {
 		.getNextLine = getNextLine,
 		.writeSection = writeSection,
 		
-		.dirtyLines = 10,
+		.dirtyLines = b->numLines,
 		
 		.b = b,
 		.readLine = b->first,
@@ -1099,7 +1116,7 @@ void Buffer_RefreshHighlight(Buffer* b) {
 	
 	// clear existing styles
 	BufferLine* bl = b->first;
-	for(int i = 0; i < 10 && bl; i++) {
+	for(int i = 0; i < b->numLines && bl; i++) {
 		VEC_TRUNC(&bl->style);
 		
 		bl = bl->next;
@@ -1248,6 +1265,9 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 // HACK
 	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
 	
+	if(w->lineNumTypingMode) {
+		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
+	}
 }
 
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
@@ -1386,6 +1406,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			{C|S,  'a',       BufferCmd_SelectNone   ,0,  0, 0}, 
 			{C,    'l',       BufferCmd_SelectToEOL  ,0,  0, 0}, 
 			{C|S,  'l',       BufferCmd_SelectFromSOL ,0,  0, 0}, 
+			{C,    'g',       BufferCmd_GoToLine     ,0,  0, 0}, 
 			{0,0,0,0,0},
 		};
 		

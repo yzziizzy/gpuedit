@@ -56,7 +56,7 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 	
 	if(!json_obj_get_key(cfg, "size", &v)) {
 		json_as_vector(v, 2, &h->size);
-		guiResize(h, h->size);
+		GUIResize(h, h->size);
 	}
 	
 	// TODO: all other other props 

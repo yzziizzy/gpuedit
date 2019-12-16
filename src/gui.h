@@ -376,7 +376,7 @@ GUIObject* GUIManager_popFocusedObject(GUIManager* gm);
 void guiDelete(GUIObject* go);
 // void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 void guiReap(GUIObject* go);
-void guiResize(GUIHeader* gh, Vector2 newSz);
+void GUIResize(GUIHeader* gh, Vector2 newSz);
 int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
 

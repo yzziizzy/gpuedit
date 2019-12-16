@@ -36,7 +36,7 @@ typedef struct GUIEdit {
 } GUIEdit;
 
 
-GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue, Vector2 size);
+GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue);
 
 void GUIEdit_SetText(GUIEdit* ed, char* text);
 void GUIEdit_SetInt(GUIEdit* ed, int64_t ival); 

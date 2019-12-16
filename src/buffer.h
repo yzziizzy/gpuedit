@@ -125,6 +125,10 @@ typedef struct GUIBufferEditor {
 	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
 	size_t selectPivotCol;
 	
+	
+	char lineNumTypingMode; // flag for GoToLine being active
+	GUIEdit* lineNumEntryBox;
+	
 	// TODO: move elsewhere
 	GUIFont* font;
 	
@@ -152,6 +156,8 @@ enum BufferCmdType {
 	BufferCmd_SelectLine,
 	BufferCmd_SelectToEOL, // end of line
 	BufferCmd_SelectFromSOL, // start of line
+	BufferCmd_GoToLine,
+	
 
 	
 	// NYI

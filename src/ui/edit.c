@@ -31,7 +31,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 2);
 	
-	
+	printf("tl: %f,%f | %f,%f\n", tl.x, tl.y, w->header.size.x, w->header.size.y);
 	
 	// bg
 	*v++ = (GUIUnifiedVertex){
@@ -44,10 +44,10 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
 		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = {28, 28, 64, 255}, // TODO: color
+		.bg = {128, 28, 164, 255}, // TODO: color
 		
-		.z = w->header.z,
-		.alpha = w->header.alpha,
+		.z = 100000, //w->header.z,
+		.alpha = 1,
 	};
 	// cursor
 	*v = (GUIUnifiedVertex){
@@ -135,7 +135,7 @@ static int click(GUIEdit* w, Vector2 clickPos) {
 
 
 
-GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue, Vector2 size) {
+GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	
 	GUIEdit* w;
 	
@@ -155,7 +155,6 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue, Vector2 size) {
 	
 	gui_headerInit(&w->header, gm, &static_vt, NULL);
 // 	w->header.input_vt = &input_vt;
-	w->header.size = size; 
 	
 	w->blinkRate = 1.5;
 	
@@ -175,8 +174,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue, Vector2 size) {
 	w->cursorpos = w->textlen;
 	
 	w->textControl = GUIText_new(gm, initialValue, "Arial", 6.0f);
-	w->textControl->header.size = w->header.size;
-	w->textControl->header.z = 100.5;
+	w->textControl->header.z = 10000.5;
 	GUIRegisterObject(w->textControl, &w->header);
 
 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);

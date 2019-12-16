@@ -374,7 +374,7 @@ void guiReap(GUIObject* go) {
 	
 }
 
-void guiResize(GUIHeader* gh, Vector2 newSz) {
+void GUIResize(GUIHeader* gh, Vector2 newSz) {
 	if(gh->deleted) return;
 	
 	if(gh->vt->Resize) {

@@ -46,7 +46,7 @@ static void delete(GUIImageButton* ib) {
 
 }
 static void resize(GUIImageButton* w, Vector2 newSz) {
-	guiResize(&w->img->header, (Vector2){newSz.x - w->border*2, newSz.y - w->border*2});
+	GUIResize(&w->img->header, (Vector2){newSz.x - w->border*2, newSz.y - w->border*2});
 }
 
 // static void mouseEnter(InputEvent* ev, GUIImageButton* w) {

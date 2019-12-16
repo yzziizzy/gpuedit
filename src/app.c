@@ -91,8 +91,8 @@ void initApp(XStuff* xs, AppState* as) {
 	as->currentBuffer->curCol = 1;
 	as->currentBuffer->ep = ep;
 	
-	Buffer_LoadFromFile(as->currentBuffer, "Makefile.am");
-	Buffer_LoadFromFile(buf2, "config.h");
+	Buffer_LoadFromFile(as->currentBuffer, "src/buffer.c");
+// 	Buffer_LoadFromFile(buf2, "config.h");
 // 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
 	
@@ -109,11 +109,11 @@ void initApp(XStuff* xs, AppState* as) {
 	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
 	gbe->scrollLines = 0;
 
-	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
-	gbe2->header.size = (Vector2){800, 800-20}; // TODO update dynamically
-	gbe2->buffer = buf2;
-	gbe2->font = FontManager_findFont(as->gui->fm, "Courier New");
-	gbe2->scrollLines = 0;
+// 	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
+// 	gbe2->header.size = (Vector2){800, 800-20}; // TODO update dynamically
+// 	gbe2->buffer = buf2;
+// 	gbe2->font = FontManager_findFont(as->gui->fm, "Courier New");
+// 	gbe2->scrollLines = 0;
 	
 	TextDrawParams* tdp = pcalloc(tdp);
 	tdp->font = gbe->font;
@@ -136,14 +136,14 @@ void initApp(XStuff* xs, AppState* as) {
 	bdp->lineNumWidth = 50;
 	
 	gbe->bdp = bdp;
-	gbe2->bdp = bdp;
+// 	gbe2->bdp = bdp;
 	
 	GUITabControl* tabs = GUITabControl_New(as->gui);
 	GUIRegisterObject(tabs, as->gui->root);
 	as->tc = tabs;
 	
 	GUIRegisterObject(gbe, tabs);
-	GUIRegisterObject(gbe2, tabs);
+// 	GUIRegisterObject(gbe2, tabs);
 	
 	GUIManager_pushFocusedObject(as->gui, gbe);
 	

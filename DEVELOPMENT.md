@@ -36,6 +36,9 @@
 * Monitor file changes on disk
 * Scroll when dragging
 * Speed scrolling with ctrl
+* Window resize
+* Small shade variation on matching pairs of brackets
+
 
 
 == Editor Features ==
@@ -56,13 +59,14 @@
 * Fix spacing of items in tables
 * Drag selection to new spot
 * Quick find/replace on current line only
-
+* Hoist declaration to top of block/fn
+* Manual re-highlight mode
 
 == BUGS ==
 * Selection pivot is not consistent
-* Extra linebreak at beginning or end when pasting a selection
-
-
+* Mouse scroll on files with fewer lines than the screen
+* Scrollbar follows cursor, not screen
+* Underscore does not render
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering
