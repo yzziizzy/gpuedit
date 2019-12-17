@@ -97,12 +97,12 @@ GUIFont* FontManager_findFont(FontManager* fm, char* name) {
 static char* defaultCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 `~!@#$%^&*()_+|-=\\{}[]:;<>?,./'\"";
 
 // 16.16 fixed point to float conversion
-static float f2f(uint32_t i) {
+static float f2f(int32_t i) {
 	return ((double)(i) / 65536.0);
 }
 
 // 26.6 fixed point to float conversion
-static float f2f26_6(uint32_t i) {
+static float f2f26_6(int32_t i) {
 	return ((double)(i) / 64.0);
 }
 
@@ -330,7 +330,6 @@ static FontGen* addChar(FontManager* fm, FT_Face* ff, int code, int fontSize, ch
 	fg->rawAdvance = f2f(slot->linearHoriAdvance); 
 	fg->rawBearing.x = f2f26_6(slot->metrics.horiBearingX); 
 	fg->rawBearing.y = f2f26_6(slot->metrics.horiBearingY); 
-	
 	
 	// back to sdf generation
 	Vector2i rawImgSz = {(slot->metrics.width >> 6), (slot->metrics.height >> 6)};
@@ -594,6 +593,7 @@ void FontManager_createAtlas(FontManager* fm) {
 		c->advance = gen->rawAdvance / (float)gen->oversample;
 		c->topLeftOffset.x = (gen->rawBearing.x / (float)gen->oversample);// + (float)gen->sdfBounds.min.x;
 		c->topLeftOffset.y = (gen->rawBearing.y / (float)gen->oversample);// - (float)gen->sdfBounds.min.y;
+		
 		c->size.x = gen->sdfDataSize.x;
 		c->size.y = gen->sdfDataSize.y;
 		
