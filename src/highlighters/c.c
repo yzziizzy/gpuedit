@@ -82,6 +82,8 @@ enum LexState {
 	#define X(t) LST_##t,
 		FINAL_TOKENS
 	#undef X
+	
+	LST_MAXVALUE
 };
 
 char* stateNames[] = {
@@ -131,7 +133,7 @@ static int eatchar(struct lexer_state* st, int c);
 
 
 
-void hlfn(hlinfo* hl) {
+void hlfn(Highlighter* h, hlinfo* hl) {
 	
 	struct lexer_state ls;
 	ls.state = LST_NULL;
@@ -143,6 +145,7 @@ void hlfn(hlinfo* hl) {
 	ls.priorEscape = 0;
 	ls.tokenState = LST_NULL;
 	ls.tokenFinished = 0;
+	ls.pastLeadingWS = 0;
 	
 	struct input_state is;
 	
@@ -151,7 +154,7 @@ void hlfn(hlinfo* hl) {
 	while(hl->dirtyLines > 0) {
 		char* line;
 		size_t llen;
-		printf("new line: -------------\n");
+// 		printf("new line: -------------\n");
 		if(hl->getNextLine(hl, &line, &llen)) {
 			printf("highlighter ran out of input early \n");
 			break;
@@ -191,7 +194,7 @@ void hlfn(hlinfo* hl) {
 					flop++;
 				}
 				
-				hl->writeSection(hl, flop%2, span);
+				hl->writeSection(hl, ls.tokenState, span);
 				
 				// reset the lex state when done reading
 				ls.tokenFinished = 0;
@@ -590,3 +593,28 @@ do { \
 }
 
 
+
+
+void initCStyles(Highlighter* hl) {
+	
+	hl->numStyles = LST_MAXVALUE;
+	
+	hl->styles = calloc(1, sizeof(*hl->styles) * hl->numStyles);
+	
+	for(int i = 0; i < LST_MAXVALUE; i++) {
+		hl->styles[i].index = i;
+		hl->styles[i].category = 0;
+		hl->styles[i].name = stateNames[i];
+		hl->styles[i].fgColorDefault = (Vector4){(i%5)*.1 + .5, (i%50)*.01 + .5, ((i+17)%30)*.3 + .5, 1};
+		hl->styles[i].bgColorDefault = (Vector4){0,0,0,0};
+		
+		hl->styles[i].underline = 0;
+		hl->styles[i].bold = 0;
+		hl->styles[i].italic = 0;
+		hl->styles[i].useFGDefault = 0;
+		hl->styles[i].useBGDefault = 1;
+		
+	}
+	
+	
+}

@@ -5,6 +5,9 @@
 #include <stddef.h>
 
 
+#include "ds.h"
+#include "common_math.h"
+
 
 
 typedef struct TextStyleAtom {
@@ -13,6 +16,12 @@ typedef struct TextStyleAtom {
 		unsigned char styleIndex;
 	};
 } TextStyleAtom;
+
+
+
+
+
+
 
 
 
@@ -35,28 +44,48 @@ typedef struct hlinfo {
 	Buffer* b;
 	BufferLine* readLine; 
 	BufferLine* writeLine; 
-	int writeCol; 
+	int writeCol;
 	
 	
 } hlinfo;
 
+
+
+typedef struct StyleInfo {
+	int index;
+	int category;
+	Vector4 fgColorDefault; // temporary colors
+	Vector4 bgColorDefault;
+	Vector4 fgSelColorDefault; // temporary colors
+	Vector4 bgSelColorDefault;
+	char* name;
+	
+	int underline : 1;
+	int bold : 1;
+	int italic : 1;
+	int useFGDefault : 1;
+	int useBGDefault : 1;
+} StyleInfo;
 
 typedef struct Highlighter {
 	
 	void (*refreshStyle)(struct Highlighter*, hlinfo*);
 	
 	// for listing in the style editor
-	void (*getStyleNames)(char** /*nameList*/, size_t* /*len*/);
+// 	void (*getStyleNames)(char** /*nameList*/, size_t* /*len*/);
 // 	void (*getStyleDefaults)(char** /*nameList*/, size_t* /*len*/);
 	
+	StyleInfo* styles;
+	int numStyles;
 	
 	
 } Highlighter;
 
 
-
 typedef struct Highlighter_C {
 	Highlighter hl;
+	
+	
 	
 	
 } Highlighter_C;
@@ -65,6 +94,8 @@ typedef struct Highlighter_C {
 
 
 
+
+void initCStyles(Highlighter* hl);
 
 
 

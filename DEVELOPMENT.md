@@ -76,3 +76,6 @@
 
 == Language Notes ==
 "i don't care about member layout" flag for structs
+int foo = a->b->c->bar $ 3;  . does auto-deref, -> acts like .?
+char* foo = switch(x) { case 2: "two"; break; ... }
+metadata (struct) on each enum field

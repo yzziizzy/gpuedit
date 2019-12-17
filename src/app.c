@@ -108,6 +108,11 @@ void initApp(XStuff* xs, AppState* as) {
 	gbe->buffer = as->currentBuffer;
 	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
 	gbe->scrollLines = 0;
+	
+	gbe->h = pcalloc(gbe->h);
+	initCStyles(gbe->h);
+	
+	GUIBufferEditor_RefreshHighlight(gbe);
 
 // 	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
 // 	gbe2->header.size = (Vector2){800, 800-20}; // TODO update dynamically

@@ -99,7 +99,7 @@ typedef struct BufferDrawParams {
 
 
 // HACK
-void hlfn(hlinfo* hl);
+void hlfn(Highlighter* h, hlinfo* hl);
 
 
 
@@ -109,6 +109,7 @@ typedef struct GUIBufferEditor {
 	
 	Buffer* buffer;
 	BufferDrawParams* bdp;
+	Highlighter* h;
 	
 	
 	ptrdiff_t scrollLines; // current scroll position, 0-based
@@ -237,7 +238,7 @@ void Buffer_CommentSelection(Buffer* b, BufferSelection* sel);
 
 
 // HACK: temporary junk
-void Buffer_RefreshHighlight(Buffer* b);
+void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe);
 
 
 

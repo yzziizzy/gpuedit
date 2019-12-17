@@ -10,6 +10,8 @@
 #include "gui_internal.h"
 #include "clipboard.h"
 
+#include "highlighters/c.h"
+
 
 
 void BufferLine_SetText(BufferLine* l, char* text, size_t len) {
@@ -142,6 +144,7 @@ void BufferLine_DeleteRange(BufferLine* l, size_t startC, size_t endC) {
 	l->buf[l->length] = 0;
 }
 
+
 size_t drawCharacter(
 	GUIManager* gm, 
 	TextDrawParams* tdp, 
@@ -159,7 +162,7 @@ size_t drawCharacter(
 	GUIUnifiedVertex* v;
 	
 	// background
-	if(bgColor->a > 0) {
+	if(0 && bgColor->a > 0) {
 		v = GUIManager_reserveElements(gm, 1);
 		
 		*v = (GUIUnifiedVertex){
@@ -1055,9 +1058,6 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	free(o);
 	fclose(f);
 	
-	// HACK
-	Buffer_RefreshHighlight(b);
-	
 	return 0;
 }
 
@@ -1096,12 +1096,15 @@ void writeSection(hlinfo* hl, unsigned char style, unsigned char len) {
 	
 }
 
-#include "highlighters/c.h"
 
-void Buffer_RefreshHighlight(Buffer* b) {
+void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
+	double then = getCurrentTime();
+	
+	Buffer* b = gbe->buffer;
 	
 	if(!b->first) return;
-	
+	Highlighter* h = gbe->h;
+
 	hlinfo hl = {
 		.getNextLine = getNextLine,
 		.writeSection = writeSection,
@@ -1122,8 +1125,9 @@ void Buffer_RefreshHighlight(Buffer* b) {
 		bl = bl->next;
 	}
 	
-	hlfn(&hl);
+	hlfn(h, &hl);
 	
+	printf("hl time: %f\n", timeSince(then)  * 1000.0);
 }
 
 
@@ -1580,8 +1584,17 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
 				else {
-					if(atom) 
-						drawCharacter(gm, tdp, fga[atom->styleIndex], bg, c, (Vector2){tl.x + adv, tl.y});
+					if(atom) {
+						StyleInfo* si = &gbe->h->styles[atom->styleIndex];
+						struct Color4 color = {
+							si->fgColorDefault.x * 255,
+							si->fgColorDefault.y * 255,
+							si->fgColorDefault.z * 255,
+							si->fgColorDefault.w * 255,
+						};
+						
+						drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + adv, tl.y});
+					}
 					else 
 						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y});
 					

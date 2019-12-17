@@ -73,6 +73,7 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-ffinite-math-only -fno-rounding-math \
 	-fno-signaling-nans \
 	-include "../config.h" \
+	-include "signal.h" \
 	-pthread \
 	-Wno-unused-result \
 	-Werror-implicit-function-declaration
