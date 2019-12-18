@@ -5,6 +5,13 @@
 #include "../buffer.h"
 
 
+#define X_2(a,b)           X(a) X(a##b)
+#define X_3(a,b,c)         X_2(a,b) X(a##b##c)
+#define X_4(a,b,c,d)       X_3(a,b,c) X(a##b##c##d)
+#define X_5(a,b,c,d,e)     X_4(a,b,c,d) X(a##b##c##d##e)
+#define X_6(a,b,c,d,e,f)   X_5(a,b,c,d,e) X(a##b##c##d##e##f)
+#define X_7(a,b,c,d,e,f,g) X_6(a,b,c,d,e,f) X(a##b##c##d##e##f##g)
+
 
 #define FINAL_TOKENS \
 	X(linebreak) \
@@ -71,8 +78,64 @@
 	X(star_slash) \
 	X(slash_slash) \
 	X(slash_star) \
-	X(dot_dot)
-
+	X(dot_dot) \
+	\
+	/* keyword names */ \
+	X_4(_a,u,t,o) \
+	X_5(_b,r,e,a,k) \
+	  X(_c) \
+	X_3(_ca,s,e) \
+	X_3(_ch,a,r) \
+	X_2(_co,n) \
+	X_2(_cons,t) \
+	X_5(_cont,i,n,u,e) \
+	  X(_d) \
+	X_6(_de,f,a,u,l,t) \
+	X_5(_do,u,b,l,e) \
+	  X(_e) \
+	X_3(_el,s,e) \
+	X_3(_en,u,m) \
+	X_5(_ex,t,e,r,n) \
+	  X(_f) \
+	X_4(_fl,o,a,t) \
+	X_2(_fo,r) \
+	X_4(_g,o,t,o) \
+	  X(_i) \
+	X_2(_in,t) \
+	X_3(_int8,_,t) \
+	X_4(_int1,6,_,t) \
+	X_4(_int3,2,_,t) \
+	X_4(_int6,4,_,t) \
+	  X(_if) \
+	X_4(_l,o,n,g) \
+	X_2(_r,e) \
+	X_6(_reg,i,s,t,e,r) \
+	X_4(_ret,u,r,n) \
+	  X(_s) \
+	X_4(_sh,o,r,t) \
+	  X(_si) \
+	X_4(_sig,n,e,d) \
+	X_2(_siz,e) \
+	X_2(_size_,t) \
+	X_2(_sizeo,f) \
+	  X(_st) \
+	X_4(_sta,t,i,c) \
+	X_4(_str,u,c,t) \
+	X_5(_sw,i,t,c,h) \
+	X_7(_t,y,p,e,d,e,f) \
+	  X(_u) \
+	X_3(_ui,n,t) \
+	X_3(_uint8,_,t) \
+	X_4(_uint1,6,_,t) \
+	X_4(_uint3,2,_,t) \
+	X_4(_uint6,4,_,t) \
+	  X(_un) \
+	X_3(_uni,o,n) \
+	X_6(_uns,i,g,n,e,d) \
+	X_2(_v,o) \
+	X_2(_voi,d) \
+	X_6(_vol,a,t,i,l,e) \
+	X_5(_w,h,i,l,e) \
 
 
 enum LexState {
@@ -305,6 +368,10 @@ static int isKeyword(char* in) {
 }
 
 
+static int is_id_char(int c) {
+	return isdigit(c) || isalpha(c) || c == '_';
+}
+
 
 
 static int eatchar(struct lexer_state* st, int c) {
@@ -322,6 +389,18 @@ do { \
 	st->state = _state; \
 	return 1; \
 } while(0)
+
+#define if_push_char_id_ret(_char, _state) \
+do { \
+	if(c == _char) { \
+		st->buffer[st->blen] = c; \
+		st->blen++; \
+		st->state = _state; \
+		return 1; \
+	} \
+} while(0)
+
+#define ipcir(a, b) if_push_char_id_ret(a, b)
 
 #define push_char_ret \
 do { \
@@ -342,6 +421,12 @@ do { \
 	st->tokenState = st->state; \
 	return 0; \
 } while(0)
+
+#define retry_as(_state) \
+do { \
+	st->state = _state; \
+	goto RETRY; \
+} while(0);
 	
 	// hopefully this works
 	st->charnum++;
@@ -373,9 +458,25 @@ do { \
 		st->pastLeadingWS = 0;
 	}
 
-
+RETRY:
 	switch(st->state) {
 		case LST_NULL:
+			if(c == 'a') push_char_id_ret(LST__a);
+			if(c == 'b') push_char_id_ret(LST__b);
+			if(c == 'c') push_char_id_ret(LST__c);
+			if(c == 'd') push_char_id_ret(LST__d);
+			if(c == 'e') push_char_id_ret(LST__e);
+			if(c == 'f') push_char_id_ret(LST__f);
+			if(c == 'g') push_char_id_ret(LST__g);
+			if(c == 'i') push_char_id_ret(LST__i);
+			if(c == 'l') push_char_id_ret(LST__l);
+			if(c == 'r') push_char_id_ret(LST__r);
+			if(c == 's') push_char_id_ret(LST__s);
+			if(c == 't') push_char_id_ret(LST__t);
+			if(c == 'u') push_char_id_ret(LST__u);
+			if(c == 'v') push_char_id_ret(LST__v);
+			if(c == 'w') push_char_id_ret(LST__w);
+			
 			if(isdigit(c)) push_char_id_ret(LST_num);
 			if(isalpha(c) || c == '_') push_char_id_ret(LST_id);
 			if(c == '"') discard_id_ret(LST_string);
@@ -581,6 +682,116 @@ do { \
 		case LST_caret:
 			if(c == '=') push_char_id_ret(LST_caret_eq);
 			done;
+		
+		// keyword matching
+		// not the prettiest names
+		
+		// ipcir == if_push_char_id_ret
+#define ipcir_1(a,b) case LST__##a: ipcir(#b[0], LST__##a##b); retry_as(LST_id);  
+#define ipcir_2(a,b,c) case LST__##a: ipcir(#b[0], LST__##a##b); ipcir(#c[0], LST__##a##c); retry_as(LST_id);  
+#define ipcir_3(a,b,c,d) case LST__##a: ipcir(#b[0], LST__##a##b); ipcir(#c[0], LST__##a##c); ipcir(#d[0], LST__##a##d); retry_as(LST_id);  
+#define ipcir_4(a,b,c,d,e) case LST__##a: ipcir(#b[0], LST__##a##b); ipcir(#c[0], LST__##a##c); ipcir(#d[0], LST__##a##d); ipcir(#e[0], LST__##a##e); retry_as(LST_id);  
+
+#define final(a) case LST__##a: if(is_id_char(c)) retry_as(LST_id); done;
+
+#define _2_ipcir(a,b) ipcir_1(a, b); final(a##b);
+#define _3_ipcir(a,b,c) ipcir_1(a, b); ipcir_1(a##b, c); final(a##b##c);
+#define _4_ipcir(a,b,c,d) ipcir_1(a, b); _3_ipcir(a##b, c, d); 
+#define _5_ipcir(a,b,c,d,e) ipcir_1(a, b); _4_ipcir(a##b, c, d, e); 
+#define _6_ipcir(a,b,c,d,e,f) ipcir_1(a, b); _5_ipcir(a##b, c, d, e, f); 
+#define _7_ipcir(a,b,c,d,e,f,g) ipcir_1(a, b); _6_ipcir(a##b, c, d, e, f, g); 
+
+// #define _3_ipcir(a,b, c) ipcir_1(a, b); ipcir_1(a##b, c);
+// #define _4_ipcir(a,b,c,d) _3_ipcir(a,b,c); ipcir_1(a##b##c, d);
+// #define _5_ipcir(a,b,c,d,e) _4_ipcir(a,b,c,d); ipcir_1(a##b##c##d, e);
+// #define _6_ipcir(a,b,c,d,e,f) _5_ipcir(a,b,c,d,e); ipcir_1(a##b##c##d##e, f);
+// #define _7_ipcir(a,b,c,d,e,f,g) _6_ipcir(a,b,c,d,e,f); ipcir_1(a##b##c##d##e##f, g);
+// 
+
+		_4_ipcir(a,u,t,o);
+		_5_ipcir(b,r,e,a,k);
+		 ipcir_3(c, a, h, o);
+		_3_ipcir(ca,s,e);
+		_3_ipcir(ch,a,r);
+		 ipcir_1(co, n); 
+		 ipcir_2(con, s, t);
+		_2_ipcir(cons, t);
+		_5_ipcir(cont,i,n,u,e);
+		ipcir_1(d, o);
+		case LST__do: // tokens that are a prefix of other tokens need special handling
+			ipcir('u', LST__dou); 
+			if(is_id_char(c)) retry_as(LST_id);
+			done;
+		_4_ipcir(dou,b,l,e);
+		
+		 ipcir_3(e, l, n, x);
+		_3_ipcir(el,s,e);
+		_3_ipcir(en,u,m);
+		_5_ipcir(ex,t,e,r,n);
+		 ipcir_2(f, l, o);
+		_2_ipcir(fo, r);
+		_4_ipcir(fl,o,a,t);
+		_4_ipcir(g,o,t,o); 
+		 
+		 ipcir_2(i, n, f);
+		 ipcir_1(in, t);
+		case LST__int: // tokens that are a prefix of other tokens need special handling
+			ipcir('8', LST__int8); 
+			ipcir('1', LST__int1); 
+			ipcir('3', LST__int3); 
+			ipcir('6', LST__int6); 
+			if(is_id_char(c)) retry_as(LST_id);
+			done;
+		_3_ipcir(int8,_,t);
+		_4_ipcir(int1,6,_,t);
+		_4_ipcir(int3,2,_,t);
+		_4_ipcir(int6,4,_,t);
+		_4_ipcir(l,o,n,g);
+		
+
+		
+		 ipcir_4(s, h, i, t, w);
+		_4_ipcir(sh,o,r,t);
+		 ipcir_2(si, g, z);
+		_4_ipcir(sig,n,e,d);
+		 ipcir_1(siz, e);
+		 ipcir_2(size, o, _);
+		_2_ipcir(sizeo,f);
+		_2_ipcir(size_,t);
+		 ipcir_2(st, a, r);
+		_4_ipcir(sta,t,i,c);
+		_4_ipcir(str,u,c,t);
+		_5_ipcir(sw,i,t,c,h);
+		
+		_7_ipcir(t,y,p,e,d,e,f);
+		 
+		 ipcir_2(u, i, n);
+		 ipcir_1(ui, n);
+		 ipcir_1(uin, t);
+		case LST__uint: // tokens that are a prefix of other tokens need special handling
+			ipcir('8', LST__uint8); 
+			ipcir('1', LST__uint1); 
+			ipcir('3', LST__uint3); 
+			ipcir('6', LST__uint6); 
+			if(is_id_char(c)) retry_as(LST_id);
+			done;
+		_3_ipcir(uint8,_,t);
+		_4_ipcir(uint1,6,_,t);
+		_4_ipcir(uint3,2,_,t);
+		_4_ipcir(uint6,4,_,t);
+		 ipcir_2(un, i, s);
+		_3_ipcir(uni,o,n);
+		_6_ipcir(uns,i,g,n,e,d);
+		
+		 ipcir_1(v,o)
+		 ipcir_2(vo, i, l)
+		 ipcir_1(voi,d);
+		_6_ipcir(vol,a,t,i,l,e);
+		 ipcir_1(r,e);
+		 ipcir_2(re, t, g);
+		 _6_ipcir(reg,i,s,t,e,r);
+		 _4_ipcir(ret,u,r,n);
+		_5_ipcir(w,h,i,l,e); 
 		
 		
 		// terminal states
