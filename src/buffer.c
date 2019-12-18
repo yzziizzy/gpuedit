@@ -590,6 +590,42 @@ void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines) {
 }
 
 
+void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols) {
+	int i = cols;
+	
+	if(i < 0) while(i++ < 0) {
+		if(b->curCol <= 1) {
+			
+			if(b->current->prev == NULL) {
+				b->curCol = 1;
+				return;
+			}
+			
+			b->current = b->current->prev;
+			b->curCol = b->current->length + 1;
+		}
+		else {
+			b->curCol--;
+		}
+	}
+	else while(i-- > 0) {
+		if(b->curCol > b->current->length) {
+			
+			if(b->current->next == NULL) {
+				return;
+			}
+			
+			b->current = b->current->next;
+			b->curCol = 1;
+		}
+		else {
+			b->curCol++;
+		}
+	}
+}
+
+
+
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 	Buffer* b2;
 	
@@ -600,7 +636,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 			break;
 		
 		case BufferCmd_MoveCursorH:
-			b->curCol = MAX(MIN(b->current->length + 1, b->curCol + cmd->amt), 1);
+			Buffer_MoveCursorH(b, cmd->amt);
 			break;
 		
 		case BufferCmd_InsertChar:
@@ -1249,6 +1285,8 @@ static size_t lineFromPos(GUIBufferEditor* w, Vector2 pos) {
 }
 
 static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
+	if(bl->buf == NULL) return 1;
+	
 	// must handle tabs
 	ptrdiff_t screenCol = floor((x - w->header.absTopLeft.x - 50) / w->bdp->tdp->charWidth) + 1 + w->scrollCols;
 	
