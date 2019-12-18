@@ -5,12 +5,14 @@
 #include "../buffer.h"
 
 
-#define X_2(a,b)           X(a) X(a##b)
-#define X_3(a,b,c)         X_2(a,b) X(a##b##c)
-#define X_4(a,b,c,d)       X_3(a,b,c) X(a##b##c##d)
-#define X_5(a,b,c,d,e)     X_4(a,b,c,d) X(a##b##c##d##e)
-#define X_6(a,b,c,d,e,f)   X_5(a,b,c,d,e) X(a##b##c##d##e##f)
-#define X_7(a,b,c,d,e,f,g) X_6(a,b,c,d,e,f) X(a##b##c##d##e##f##g)
+#define X_2(a,b)               X(a) X(a##b)
+#define X_3(a,b,c)             X_2(a,b) X(a##b##c)
+#define X_4(a,b,c,d)           X_3(a,b,c) X(a##b##c##d)
+#define X_5(a,b,c,d,e)         X_4(a,b,c,d) X(a##b##c##d##e)
+#define X_6(a,b,c,d,e,f)       X_5(a,b,c,d,e) X(a##b##c##d##e##f)
+#define X_7(a,b,c,d,e,f,g)     X_6(a,b,c,d,e,f) X(a##b##c##d##e##f##g)
+#define X_8(a,b,c,d,e,f,g,h)   X_7(a,b,c,d,e,f,g) X(a##b##c##d##e##f##g##h)
+#define X_9(a,b,c,d,e,f,g,h,i) X_8(a,b,c,d,e,f,g,h) X(a##b##c##d##e##f##g##h##i)
 
 
 #define FINAL_TOKENS \
@@ -101,6 +103,7 @@
 	X_2(_fo,r) \
 	X_4(_g,o,t,o) \
 	  X(_i) \
+	X_4(_inl,i,n,e) \
 	X_2(_in,t) \
 	X_3(_int8,_,t) \
 	X_4(_int1,6,_,t) \
@@ -108,6 +111,7 @@
 	X_4(_int6,4,_,t) \
 	  X(_if) \
 	X_4(_l,o,n,g) \
+	X_9(_p,t,r,d,i,f,f,_,t) \
 	X_2(_r,e) \
 	X_6(_reg,i,s,t,e,r) \
 	X_4(_ret,u,r,n) \
@@ -197,7 +201,6 @@ static int eatchar(struct lexer_state* st, int c);
 
 
 void hlfn(Highlighter* h, hlinfo* hl) {
-	
 	struct lexer_state ls;
 	ls.state = LST_NULL;
 	ls.buffer = malloc(9*4096); // shame on you for longer tokens :P
@@ -384,30 +387,26 @@ do { \
 
 #define push_char_id_ret(_state) \
 do { \
-	st->buffer[st->blen] = c; \
-	st->blen++; \
 	st->state = _state; \
-	return 1; \
+	goto LABEL_push_char_ret; \
 } while(0)
 
 #define if_push_char_id_ret(_char, _state) \
 do { \
 	if(c == _char) { \
-		st->buffer[st->blen] = c; \
-		st->blen++; \
 		st->state = _state; \
-		return 1; \
+		goto LABEL_push_char_ret; \
 	} \
 } while(0)
 
 #define ipcir(a, b) if_push_char_id_ret(a, b)
 
-#define push_char_ret \
-do { \
-	st->buffer[st->blen] = c; \
-	st->blen++; \
-	return 1; \
-} while(0)
+#define push_char_ret goto LABEL_push_char_ret;
+// do { \
+// 	st->buffer[st->blen] = c; \
+// 	st->blen++; \
+// 	return 1; \
+// } while(0)
 
 #define discard_id_ret(_state) \
 do { \
@@ -461,52 +460,61 @@ do { \
 RETRY:
 	switch(st->state) {
 		case LST_NULL:
-			if(c == 'a') push_char_id_ret(LST__a);
-			if(c == 'b') push_char_id_ret(LST__b);
-			if(c == 'c') push_char_id_ret(LST__c);
-			if(c == 'd') push_char_id_ret(LST__d);
-			if(c == 'e') push_char_id_ret(LST__e);
-			if(c == 'f') push_char_id_ret(LST__f);
-			if(c == 'g') push_char_id_ret(LST__g);
-			if(c == 'i') push_char_id_ret(LST__i);
-			if(c == 'l') push_char_id_ret(LST__l);
-			if(c == 'r') push_char_id_ret(LST__r);
-			if(c == 's') push_char_id_ret(LST__s);
-			if(c == 't') push_char_id_ret(LST__t);
-			if(c == 'u') push_char_id_ret(LST__u);
-			if(c == 'v') push_char_id_ret(LST__v);
-			if(c == 'w') push_char_id_ret(LST__w);
-			
-			if(isdigit(c)) push_char_id_ret(LST_num);
-			if(isalpha(c) || c == '_') push_char_id_ret(LST_id);
-			if(c == '"') discard_id_ret(LST_string);
-			if(c == '\'') discard_id_ret(LST_charlit);
-			
-			if(c == '#') push_char_id_ret(LST_pound);
-			if(c == '+') push_char_id_ret(LST_plus);
-			if(c == '-') push_char_id_ret(LST_minus);
-			if(c == '*') push_char_id_ret(LST_star);
-			if(c == '/') push_char_id_ret(LST_slash);
-			if(c == '=') push_char_id_ret(LST_eq);
-			if(c == '!') push_char_id_ret(LST_bang);
-			if(c == '?') push_char_id_ret(LST_quest);
-			if(c == ':') push_char_id_ret(LST_quest);
-			if(c == '&') push_char_id_ret(LST_amp);
-			if(c == '|') push_char_id_ret(LST_pipe);
-			if(c == '{') push_char_id_ret(LST_lbrace);
-			if(c == '}') push_char_id_ret(LST_rbrace);
-			if(c == '[') push_char_id_ret(LST_lbracket);
-			if(c == ']') push_char_id_ret(LST_rbracket);
-			if(c == '(') push_char_id_ret(LST_lparen);
-			if(c == ')') push_char_id_ret(LST_rparen);
-			if(c == '>') push_char_id_ret(LST_gt);
-			if(c == '<') push_char_id_ret(LST_lt);
-			if(c == ',') push_char_id_ret(LST_comma);
-			if(c == '.') push_char_id_ret(LST_dot);
-			if(c == '~') push_char_id_ret(LST_tilde);
-			if(c == '^') push_char_id_ret(LST_caret);
-			if(c == '%') push_char_id_ret(LST_pct);
-			if(c == ';') push_char_id_ret(LST_semi);
+			switch(c) {
+				case 'a': push_char_id_ret(LST__a);
+				case 'b': push_char_id_ret(LST__b);
+				case 'c': push_char_id_ret(LST__c);
+				case 'd': push_char_id_ret(LST__d);
+				case 'e': push_char_id_ret(LST__e);
+				case 'f': push_char_id_ret(LST__f);
+				case 'g': push_char_id_ret(LST__g);
+				case 'i': push_char_id_ret(LST__i);
+				case 'l': push_char_id_ret(LST__l);
+				case 'r': push_char_id_ret(LST__r);
+				case 's': push_char_id_ret(LST__s);
+				case 't': push_char_id_ret(LST__t);
+				case 'u': push_char_id_ret(LST__u);
+				case 'v': push_char_id_ret(LST__v);
+				case 'w': push_char_id_ret(LST__w);
+				
+				case '"': discard_id_ret(LST_string);
+				case '\'': discard_id_ret(LST_charlit);
+				
+				case '#': push_char_id_ret(LST_pound);
+				case '+': push_char_id_ret(LST_plus);
+				case '-': push_char_id_ret(LST_minus);
+				case '*': push_char_id_ret(LST_star);
+				case '/': push_char_id_ret(LST_slash);
+				case '=': push_char_id_ret(LST_eq);
+				case '!': push_char_id_ret(LST_bang);
+				case '?': push_char_id_ret(LST_quest);
+				case ':': push_char_id_ret(LST_quest);
+				case '&': push_char_id_ret(LST_amp);
+				case '|': push_char_id_ret(LST_pipe);
+				case '{': push_char_id_ret(LST_lbrace);
+				case '}': push_char_id_ret(LST_rbrace);
+				case '[': push_char_id_ret(LST_lbracket);
+				case ']': push_char_id_ret(LST_rbracket);
+				case '(': push_char_id_ret(LST_lparen);
+				case ')': push_char_id_ret(LST_rparen);
+				case '>': push_char_id_ret(LST_gt);
+				case '<': push_char_id_ret(LST_lt);
+				case ',': push_char_id_ret(LST_comma);
+				case '.': push_char_id_ret(LST_dot);
+				case '~': push_char_id_ret(LST_tilde);
+				case '^': push_char_id_ret(LST_caret);
+				case '%': push_char_id_ret(LST_pct);
+				case ';': push_char_id_ret(LST_semi);
+				
+				
+				case '0': case '1': case '2': case '3': case '4':
+				case '5': case '6': case '7': case '8': case '9':
+					push_char_id_ret(LST_num);
+				
+				case '_':
+				default:
+					if(isalpha(c)) push_char_id_ret(LST_id);
+			}
 			
 // 			if(c == '\n') {
 // 				push_char;
@@ -685,21 +693,33 @@ RETRY:
 		
 		// keyword matching
 		// not the prettiest names
-		
+			
+		/* TODO: 
+			__builtin_*
+			__* keywords
+			wchar_t
+			*_t types?
+			_Atomic and typedefs
+			https://en.cppreference.com/w/c/types
+		*/
 		// ipcir == if_push_char_id_ret
 #define ipcir_1(a,b) case LST__##a: ipcir(#b[0], LST__##a##b); retry_as(LST_id);  
 #define ipcir_2(a,b,c) case LST__##a: ipcir(#b[0], LST__##a##b); ipcir(#c[0], LST__##a##c); retry_as(LST_id);  
 #define ipcir_3(a,b,c,d) case LST__##a: ipcir(#b[0], LST__##a##b); ipcir(#c[0], LST__##a##c); ipcir(#d[0], LST__##a##d); retry_as(LST_id);  
 #define ipcir_4(a,b,c,d,e) case LST__##a: ipcir(#b[0], LST__##a##b); ipcir(#c[0], LST__##a##c); ipcir(#d[0], LST__##a##d); ipcir(#e[0], LST__##a##e); retry_as(LST_id);  
 
+// keywords must be ended with a final()
 #define final(a) case LST__##a: if(is_id_char(c)) retry_as(LST_id); done;
 
+// these are all final
 #define _2_ipcir(a,b) ipcir_1(a, b); final(a##b);
-#define _3_ipcir(a,b,c) ipcir_1(a, b); ipcir_1(a##b, c); final(a##b##c);
-#define _4_ipcir(a,b,c,d) ipcir_1(a, b); _3_ipcir(a##b, c, d); 
-#define _5_ipcir(a,b,c,d,e) ipcir_1(a, b); _4_ipcir(a##b, c, d, e); 
-#define _6_ipcir(a,b,c,d,e,f) ipcir_1(a, b); _5_ipcir(a##b, c, d, e, f); 
-#define _7_ipcir(a,b,c,d,e,f,g) ipcir_1(a, b); _6_ipcir(a##b, c, d, e, f, g); 
+#define _3_ipcir(a,b,c) ipcir_1(a, b); ipcir_1(a##b,c); final(a##b##c);
+#define _4_ipcir(a,b,c,d) ipcir_1(a, b); _3_ipcir(a##b,c,d); 
+#define _5_ipcir(a,b,c,d,e) ipcir_1(a, b); _4_ipcir(a##b,c,d,e); 
+#define _6_ipcir(a,b,c,d,e,f) ipcir_1(a, b); _5_ipcir(a##b,c,d,e,f); 
+#define _7_ipcir(a,b,c,d,e,f,g) ipcir_1(a, b); _6_ipcir(a##b,c,d,e,f,g); 
+#define _8_ipcir(a,b,c,d,e,f,g,h) ipcir_1(a, b); _7_ipcir(a##b,c,d,e,f,g,h); 
+#define _9_ipcir(a,b,c,d,e,f,g,h,i) ipcir_1(a, b); _8_ipcir(a##b,c,d,e,f,g,h,i); 
 
 // #define _3_ipcir(a,b, c) ipcir_1(a, b); ipcir_1(a##b, c);
 // #define _4_ipcir(a,b,c,d) _3_ipcir(a,b,c); ipcir_1(a##b##c, d);
@@ -734,7 +754,8 @@ RETRY:
 		_4_ipcir(g,o,t,o); 
 		 
 		 ipcir_2(i, n, f);
-		 ipcir_1(in, t);
+		 ipcir_2(in, t, l);
+		_4_ipcir(inl,i,n,e);
 		case LST__int: // tokens that are a prefix of other tokens need special handling
 			ipcir('8', LST__int8); 
 			ipcir('1', LST__int1); 
@@ -748,7 +769,7 @@ RETRY:
 		_4_ipcir(int6,4,_,t);
 		_4_ipcir(l,o,n,g);
 		
-
+		_9_ipcir(p,t,r,d,i,f,f,_,t);
 		
 		 ipcir_4(s, h, i, t, w);
 		_4_ipcir(sh,o,r,t);
@@ -801,6 +822,15 @@ RETRY:
 			return 0;
 	}
 	
+	assert(0);
+	// never gets here
+	
+LABEL_push_char_ret: 
+	st->buffer[st->blen] = c; 
+	st->blen++;
+	return 1; 
+
+
 }
 
 
