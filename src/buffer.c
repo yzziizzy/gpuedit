@@ -162,7 +162,7 @@ size_t drawCharacter(
 	GUIUnifiedVertex* v;
 	
 	// background
-	if(0 && bgColor->a > 0) {
+	if(bgColor->a > 0) {
 		v = GUIManager_reserveElements(gm, 1);
 		
 		*v = (GUIUnifiedVertex){
@@ -220,7 +220,7 @@ size_t drawCharacter(
 
 
 // assumes no linebreaks
-void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, char* txt, int charCount, Vector2 tl) {
+void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl) {
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
@@ -272,7 +272,7 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, c
 			v->clip.r = 1000000;
 			
 			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
-			v->fg = theme->textColor,
+			v->fg = *textColor,
 			//v++;
 			gm->elementCount++;
 			charsDrawn++;
@@ -625,6 +625,53 @@ void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols) {
 }
 
 
+void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl) {
+	bl->flags |= BL_BOOKMARK_FLAG;
+}
+
+void Buffer_RemoveBookmarkAt(Buffer* b, BufferLine* bl) {
+	bl->flags &= ~BL_BOOKMARK_FLAG;
+}
+
+void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl) {
+	bl->flags ^= BL_BOOKMARK_FLAG;
+}
+
+void Buffer_NextBookmark(Buffer* b) {
+	if(!b->current) return;
+	BufferLine* bl = b->current->next;
+	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
+		bl = bl->next;
+	}
+	if(bl) b->current = bl;
+}
+
+void Buffer_PrevBookmark(Buffer* b) {
+	if(!b->current) return;
+	BufferLine* bl = b->current->prev;
+	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
+		bl = bl->prev;
+	}
+	if(bl) b->current = bl;
+}
+
+void Buffer_FirstBookmark(Buffer* b) {
+	BufferLine* bl = b->first;
+	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
+		bl = bl->next;
+	}
+	if(bl) b->current = bl;
+}
+
+void Buffer_LastBookmark(Buffer* b) {
+	BufferLine* bl = b->last;
+	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
+		bl = bl->prev;
+	}
+	if(bl) b->current = bl;
+}
+
+
 
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 	Buffer* b2;
@@ -718,7 +765,14 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		case BufferCmd_SelectFromSOL:
 			Buffer_SetCurrentSelection(b, b->current, 1, b->current, b->curCol - 1);
 			break;
-			
+		
+		case BufferCmd_SetBookmark:       Buffer_SetBookmarkAt(b, b->current);    break; 
+		case BufferCmd_RemoveBookmark:    Buffer_RemoveBookmarkAt(b, b->current); break; 
+		case BufferCmd_ToggleBookmark:    Buffer_ToggleBookmarkAt(b, b->current); break; 
+		case BufferCmd_GoToNextBookmark:  Buffer_NextBookmark(b);  break; 
+		case BufferCmd_GoToPrevBookmark:  Buffer_PrevBookmark(b);  break; 
+		case BufferCmd_GoToFirstBookmark: Buffer_FirstBookmark(b); break; 
+		case BufferCmd_GoToLastBookmark:  Buffer_LastBookmark(b);  break; 
 	}
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
@@ -731,6 +785,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd) {
 		});
 		
 		w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
+	}
+	else if(cmd->type == BufferCmd_RehilightWholeBuffer) {
+		GUIBufferEditor_RefreshHighlight(w);
 	}
 	else if(cmd->type == BufferCmd_GoToLine) {
 		
@@ -1428,27 +1485,35 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			char scrollToCursor;
 		} cmds[] = {
 			{GUIMODKEY_CTRL, 'k', BufferCmd_DeleteCurLine, 0, 0, 1},
-			{0, XK_Left,      BufferCmd_MoveCursorH,  1, -1, 1},
-			{0, XK_Right,     BufferCmd_MoveCursorH,  1,  1, 1},
-			{0, XK_Up,        BufferCmd_MoveCursorV,  1, -1, 1},
-			{0, XK_Down,      BufferCmd_MoveCursorV,  1,  1, 1},
-			{0, XK_BackSpace, BufferCmd_Backspace,    0,  0, 1},
-			{0, XK_Delete,    BufferCmd_Delete,       0,  0, 1},
-			{0, XK_Return,    BufferCmd_SplitLine,    0,  0, 1},
-			{0, XK_Prior,     BufferCmd_MovePage,     1, -1, 0}, // PageUp
-			{0, XK_Next,      BufferCmd_MovePage,     1,  1, 0}, // PageDown
-			{0, XK_Home,      BufferCmd_Home,         0,  0, 1},
-			{0, XK_End,       BufferCmd_End,          0,  0, 1}, 
-			{C|A,  XK_Down,   BufferCmd_DuplicateLine,1,  1, 1}, 
-			{C|A,  XK_Up,     BufferCmd_DuplicateLine,1, -1, 1}, 
-			{C,    'x',       BufferCmd_Cut          ,0,  0, 0}, 
-			{C,    'c',       BufferCmd_Copy         ,0,  0, 0}, 
-			{C,    'v',       BufferCmd_Paste        ,0,  0, 0}, 
-			{C,    'a',       BufferCmd_SelectAll    ,0,  0, 0}, 
-			{C|S,  'a',       BufferCmd_SelectNone   ,0,  0, 0}, 
-			{C,    'l',       BufferCmd_SelectToEOL  ,0,  0, 0}, 
-			{C|S,  'l',       BufferCmd_SelectFromSOL ,0,  0, 0}, 
-			{C,    'g',       BufferCmd_GoToLine     ,0,  0, 0}, 
+			{0, XK_Left,      BufferCmd_MoveCursorH,   1, -1, 1},
+			{0, XK_Right,     BufferCmd_MoveCursorH,   1,  1, 1},
+			{0, XK_Up,        BufferCmd_MoveCursorV,   1, -1, 1},
+			{0, XK_Down,      BufferCmd_MoveCursorV,   1,  1, 1},
+			{0, XK_BackSpace, BufferCmd_Backspace,     0,  0, 1},
+			{0, XK_Delete,    BufferCmd_Delete,        0,  0, 1},
+			{0, XK_Return,    BufferCmd_SplitLine,     0,  0, 1},
+			{0, XK_Prior,     BufferCmd_MovePage,      1, -1, 0}, // PageUp
+			{0, XK_Next,      BufferCmd_MovePage,      1,  1, 0}, // PageDown
+			{0, XK_Home,      BufferCmd_Home,          0,  0, 1},
+			{0, XK_End,       BufferCmd_End,           0,  0, 1}, 
+			{C|A,  XK_Down,   BufferCmd_DuplicateLine, 1,  1, 1}, 
+			{C|A,  XK_Up,     BufferCmd_DuplicateLine, 1, -1, 1}, 
+			{C,    'x',       BufferCmd_Cut,           0,  0, 0}, 
+			{C,    'c',       BufferCmd_Copy,          0,  0, 0}, 
+			{C,    'v',       BufferCmd_Paste,         0,  0, 0}, 
+			{C,    'a',       BufferCmd_SelectAll,     0,  0, 0}, 
+			{C|S,  'a',       BufferCmd_SelectNone,    0,  0, 0}, 
+			{C,    'l',       BufferCmd_SelectToEOL,   0,  0, 0}, 
+			{C|S,  'l',       BufferCmd_SelectFromSOL, 0,  0, 0}, 
+			{C,    'g',       BufferCmd_GoToLine,      0,  0, 0}, 
+			{C|S,  'r',       BufferCmd_RehilightWholeBuffer, 0, 0, 1}, 
+			{C|A,  'b',       BufferCmd_SetBookmark,          0, 0, 1}, 
+			{C|S,  'b',       BufferCmd_RemoveBookmark,       0, 0, 1}, 
+			{C,    'b',       BufferCmd_ToggleBookmark,       0, 0, 1}, 
+			{A,    XK_Next,   BufferCmd_GoToNextBookmark,     0, 0, 1}, // PageUp
+			{A,    XK_Prior,  BufferCmd_GoToPrevBookmark,     0, 0, 1}, // PageDown
+			{A,    XK_Home,   BufferCmd_GoToFirstBookmark,    0, 0, 1}, 
+			{A,    XK_End,    BufferCmd_GoToLastBookmark,     0, 0, 1}, 
 			{0,0,0,0,0},
 		};
 		
@@ -1573,13 +1638,20 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	struct Color4* fga[] = {fg, fg2};
 	struct Color4* bga[] = {bg, bga};
 	
+	struct Color4 lineColors[] = {
+		{255,255,255,255},
+		{ 55,255, 55,255}
+	};
+	
+	
+	
 	// draw
 	while(bl) {
 		
 		// line numbers
 		if(bdp->showLineNums) {
 			sprintf(lnbuf, "%d", bl->lineNum);
-			drawTextLine(gm, tdp, theme, lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
+			drawTextLine(gm, tdp, &lineColors[!!(bl->flags & BL_BOOKMARK_FLAG)], lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
 		}
 		
 		float adv = 0;
@@ -1622,19 +1694,43 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
 				else {
-					if(atom) {
-						StyleInfo* si = &gbe->h->styles[atom->styleIndex];
-						struct Color4 color = {
-							si->fgColorDefault.x * 255,
-							si->fgColorDefault.y * 255,
-							si->fgColorDefault.z * 255,
-							si->fgColorDefault.w * 255,
-						};
+					if(!inSelection) {
 						
-						drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + adv, tl.y});
+						if(atom) {
+							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
+							struct Color4 color = {
+								si->fgColorDefault.x * 255,
+								si->fgColorDefault.y * 255,
+								si->fgColorDefault.z * 255,
+								si->fgColorDefault.w * 255,
+							};
+							
+							drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + adv, tl.y});
+						}
+						else 
+							drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y});
 					}
-					else 
-						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y});
+					else {
+						if(atom) {
+							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
+							struct Color4 color = {
+								si->fgSelColorDefault.x * 255,
+								si->fgSelColorDefault.y * 255,
+								si->fgSelColorDefault.z * 255,
+								si->fgSelColorDefault.w * 255,
+							};
+							struct Color4 bcolor = {
+								si->bgSelColorDefault.x * 255,
+								si->bgSelColorDefault.y * 255,
+								si->bgSelColorDefault.z * 255,
+								si->bgSelColorDefault.w * 255,
+							};
+							
+							drawCharacter(gm, tdp, &color, &bcolor, c, (Vector2){tl.x + adv, tl.y});
+						}
+						else 
+							drawCharacter(gm, tdp, fg2, bg2, c, (Vector2){tl.x + adv, tl.y});
+					}
 					
 					
 					adv += tdp->charWidth;

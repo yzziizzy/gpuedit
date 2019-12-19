@@ -295,7 +295,7 @@ void hlfn(Highlighter* h, hlinfo* hl) {
 		q++;
 	}
 	
-	
+	free(ls.buffer);
 }
 
 
@@ -849,13 +849,19 @@ void initCStyles(Highlighter* hl) {
 		hl->styles[i].fgColorDefault = (Vector4){(i%5)*.1 + .5, (i%50)*.01 + .5, ((i+17)%30)*.3 + .5, 1};
 		hl->styles[i].bgColorDefault = (Vector4){0,0,0,0};
 		
+		hl->styles[i].fgSelColorDefault = (Vector4){(i%5)*.1 + .2, (i%50)*.01 + .2, ((i+17)%30)*.3 + .2, 1};
+		hl->styles[i].bgSelColorDefault = (Vector4){1,1,1,1};
+		
 		hl->styles[i].underline = 0;
 		hl->styles[i].bold = 0;
 		hl->styles[i].italic = 0;
 		hl->styles[i].useFGDefault = 0;
 		hl->styles[i].useBGDefault = 1;
+		hl->styles[i].useFGSelDefault = 0;
+		hl->styles[i].useBGSelDefault = 0;
 		
 	}
-	
-	
 }
+
+
+

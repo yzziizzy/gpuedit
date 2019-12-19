@@ -7,6 +7,8 @@
 #include "font.h"
 #include "highlight.h"
 
+#define BL_BOOKMARK_FLAG  (1<<0)
+
 struct hlinfo;
 
 typedef struct BufferLine {
@@ -16,6 +18,8 @@ typedef struct BufferLine {
 	size_t allocSz;
 	size_t length; // of the text itself
 	char* buf;
+	
+	unsigned int flags;
 	
 	VEC(TextStyleAtom) style;
 	
@@ -158,13 +162,20 @@ enum BufferCmdType {
 	BufferCmd_SelectToEOL, // end of line
 	BufferCmd_SelectFromSOL, // start of line
 	BufferCmd_GoToLine,
-	
-
-	
-	// NYI
+	BufferCmd_RehilightWholeBuffer,
 	BufferCmd_Cut,
 	BufferCmd_Copy,
 	BufferCmd_Paste,
+	BufferCmd_SetBookmark,
+	BufferCmd_RemoveBookmark,
+	BufferCmd_ToggleBookmark,
+	BufferCmd_GoToNextBookmark,
+	BufferCmd_GoToPrevBookmark,
+	BufferCmd_GoToFirstBookmark,
+	BufferCmd_GoToLastBookmark,
+
+	
+	// NYI
 	BufferCmd_Save,
 	BufferCmd_Indent,
 	BufferCmd_MatchPrevIndent,
@@ -235,6 +246,9 @@ BufferLine* Buffer_GetLine(Buffer* b, size_t line);
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferSelection* sel);
 
+void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
+void Buffer_RemoveBookmarkAt(Buffer* b, BufferLine* bl);
+void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl);
 
 
 // HACK: temporary junk
@@ -257,6 +271,10 @@ void Buffer_InsertLinebreak(Buffer* b);
 void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines);
 void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols);
 void Buffer_MoveCursor(Buffer* b, ptrdiff_t lines, ptrdiff_t cols);
+void Buffer_NextBookmark(Buffer* b);
+void Buffer_PrevBookmark(Buffer* b);
+void Buffer_FirstBookmark(Buffer* b);
+void Buffer_LastBookmark(Buffer* b);
 
 
 
@@ -270,7 +288,7 @@ void Buffer_DebugPrint(Buffer* b);
 
 
 void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
-static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, ThemeDrawParams* theme, char* txt, int charCount, Vector2 tl);
+static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;

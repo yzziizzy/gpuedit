@@ -38,7 +38,7 @@
 * Speed scrolling with ctrl
 * Window resize
 * Small shade variation on matching pairs of brackets
-
+* Bitmap font option
 
 
 == Editor Features ==
@@ -55,18 +55,22 @@
 * Language sensitive auto-complete and type/param hints (low priority)
 * Delete contents of line but leave indentation
 * Create new line after, indented, and jump to the end 
-* Bookmarks, bookmark categories?
+* Bookmark categories?
 * Fix spacing of items in tables
 * Drag selection to new spot
 * Quick find/replace on current line only
 * Hoist declaration to top of block/fn
-* Manual re-highlight mode
+* tail -f mode
+* Sort lines
+* Caps modification of words in selection
+
+
 
 == BUGS ==
 * Selection pivot is not consistent
 * Mouse scroll on files with fewer lines than the screen
 * Scrollbar follows cursor, not screen
-* Underscore does not render
+
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering
@@ -79,3 +83,5 @@
 int foo = a->b->c->bar $ 3;  . does auto-deref, -> acts like .?
 char* foo = switch(x) { case 2: "two"; break; ... }
 metadata (struct) on each enum field
+bitmask enums
+

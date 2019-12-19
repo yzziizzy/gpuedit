@@ -65,6 +65,8 @@ typedef struct StyleInfo {
 	int italic : 1;
 	int useFGDefault : 1;
 	int useBGDefault : 1;
+	int useFGSelDefault : 1;
+	int useBGSelDefault : 1;
 } StyleInfo;
 
 typedef struct Highlighter {
@@ -98,5 +100,9 @@ typedef struct Highlighter_C {
 void initCStyles(Highlighter* hl);
 
 
+#pragma magic [random] baz()
+#pragma magic [random] foo()
+#pragma magic [highlighter] bar()
+#pragma magic [highlighter] zap() 
 
 #endif // __gpuedit_highlight_h__
