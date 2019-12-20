@@ -16,6 +16,7 @@ gpuedit_SOURCES = main.c \
 	fbo.c \
 	fcfg.c \
 	font.c \
+	fsUtils.c \
 	gui.c \
 	hash.c \
 	highlight.c \

@@ -7,7 +7,7 @@
 #include <strings.h> // strcasecmp. yes, it's "strings" with an s at the end.
 
 #include "common_gl.h"
-
+#include "fsUtils.h"
 
 
 #define MAX(a,b) ({ \
@@ -144,13 +144,6 @@ size_t calcVAOStride(int bufferIndex, VAOConfig* details);
 size_t strlnlen(const char* s);
 char* strlndup(const char* s);
 int   strlinecnt(const char* s);
-char* pathJoin(const char* a, const char* b); 
 
-// gets a pointer to the first character of the file extension, or to the null terminator if none
-char* pathExt(const char* path);
-
-// gets a pointer to the first character of the file extension, or to the null terminator if none
-// also provides the length of the path without the period and extension
-char* pathExt2(const char* path, int* end);
 
 #endif // __EACSMB_UTILITIES_H__
