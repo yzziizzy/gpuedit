@@ -46,6 +46,40 @@ typedef struct EditorParams {
 } EditorParams;
 
 
+
+
+// http://texteditors.org/cgi-bin/wiki.pl?Implementing_Undo_For_Text_Editors
+
+// these represent what was done and must be reversed when using the undo feature
+enum UndoActions {
+	UndoAction_InsertText,
+	UndoAction_DeleteText,
+	UndoAction_InsertLineAfter, // 0 inserts a line at the beginning
+	UndoAction_DeleteLine,
+	UndoAction_MoveCursorTo,
+	UndoAction_SetSelection,
+	UndoAction_UnmodifiedFlag,
+	UndoAction_SequenceBreak,
+	
+};
+
+
+typedef struct BufferUndo {
+	enum UndoActions action;
+	size_t lineNum;
+	size_t colNum;
+	union{
+		struct { // for text
+			char* text; 
+			size_t length;
+		};
+		struct { // for selection changes
+			size_t endLine;
+			size_t endCol;
+		};
+	};
+} BufferUndo;
+
 typedef struct Buffer {
 	
 	BufferLine* first, *last, *current; 
@@ -63,6 +97,8 @@ typedef struct Buffer {
 	
 	struct hlinfo* hl;
 	EditorParams* ep;
+	
+	VEC(BufferUndo) undoStack;
 } Buffer;
 
 
@@ -205,34 +241,71 @@ typedef struct GUIManager GUIManager;
 
 
 
-
+// these are raw functions and should not be used directly by Buffer_ operations
 BufferLine* BufferLine_New();
 void BufferLine_Delete(BufferLine* l);
 BufferLine* BufferLine_FromStr(char* text, size_t len);
 BufferLine* BufferLine_Copy(BufferLine* orig);
 void BufferLine_EnsureAlloc(BufferLine* l, size_t len);
-void BufferLine_InsertChar(BufferLine* l, char c, size_t col);
-void BufferLine_DeleteChar(BufferLine* l, size_t col);
+void BufferLine_InsertChars(BufferLine* l, char* text, size_t len, size_t col);
+void BufferLine_DeleteChars(BufferLine* l, size_t offset, size_t col);
 void BufferLine_TruncateAfter(BufferLine* l, size_t col);
 void BufferLine_SetText(BufferLine* l, char* text, size_t len);
-void BufferLine_InsertText(BufferLine* l, char* text, size_t len, size_t col);
 void BufferLine_AppendText(BufferLine* l, char* text, size_t len);
 void BufferLine_AppendLine(BufferLine* l, BufferLine* src);
 
 
-void Buffer_RenumberLines(BufferLine* start, size_t num);
+
+
+// these functions will NOT interact with the undo stack
+// they should never use functions below them
+// functions below these should only use them and not functions above
+BufferLine* Buffer_raw_GetLine(Buffer* b, size_t lineNum);
+void Buffer_raw_RenumberLines(BufferLine* start, size_t num);
+
+// inserts empty lines
+BufferLine* Buffer_raw_InsertLineAfter(Buffer* b, BufferLine* before);
+BufferLine* Buffer_raw_InsertLineBefore(Buffer* b, BufferLine* after);
+
+void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl);
+
+void Buffer_raw_InsertChars(Buffer* b, BufferLine* bl, char* txt, size_t offset, size_t len);
+void Buffer_raw_DeleteChars(Buffer* b, BufferLine* bl, size_t offset, size_t len);
+
+
+
+// undo stack processing
+void Buffer_UndoInsertText(Buffer* b, size_t line, size_t col, char* txt, size_t len);
+void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, size_t offset, size_t len);
+void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before); // safe to just pass in l->prev without checking
+void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl); // saves the text too
+void Buffer_UndoSequencePoint(Buffer* b);
+void Buffer_UndoReplayTop(Buffer* b);
+
+// functions below here will add to the undo stack
+
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd);
 
+
+
+
 // these functions operate independently of the cursor
-BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after);
-void Buffer_InsertLineAfter(Buffer* b, BufferLine* before, BufferLine* after);
+BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after, char* text, size_t length);
+BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before, char* text, size_t length);
+BufferLine* Buffer_InsertEmptyLineBefore(Buffer* b, BufferLine* after);
 BufferLine* Buffer_InsertEmptyLineAfter(Buffer* b, BufferLine* before);
-void Buffer_DeleteLine(Buffer* b, BufferLine* l);
+void Buffer_DeleteLine(Buffer* b, BufferLine* bl);
+void Buffer_LineInsertChars(Buffer* b, BufferLine* bl, char* text, size_t offset, size_t length);
+void Buffer_LineAppendText(Buffer* b, BufferLine* bl, char* text, size_t length);
+void Buffer_LineAppendLine(Buffer* b, BufferLine* target, BufferLine* src);
+void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, size_t col, size_t length);
+void Buffer_LineTruncateAfter(Buffer* b, BufferLine* bl, size_t col);
 void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col);
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col);
+void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
+
 void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC);
 void Buffer_ClearCurrentSelection(Buffer* b);
-void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
 void Buffer_ClearAllSelections(Buffer* b);
 void Buffer_DeleteSelectionContents(Buffer* b, BufferSelection* sel);
 
@@ -242,7 +315,6 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len);
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol);
-BufferLine* Buffer_GetLine(Buffer* b, size_t line);
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferSelection* sel);
 

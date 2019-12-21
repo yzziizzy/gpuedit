@@ -39,6 +39,8 @@
 * Window resize
 * Small shade variation on matching pairs of brackets
 * Bitmap font option
+* Optimize Buffer_raw_GetLine starting point and direction
+* Check all column usage for correct 1/0 basing
 
 
 == Editor Features ==
@@ -63,7 +65,8 @@
 * tail -f mode
 * Sort lines
 * Caps modification of words in selection
-
+* Expand or collapse multiline fn arg list
+* Comment autocomplete
 
 
 == BUGS ==
@@ -84,4 +87,4 @@ int foo = a->b->c->bar $ 3;  . does auto-deref, -> acts like .?
 char* foo = switch(x) { case 2: "two"; break; ... }
 metadata (struct) on each enum field
 bitmask enums
-
+static type logic in macros

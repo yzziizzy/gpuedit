@@ -40,7 +40,6 @@ static InputState input;
 
 
 
-
 int main(int argc, char* argv[]) {
 	int first = 1;
 	int configStatus = 0;

@@ -7,6 +7,10 @@ bin_PROGRAMS = gpuedit
 gpuedit_SOURCES = main.c \
 	app.c \
 	buffer.c \
+	buffer_drawing.c \
+	buffer_raw.c \
+	bufferEditor.c \
+	bufferLine.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
