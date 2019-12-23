@@ -106,6 +106,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	Buffer* b = gbe->buffer;
 	
 	if(!b) return;
+	if(!b->first) return;
 	
 	BufferDrawParams* bdp = gbe->bdp;
 	TextDrawParams* tdp = bdp->tdp;

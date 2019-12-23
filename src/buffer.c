@@ -161,7 +161,7 @@ BufferLine* Buffer_InsertEmptyLineBefore(Buffer* b, BufferLine* after) {
 
 BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before, char* text, size_t length) {
 	BufferLine* bl = Buffer_InsertEmptyLineAfter(b, before);
-	
+
 	Buffer_UndoInsertText(b, bl->lineNum, 0, text, length);
 	Buffer_raw_InsertChars(b, bl, text, 0, length);
 	
@@ -546,6 +546,11 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		case BufferCmd_GoToPrevBookmark:  Buffer_PrevBookmark(b);  break; 
 		case BufferCmd_GoToFirstBookmark: Buffer_FirstBookmark(b); break; 
 		case BufferCmd_GoToLastBookmark:  Buffer_LastBookmark(b);  break; 
+		
+		case BufferCmd_Undo:
+			Buffer_UndoReplayTop(b);  
+		
+			break; 
 	}
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
@@ -746,13 +751,13 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 		
 		// TODO: robust input handling with unicode later
 // 		if(*e == '\n') {
-			Buffer_AppendLine(b, s, e-s);
+			Buffer_AppendLine(b, s, (size_t)(e-s));
 // 		}
 		
-		if(b->last->buf && b->last->length > 0) {
+// 		if(b->last->buf && b->last->length > 0) {
 // 			b->last->style = calloc(1, sizeof(*b->last->style));
 // 			HL_acceptLine(b->last->buf, b->last->length, b->last->style);
-		}
+// 		}
 		
 		s = e + 1;
 	}
@@ -965,3 +970,14 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, Bu
 	}
 }
 
+
+
+
+void Buffer_DebugPrintUndoStack(Buffer* b) {
+	printf("Undo stack for %p (%ld entries)\n", b, VEC_LEN(&b->undoStack));
+	VEC_EACH(&b->undoStack, i, u) {
+		printf(" %d [%d] '%.*s'\n", i, u.action, u.length, u.text);
+	}
+	
+	
+}

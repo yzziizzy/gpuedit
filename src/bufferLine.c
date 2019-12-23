@@ -93,9 +93,8 @@ void BufferLine_EnsureAlloc(BufferLine* l, size_t len) {
 
 
 // does NOT handle embedded linebreak chars
-void BufferLine_InsertChars(BufferLine* l, char* text, size_t len, size_t col) {
+void BufferLine_InsertChars(BufferLine* l, char* text, size_t col, size_t len) {
 	if(text == NULL) return;
-	if(len == 0) len = strlen(text);
 	if(len == 0) return;
 	
 	BufferLine_EnsureAlloc(l, l->length + len);
@@ -104,7 +103,7 @@ void BufferLine_InsertChars(BufferLine* l, char* text, size_t len, size_t col) {
 		memmove(l->buf + col - 1 + len, l->buf + col - 1, l->length - col);
 	}
 	
-	memcpy(l->buf + col - 1, text, len);
+	memcpy(l->buf + col, text, len);
 	
 	l->length += len;
 	l->buf[l->length] = 0; // just in case

@@ -91,11 +91,12 @@ void initApp(XStuff* xs, AppState* as) {
 	as->currentBuffer->curCol = 1;
 	as->currentBuffer->ep = ep;
 	
-	Buffer_LoadFromFile(as->currentBuffer, "src/buffer.c");
+	Buffer_LoadFromFile(as->currentBuffer, "lextest.c");
 // 	Buffer_LoadFromFile(buf2, "config.h");
 // 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
-	
+	Buffer_DebugPrint(as->currentBuffer);
+	Buffer_DebugPrintUndoStack(as->currentBuffer);
 // 	BufferSelection* sel = pcalloc(sel);
 // 	sel->startLine = as->currentBuffer->first->next->next->next->next->next->next->next->next->next->next->next->next;
 // 	sel->endLine = sel->startLine->next->next->next;

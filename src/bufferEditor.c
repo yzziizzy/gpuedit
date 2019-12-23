@@ -195,6 +195,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			{C,    'l',       BufferCmd_SelectToEOL,   0,  0, 0}, 
 			{C|S,  'l',       BufferCmd_SelectFromSOL, 0,  0, 0}, 
 			{C,    'g',       BufferCmd_GoToLine,      0,  0, 0}, 
+			{C,    'z',       BufferCmd_Undo,          0,  0, 0}, 
 			{C|S,  'r',       BufferCmd_RehilightWholeBuffer, 0, 0, 1}, 
 			{C|A,  'b',       BufferCmd_SetBookmark,          0, 0, 1}, 
 			{C|S,  'b',       BufferCmd_RemoveBookmark,       0, 0, 1}, 

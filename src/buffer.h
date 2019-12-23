@@ -209,6 +209,7 @@ enum BufferCmdType {
 	BufferCmd_GoToPrevBookmark,
 	BufferCmd_GoToFirstBookmark,
 	BufferCmd_GoToLastBookmark,
+	BufferCmd_Undo,
 
 	
 	// NYI
@@ -247,7 +248,7 @@ void BufferLine_Delete(BufferLine* l);
 BufferLine* BufferLine_FromStr(char* text, size_t len);
 BufferLine* BufferLine_Copy(BufferLine* orig);
 void BufferLine_EnsureAlloc(BufferLine* l, size_t len);
-void BufferLine_InsertChars(BufferLine* l, char* text, size_t len, size_t col);
+void BufferLine_InsertChars(BufferLine* l, char* text, size_t col, size_t len);
 void BufferLine_DeleteChars(BufferLine* l, size_t offset, size_t col);
 void BufferLine_TruncateAfter(BufferLine* l, size_t col);
 void BufferLine_SetText(BufferLine* l, char* text, size_t len);
@@ -351,6 +352,7 @@ void Buffer_LastBookmark(Buffer* b);
 
 
 void Buffer_DebugPrint(Buffer* b);
+void Buffer_DebugPrintUndoStack(Buffer* b);
 
 
 
