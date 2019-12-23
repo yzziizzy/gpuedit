@@ -278,6 +278,8 @@ int initXWindow(XStuff* xs) {
 	emptyPx = XCreateBitmapFromData(xs->display, xs->clientWin, zeros, 1, 1);
 	xs->noCursor = XCreatePixmapCursor(xs->display, emptyPx, emptyPx, &black, &black, 0, 0);
 	XFreePixmap(xs->display, emptyPx);
+	
+	return 0;
 }
 
 

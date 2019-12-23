@@ -80,8 +80,22 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-include "../config.h" \
 	-include "signal.h" \
 	-pthread \
+	-Wall \
 	-Wno-unused-result \
-	-Werror-implicit-function-declaration
+	-Wno-unused-variable \
+	-Wno-unused-but-set-variable \
+	-Wno-unused-function \
+	-Wno-pointer-sign \
+	-Wno-missing-braces \
+	-Wno-char-subscripts \
+	-Wno-int-conversion \
+	-Wno-int-to-pointer-cast \
+	-Wno-unknown-pragmas \
+	-Wno-sequence-point \
+	-Wno-switch \
+	-Werror-implicit-function-declaration \
+	-Werror=uninitialized \
+	-Werror=return-type 
 	
 AM_CXXFLAGS = $(AM_CFLAGS)
 

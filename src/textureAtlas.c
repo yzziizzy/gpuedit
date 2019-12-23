@@ -245,7 +245,7 @@ void TextureAtlas_saveAtlas(TextureAtlas* ta, char* path) {
 	
 }
 int TextureAtlas_loadAtlas(TextureAtlas* ta, char* path) {
-	
+	return 0;
 }
 
 

@@ -113,7 +113,7 @@ int InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev) {
 		case EVENT_LOSEFOCUS: CALLIF(loseFocus);
 		default:
 			fprintf(stderr, "!!! Unknown event in InputFocusTarget_Dispatch: %d\n", ev->type);
-			break;
+			return -1;
 	}
 
 #undef CALLIF

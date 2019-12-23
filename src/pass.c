@@ -333,6 +333,8 @@ int RenderPass_addDrawable(RenderPass* rp, PassDrawable* d) {
 	glerr("harmless");
 	
 	VEC_PUSH(&rp->drawables, d);
+	
+	return 0;
 }
 
 static void bindUniforms(PassDrawable* d, PassDrawParams* pdp) {

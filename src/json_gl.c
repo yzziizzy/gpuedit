@@ -73,11 +73,10 @@ int json_as_GLenum(struct json_value* v, GLenum* out) {
 
 
 static float index_as_float(json_value_t* obj, int index, float def) {
-	json_value_t* v;
 	float f;
 	int ret;
 	
-	if(!json_as_float(v, &f)) {
+	if(!json_as_float(obj, &f)) {
 		return def;
 	}
 	
@@ -195,4 +194,6 @@ int json_as_type_gl(struct json_value* v, enum json_type_gl t, void* out) {
 		
 	
 	}
+	
+	return 1;
 }

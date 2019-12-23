@@ -137,7 +137,7 @@ do { \
 	tmp = realloc(VEC_DATA(copy), VEC_ALLOC(orig) * sizeof(*VEC_DATA(orig)) ); \
 	if(!tmp) { \
 		fprintf(stderr, "Out of memory in vector copy"); \
-		return; \
+		exit(1); \
 	} \
 	\
 	VEC_DATA(copy) = tmp; \

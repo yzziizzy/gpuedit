@@ -70,6 +70,7 @@ static void updateTextControl(GUIEdit* ed) {
 static int dragStart(InputEvent* ev, GUISlider* w) {
 	
 	printf("dragstart\n");
+	return 1;
 }
 
 

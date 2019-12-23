@@ -98,7 +98,7 @@ size_t drawCharacter(
 		};
 	}
 	
-
+	return 0;
 }
 
 

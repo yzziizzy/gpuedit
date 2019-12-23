@@ -162,6 +162,8 @@ ShaderSource* makeShaderSource() {
 	
 	VEC_INIT(&n->lines);
 	VEC_INIT(&n->strings);
+	
+	return n;
 }
 
 ShaderSource* loadShaderSource(char* path) {

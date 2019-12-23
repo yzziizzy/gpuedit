@@ -130,7 +130,7 @@ static void updatePos(GUITreeControl* tc, GUIRenderParams* grp, PassFrameParams*
 
 GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem* parent, GUIObject* o, char isOpen) {
 	
-	GUITreeControlItem* it = GUITreeControlItem_New(it);
+	GUITreeControlItem* it = GUITreeControlItem_New(tc->header.gm);
 	it->elem = o;
 	it->isOpen = isOpen;
 	
