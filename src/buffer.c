@@ -53,8 +53,8 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 	
 	u->action = UndoAction_DeleteText;
 	u->lineNum = bl->lineNum;
-	u->colNum = offset - 1;
-	u->text = strndup(bl->buf + offset - 1, len); // BUG: off by 1?
+	u->colNum = offset;
+	u->text = strndup(bl->buf + offset, len);
 	u->length = len;
 }
 
@@ -203,7 +203,7 @@ void Buffer_LineInsertChars(Buffer* b, BufferLine* bl, char* text, intptr_t offs
 
 void Buffer_LineAppendText(Buffer* b, BufferLine* bl, char* text, intptr_t length) {
 	Buffer_UndoInsertText(b, bl->lineNum, 
-		bl->length, // BUG: off by 1?
+		bl->length + 1,
 		text, length);
 	Buffer_raw_InsertChars(b, bl, text, bl->length, length); // BUG: of by 1?
 }
@@ -253,7 +253,7 @@ void Buffer_BackspaceAt(Buffer* b, BufferLine* l, intptr_t col) {
 // does not move the cursor
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, intptr_t col) {
 	if(!b->first) return; // empty buffer
-	printf("del: %d\n", col);
+	
 	Buffer_LineDeleteChars(b, l, col, 1);
 	
 	if(col >= l->length) {
