@@ -26,11 +26,13 @@ Buffer* Buffer_New() {
 
 void Buffer_UndoInsertText(
 	Buffer* b, 
-	size_t line, 
-	size_t col, 
+	intptr_t line, 
+	intptr_t col, 
 	char* txt, 
-	size_t len
+	intptr_t len
 ) {
+	
+	if(len == 0) return;
 	
 	VEC_INC(&b->undoStack);
 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
@@ -42,7 +44,9 @@ void Buffer_UndoInsertText(
 	u->length = len;
 }
 
-void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, size_t offset, size_t len) {
+void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t len) {
+	
+	if(len == 0) return;
 	
 	VEC_INC(&b->undoStack);
 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
@@ -164,7 +168,7 @@ BufferLine* Buffer_InsertEmptyLineBefore(Buffer* b, BufferLine* after) {
 }
 
 
-BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before, char* text, size_t length) {
+BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before, char* text, intptr_t length) {
 	BufferLine* bl = Buffer_InsertEmptyLineAfter(b, before);
 
 	Buffer_UndoInsertText(b, bl->lineNum, 0, text, length);
@@ -174,7 +178,7 @@ BufferLine* Buffer_InsertLineAfter(Buffer* b, BufferLine* before, char* text, si
 }
 
 
-BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after, char* text, size_t length) {
+BufferLine* Buffer_InsertLineBefore(Buffer* b, BufferLine* after, char* text, intptr_t length) {
 	BufferLine* bl = Buffer_InsertEmptyLineBefore(b, after);
 	
 	Buffer_UndoInsertText(b, bl->lineNum, 0, text, length);
@@ -191,13 +195,13 @@ void Buffer_DeleteLine(Buffer* b, BufferLine* bl) {
 }
 
 
-void Buffer_LineInsertChars(Buffer* b, BufferLine* bl, char* text, size_t offset, size_t length) {
+void Buffer_LineInsertChars(Buffer* b, BufferLine* bl, char* text, intptr_t offset, intptr_t length) {
 	Buffer_UndoInsertText(b, bl->lineNum, offset, text, length);
-	Buffer_raw_InsertChars(b, bl, text, offset - 1, length);
+	Buffer_raw_InsertChars(b, bl, text, offset, length);
 }
 
 
-void Buffer_LineAppendText(Buffer* b, BufferLine* bl, char* text, size_t length) {
+void Buffer_LineAppendText(Buffer* b, BufferLine* bl, char* text, intptr_t length) {
 	Buffer_UndoInsertText(b, bl->lineNum, 
 		bl->length, // BUG: off by 1?
 		text, length);
@@ -208,53 +212,51 @@ void Buffer_LineAppendLine(Buffer* b, BufferLine* target, BufferLine* src) {
 	Buffer_LineAppendText(b, target, src->buf, src->length);
 }
 
-void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, size_t col, size_t length) {
-	Buffer_UndoDeleteText(b, bl, col - 1, length);
+void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, intptr_t col, intptr_t length) {
+	Buffer_UndoDeleteText(b, bl, col, length);
 	Buffer_raw_DeleteChars(b, bl, col, length);
 }
 
 
-void Buffer_LineTruncateAfter(Buffer* b, BufferLine* bl, size_t col) {
-	Buffer_LineDeleteChars(b, bl, col, bl->length - col - 1); // BUG: off by 1?
+void Buffer_LineTruncateAfter(Buffer* b, BufferLine* bl, intptr_t col) {
+	Buffer_LineDeleteChars(b, bl, col, bl->length - col); // BUG: off by 1?
 }
 
 // deletes chars but also handles line removal and edge cases
 // does not move the cursor
-void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col) {
+void Buffer_BackspaceAt(Buffer* b, BufferLine* l, intptr_t col) {
 	if(!b->first) return; // empty buffer
 	
 	
-	if(col == 1) { 
-		printf("col 1 \n");
+	if(col <= 0) { 
 		// first col of first row; do nothing
 		if(b->first == l) return;
+		
+		Buffer_MoveCursorH(b, -1);
 		
 		if(l->length > 0) {
 			// merge with the previous line
 			Buffer_LineAppendLine(b, l->prev, l);
 		}
 		
-		// TODO: move cursor
-		
 		Buffer_DeleteLine(b, l);
 		
 		return;
 	} 
 	
-	Buffer_LineDeleteChars(b, l, col, 1);
-
-	
+	Buffer_LineDeleteChars(b, l, col - 1, 1);
+	Buffer_MoveCursorH(b, -1);
 }
 
 
 // deletes chars but also handles line removal and edge cases
 // does not move the cursor
-void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col) {
+void Buffer_DeleteAt(Buffer* b, BufferLine* l, intptr_t col) {
 	if(!b->first) return; // empty buffer
+	printf("del: %d\n", col);
+	Buffer_LineDeleteChars(b, l, col, 1);
 	
-	Buffer_LineDeleteChars(b, l, col + 1, 1);
-	
-	if(col == l->length + 1) {
+	if(col >= l->length) {
 		// last col of last row; do nothing
 		if(b->last == l) return;
 		
@@ -295,18 +297,18 @@ void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt) {
 void Buffer_InsertLinebreak(Buffer* b) {
 	BufferLine* l = b->current;
 	
-	if(b->curCol == 1) {
+	if(b->curCol == 0) {
 		Buffer_InsertEmptyLineBefore(b, b->current);
 	}
 	else {
-		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + b->curCol - 1, strlen(l->buf + b->curCol - 1));
+		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + b->curCol, strlen(l->buf + b->curCol - 1));
 		Buffer_LineTruncateAfter(b, l, b->curCol);
 		
 		// TODO: undo cursor move
 		b->current = b->current->next;
 	}
 	
-	b->curCol = 1;
+	b->curCol = 0;
 	
 	// TODO: undo
 	// TODO: maybe shrink the alloc
@@ -373,29 +375,29 @@ void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols) {
 	int i = cols;
 	// TODO: undo
 	if(i < 0) while(i++ < 0) {
-		if(b->curCol <= 1) {
+		if(b->curCol <= 0) {
 			
 			if(b->current->prev == NULL) {
-				b->curCol = 1;
+				b->curCol = 0;
 				return;
 			}
 			
 			b->current = b->current->prev;
-			b->curCol = b->current->length + 1;
+			b->curCol = b->current->length;
 		}
 		else {
 			b->curCol--;
 		}
 	}
 	else while(i-- > 0) {
-		if(b->curCol > b->current->length) {
+		if(b->curCol >= b->current->length) {
 			
 			if(b->current->next == NULL) {
 				return;
 			}
 			
 			b->current = b->current->next;
-			b->curCol = 1;
+			b->curCol = 0;
 		}
 		else {
 			b->curCol++;
@@ -470,12 +472,11 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		case BufferCmd_InsertChar:
 			// TODO: update
 			Buffer_LineInsertChars(b, b->current, cc, b->curCol, 1);
-			b->curCol++;
+			Buffer_MoveCursorH(b, 1);
 			break;
 		
 		case BufferCmd_Backspace:
 			Buffer_BackspaceAt(b, b->current, b->curCol);
-			b->curCol--;
 			break;
 		
 		case BufferCmd_Delete:
@@ -499,7 +500,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		case BufferCmd_End:
 			// TODO: undo
 			b->current = b->last;
-			if(b->last) b->curCol = b->last->length + 1;
+			if(b->last) b->curCol = b->last->length;
 			break;
 		
 		case BufferCmd_DuplicateLine:
@@ -548,7 +549,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 			break;
 			
 		case BufferCmd_SelectFromSOL:
-			Buffer_SetCurrentSelection(b, b->current, 1, b->current, b->curCol - 1);
+			Buffer_SetCurrentSelection(b, b->current, 1, b->current, b->curCol);
 			break;
 		
 		case BufferCmd_SetBookmark:       Buffer_SetBookmarkAt(b, b->current);    break; 
@@ -623,11 +624,11 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel) {
 	
 	if(!src->first || !sel->startLine) return b;
 	
-	b->curCol = 1;
+	b->curCol = 0;
 	
 	// single-line selection
 	if(sel->startLine == sel->endLine) {
-		blc = BufferLine_FromStr(sel->startLine->buf + sel->startCol - 1, sel->endCol - sel->startCol);
+		blc = BufferLine_FromStr(sel->startLine->buf + sel->startCol, sel->endCol - sel->startCol);
 		
 		b->first = blc;
 		b->last = blc;
@@ -684,7 +685,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel) {
 
 void Buffer_DebugPrint(Buffer* b) {
 	BufferLine* bl;
-	size_t i = 1, actualLines = 0;
+	intptr_t i = 1, actualLines = 0;
 	
 	// count real lines
 	bl = b->first;
@@ -707,7 +708,7 @@ void Buffer_DebugPrint(Buffer* b) {
 
 
 // BUG doesn't paste first and last line properly
-void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, size_t tcol) {
+void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol) {
 	
 	BufferLine* blc, *bl;
 	
@@ -750,7 +751,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, siz
 
 
 
-void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
+void Buffer_AppendRawText(Buffer* b, char* source, intptr_t len) {
 	if(len == 0) len = strlen(source);
 	
 	if(len == 0) return; 
@@ -769,9 +770,9 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 		
 		// TODO: robust input handling with unicode later
 // 		if(*e == '\n') {
-			Buffer_AppendLine(b, s, (size_t)(e-s));
+			Buffer_AppendLine(b, s, (intptr_t)(e-s));
 // 			BufferLine* bl = Buffer_raw_InsertLineAfter(b, b->last);
-// 			Buffer_raw_InsertChars(b, bl, s, 0, (size_t)(e-s)); 
+// 			Buffer_raw_InsertChars(b, bl, s, 0, (intptr_t)(e-s)); 
 // 		}
 		
 // 		if(b->last->buf && b->last->length > 0) {
@@ -786,7 +787,7 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 
 
 // TODO: undo
-BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len) {
+BufferLine* Buffer_PrependLine(Buffer* b, char* text, intptr_t len) {
 	BufferLine* l = pcalloc(l);
 	
 	b->numLines++;
@@ -818,7 +819,7 @@ BufferLine* Buffer_PrependLine(Buffer* b, char* text, size_t len) {
 }
 
 
-BufferLine* Buffer_AppendLine(Buffer* b, char* text, size_t len) {
+BufferLine* Buffer_AppendLine(Buffer* b, char* text, intptr_t len) {
 	return Buffer_InsertLineAfter(b, b->last, text, len);
 }
 
@@ -952,7 +953,7 @@ void Buffer_ClearCurrentSelection(Buffer* b) {
 }
 
 
-void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, BufferLine* endL, size_t endC) {
+void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC) {
 	if(!b->sel) pcalloc(b->sel);
 	
 	// TODO: undo

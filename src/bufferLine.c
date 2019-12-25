@@ -24,7 +24,7 @@ void BufferLine_AppendLine(BufferLine* l, BufferLine* src) {
 
 
 
-void BufferLine_SetText(BufferLine* l, char* text, size_t len) {
+void BufferLine_SetText(BufferLine* l, char* text, intptr_t len) {
 	if(len == 0) {
 		l->length = 0;
 		return;
@@ -58,7 +58,7 @@ void BufferLine_Delete(BufferLine* l) {
 	VEC_FREE(&l->style);
 }
 
-BufferLine* BufferLine_FromStr(char* text, size_t len) {
+BufferLine* BufferLine_FromStr(char* text, intptr_t len) {
 	BufferLine* l = BufferLine_New();
 	BufferLine_SetText(l, text, len);
 	return l;
@@ -76,7 +76,7 @@ BufferLine* BufferLine_Copy(BufferLine* orig) {
 }
 
 
-void BufferLine_EnsureAlloc(BufferLine* l, size_t len) {
+void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len) {
 	if(l->buf == NULL) {
 		l->allocSz = MAX(32, nextPOT(len + 1));
 		l->buf = calloc(1, l->allocSz);
@@ -93,7 +93,7 @@ void BufferLine_EnsureAlloc(BufferLine* l, size_t len) {
 
 
 // does NOT handle embedded linebreak chars
-void BufferLine_InsertChars(BufferLine* l, char* text, size_t col, size_t len) {
+void BufferLine_InsertChars(BufferLine* l, char* text, intptr_t col, intptr_t len) {
 	if(text == NULL) return;
 	if(len == 0) return;
 	
@@ -111,20 +111,21 @@ void BufferLine_InsertChars(BufferLine* l, char* text, size_t col, size_t len) {
 
 
 
-void BufferLine_DeleteChars(BufferLine* l, size_t offset, size_t len) {
+void BufferLine_DeleteChars(BufferLine* l, intptr_t offset, intptr_t len) {
 	if(l->length == 0) return;
-	if(offset > l->length + 2) return; // strange overrun
+	if(offset > l->length + 1) return; // strange overrun
 	
-	if(offset - 1 < l->length) {
-		memmove(l->buf + offset - 1, l->buf + offset, l->length - offset + 2);
+	if(offset < l->length) {
+		memmove(l->buf + offset, l->buf + offset + 1, l->length - offset + 1 + len);
 	}
 	
-	l->length -= 1;
+	l->length -= len;
+	l->buf[l->length] = 0;
 }
 
 
 // does NOT handle embedded linebreak chars
-void BufferLine_AppendText(BufferLine* l, char* text, size_t len) {
+void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len) {
 	if(len == 0) len = strlen(text);
 	if(len == 0) return;
 	
@@ -136,13 +137,13 @@ void BufferLine_AppendText(BufferLine* l, char* text, size_t len) {
 }
 
 
-void BufferLine_TruncateAfter(BufferLine* l, size_t col) {
+void BufferLine_TruncateAfter(BufferLine* l, intptr_t col) {
 	if(l->length < col) return;
 	l->buf[col - 1] = 0;
 	l->length = col - 1;
 }
 
-void BufferLine_DeleteRange(BufferLine* l, size_t startC, size_t endC) {
+void BufferLine_DeleteRange(BufferLine* l, intptr_t startC, intptr_t endC) {
 	
 	assert(startC > 0);
 	assert(endC > 0);

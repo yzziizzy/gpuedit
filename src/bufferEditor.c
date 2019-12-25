@@ -27,10 +27,10 @@ static size_t lineFromPos(GUIBufferEditor* w, Vector2 pos) {
 }
 
 static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
-	if(bl->buf == NULL) return 1;
+	if(bl->buf == NULL) return 0;
 	
 	// must handle tabs
-	ptrdiff_t screenCol = floor((x - w->header.absTopLeft.x - 50) / w->bdp->tdp->charWidth) + 1 + w->scrollCols;
+	ptrdiff_t screenCol = floor((x - w->header.absTopLeft.x - 50) / w->bdp->tdp->charWidth) + w->scrollCols;
 	
 	int tabwidth = w->bdp->tdp->tabWidth;
 	ptrdiff_t charCol = 0;
@@ -41,7 +41,7 @@ static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
 		charCol++;
 	}
 	
-	return MAX(0, MIN(charCol, bl->length + 1));
+	return MAX(0, MIN(charCol, bl->length));
 }
 
 

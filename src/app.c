@@ -84,11 +84,11 @@ void initApp(XStuff* xs, AppState* as) {
 // 	};
 	
 	Buffer* buf2 = Buffer_New(as->gui);
-	buf2->curCol = 1;
+	buf2->curCol = 0;
 	buf2->ep = ep;
 	
 	as->currentBuffer = Buffer_New(as->gui);
-	as->currentBuffer->curCol = 1;
+	as->currentBuffer->curCol = 0;
 	as->currentBuffer->ep = ep;
 	
 	Buffer_LoadFromFile(as->currentBuffer, "lextest.c");

@@ -15,7 +15,7 @@
 
 
 
-BufferLine* Buffer_raw_GetLine(Buffer* b, size_t line) {
+BufferLine* Buffer_raw_GetLine(Buffer* b, intptr_t line) {
 	if(line > b->numLines) return b->last;
 	
 	// TODO: faster algorithm
@@ -33,7 +33,7 @@ BufferLine* Buffer_raw_GetLine(Buffer* b, size_t line) {
 
 
 
-void Buffer_raw_RenumberLines(BufferLine* start, size_t num) {
+void Buffer_raw_RenumberLines(BufferLine* start, intptr_t num) {
 	if(!start) return;
 	
 	// renumber the rest of the lines
@@ -146,13 +146,13 @@ void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl) {
 
 
 
-void Buffer_raw_InsertChars(Buffer* b, BufferLine* bl, char* txt, size_t offset, size_t len) {
+void Buffer_raw_InsertChars(Buffer* b, BufferLine* bl, char* txt, intptr_t offset, intptr_t len) {
 	BufferLine_InsertChars(bl, txt, offset, len);
 };
 
 
 
-void Buffer_raw_DeleteChars(Buffer* b, BufferLine* bl, size_t offset, size_t len) {
+void Buffer_raw_DeleteChars(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t len) {
 	BufferLine_DeleteChars(bl, offset, len);
 };
 

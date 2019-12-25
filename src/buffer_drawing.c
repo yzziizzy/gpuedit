@@ -278,7 +278,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	// draw cursor
 	tl = (Vector2){gbe->header.absTopLeft.x + 50, gbe->header.absTopLeft.y};
 	v = GUIManager_reserveElements(gm, 1);
-	float cursorOff = getColOffset(b->current->buf, b->curCol - 1, tdp->tabWidth) * tdp->charWidth;
+	float cursorOff = getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;
 	float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 	*v = (GUIUnifiedVertex){
 		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},

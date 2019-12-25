@@ -68,7 +68,7 @@
 * Expand or collapse multiline fn arg list
 * Comment autocomplete
 * Remap selected key codes, only for editor 
-
+* Jump to declaration
 
 == BUGS ==
 * Selection pivot is not consistent
