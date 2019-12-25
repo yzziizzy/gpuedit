@@ -453,6 +453,99 @@ void Buffer_LastBookmark(Buffer* b) {
 }
 
 
+// BUG: quite broken
+void Buffer_GrowSelectionV(Buffer* b, intptr_t cols) {
+	if(!b->sel) {
+		pcalloc(b->sel);
+		
+		b->sel->startLine = b->current;
+		b->sel->endLine = b->current;
+		b->sel->startCol = b->curCol;
+		b->sel->endCol = b->curCol;
+	}
+	
+	if(b->sel->endLine->next) {
+		b->sel->endLine = b->sel->endLine->next;
+	}
+	else {
+		b->sel->endCol = b->sel->endLine->length;
+	}
+}
+
+
+// BUG: quite broken
+void Buffer_GrowSelectionH(Buffer* b, intptr_t cols) {
+	if(!b->sel) {
+		pcalloc(b->sel);
+		
+		b->sel->startLine = b->current;
+		b->sel->endLine = b->current;
+		b->sel->startCol = b->curCol;
+		b->sel->endCol = b->curCol;
+	}
+	
+	// TODO: handle backwards
+	
+	// TODO: wrap lines
+	b->sel->endCol += cols;
+	
+	
+}
+
+// unindents all lines of the selection or the cursor
+void Buffer_Unindent(Buffer* b) {
+	printf("un\n");
+	if(!b->sel) {
+		Buffer_LineUnindent(b, b->current);
+		b->curCol--; // TODO: undo
+		return;
+	}
+	
+	BufferLine* bl = b->sel->startLine;
+	do {
+		Buffer_LineUnindent(b, bl);
+	} while(bl != b->sel->endLine && (bl = bl->next) && bl);
+	
+	b->sel->startCol--;
+	b->sel->endCol--; // TODO: undo
+	
+	b->curCol--; // TODO: undo
+}
+
+
+// indents all lines of the selection or the cursor
+void Buffer_Indent(Buffer* b) {
+	if(!b->sel) {
+		Buffer_LineIndent(b, b->current);
+		b->curCol++; // TODO: undo
+		return;
+	}
+	
+	BufferLine* bl = b->sel->startLine;
+	do {
+		Buffer_LineIndent(b, bl);
+	} while(bl != b->sel->endLine && (bl = bl->next) && bl);
+	
+	b->sel->startCol++;
+	b->sel->endCol++; // TODO: undo
+	
+	b->curCol++; // TODO: undo
+}
+
+
+void Buffer_LineIndent(Buffer* b, BufferLine* bl) {
+	Buffer_LineInsertChars(b, bl, "\t", 0, 1); // TODO: adjustable 
+}
+
+void Buffer_LineUnindent(Buffer* b, BufferLine* bl) {
+	if(bl->length == 0) return;
+	if(bl->buf[0] != '\t') return;
+	
+	Buffer_LineDeleteChars(b, bl, 0, 1); // TODO: adjustable 
+}
+
+
+
 // only undo sequence breaks are handled here; all other undo actions must be 
 //    added by the called functions
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
@@ -463,10 +556,12 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 	switch(cmd->type) {
 		case BufferCmd_MoveCursorV:
 			Buffer_MoveCursorV(b, cmd->amt);
+			Buffer_ClearAllSelections(b);
 			break;
 		
 		case BufferCmd_MoveCursorH:
 			Buffer_MoveCursorH(b, cmd->amt);
+			Buffer_ClearAllSelections(b);
 			break;
 		
 		case BufferCmd_InsertChar:
@@ -502,7 +597,10 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 			b->current = b->last;
 			if(b->last) b->curCol = b->last->length;
 			break;
-		
+			
+		case BufferCmd_Indent: Buffer_Indent(b); break;
+		case BufferCmd_Unindent: Buffer_Unindent(b); break;
+			
 		case BufferCmd_DuplicateLine:
 			Buffer_DuplicateLines(b, b->current, cmd->amt);
 			Buffer_MoveCursorV(b, cmd->amt);
@@ -559,6 +657,15 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		case BufferCmd_GoToPrevBookmark:  Buffer_PrevBookmark(b);  break; 
 		case BufferCmd_GoToFirstBookmark: Buffer_FirstBookmark(b); break; 
 		case BufferCmd_GoToLastBookmark:  Buffer_LastBookmark(b);  break; 
+		
+		case BufferCmd_GrowSelectionH: 
+			Buffer_GrowSelectionH(b, cmd->amt);
+			Buffer_MoveCursorH(b, cmd->amt);
+			break; 
+		case BufferCmd_GrowSelectionV:
+			Buffer_GrowSelectionV(b, cmd->amt);
+			Buffer_MoveCursorV(b, cmd->amt);
+			break; 
 		
 		case BufferCmd_Undo:
 			Buffer_UndoReplayTop(b);  

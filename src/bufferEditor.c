@@ -174,17 +174,24 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			char scrollToCursor;
 			char rehighlight;
 		} cmds[] = {
-			{0, XK_Left,      BufferCmd_MoveCursorH,   -1, 1, 0},
-			{0, XK_Right,     BufferCmd_MoveCursorH,    1, 1, 0},
-			{0, XK_Up,        BufferCmd_MoveCursorV,   -1, 1, 0},
-			{0, XK_Down,      BufferCmd_MoveCursorV,    1, 1, 0},
-			{0, XK_BackSpace, BufferCmd_Backspace,      0, 1, 1},
-			{0, XK_Delete,    BufferCmd_Delete,         0, 1, 1},
-			{0, XK_Return,    BufferCmd_SplitLine,      0, 1, 1},
-			{0, XK_Prior,     BufferCmd_MovePage,      -1, 0, 0}, // PageUp
-			{0, XK_Next,      BufferCmd_MovePage,       1, 0, 0}, // PageDown
-			{0, XK_Home,      BufferCmd_Home,           0, 1, 0},
-			{0, XK_End,       BufferCmd_End,            0, 1, 0}, 
+			{0,    XK_Left,      BufferCmd_MoveCursorH,    -1, 1, 0},
+			{0,    XK_Right,     BufferCmd_MoveCursorH,     1, 1, 0},
+			{0,    XK_Up,        BufferCmd_MoveCursorV,    -1, 1, 0},
+			{0,    XK_Down,      BufferCmd_MoveCursorV,     1, 1, 0},
+			{0,    XK_BackSpace, BufferCmd_Backspace,       0, 1, 1},
+			{0,    XK_Delete,    BufferCmd_Delete,          0, 1, 1},
+			{0,    XK_Return,    BufferCmd_SplitLine,       0, 1, 1},
+			{0,    XK_Prior,     BufferCmd_MovePage,       -1, 0, 0}, // PageUp
+			{0,    XK_Next,      BufferCmd_MovePage,        1, 0, 0}, // PageDown
+			{0,    XK_Home,      BufferCmd_Home,            0, 1, 0},
+			{0,    XK_End,       BufferCmd_End,             0, 1, 0}, 
+			{S,    XK_Left,      BufferCmd_GrowSelectionH, -1, 1, 0},
+			{S,    XK_Right,     BufferCmd_GrowSelectionH,  1, 1, 0},
+			{S,    XK_Up,        BufferCmd_GrowSelectionV, -1, 1, 0},
+			{S,    XK_Down,      BufferCmd_GrowSelectionV,  1, 1, 0},
+			{0,    XK_Tab,       BufferCmd_Indent,      0, 0, 1},
+			{S,    XK_Tab,       BufferCmd_Unindent,    0, 0, 1},
+			{S,    XK_ISO_Left_Tab,       BufferCmd_Unindent,    0, 0, 1}, // wtf?
 			{C,    'k',       BufferCmd_DeleteCurLine,  0, 1, 1},
 			{C|A,  XK_Down,   BufferCmd_DuplicateLine,  1, 1, 1}, 
 			{C|A,  XK_Up,     BufferCmd_DuplicateLine, -1, 1, 1}, 

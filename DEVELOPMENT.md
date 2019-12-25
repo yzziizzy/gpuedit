@@ -91,3 +91,5 @@ char* foo = switch(x) { case 2: "two"; break; ... }
 metadata (struct) on each enum field
 bitmask enums
 static type logic in macros
+swap() builtin
+endianness builtins

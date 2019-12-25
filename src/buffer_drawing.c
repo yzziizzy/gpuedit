@@ -191,7 +191,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			
 			// main text
 			for(int i = 0; i < maxCols; i++) { 
-				if(b->sel && b->sel->startLine == bl && b->sel->startCol - 1 <= i + gbe->scrollCols) {
+				if(b->sel && b->sel->startLine == bl && b->sel->startCol <= i + gbe->scrollCols) {
 					inSelection = 1;
 					fg = &theme->hl_textColor;
 					bg = &theme->hl_bgColor;

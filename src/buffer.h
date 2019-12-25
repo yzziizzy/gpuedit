@@ -218,13 +218,16 @@ enum BufferCmdType {
 	BufferCmd_GoToFirstBookmark,
 	BufferCmd_GoToLastBookmark,
 	BufferCmd_Undo,
-	BufferCmd_Redo,
+	BufferCmd_GrowSelectionH,
+	BufferCmd_GrowSelectionV,
+	BufferCmd_Indent,
+	BufferCmd_Unindent,
 	
 	
 	
 	// NYI
+	BufferCmd_Redo,
 	BufferCmd_Save,
-	BufferCmd_Indent,
 	BufferCmd_MatchPrevIndent,
 	BufferCmd_TruncateLine,
 	BufferCmd_TruncateLineExceptLeadingWS, // whitespace
@@ -233,8 +236,6 @@ enum BufferCmdType {
 	BufferCmd_CommentLine,
 	BufferCmd_CommentSelection,
 	BufferCmd_CommentSmart,
-	BufferCmd_GrowSelH,
-	BufferCmd_GrowSelV,
 	BufferCmd_MoveCursorToEOL,
 	BufferCmd_MoveCursorToSOL,
 	BufferCmd_MoveCursorToSOLT, // start of line text, ignoring leading whitespace
@@ -314,12 +315,16 @@ void Buffer_LineTruncateAfter(Buffer* b, BufferLine* bl, intptr_t col);
 void Buffer_BackspaceAt(Buffer* b, BufferLine* l, intptr_t col);
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, intptr_t col);
 void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
+void Buffer_LineIndent(Buffer* b, BufferLine* bl);
+void Buffer_LineUnindent(Buffer* b, BufferLine* bl);
 
 void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC);
 void Buffer_ClearCurrentSelection(Buffer* b);
 void Buffer_ClearAllSelections(Buffer* b);
 void Buffer_DeleteSelectionContents(Buffer* b, BufferSelection* sel);
 
+void Buffer_GrowSelectionH(Buffer* b, intptr_t cols);
+void Buffer_GrowSelectionV(Buffer* b, intptr_t cols);
 
 // these functions operate on absolute positions
 void Buffer_AppendRawText(Buffer* b, char* source, intptr_t len);
@@ -358,7 +363,8 @@ void Buffer_NextBookmark(Buffer* b);
 void Buffer_PrevBookmark(Buffer* b);
 void Buffer_FirstBookmark(Buffer* b);
 void Buffer_LastBookmark(Buffer* b);
-
+void Buffer_Indent(Buffer* b);
+void Buffer_Unindent(Buffer* b);
 
 
 void Buffer_DebugPrint(Buffer* b);
