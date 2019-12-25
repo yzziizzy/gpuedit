@@ -149,14 +149,15 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 
 static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	
+	int needRehighlight = 0;
 	
 	
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
-		});
-	
+		}, &needRehighlight);
+		
+		GUIBufferEditor_RefreshHighlight(w);
 	}
 	else {
 		// special commands
@@ -169,41 +170,44 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			unsigned int mods;
 			int keysym;
 			enum BufferCmdType bcmd;
-			int amt_action;
 			int amt;
 			char scrollToCursor;
+			char rehighlight;
 		} cmds[] = {
-			{GUIMODKEY_CTRL, 'k', BufferCmd_DeleteCurLine, 0, 0, 1},
-			{0, XK_Left,      BufferCmd_MoveCursorH,   1, -1, 1},
-			{0, XK_Right,     BufferCmd_MoveCursorH,   1,  1, 1},
-			{0, XK_Up,        BufferCmd_MoveCursorV,   1, -1, 1},
-			{0, XK_Down,      BufferCmd_MoveCursorV,   1,  1, 1},
-			{0, XK_BackSpace, BufferCmd_Backspace,     0,  0, 1},
-			{0, XK_Delete,    BufferCmd_Delete,        0,  0, 1},
-			{0, XK_Return,    BufferCmd_SplitLine,     0,  0, 1},
-			{0, XK_Prior,     BufferCmd_MovePage,      1, -1, 0}, // PageUp
-			{0, XK_Next,      BufferCmd_MovePage,      1,  1, 0}, // PageDown
-			{0, XK_Home,      BufferCmd_Home,          0,  0, 1},
-			{0, XK_End,       BufferCmd_End,           0,  0, 1}, 
-			{C|A,  XK_Down,   BufferCmd_DuplicateLine, 1,  1, 1}, 
-			{C|A,  XK_Up,     BufferCmd_DuplicateLine, 1, -1, 1}, 
-			{C,    'x',       BufferCmd_Cut,           0,  0, 0}, 
-			{C,    'c',       BufferCmd_Copy,          0,  0, 0}, 
-			{C,    'v',       BufferCmd_Paste,         0,  0, 0}, 
-			{C,    'a',       BufferCmd_SelectAll,     0,  0, 0}, 
-			{C|S,  'a',       BufferCmd_SelectNone,    0,  0, 0}, 
-			{C,    'l',       BufferCmd_SelectToEOL,   0,  0, 0}, 
-			{C|S,  'l',       BufferCmd_SelectFromSOL, 0,  0, 0}, 
-			{C,    'g',       BufferCmd_GoToLine,      0,  0, 0}, 
-			{C,    'z',       BufferCmd_Undo,          0,  0, 0}, 
-			{C|S,  'r',       BufferCmd_RehilightWholeBuffer, 0, 0, 1}, 
-			{C|A,  'b',       BufferCmd_SetBookmark,          0, 0, 1}, 
-			{C|S,  'b',       BufferCmd_RemoveBookmark,       0, 0, 1}, 
-			{C,    'b',       BufferCmd_ToggleBookmark,       0, 0, 1}, 
-			{A,    XK_Next,   BufferCmd_GoToNextBookmark,     0, 0, 1}, // PageUp
-			{A,    XK_Prior,  BufferCmd_GoToPrevBookmark,     0, 0, 1}, // PageDown
-			{A,    XK_Home,   BufferCmd_GoToFirstBookmark,    0, 0, 1}, 
-			{A,    XK_End,    BufferCmd_GoToLastBookmark,     0, 0, 1}, 
+			{0, XK_Left,      BufferCmd_MoveCursorH,   -1, 1, 0},
+			{0, XK_Right,     BufferCmd_MoveCursorH,    1, 1, 0},
+			{0, XK_Up,        BufferCmd_MoveCursorV,   -1, 1, 0},
+			{0, XK_Down,      BufferCmd_MoveCursorV,    1, 1, 0},
+			{0, XK_BackSpace, BufferCmd_Backspace,      0, 1, 1},
+			{0, XK_Delete,    BufferCmd_Delete,         0, 1, 1},
+			{0, XK_Return,    BufferCmd_SplitLine,      0, 1, 1},
+			{0, XK_Prior,     BufferCmd_MovePage,      -1, 0, 0}, // PageUp
+			{0, XK_Next,      BufferCmd_MovePage,       1, 0, 0}, // PageDown
+			{0, XK_Home,      BufferCmd_Home,           0, 1, 0},
+			{0, XK_End,       BufferCmd_End,            0, 1, 0}, 
+			{C,    'k',       BufferCmd_DeleteCurLine,  0, 1, 1},
+			{C|A,  XK_Down,   BufferCmd_DuplicateLine,  1, 1, 1}, 
+			{C|A,  XK_Up,     BufferCmd_DuplicateLine, -1, 1, 1}, 
+			{C,    'x',       BufferCmd_Cut,            0, 0, 1}, 
+			{C,    'c',       BufferCmd_Copy,           0, 0, 0}, 
+			{C,    'v',       BufferCmd_Paste,          0, 1, 1}, 
+			{C,    'a',       BufferCmd_SelectAll,      0, 0, 0}, 
+			{C|S,  'a',       BufferCmd_SelectNone,     0, 0, 0}, 
+			{C,    'l',       BufferCmd_SelectToEOL,    0, 0, 0}, 
+			{C|S,  'l',       BufferCmd_SelectFromSOL,  0, 0, 0}, 
+			{C,    'g',       BufferCmd_GoToLine,       0, 1, 0}, 
+			{C,    'z',       BufferCmd_Undo,           0, 1, 1}, 
+			{C|S,  'z',       BufferCmd_Redo,           0, 1, 1}, 
+			{C,    'q',       BufferCmd_Debug,          0, 1, 0}, 
+			{C,    'w',       BufferCmd_Debug,          1, 1, 0}, 
+			{C|S,  'r',       BufferCmd_RehilightWholeBuffer, 0, 1, 1}, 
+			{C|A,  'b',       BufferCmd_SetBookmark,          0, 1, 0}, 
+			{C|S,  'b',       BufferCmd_RemoveBookmark,       0, 1, 0}, 
+			{C,    'b',       BufferCmd_ToggleBookmark,       0, 1, 0}, 
+			{A,    XK_Next,   BufferCmd_GoToNextBookmark,     0, 1, 0}, // PageUp
+			{A,    XK_Prior,  BufferCmd_GoToPrevBookmark,     0, 1, 0}, // PageDown
+			{A,    XK_Home,   BufferCmd_GoToFirstBookmark,    0, 1, 0}, 
+			{A,    XK_End,    BufferCmd_GoToLastBookmark,     0, 1, 0}, 
 			{0,0,0,0,0},
 		};
 		
@@ -215,15 +219,18 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			if((cmds[i].mods & ANY) != (gev->modifiers & ANY)) continue;
 			// TODO: specific mods
 			
-			
 			// GUIBufferEditor will pass on commands to the buffer
 			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
 				cmds[i].bcmd, cmds[i].amt 
-			});
+			}, &needRehighlight);
 			
 			
 			if(cmds[i].scrollToCursor) {
 				GUIBufferEditor_scrollToCursor(w);
+			}
+			
+			if(cmds[i].rehighlight) {
+				GUIBufferEditor_RefreshHighlight(w);
 			}
 		}
 		
@@ -279,17 +286,14 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 
 
 
-void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd) {
+void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
 	if(cmd->type == BufferCmd_MovePage) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_MoveCursorV, 
 			cmd->amt * w->linesOnScreen
-		});
+		}, needRehighlight);
 		
 		w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
-	}
-	else if(cmd->type == BufferCmd_RehilightWholeBuffer) {
-		GUIBufferEditor_RefreshHighlight(w);
 	}
 	else if(cmd->type == BufferCmd_GoToLine) {
 		
@@ -309,7 +313,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd) {
 		
 	}
 	else { // pass it on
-		Buffer_ProcessCommand(w->buffer, cmd);
+		Buffer_ProcessCommand(w->buffer, cmd, needRehighlight);
 	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);

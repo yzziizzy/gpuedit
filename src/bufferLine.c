@@ -99,8 +99,8 @@ void BufferLine_InsertChars(BufferLine* l, char* text, size_t col, size_t len) {
 	
 	BufferLine_EnsureAlloc(l, l->length + len);
 	
-	if(col - 1 < l->length) {
-		memmove(l->buf + col - 1 + len, l->buf + col - 1, l->length - col);
+	if(col < l->length) {
+		memmove(l->buf + col + len, l->buf + col, l->length - col);
 	}
 	
 	memcpy(l->buf + col, text, len);
@@ -115,8 +115,8 @@ void BufferLine_DeleteChars(BufferLine* l, size_t offset, size_t len) {
 	if(l->length == 0) return;
 	if(offset > l->length + 2) return; // strange overrun
 	
-	if(offset - 2 < l->length) {
-		memmove(l->buf + offset - 2, l->buf + offset - 1, l->length - offset + 3);
+	if(offset - 1 < l->length) {
+		memmove(l->buf + offset - 1, l->buf + offset, l->length - offset + 2);
 	}
 	
 	l->length -= 1;

@@ -52,8 +52,10 @@ typedef struct EditorParams {
 
 // these represent what was done and must be reversed when using the undo feature
 enum UndoActions {
-	UndoAction_InsertText,
+	UndoAction_InsertText = 0,
 	UndoAction_DeleteText,
+	UndoAction_InsertChar,
+	UndoAction_DeleteChar,
 	UndoAction_InsertLineAfter, // 0 inserts a line at the beginning
 	UndoAction_DeleteLine,
 	UndoAction_MoveCursorTo,
@@ -68,11 +70,16 @@ typedef struct BufferUndo {
 	enum UndoActions action;
 	size_t lineNum;
 	size_t colNum;
+	size_t cursorL;
+	size_t cursorC;
 	union{
+		int character; // for single-char operations
+		
 		struct { // for text
 			char* text; 
 			size_t length;
 		};
+		
 		struct { // for selection changes
 			size_t endLine;
 			size_t endCol;
@@ -181,6 +188,7 @@ typedef struct GUIBufferEditor {
 
 enum BufferCmdType {
 	BufferCmd_NULL = 0,
+	BufferCmd_Debug,
 	BufferCmd_MoveCursorV,
 	BufferCmd_MoveCursorH,
 	BufferCmd_InsertChar,
@@ -210,7 +218,9 @@ enum BufferCmdType {
 	BufferCmd_GoToFirstBookmark,
 	BufferCmd_GoToLastBookmark,
 	BufferCmd_Undo,
-
+	BufferCmd_Redo,
+	
+	
 	
 	// NYI
 	BufferCmd_Save,
@@ -285,7 +295,7 @@ void Buffer_UndoReplayTop(Buffer* b);
 
 // functions below here will add to the undo stack
 
-void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd);
+void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight);
 
 
 
@@ -367,7 +377,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 
-void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd);
+void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
 
 
 

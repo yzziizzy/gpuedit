@@ -9,7 +9,7 @@
 * Settings editor
 * Mouse based selection editing
 * Highlight current line
-* dlopen() certain optional libs on demand instead of linking with them
+* dlopen(): libpng, libalsa, libvorbis
 * On-demand frame rendering
 * Serviceable C highlighter
 * Color selector control
@@ -67,13 +67,16 @@
 * Caps modification of words in selection
 * Expand or collapse multiline fn arg list
 * Comment autocomplete
+* Remap selected key codes, only for editor 
 
 
 == BUGS ==
 * Selection pivot is not consistent
 * Mouse scroll on files with fewer lines than the screen
 * Scrollbar follows cursor, not screen
-
+* Cut/Copy should do nothing without an active selection
+* Should not be able to delete the last line
+* Fix cursor position after undo
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

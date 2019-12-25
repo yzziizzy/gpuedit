@@ -56,6 +56,26 @@ typedef struct GUIFont {
 } GUIFont;
 
 
+typedef struct FontGenBMP {
+	GUIFont* font;
+	
+	int code;
+	char bold;
+	char italic;
+	float pxsize;
+	
+	uint8_t* glyph;
+	Vector2i glyphSize; // size of the bitmap
+	
+	Vector bearing;
+	Vector advance;
+	
+	// final texture data
+	struct charInfo charinfo;
+} FontGenBMP;
+
+
+
 // generation info for a single character
 typedef struct FontGen {
 	GUIFont* font;

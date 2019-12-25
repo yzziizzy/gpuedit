@@ -37,7 +37,7 @@ void Buffer_UndoInsertText(
 	
 	u->action = UndoAction_InsertText;
 	u->lineNum = line;
-	u->colNum = col;
+	u->colNum = col - 1;
 	u->text = strndup(txt, len);
 	u->length = len;
 }
@@ -49,8 +49,8 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, size_t offset, size_t len)
 	
 	u->action = UndoAction_DeleteText;
 	u->lineNum = bl->lineNum;
-	u->colNum = offset;
-	u->text = strndup(bl->buf + offset, len); // BUG: off by 1?
+	u->colNum = offset - 1;
+	u->text = strndup(bl->buf + offset - 1, len); // BUG: off by 1?
 	u->length = len;
 }
 
@@ -94,6 +94,7 @@ void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
 void Buffer_UndoReplayTop(Buffer* b) {
 	BufferLine* bl;
 	
+	if(VEC_LEN(&b->undoStack) == 0) return;
 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
 	
 	// these all need to be the inverse
@@ -106,6 +107,8 @@ void Buffer_UndoReplayTop(Buffer* b) {
 		case UndoAction_DeleteText: // re-insert the text
 			bl = Buffer_raw_GetLine(b, u->lineNum);
 			Buffer_raw_InsertChars(b, bl, u->text, u->colNum, u->length);
+			b->current = bl; // BUG not right after <delete> key
+			b->curCol = u->colNum + u->length;
 			break;
 			
 		case UndoAction_InsertLineAfter: // delete the line
@@ -115,11 +118,13 @@ void Buffer_UndoReplayTop(Buffer* b) {
 			
 		case UndoAction_DeleteLine: // insert the line
 			if(u->lineNum == 0) {
-				Buffer_raw_InsertLineBefore(b, b->first);
+				BufferLine* bln = Buffer_raw_InsertLineBefore(b, b->first);
+				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
 			}
 			else {
 				bl = Buffer_raw_GetLine(b, u->lineNum);
-				Buffer_raw_InsertLineAfter(b, bl);
+				BufferLine* bln = Buffer_raw_InsertLineBefore(b, bl);
+				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
 			}
 			break;
 			
@@ -188,7 +193,7 @@ void Buffer_DeleteLine(Buffer* b, BufferLine* bl) {
 
 void Buffer_LineInsertChars(Buffer* b, BufferLine* bl, char* text, size_t offset, size_t length) {
 	Buffer_UndoInsertText(b, bl->lineNum, offset, text, length);
-	Buffer_raw_InsertChars(b, bl, text, offset, length);
+	Buffer_raw_InsertChars(b, bl, text, offset - 1, length);
 }
 
 
@@ -204,7 +209,7 @@ void Buffer_LineAppendLine(Buffer* b, BufferLine* target, BufferLine* src) {
 }
 
 void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, size_t col, size_t length) {
-	Buffer_UndoDeleteText(b, bl, col, length);
+	Buffer_UndoDeleteText(b, bl, col - 1, length);
 	Buffer_raw_DeleteChars(b, bl, col, length);
 }
 
@@ -218,14 +223,18 @@ void Buffer_LineTruncateAfter(Buffer* b, BufferLine* bl, size_t col) {
 void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col) {
 	if(!b->first) return; // empty buffer
 	
-	if(col == 1) {
+	
+	if(col == 1) { 
+		printf("col 1 \n");
 		// first col of first row; do nothing
 		if(b->first == l) return;
 		
 		if(l->length > 0) {
 			// merge with the previous line
-			Buffer_LineAppendLine(b, l, l->prev);
+			Buffer_LineAppendLine(b, l->prev, l);
 		}
+		
+		// TODO: move cursor
 		
 		Buffer_DeleteLine(b, l);
 		
@@ -233,6 +242,8 @@ void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col) {
 	} 
 	
 	Buffer_LineDeleteChars(b, l, col, 1);
+
+	
 }
 
 
@@ -240,6 +251,8 @@ void Buffer_BackspaceAt(Buffer* b, BufferLine* l, size_t col) {
 // does not move the cursor
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col) {
 	if(!b->first) return; // empty buffer
+	
+	Buffer_LineDeleteChars(b, l, col + 1, 1);
 	
 	if(col == l->length + 1) {
 		// last col of last row; do nothing
@@ -255,7 +268,6 @@ void Buffer_DeleteAt(Buffer* b, BufferLine* l, size_t col) {
 		return;
 	} 
 	
-	Buffer_LineDeleteChars(b, l, col + 1, 1);
 }
 
 
@@ -441,7 +453,7 @@ void Buffer_LastBookmark(Buffer* b) {
 
 // only undo sequence breaks are handled here; all other undo actions must be 
 //    added by the called functions
-void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
+void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 	Buffer* b2;
 	
 	char cc[2] = {cmd->amt, 0};
@@ -550,7 +562,13 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd) {
 		case BufferCmd_Undo:
 			Buffer_UndoReplayTop(b);  
 		
-			break; 
+			break;
+			
+		case BufferCmd_Debug:
+			switch(cmd->amt) {
+				case 0: Buffer_DebugPrint(b); break;
+				case 1: Buffer_DebugPrintUndoStack(b); break;
+			} 
 	}
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
@@ -752,6 +770,8 @@ void Buffer_AppendRawText(Buffer* b, char* source, size_t len) {
 		// TODO: robust input handling with unicode later
 // 		if(*e == '\n') {
 			Buffer_AppendLine(b, s, (size_t)(e-s));
+// 			BufferLine* bl = Buffer_raw_InsertLineAfter(b, b->last);
+// 			Buffer_raw_InsertChars(b, bl, s, 0, (size_t)(e-s)); 
 // 		}
 		
 // 		if(b->last->buf && b->last->length > 0) {
@@ -975,8 +995,23 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, size_t startC, Bu
 
 void Buffer_DebugPrintUndoStack(Buffer* b) {
 	printf("Undo stack for %p (%ld entries)\n", b, VEC_LEN(&b->undoStack));
+	
+	char* names[] = { 
+		"InsText",
+		"DelText",
+		"InsChar",
+		"DelChar",
+		"InsLine", 
+		"DelLine",
+		"MvCurTo",
+		"SetSel ",
+		"UnmodFl",
+		"SequBrk",
+	};
+	
 	VEC_EACH(&b->undoStack, i, u) {
-		printf(" %d [%d] '%.*s'\n", i, u.action, u.length, u.text);
+		printf(" %d [%s] {%d,%d} %d:'%.*s'\n", i, names[u.action], 
+			u.lineNum, u.colNum, u.length, u.length, u.text);
 	}
 	
 	
