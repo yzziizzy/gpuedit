@@ -338,6 +338,9 @@ void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_RemoveBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl);
 
+void Buffer_RelPosH(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t cols, BufferLine** outL, intptr_t* outC);
+void Buffer_RelPosV(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t lines, BufferLine** outL, intptr_t* outC);
+
 
 // HACK: temporary junk
 void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe);

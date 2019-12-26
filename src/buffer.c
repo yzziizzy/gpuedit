@@ -486,15 +486,88 @@ void Buffer_GrowSelectionH(Buffer* b, intptr_t cols) {
 	
 	// TODO: handle backwards
 	
-	// TODO: wrap lines
-	b->sel->endCol += cols;
-	
+	Buffer_RelPosH(b, b->sel->endCol, b->sel->endCol, cols, &b->sel->endLine, &b->sel->endCol);
 	
 }
 
+
+
+void Buffer_RelPosH(
+	Buffer* b, 
+	BufferLine* startL, 
+	intptr_t startC, 
+	intptr_t cols,
+	BufferLine** outL,
+	intptr_t* outC
+) {
+	
+	BufferLine* bl = startL;
+	intptr_t curCol = startC;
+	
+	intptr_t i = cols;
+	if(i < 0) while(i++ < 0) {
+		if(curCol <= 0) {
+			
+			if(bl->prev == NULL) {
+				curCol = 0;
+				break;
+			}
+			
+			bl = bl->prev;
+			curCol = bl->length;
+		}
+		else {
+			curCol--;
+		}
+	}
+	else while(i-- > 0) {
+		if(curCol >= bl->length) {
+			
+			if(bl->next == NULL) {
+				break;
+			}
+			
+			bl = bl->next;
+			curCol = 0;
+		}
+		else {
+			curCol++;
+		}
+	}
+	
+	if(outC) *outC = curCol;
+	if(outL) *outL = bl;
+}
+
+
+
+// TODO: fix max col
+void Buffer_RelPosV(
+	Buffer* b, 
+	BufferLine* startL, 
+	intptr_t startC, 
+	intptr_t lines,
+	BufferLine** outL,
+	intptr_t* outC
+) {
+	intptr_t i = lines;
+	BufferLine* bl = startL;
+	
+	if(i > 0) while(i-- > 0 && bl->next) {
+		bl = bl->next;
+	}
+	else while(i++ < 0 && bl->prev) {
+		bl = bl->prev;
+	}
+	
+	if(outC) *outC = startC;
+	if(outL) *outL = bl;
+}
+
+
+
 // unindents all lines of the selection or the cursor
 void Buffer_Unindent(Buffer* b) {
-	printf("un\n");
 	if(!b->sel) {
 		Buffer_LineUnindent(b, b->current);
 		b->curCol--; // TODO: undo

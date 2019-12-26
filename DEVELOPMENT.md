@@ -28,7 +28,7 @@
 * Pause on lose focus
 * Typing with a selection overwrites it
 * Implement INCR selection handling for X
-* Undo/redo
+* Redo
 * Drop file from X onto existing editor to open it
 * Save/reload workspace
 * File/path in titlebar
@@ -41,6 +41,7 @@
 * Bitmap font option
 * Optimize Buffer_raw_GetLine starting point and direction
 * Check all column usage for correct 1/0 basing
+* Consistent columns when moving cursor up/down past lines with tabs
 
 
 == Editor Features ==
