@@ -32,7 +32,10 @@ typedef struct BufferSelection {
 	BufferLine* startLine, *endLine;
 	intptr_t startCol, endCol;
 	
-	struct BufferSelection* next, *prev;
+	intptr_t charLength; // not implemented atm
+	int reverse : 1; // active end at: 0 = end, 1 = start
+	
+	
 	// type?
 } BufferSelection;
 
@@ -92,7 +95,8 @@ typedef struct Buffer {
 	BufferLine* first, *last, *current; 
 	
 	intptr_t numLines;
-	intptr_t curCol;
+	intptr_t curCol; // characters into the line
+	intptr_t curColDisp; // the visible display column, including tabstops, etc.
 	
 	char* filePath;
 	

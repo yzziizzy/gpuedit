@@ -453,25 +453,6 @@ void Buffer_LastBookmark(Buffer* b) {
 }
 
 
-// BUG: quite broken
-void Buffer_GrowSelectionV(Buffer* b, intptr_t cols) {
-	if(!b->sel) {
-		pcalloc(b->sel);
-		
-		b->sel->startLine = b->current;
-		b->sel->endLine = b->current;
-		b->sel->startCol = b->curCol;
-		b->sel->endCol = b->curCol;
-	}
-	
-	if(b->sel->endLine->next) {
-		b->sel->endLine = b->sel->endLine->next;
-	}
-	else {
-		b->sel->endCol = b->sel->endLine->length;
-	}
-}
-
 
 // BUG: quite broken
 void Buffer_GrowSelectionH(Buffer* b, intptr_t cols) {
@@ -482,11 +463,71 @@ void Buffer_GrowSelectionH(Buffer* b, intptr_t cols) {
 		b->sel->endLine = b->current;
 		b->sel->startCol = b->curCol;
 		b->sel->endCol = b->curCol;
+	
+		if(cols > 0) {
+			Buffer_RelPosH(b, b->sel->endLine, b->sel->endCol, cols, &b->sel->endLine, &b->sel->endCol);
+		}
+		else {
+			b->sel->reverse = 1;
+			Buffer_RelPosH(b, b->sel->startLine, b->sel->startCol, cols, &b->sel->startLine, &b->sel->startCol);
+		}
+		
+		return;
 	}
 	
-	// TODO: handle backwards
+	if(!b->sel->reverse) {
+		Buffer_RelPosH(b, b->sel->endLine, b->sel->endCol, cols, &b->sel->endLine, &b->sel->endCol);
+	}
+	else {
+		Buffer_RelPosH(b, b->sel->startLine, b->sel->startCol, cols, &b->sel->startLine, &b->sel->startCol);
+	}
+		
 	
-	Buffer_RelPosH(b, b->sel->endCol, b->sel->endCol, cols, &b->sel->endLine, &b->sel->endCol);
+	
+	// clear zero length selections
+	if(b->sel->startLine == b->sel->endLine && b->sel->startCol == b->sel->endCol) {
+		free(b->sel);
+		b->sel = NULL;
+	}
+	
+	
+}
+
+void Buffer_GrowSelectionV(Buffer* b, intptr_t lines) {
+	if(!b->sel) {
+		pcalloc(b->sel);
+		
+		b->sel->startLine = b->current;
+		b->sel->endLine = b->current;
+		b->sel->startCol = b->curCol;
+		b->sel->endCol = b->curCol;
+	
+		if(lines > 0) {
+			Buffer_RelPosV(b, b->sel->endLine, b->sel->endCol, lines, &b->sel->endLine, &b->sel->endCol);
+		}
+		else {
+			b->sel->reverse = 1;
+			Buffer_RelPosV(b, b->sel->startLine, b->sel->startCol, lines, &b->sel->startLine, &b->sel->startCol);
+		}
+		
+		return;
+	}
+	
+	if(!b->sel->reverse) {
+		Buffer_RelPosV(b, b->sel->endLine, b->sel->endCol, lines, &b->sel->endLine, &b->sel->endCol);
+	}
+	else {
+		Buffer_RelPosV(b, b->sel->startLine, b->sel->startCol, lines, &b->sel->startLine, &b->sel->startCol);
+	}
+	
+	// TODO: handle pivoting around the beginning
+	
+	// clear zero length selections
+	if(b->sel->startLine == b->sel->endLine && b->sel->startCol == b->sel->endCol) {
+		free(b->sel);
+		b->sel = NULL;
+	}
+	
 	
 }
 
