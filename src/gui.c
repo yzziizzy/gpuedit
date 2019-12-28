@@ -1048,3 +1048,156 @@ int GUIManager_DispatchEvent(GUIManager* gm, GUIEvent* ev) {
 	return ret;
 }
 */
+
+
+/*
+
+size_t drawCharacter(
+	GUIManager* gm, 
+	TextDrawParams* tdp, 
+	struct Color4* fgColor, 
+	struct Color4* bgColor, 
+	int c, 
+	Vector2 tl
+) {
+// 		printf("'%s'\n", bl->buf);
+	GUIFont* f = tdp->font;
+	float size = tdp->fontSize; // HACK
+	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+		
+	struct charInfo* ci = &f->regular[c];
+	GUIUnifiedVertex* v;
+	
+	// background
+	if(bgColor->a > 0) {
+		v = GUIManager_reserveElements(gm, 1);
+		
+		*v = (GUIUnifiedVertex){
+			.pos.t = tl.y,
+			.pos.l = tl.x,
+			.pos.b = tl.y + tdp->lineHeight,
+			.pos.r = tl.x + tdp->charWidth,
+			
+			.guiType = 0, // box
+			
+			.texOffset1.x = ci->texNormOffset.x * 65535.0,
+			.texOffset1.y = ci->texNormOffset.y * 65535.0,
+			.texSize1.x = ci->texNormSize.x *  65535.0,
+			.texSize1.y = ci->texNormSize.y * 65535.0,
+			.texIndex1 = ci->texIndex,
+			
+			.bg = *bgColor,
+			
+			.z = .5,
+			
+			// disabled in the shader right now
+			.clip = {0,0, 1000000,1000000},
+		};
+	}
+	
+	// character
+	if(c != ' ' && c != '\t') { // TODO: proper printable character check
+		v = GUIManager_reserveElements(gm, 1);
+		
+		*v = (GUIUnifiedVertex){
+			.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
+			.pos.l = tl.x + ci->topLeftOffset.x * size,
+			.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
+			.pos.r = tl.x + ci->size.x * size + ci->topLeftOffset.x * size,
+			
+			.guiType = 1, // text
+			
+			.texOffset1.x = ci->texNormOffset.x * 65535.0,
+			.texOffset1.y = ci->texNormOffset.y * 65535.0,
+			.texSize1.x = ci->texNormSize.x *  65535.0,
+			.texSize1.y = ci->texNormSize.y * 65535.0,
+			.texIndex1 = ci->texIndex,
+			
+			.fg = *fgColor,
+			
+			.z = 1,
+			
+			// disabled in the shader right now
+			.clip = {0,0, 1000000,1000000},
+		};
+	}
+	
+	return 0;
+}
+
+// stops on linebreak
+void gui_drawTextLine(
+	GUIManager* gm,
+	GUIFont* f,
+	float fontSize,
+	AABB2 box,  
+	struct Color4* color, 
+	char* txt, 
+	size_t charCount
+) {
+	
+// 		printf("'%s'\n", bl->buf);
+	if(txt == NULL || charCount == 0) return;
+	
+	int charsDrawn = 0;
+	float size = fontSize; // HACK
+	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+	float adv = 0;
+	
+	float maxAdv = box->right - box->left;
+	
+	
+	float spaceadv = f->regular[' '].advance;
+	
+	for(int n = 0; txt[n] != 0 && adv < maxAdv; n++) {
+		char c = txt[n];
+		
+		struct charInfo* ci = &f->regular[c];
+		
+		if(c == '\t') {
+			adv += spaceadv * 4; // hardcoded to annoy you
+		}
+		else if(c != ' ') {
+			GUIUnifiedVertex* v = GUIManager_checkElemBuffer(gm, 1);
+			
+			Vector2 off = tl;
+			
+			float offx = ci->texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
+			float offy = ci->texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
+			float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
+			float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
+			
+			v->pos.t = off.y + hoff - ci->topLeftOffset.y * size;
+			v->pos.l = off.x + adv + ci->topLeftOffset.x * size;
+			v->pos.b = off.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size;
+			v->pos.r = off.x + adv + ci->size.x * size + ci->topLeftOffset.x * size;
+			
+			v->guiType = 1; // text
+			
+			v->texOffset1.x = offx * 65535.0;
+			v->texOffset1.y = offy * 65535.0;
+			v->texSize1.x = widx *  65535.0;
+			v->texSize1.y = widy * 65535.0;
+			v->texIndex1 = ci->texIndex;
+			
+			v->clip.t = 0; // disabled in the shader right now
+			v->clip.l = 0;
+			v->clip.b = 1000000;
+			v->clip.r = 1000000;
+			v->fg = *textColor,
+			
+			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+			//v++;
+			gm->elementCount++;
+			charsDrawn++;
+		}
+		else {
+			adv += spaceadv;
+			charsDrawn++;
+		}
+		
+		
+	}
+
+}
+*/

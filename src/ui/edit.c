@@ -1,4 +1,4 @@
-
+#include <ctype.h>
 
 #include "../gui.h"
 #include "../gui_internal.h"
@@ -24,14 +24,14 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 	int cursorAlpha = 0;
 	float cursorOff = 0;
-	if(w->hasFocus && fmod(pfp->wallTime, 1.0) > .5) {
+	if(/*w->hasFocus &&*/ fmod(pfp->wallTime, 1.0) > .5) {
 		cursorOff = tl.x + (w->cursorOffset /** w->textControl->fontSize * .01*/);
 		cursorAlpha = 255;
 	}
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 2);
 	
-	printf("tl: %f,%f | %f,%f\n", tl.x, tl.y, w->header.size.x, w->header.size.y);
+// 	printf("tl: %f,%f | %f,%f\n", tl.x, tl.y, w->header.size.x, w->header.size.y);
 	
 	// bg
 	*v++ = (GUIUnifiedVertex){
@@ -46,9 +46,11 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.fg = {255, 128, 64, 255}, // TODO: border color
 		.bg = {128, 28, 164, 255}, // TODO: color
 		
-		.z = 100000, //w->header.z,
+		.z = w->header.z + 1,
 		.alpha = 1,
 	};
+	
+	
 	// cursor
 	*v = (GUIUnifiedVertex){
 		.pos = {cursorOff, tl.y, cursorOff + 2, tl.y + w->header.size.y},
@@ -72,6 +74,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 
 }
+
 
 static void delete(GUIEdit* w) {
 	free(w->buf);
@@ -105,33 +108,61 @@ static int recieveText(InputEvent* ev, GUIEdit* ed) {
 	return 0;
 }
 
-static int keyDown(InputEvent* ev, GUIEdit* w) {
-	if(ev->keysym == XK_Left) moveCursor(w, -1);
-	else if(ev->keysym == XK_Right) moveCursor(w, 1);
-	else if(ev->keysym == XK_BackSpace) {
+
+static void click(GUIObject* w_, GUIEvent* gev) {
+	GUIEdit* w = (GUIEdit*)w_;
+	
+	w->hasFocus = 1;
+}
+
+
+static void keyDown(GUIObject* w_, GUIEvent* gev) {
+	GUIEdit* w = (GUIEdit*)w_;
+	
+	// NOTE: paste will be an event type
+	
+	gev->cancelled = 1;
+	
+	if(gev->keycode == XK_Left) moveCursor(w, -1);
+	else if(gev->keycode == XK_Right) moveCursor(w, 1);
+	else if(gev->keycode == XK_BackSpace) {
 		removeChar(w, w->cursorpos - 1);
 		moveCursor(w, -1);
+		
+		if(w->onChange) {
+			(*w->onChange)(w, w->onChangeData);
+		}
 	}
-	else if(ev->keysym == XK_Delete) removeChar(w, w->cursorpos);
-	else if(ev->keysym == XK_Escape) {
+	else if(gev->keycode == XK_Return) {
+		if(w->onEnter) {
+			(*w->onEnter)(w, w->onEnterData);
+		}
+	}
+	else if(gev->keycode == XK_Delete) {
+		removeChar(w, w->cursorpos);
+		
+		if(w->onChange) {
+			(*w->onChange)(w, w->onChangeData);
+		}
+	}
+	else if(gev->keycode == XK_Escape) {
 // 		GUIObject_revertFocus((GUIObject*)w);
 		w->hasFocus = 0;
 		return 0;
-	};
+	}
+	else if(isprint(gev->character)) {
+		insertChar(w, gev->character);
+		w->cursorpos++;
+		
+		if(w->onChange) {
+			(*w->onChange)(w, w->onChangeData);
+		}
+	}
 	
 	updateTextControl(w);
 	
 	return 0;
 }
-
-static int click(GUIEdit* w, Vector2 clickPos) {
-	
-// 	GUIObject_giveFocus(w->header.parent);
-	((GUIEdit*)w->header.parent)->hasFocus = 1;
-	
-	return 0;
-}
-
 
 
 
@@ -142,19 +173,25 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
-		.Delete = (void*)delete
-	};
-		
-	static InputEventHandler input_vt = {
-		.keyText = (void*)recieveText,
-		.keyUp = (void*)keyDown,
+		.Delete = (void*)delete,
 	};
 	
-	w = calloc(1, sizeof(*w));
-	CHECK_OOM(w);
+	static struct GUIEventHandler_vtbl event_vt = {
+		.KeyDown = keyDown,
+		.Click = click,
+// 		.ScrollUp = scrollUp,
+// 		.ScrollDown = scrollDown,
+// 		.DragStart = dragStart,
+// 		.DragStop = dragStop,
+// 		.DragMove = dragMove,
+	};
 	
-	gui_headerInit(&w->header, gm, &static_vt, NULL);
-// 	w->header.input_vt = &input_vt;
+	
+	pcalloc(w);
+	
+	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
+	
+	
 	
 	w->blinkRate = 1.5;
 	
@@ -278,6 +315,11 @@ double GUIEdit_GetDouble(GUIEdit* ed) {
 	// TODO: cache this value
 	updateDval(ed);
 	return ed->numVal;
+}
+
+
+char* GUIEdit_GetText(GUIEdit* ed) {
+	return ed->buf;
 }
 
 

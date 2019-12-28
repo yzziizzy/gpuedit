@@ -10,7 +10,6 @@
 
 #include "input.h"
 #include "texture.h"
-// #include "game.h"
 #include "pass.h"
 #include "pcBuffer.h"
 
@@ -121,7 +120,8 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 	X(ScrollUp, 1) \
 	\
 	X(GainedFocus, 0) \
-	X(LostFocus, 0)
+	X(LostFocus, 0) \
+	X(Paste, 1) 
 
 
 enum GUIEventType {
@@ -330,7 +330,7 @@ typedef struct GUIManager {
 	
 	VEC(GUIObject*) focusStack;
 	
-	
+	GUIFont* defaultFont;
 	
 	// temp 
 	GLuint fontAtlasID;

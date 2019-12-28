@@ -40,7 +40,15 @@ static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {
 }
 
 
-
+void gui_drawTextLine(
+	GUIManager* gm,
+	GUIFont* f,
+	float fontSize,
+	AABB2 box,  
+	struct Color4* color, 
+	char* txt, 
+	size_t charCount
+);
 
 
 #endif // __EACSMB_gui_internal_h__

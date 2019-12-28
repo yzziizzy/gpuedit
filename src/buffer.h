@@ -180,6 +180,7 @@ typedef struct GUIBufferEditor {
 	
 	char lineNumTypingMode; // flag for GoToLine being active
 	GUIEdit* lineNumEntryBox;
+	GUIEdit* findBox;
 	
 	// TODO: move elsewhere
 	GUIFont* font;
@@ -226,6 +227,7 @@ enum BufferCmdType {
 	BufferCmd_GrowSelectionV,
 	BufferCmd_Indent,
 	BufferCmd_Unindent,
+	BufferCmd_FindStart,
 	
 	
 	

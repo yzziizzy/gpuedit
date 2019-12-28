@@ -68,7 +68,7 @@ static void render(GUIText* gt, PassFrameParams* pfp) {
 	Vector2 tl = gt->header.absTopLeft;
 	
 	float size = 0.45; // HACK
-	float hoff = gt->header.size.y * .75; // HACK
+	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
 	float adv = 0;
 	
 	float spaceadv = f->regular[' '].advance;

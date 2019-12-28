@@ -52,6 +52,8 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 	if(w->lineNumTypingMode) {
 		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
 	}
+	
+	GUIHeader_renderChildren(&w->header, pfp);
 }
 
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
@@ -205,6 +207,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			{C,    'g',       BufferCmd_GoToLine,       0, 1, 0}, 
 			{C,    'z',       BufferCmd_Undo,           0, 1, 1}, 
 			{C|S,  'z',       BufferCmd_Redo,           0, 1, 1}, 
+			{C,    'f',       BufferCmd_FindStart,      0, 0, 0}, 
 			{C,    'q',       BufferCmd_Debug,          0, 1, 0}, 
 			{C,    'w',       BufferCmd_Debug,          1, 1, 0}, 
 			{C|S,  'r',       BufferCmd_RehilightWholeBuffer, 0, 1, 1}, 
@@ -292,6 +295,16 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 }
 
 
+void onEnter(GUIEdit* e, GUIBufferEditor* gbe) {
+	char* c = GUIEdit_GetText(e);
+	
+	printf("text: '%s'\n", c);
+	
+	guiDelete(gbe->findBox);
+	gbe->findBox = NULL;
+	
+}
+
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
 	if(cmd->type == BufferCmd_MovePage) {
@@ -303,7 +316,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
 	}
 	else if(cmd->type == BufferCmd_GoToLine) {
-		
+		/*
 		if(!w->lineNumTypingMode) {
 			w->lineNumTypingMode = 1;
 			// activate the line number entry box
@@ -315,8 +328,24 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			GUIRegisterObject(w->lineNumEntryBox, w);
 			
 			GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
-		}
+		}*/
 		// TODO: change hooks
+		
+	}
+	else if(cmd->type == BufferCmd_FindStart) {
+		GUIEdit* e = GUIEdit_New(w->header.gm, "12");
+		
+		GUIResize(&e->header, (Vector2){200, 20});
+		e->header.topleft = (Vector2){20,20};
+		e->header.gravity = GUI_GRAV_TOP_LEFT;
+		
+		e->onEnter = (GUIEditOnEnterFn)onEnter;
+		e->onEnterData = w;
+		
+		GUIRegisterObject(e, w);
+		GUIManager_pushFocusedObject(w->header.gm, e);
+		
+		w->findBox = e;
 		
 	}
 	else { // pass it on

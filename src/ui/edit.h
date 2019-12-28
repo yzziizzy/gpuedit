@@ -6,6 +6,7 @@
 // onchange
 struct GUIEdit;
 typedef void (*GUIEditOnChangeFn)(struct GUIEdit*, void*);
+typedef void (*GUIEditOnEnterFn)(struct GUIEdit*, void*);
 
 
 typedef struct GUIEdit {
@@ -33,6 +34,9 @@ typedef struct GUIEdit {
 	GUIEditOnChangeFn onChange;
 	void* onChangeData;
 	
+	GUIEditOnEnterFn onEnter;
+	void* onEnterData;
+	
 } GUIEdit;
 
 
@@ -42,6 +46,7 @@ void GUIEdit_SetText(GUIEdit* ed, char* text);
 void GUIEdit_SetInt(GUIEdit* ed, int64_t ival); 
 void GUIEdit_SetDouble(GUIEdit* ed, double dval); 
 double GUIEdit_GetDouble(GUIEdit* ed);
+char* GUIEdit_GetText(GUIEdit* ed); // returns an internal string. do not cache, do not free.
 
 
 #endif // __EACSMB_ui_edit_h__
