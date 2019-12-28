@@ -333,13 +333,11 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferSelection* sel) {
 	
 	if(sel->startLine == sel->endLine) {
 		// move the end down
-// 		BufferLine_DeleteRange(sel->startLine, sel->startCol, sel->endCol);
 		Buffer_LineDeleteChars(b, sel->startLine, sel->startCol, sel->endCol - sel->startCol);
 	}
 	else {
 		// truncate start line after selection start
 		Buffer_LineTruncateAfter(b, sel->startLine, sel->startCol);
-
 		// append end line after selection ends to first line
 		Buffer_LineAppendText(b, sel->startLine, sel->endLine->buf + sel->endCol, strlen(sel->endLine->buf + sel->endCol));
 		
@@ -731,6 +729,11 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 			if(b->sel) {
 				b2 = Buffer_FromSelection(b, b->sel);
 				Clipboard_PushBuffer(b2);
+				// TODO: move cursor to cut spot, if it isn't already
+				if(!b->sel->reverse) {
+					b->current = b->sel->startLine;
+					b->curCol = b->sel->startCol;
+				}
 				Buffer_DeleteSelectionContents(b, b->sel);
 			}
 			break;
@@ -928,17 +931,14 @@ void Buffer_DebugPrint(Buffer* b) {
 
 
 
-// BUG doesn't paste first and last line properly
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol) {
 	
 	BufferLine* blc, *bl;
-	
-	// TODO: undo
-	
+		
 	// check for easy special  cases
 	if(graft->numLines == 0) return;
 	if(graft->numLines == 1) {
-		BufferLine_InsertChars(tline, graft->first->buf, graft->first->length, tcol);
+		Buffer_LineInsertChars(target, tline, graft->first->buf, tcol, graft->first->length);
 		return;
 	}
 	
@@ -950,24 +950,23 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 	
 	tline->length = tcol;
 	tline->buf[tcol] = 0;
-	BufferLine_AppendText(tline, graft->first->buf, graft->first->length);
+	Buffer_LineAppendText(target, tline, graft->first->buf, graft->first->length);
 	
 	// copy in the middle lines
 	BufferLine* gbl = graft->first->next;
 	BufferLine* t = tline;
 	while(gbl && gbl != graft->last) {
 		
-		t = Buffer_InsertEmptyLineAfter(target, t);
-		BufferLine_SetText(t, gbl->buf, gbl->length);
+		t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
 		
 		gbl = gbl->next;
 	}
 	
 	// prepend the last line to the temp buffer
-	t = Buffer_InsertEmptyLineAfter(target, t);
-	BufferLine_SetText(t, graft->last->buf, graft->last->length);
-	BufferLine_AppendText(t, tmp, tmplen);
+	t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
+	Buffer_LineAppendText(target, t, tmp, tmplen);
 	
+	free(tmp);
 }
 
 

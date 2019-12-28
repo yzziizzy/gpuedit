@@ -116,7 +116,7 @@ void BufferLine_DeleteChars(BufferLine* l, intptr_t offset, intptr_t len) {
 	if(offset > l->length + 1) return; // strange overrun
 	
 	if(offset < l->length) {
-		memmove(l->buf + offset, l->buf + offset + 1, l->length - offset + 1 + len);
+		memmove(l->buf + offset, l->buf + offset + len, l->length - offset + len);
 	}
 	
 	l->length -= len;

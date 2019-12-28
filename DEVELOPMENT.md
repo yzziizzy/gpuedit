@@ -94,3 +94,6 @@ bitmask enums
 static type logic in macros
 swap() builtin
 endianness builtins
+able to mix pointer types if first member of struct is other struct
+
+
