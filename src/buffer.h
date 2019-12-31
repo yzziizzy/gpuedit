@@ -45,6 +45,7 @@ typedef struct EditorParams {
 	char* lineCommentPrefix; // "// "
 	char* selectionCommentPrefix; // "/*"
 	char* selectionCommentPostfix; // "*/"
+	int tabWidth;
 	
 } EditorParams;
 
@@ -97,6 +98,7 @@ typedef struct Buffer {
 	intptr_t numLines;
 	intptr_t curCol; // characters into the line
 	intptr_t curColDisp; // the visible display column, including tabstops, etc.
+	intptr_t curColWanted; // the visible display column to use, if it existed.
 	
 	char* filePath;
 	
@@ -401,7 +403,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 
 
 
-
+intptr_t getDisplayColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
+intptr_t getActualColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
+intptr_t getDisplayColFromActual(Buffer* b, BufferLine* bl, intptr_t col);
 
 
 #endif // __gpuedit_buffer_h__

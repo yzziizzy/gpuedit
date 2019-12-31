@@ -24,9 +24,10 @@
 * Reset cursor blink on typing
 * Hide cursor when typing
 * Shortcut config presets
-* Pause on lose focus
+* Pause render loop on X window losing focus
 * Typing with a selection overwrites it
 * Implement INCR selection handling for X
+* Finish sequence breaks in undo
 * Redo
 * Drop file from X onto existing editor to open it
 * Save/reload workspace
@@ -40,7 +41,8 @@
 * Bitmap font option
 * Optimize Buffer_raw_GetLine starting point and direction
 * Check all column usage for correct 1/0 basing
-* Consistent columns when moving cursor up/down past lines with tabs
+* Visible glyph for tabs
+* Wanted column rounding on moving across tabs
 
 
 == Editor Features ==

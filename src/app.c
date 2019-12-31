@@ -78,6 +78,7 @@ void initApp(XStuff* xs, AppState* as) {
 	ep->lineCommentPrefix = "// ";
 	ep->selectionCommentPrefix = "/*";
 	ep->selectionCommentPostfix= "*/";
+	ep->tabWidth = 4;
 // 	ep->indentIncreaseTerminals = (char**){
 // 		"{",
 // 		NULL,

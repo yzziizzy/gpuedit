@@ -366,6 +366,63 @@ void Buffer_MoveCursorV(Buffer* b, ptrdiff_t lines) {
 	else while(i++ < 0 && b->current->prev) {
 		b->current = b->current->prev;
 	}
+	
+	// curColWanted does not change
+	
+	
+	b->curColDisp = getDisplayColFromWanted(b, b->current, b->curColWanted);
+	b->curCol = getActualColFromWanted(b, b->current, b->curColWanted);
+	
+}
+
+
+intptr_t getDisplayColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted) {
+	if(bl->buf == NULL) return 0;
+	
+	int tabwidth = b->ep->tabWidth;
+	intptr_t screenCol = 0;
+	intptr_t charCol = 0;
+	
+	while(screenCol < wanted && charCol < bl->length) {
+		if(bl->buf[charCol] == '\t') screenCol += tabwidth;
+		else screenCol++;
+		charCol++;
+	}
+	
+	return MAX(0, MIN(screenCol, bl->length));
+}
+
+
+intptr_t getActualColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted) {
+	if(bl->buf == NULL) return 0;
+	
+	int tabwidth = b->ep->tabWidth;
+	intptr_t screenCol = 0;
+	intptr_t charCol = 0;
+	
+	while(screenCol < wanted && charCol < bl->length) {
+		if(bl->buf[charCol] == '\t') screenCol += tabwidth;
+		else screenCol++;
+		charCol++;
+	}
+	
+	return MAX(0, MIN(charCol, bl->length));
+}
+
+
+intptr_t getDisplayColFromActual(Buffer* b, BufferLine* bl, intptr_t col) {
+	if(bl->buf == NULL) return 0;
+	
+	int tabwidth = b->ep->tabWidth;
+	intptr_t screenCol = 0;
+	
+	
+	for(intptr_t charCol = 0; charCol < col && charCol < bl->length; charCol++) {
+		if(bl->buf[charCol] == '\t') screenCol += tabwidth;
+		else screenCol++;
+	}
+	
+	return MAX(0, MIN(screenCol, bl->length));
 }
 
 
@@ -377,7 +434,7 @@ void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols) {
 			
 			if(b->current->prev == NULL) {
 				b->curCol = 0;
-				return;
+				break;
 			}
 			
 			b->current = b->current->prev;
@@ -391,7 +448,7 @@ void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols) {
 		if(b->curCol >= b->current->length) {
 			
 			if(b->current->next == NULL) {
-				return;
+				break;
 			}
 			
 			b->current = b->current->next;
@@ -401,6 +458,9 @@ void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols) {
 			b->curCol++;
 		}
 	}
+	
+	b->curColDisp = getDisplayColFromActual(b, b->current, b->curCol);
+	b->curColWanted = b->curColDisp; // the wanted column gets set to the display column
 }
 
 
