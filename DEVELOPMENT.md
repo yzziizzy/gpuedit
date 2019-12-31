@@ -27,8 +27,9 @@
 * Pause render loop on X window losing focus
 * Typing with a selection overwrites it
 * Implement INCR selection handling for X
-* Finish sequence breaks in undo
+* Circular undo buffer
 * Redo
+* Outline box style of highlighting
 * Drop file from X onto existing editor to open it
 * Save/reload workspace
 * File/path in titlebar
@@ -65,23 +66,23 @@
 * Quick find/replace on current line only
 * Hoist declaration to top of block/fn
 * tail -f mode
-* Sort lines
+* Sort lines (ignoring leading whitespace)
 * Caps modification of words in selection
 * Expand or collapse multiline fn arg list
 * Comment autocomplete
 * Remap selected key codes, only for editor 
 * Jump to declaration
 * Swap current and next word
+* Collapse whitespace
 
 
 == BUGS ==
 * Selection pivot is not consistent
 * Mouse scroll on files with fewer lines than the screen
-* Scrollbar follows cursor, not screen
 * Cut/Copy should do nothing without an active selection
 * Should not be able to delete the last line
 * Fix cursor position after undo
-* GM should pop focus stack if focused control is deleted
+* GUIManager should pop focus stack if focused control is deleted
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

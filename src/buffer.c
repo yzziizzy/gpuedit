@@ -39,7 +39,7 @@ void Buffer_UndoInsertText(
 	
 	u->action = UndoAction_InsertText;
 	u->lineNum = line;
-	u->colNum = col - 1;
+	u->colNum = col;
 	u->text = strndup(txt, len);
 	u->length = len;
 }
@@ -60,6 +60,11 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 
 
 void Buffer_UndoSequenceBreak(Buffer* b) {
+	// don't add duplicates
+	if(VEC_LEN(&b->undoStack) > 0) {
+		if(VEC_TAIL(&b->undoStack).action == UndoAction_SequenceBreak) return;
+	}
+	
 	VEC_INC(&b->undoStack);
 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
 	
@@ -94,11 +99,23 @@ void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
 }
 
 
+// clears the entire undo buffer
+void Buffer_UndoTruncateStack(Buffer* b) {
+	VEC_TRUNC(&b->undoStack);
+}
+
+// rolls back to the previous sequence break
+void Buffer_UndoReplayToSeqBreak(Buffer* b) {
+	while(Buffer_UndoReplayTop(b));
+}
+
+
 // executes a single undo action
-void Buffer_UndoReplayTop(Buffer* b) {
+// returns 0 on a sequence break
+int Buffer_UndoReplayTop(Buffer* b) {
 	BufferLine* bl;
 	
-	if(VEC_LEN(&b->undoStack) == 0) return;
+	if(VEC_LEN(&b->undoStack) == 0) return 0;
 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
 	
 	// these all need to be the inverse
@@ -143,7 +160,7 @@ void Buffer_UndoReplayTop(Buffer* b) {
 			
 		case UndoAction_SequenceBreak:
 			// do nothing at all for now
-			break;
+			return 0;
 			
 		default:
 			fprintf(stderr, "Unknown undo action: %d\n", u->action);
@@ -154,6 +171,8 @@ void Buffer_UndoReplayTop(Buffer* b) {
 	u->text = NULL;
 	
 	VEC_POP1(&b->undoStack);
+	
+	return 1;
 }
 
 
@@ -845,7 +864,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 			break; 
 		
 		case BufferCmd_Undo:
-			Buffer_UndoReplayTop(b);  
+			Buffer_UndoReplayToSeqBreak(b);  
 		
 			break;
 			
@@ -1173,6 +1192,8 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	
 	free(o);
 	fclose(f);
+	
+	Buffer_UndoTruncateStack(b);
 	
 	return 0;
 }

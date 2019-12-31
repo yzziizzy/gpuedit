@@ -177,6 +177,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 #define scrollToCursor   (1<<0)
 #define rehighlight      (1<<1)
 #define resetCursorBlink (1<<2)
+#define undoSeqBreak     (1<<3)
 		
 		struct {
 			unsigned int mods;
@@ -201,15 +202,15 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			{S,    XK_Right,     BufferCmd_GrowSelectionH,  1, scrollToCursor | resetCursorBlink},
 			{S,    XK_Up,        BufferCmd_GrowSelectionV, -1, scrollToCursor | resetCursorBlink},
 			{S,    XK_Down,      BufferCmd_GrowSelectionV,  1, scrollToCursor | resetCursorBlink},
-			{0,    XK_Tab,       BufferCmd_Indent,      0, rehighlight},
-			{S,    XK_Tab,       BufferCmd_Unindent,    0, rehighlight},
-			{S,    XK_ISO_Left_Tab, BufferCmd_Unindent, 0, rehighlight}, // wtf?
-			{C,    'k',       BufferCmd_DeleteCurLine,  0, scrollToCursor | rehighlight},
-			{C|A,  XK_Down,   BufferCmd_DuplicateLine,  1, scrollToCursor | rehighlight}, 
-			{C|A,  XK_Up,     BufferCmd_DuplicateLine, -1, scrollToCursor | rehighlight}, 
-			{C,    'x',       BufferCmd_Cut,            0, rehighlight}, 
+			{0,    XK_Tab,       BufferCmd_Indent,      0, rehighlight | undoSeqBreak},
+			{S,    XK_Tab,       BufferCmd_Unindent,    0, rehighlight | undoSeqBreak},
+			{S,    XK_ISO_Left_Tab, BufferCmd_Unindent, 0, rehighlight | undoSeqBreak}, // wtf?
+			{C,    'k',       BufferCmd_DeleteCurLine,  0, scrollToCursor | rehighlight | undoSeqBreak},
+			{C|A,  XK_Down,   BufferCmd_DuplicateLine,  1, scrollToCursor | rehighlight | undoSeqBreak}, 
+			{C|A,  XK_Up,     BufferCmd_DuplicateLine, -1, scrollToCursor | rehighlight | undoSeqBreak}, 
+			{C,    'x',       BufferCmd_Cut,            0, rehighlight | undoSeqBreak}, 
 			{C,    'c',       BufferCmd_Copy,           0, 0}, 
-			{C,    'v',       BufferCmd_Paste,          0, scrollToCursor | rehighlight}, 
+			{C,    'v',       BufferCmd_Paste,          0, scrollToCursor | rehighlight | undoSeqBreak}, 
 			{C,    'a',       BufferCmd_SelectAll,      0, 0}, 
 			{C|S,  'a',       BufferCmd_SelectNone,     0, 0}, 
 			{C,    'l',       BufferCmd_SelectToEOL,    0, 0}, 
@@ -255,6 +256,10 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			
 			if(cmds[i].flags & resetCursorBlink) {
 				w->cursorBlinkTimer = 0;
+			}
+			
+			if(cmds[i].flags & undoSeqBreak) {
+				Buffer_UndoSequenceBreak(w->buffer);
 			}
 		}
 		
