@@ -91,7 +91,8 @@ void initApp(XStuff* xs, AppState* as) {
 	as->currentBuffer->curCol = 0;
 	as->currentBuffer->ep = ep;
 	
-	Buffer_LoadFromFile(as->currentBuffer, "lextest.c");
+// 	Buffer_LoadFromFile(as->currentBuffer, "lextest.c");
+	Buffer_LoadFromFile(as->currentBuffer, "src/buffer.c");
 // 	Buffer_LoadFromFile(buf2, "config.h");
 // 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	

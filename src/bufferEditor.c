@@ -248,11 +248,19 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	
 }
 
+static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams* pfp) {
+	gui_defaultUpdatePos(w, grp, pfp);
+	
+	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
+	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
+}
+
 
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
+		.UpdatePos = (void*)updatePos,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -272,6 +280,8 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	// HACK
 	w->linesPerScrollWheel = 3;
+	w->cursorBlinkOnTime = 0.6;
+	w->cursorBlinkOffTime = 0.6;
 	
 	return w;
 }
@@ -299,6 +309,9 @@ void onEnter(GUIEdit* e, GUIBufferEditor* gbe) {
 	char* c = GUIEdit_GetText(e);
 	
 	printf("text: '%s'\n", c);
+	
+	Buffer_FindWord(gbe->buffer, c);
+	
 	
 	guiDelete(gbe->findBox);
 	gbe->findBox = NULL;

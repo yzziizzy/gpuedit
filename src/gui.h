@@ -330,7 +330,15 @@ typedef struct GUIManager {
 	
 	VEC(GUIObject*) focusStack;
 	
-	GUIFont* defaultFont;
+	struct {
+		GUIFont* font;
+		float fontSize;
+		struct Color4 textColor;
+		struct Color4 windowBgColor;
+		struct Color4 editBgColor;
+		struct Color4 cursorColor;
+	} defaults;
+	
 	
 	// temp 
 	GLuint fontAtlasID;

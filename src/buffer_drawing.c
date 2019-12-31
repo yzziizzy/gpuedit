@@ -275,33 +275,37 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	}
 	
 	
+	
+	
 	// draw cursor
-	tl = (Vector2){gbe->header.absTopLeft.x + 50, gbe->header.absTopLeft.y};
-	v = GUIManager_reserveElements(gm, 1);
-	float cursorOff = getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;
-	float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
-	*v = (GUIUnifiedVertex){
-		.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
-		.clip = {0, 0, 18000, 18000},
-		.guiType = 0, // window (just a box)
-		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = theme->cursorColor, 
-		.z = 2.5,
-		.alpha = 1,
-	};
+	if(gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
+		tl = (Vector2){gbe->header.absTopLeft.x + 50, gbe->header.absTopLeft.y};
+		v = GUIManager_reserveElements(gm, 1);
+		float cursorOff = getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;
+		float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		*v = (GUIUnifiedVertex){
+			.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
+			.clip = {0, 0, 18000, 18000},
+			.guiType = 0, // window (just a box)
+			.fg = {255, 128, 64, 255}, // TODO: border color
+			.bg = theme->cursorColor, 
+			.z = 2.5,
+			.alpha = 1,
+		};
+	}
 	
 	
 	// draw scrollbar
 	
-	float sbWidth = 20;
+	float sbWidth = 10;
 	float sbMinHeight = 20;
 	
 	// calculate scrollbar height
 	float wh = gbe->header.size.y;
-	float sbh = fmax(wh / b->numLines, sbMinHeight);
+	float sbh = fmax(wh / (b->numLines - gbe->linesOnScreen), sbMinHeight);
 	
 	// calculate scrollbar offset
-	float sboff = ((wh - sbh) / b->numLines) * (b->current->lineNum - 1);
+	float sboff = ((wh - sbh) / b->numLines) * (gbe->scrollLines);
 	
 	tl = (Vector2){gbe->header.absTopLeft.x + gbe->header.size.x - sbWidth, gbe->header.absTopLeft.y};
 // 	tl = (Vector2){0,0};

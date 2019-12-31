@@ -326,7 +326,7 @@ void Buffer_ClearAllSelections(Buffer* b) {
 }
 
 
-void Buffer_DeleteSelectionContents(Buffer* b, BufferSelection* sel) {
+void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 	if(!sel) return;
 	
 	// TODO: undo selection change 
@@ -840,7 +840,7 @@ Buffer* Buffer_Copy(Buffer* src) {
 	return b;
 }
 
-Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel) {
+Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	Buffer* b = Buffer_New();
 	
 	
@@ -1127,7 +1127,7 @@ void Buffer_CommentLine(Buffer* b, BufferLine* bl) {
 }
 
 // TODO: undo
-void Buffer_CommentSelection(Buffer* b, BufferSelection* sel) {
+void Buffer_CommentSelection(Buffer* b, BufferRange* sel) {
 	if(!sel) return;
 	
 	BufferLine_InsertChars(
@@ -1145,6 +1145,23 @@ void Buffer_CommentSelection(Buffer* b, BufferSelection* sel) {
 	);
 }
 
+void Buffer_FindWord(Buffer* b, char* word) {
+	if(!b->first) return;
+	
+	BufferLine* bl = b->first;
+	while(bl) {
+		char* r = strstr(bl->buf, word);//, bl->length); 
+		if(r != NULL) {
+			intptr_t dist = r - bl->buf;
+			
+			printf("found: %d, %d\n", bl->lineNum, dist);
+			break;
+		}
+		
+		bl = bl->next;
+	}
+}
+
 /*
 void Buffer_AddCurrentSelectionToRing(Buffer* b) {
 	if(!b->selectionRing->first) {
@@ -1154,7 +1171,7 @@ void Buffer_AddCurrentSelectionToRing(Buffer* b) {
 	}
 	// TODO: undo
 	// find where to insert
-	BufferSelection* bs = b->selectionRing->first;
+	BufferRange* bs = b->selectionRing->first;
 	while(bs != b->selectionRing->last) {
 		
 		if(bs->startLine->lineNum < b->sel->startLine->lineNum) {

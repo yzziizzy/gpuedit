@@ -20,6 +20,7 @@ static void moveCursor(GUIEdit* w, int delta) {
 
 static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
+	GUIManager* gm = w->header.gm;
 	Vector2 tl = w->header.absTopLeft;
 	
 	int cursorAlpha = 0;
@@ -43,13 +44,16 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
-		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = {128, 28, 164, 255}, // TODO: color
+		.fg = gm->defaults.editBgColor, // TODO: border color
+		.bg = gm->defaults.editBgColor, // TODO: color
 		
 		.z = w->header.z + 1,
 		.alpha = 1,
 	};
 	
+	
+	struct Color4 cc = gm->defaults.cursorColor;
+	cc.a = cursorAlpha;
 	
 	// cursor
 	*v = (GUIUnifiedVertex){
@@ -61,8 +65,8 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
-		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = {255, 255, 255, cursorAlpha}, 
+		.fg = {0, 0, 0, 0}, // TODO: border color
+		.bg = cc, 
 		
 		.z = w->header.z + 2.5,
 		.alpha = w->header.alpha,

@@ -28,7 +28,7 @@ typedef struct BufferLine {
 } BufferLine;
 
 
-typedef struct BufferSelection {
+typedef struct BufferRange {
 	BufferLine* startLine, *endLine;
 	intptr_t startCol, endCol;
 	
@@ -37,7 +37,7 @@ typedef struct BufferSelection {
 	
 	
 	// type?
-} BufferSelection;
+} BufferRange;
 
 
 typedef struct EditorParams {
@@ -100,11 +100,11 @@ typedef struct Buffer {
 	
 	char* filePath;
 	
-	struct {
-		BufferSelection* first, *last;
-	} selectionRing;
+// 	struct {
+// 		BufferRange* first, *last;
+// 	} selectionRing;
 	
-	BufferSelection* sel; // dynamic selection
+	BufferRange* sel; // dynamic selection
 	
 	struct hlinfo* hl;
 	EditorParams* ep;
@@ -162,6 +162,9 @@ typedef struct GUIBufferEditor {
 	BufferDrawParams* bdp;
 	Highlighter* h;
 	
+	float cursorBlinkTimer;
+	float cursorBlinkOnTime;
+	float cursorBlinkOffTime;
 	
 	intptr_t scrollLines; // current scroll position, 0-based
 	intptr_t scrollCols; // NYI, waiting on next line draw fn iteration
@@ -327,7 +330,7 @@ void Buffer_LineUnindent(Buffer* b, BufferLine* bl);
 void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC);
 void Buffer_ClearCurrentSelection(Buffer* b);
 void Buffer_ClearAllSelections(Buffer* b);
-void Buffer_DeleteSelectionContents(Buffer* b, BufferSelection* sel);
+void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel);
 
 void Buffer_GrowSelectionH(Buffer* b, intptr_t cols);
 void Buffer_GrowSelectionV(Buffer* b, intptr_t cols);
@@ -338,7 +341,7 @@ BufferLine* Buffer_AppendLine(Buffer* b, char* text, intptr_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, intptr_t len);
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol);
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
-void Buffer_CommentSelection(Buffer* b, BufferSelection* sel);
+void Buffer_CommentSelection(Buffer* b, BufferRange* sel);
 
 void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_RemoveBookmarkAt(Buffer* b, BufferLine* bl);
@@ -355,7 +358,7 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe);
 
 Buffer* Buffer_New();
 Buffer* Buffer_Copy(Buffer* src);
-Buffer* Buffer_FromSelection(Buffer* src, BufferSelection* sel);
+Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);
@@ -380,6 +383,8 @@ void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);
 
 
+// temp
+void Buffer_FindWord(Buffer* b, char* word);
 
 
 // GUIBufferEditor

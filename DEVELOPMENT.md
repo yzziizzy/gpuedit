@@ -3,7 +3,6 @@
 
 == TODO ==
 * Dynamic line number gutter width based on b->numLines
-* Scrollbar should follow gbe->scrollLines, not cursor line
 * Dragging for scrollbar
 * Hotkey customization
 * Settings editor
@@ -21,8 +20,8 @@
 * Don't render bg quads for chars with no bg color
 * Cache lines of ready buffer commands
 * Split GUIManager draw calls into layers for less sorting
-* Cursor blink
 * Custom X cursor
+* Reset cursor blink on typing
 * Hide cursor when typing
 * Shortcut config presets
 * Pause on lose focus
@@ -70,6 +69,8 @@
 * Comment autocomplete
 * Remap selected key codes, only for editor 
 * Jump to declaration
+* Swap current and next word
+
 
 == BUGS ==
 * Selection pivot is not consistent
@@ -78,6 +79,7 @@
 * Cut/Copy should do nothing without an active selection
 * Should not be able to delete the last line
 * Fix cursor position after undo
+* GM should pop focus stack if focused control is deleted
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

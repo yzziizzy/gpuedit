@@ -40,8 +40,8 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	// TODO: x size, fix y size
 	gt->header.size = (Vector2){0, fontSize * 5}; 
 	
-	gt->fontSize = fontSize;
-	gt->font = FontManager_findFont(gm->fm, fontname);
+// 	gt->fontSize = fontSize;
+// 	gt->font = FontManager_findFont(gm->fm, fontname);
 
 	if(str) {
 		gt->currentStr = strdup(str);
@@ -62,12 +62,12 @@ static void updatePos(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 
 static void render(GUIText* gt, PassFrameParams* pfp) {
 	char* txt = gt->currentStr;
-	GUIFont* f = gt->font;
 	GUIManager* gm = gt->header.gm;
+	GUIFont* f = /*gt->font ||*/ gm->defaults.font;
 	
 	Vector2 tl = gt->header.absTopLeft;
 	
-	float size = 0.45; // HACK
+	float size = gm->defaults.fontSize; // HACK
 	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
 	float adv = 0;
 	
@@ -90,7 +90,7 @@ static void render(GUIText* gt, PassFrameParams* pfp) {
 			v->clip.r = gt->header.absClip.max.x;
 			
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
-			v->fg = (struct Color4){255, 128, 64, 255},
+			v->fg = gm->defaults.textColor,
 			//v++;
 			gm->elementCount++;
 		}
@@ -114,18 +114,19 @@ static GUIObject* hitTest(GUIObject* go, Vector2 testPos) {
 	return go;
 }
 
-void guiTextDelete(GUIText* gt) {
-	printf("NIH guiTextDelete " __FILE__ ":%d\n", __LINE__);
+void guiTextDelete(GUIText* gt) { // TODO: implement reap functions 
+// 	if(gt->currentStr) free(gt->currentStr);
+// 	gt->currentStr = NULL;
 }
 
 
 // this algorithm needs to be kept in sync with the rendering algorithm above
 float guiTextGetTextWidth(GUIText* gt, int numChars) {
 	char* txt = gt->currentStr;
-	GUIFont* f = gt->font;
+	GUIManager* gm = gt->header.gm;
+	GUIFont* f = /*gt->font;*/gm->defaults.font;
 	
-	float size = 0.45; // HACK
-	float hoff = gt->header.size.y * .75; // HACK
+	float size = gm->defaults.fontSize; // HACK
 	float adv = 0;
 	
 	float spaceadv = f->regular[' '].advance;

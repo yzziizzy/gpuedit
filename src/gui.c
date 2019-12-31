@@ -110,6 +110,14 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	VEC_INIT(&gm->focusStack);
 	VEC_PUSH(&gm->focusStack, gm->root);
+	
+	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
+	gm->defaults.fontSize = .45;
+	gm->defaults.textColor = (struct Color4){200,200,200,255};
+	gm->defaults.windowBgColor = (struct Color4){10,10,10,255};
+	gm->defaults.editBgColor = (struct Color4){20,50,25,255};
+	gm->defaults.cursorColor = (struct Color4){240,240,240,255};
+	
 }
 
 
