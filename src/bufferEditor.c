@@ -173,11 +173,11 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		unsigned int A = GUIMODKEY_ALT;
 		unsigned int T = GUIMODKEY_TUX;
 		
-// flags
-#define scrollToCursor   (1<<0)
-#define rehighlight      (1<<1)
-#define resetCursorBlink (1<<2)
-#define undoSeqBreak     (1<<3)
+		unsigned int scrollToCursor   = 1 << 0;
+		unsigned int rehighlight      = 1 << 1;
+		unsigned int resetCursorBlink = 1 << 2;
+		unsigned int undoSeqBreak     = 1 << 3;
+		unsigned int hideMouse        = 1 << 4;
 		
 		struct {
 			unsigned int mods;
@@ -267,12 +267,18 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	
 }
 
+static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
+	w->header.size = gev->size;
+}
+
 static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	gui_defaultUpdatePos(w, grp, pfp);
 	
 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
 }
+
+
 
 
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
@@ -290,6 +296,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 		.DragStart = dragStart,
 		.DragStop = dragStop,
 		.DragMove = dragMove,
+		.ParentResize = parentResize,
 	};
 	
 	

@@ -21,8 +21,13 @@ typedef struct XStuff {
 	
 	Cursor noCursor;
 	
+	Vector2i winSize;
+	
 	void (*onExpose)(struct XStuff*, void*);
 	void* onExposeData;
+
+	void (*onResize)(struct XStuff*, void*);
+	void* onResizeData;
 
 	int targetMSAA;
 	char* windowTitle;

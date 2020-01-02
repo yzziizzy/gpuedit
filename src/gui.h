@@ -121,6 +121,7 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 	\
 	X(GainedFocus, 0) \
 	X(LostFocus, 0) \
+	X(ParentResize, 0) \
 	X(Paste, 1) 
 
 
@@ -173,7 +174,10 @@ typedef struct GUIEvent {
 	GUIObject* originalTarget;
 	GUIObject* currentTarget;
 	
-	Vector2 pos; // for mouse events; absolute position
+	union {
+		Vector2 pos; // for mouse events; absolute position
+		Vector2 size; // for window size
+	};
 	
 	union {
 		int character; // for kb events

@@ -35,7 +35,7 @@ static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* p
 			.size = child->h.size, // sized to the child to eliminate gravity 
 			.offset = {
 				.x = tl.x,
-				.y = tl.y + w->tabHeight,
+				.y = tl.y /*+ w->tabHeight*/,
 			},
 			.baseZ = grp->baseZ + w->header.z,
 		};
@@ -60,9 +60,12 @@ GUITabControl* GUITabControl_New(GUIManager* gm) {
 		.HitTest = (void*)hitTest,
 	};
 	
+	static struct GUIEventHandler_vtbl event_vt = {
+		.ParentResize = gui_default_ParentResize,
+	};
 	
 	GUITabControl* w = pcalloc(w);
-	gui_headerInit(&w->header, gm, &static_vt, NULL);
+	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
 	w->tabHeight = 20;
 	

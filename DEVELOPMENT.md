@@ -2,7 +2,6 @@
 
 
 == TODO ==
-* Dynamic line number gutter width based on b->numLines
 * Dragging for scrollbar
 * Hotkey customization
 * Settings editor
@@ -21,8 +20,7 @@
 * Cache lines of ready buffer commands
 * Split GUIManager draw calls into layers for less sorting
 * Custom X cursor
-* Reset cursor blink on typing
-* Hide cursor when typing
+* Hide mouse cursor when typing
 * Shortcut config presets
 * Pause render loop on X window losing focus
 * Typing with a selection overwrites it
@@ -37,7 +35,6 @@
 * Monitor file changes on disk
 * Scroll when dragging
 * Speed scrolling with ctrl
-* Window resize
 * Small shade variation on matching pairs of brackets
 * Bitmap font option
 * Optimize Buffer_raw_GetLine starting point and direction
@@ -74,6 +71,9 @@
 * Jump to declaration
 * Swap current and next word
 * Collapse whitespace
+* Scroll half the distance in a direction as can be scrolled (log2 scroll)
+* Option to place comment chars before or after whitespace, and control padding ws
+* SLOC count
 
 
 == BUGS ==

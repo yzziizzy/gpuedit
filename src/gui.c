@@ -79,6 +79,18 @@ static void renderRoot(GUIHeader* gh, PassFrameParams* pfp) {
 // 	return NULL;
 // }
 
+
+
+void gui_default_ParentResize(GUIObject* root, GUIEvent* gev) {
+	root->h.size = gev->size;
+	
+	VEC_EACH(&root->h.children, i, child) {
+		gev->currentTarget = child; 
+		GUITriggerEvent(child, gev);
+	}
+}
+
+
 // _init is always called before _initGL
 void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
@@ -86,6 +98,10 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 		.UpdatePos = updatePosRoot,
 		.Render = renderRoot,
 // 		.HitTest = hitTestRoot,
+	};
+		
+	static struct GUIEventHandler_vtbl event_vt = {
+		.ParentResize = gui_default_ParentResize,
 	};
 	
 	VEC_INIT(&gm->reapQueue);
@@ -106,7 +122,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->minDragDist = 8;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
-	gui_headerInit(gm->root, NULL, &root_vt, NULL); 
+	gui_headerInit(gm->root, NULL, &root_vt, &event_vt); 
 	
 	VEC_INIT(&gm->focusStack);
 	VEC_PUSH(&gm->focusStack, gm->root);

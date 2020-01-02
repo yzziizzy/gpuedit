@@ -197,6 +197,7 @@ int initXWindow(XStuff* xs) {
 		| ButtonReleaseMask 
 		| PointerMotionMask 
 		| PropertyChangeMask
+		| StructureNotifyMask
 // 		| SelectionClear
 // 		| SelectionRequestMask
 // 		| SelectionMask
@@ -347,6 +348,17 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			xs->ready = 1;
 			continue;
+		}
+		else if(xev.type == ConfigureNotify) { // window resizes
+			XConfigureEvent* conf = (XConfigureEvent*)&xev;
+			
+			if(conf->width != xs->winSize.x || conf->height != xs->winSize.y) {
+				xs->winSize.x = conf->width;
+				xs->winSize.y = conf->height;
+				
+				if(xs->onResize) xs->onResize(xs, xs->onResizeData);
+			}
+			
 		}
 		else if(xev.type == SelectionClear) {
 			printf("selection clear\n");

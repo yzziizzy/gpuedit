@@ -141,7 +141,7 @@ typedef struct ThemeDrawParams {
 
 typedef struct BufferDrawParams {
 	char showLineNums;
-	float lineNumWidth;
+	float lineNumExtraWidth;
 	
 	TextDrawParams* tdp;
 	ThemeDrawParams* theme;

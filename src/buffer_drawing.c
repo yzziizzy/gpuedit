@@ -3,7 +3,7 @@
 #include <ctype.h>
 
 #include "common_math.h"
-
+#include "math.h"
 
 #include "buffer.h"
 #include "gui.h"
@@ -123,7 +123,12 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
-		.pos = {gbe->header.absTopLeft.x, gbe->header.absTopLeft.y, gbe->header.absTopLeft.x + 800, gbe->header.absTopLeft.y + 800},
+		.pos = {
+			gbe->header.absTopLeft.x, 
+			gbe->header.absTopLeft.y, 
+			gbe->header.absTopLeft.x + gbe->header.size.x, 
+			gbe->header.absTopLeft.y + gbe->header.size.y
+		},
 		.clip = {0, 0, 18000, 18000},		
 		.guiType = 0, // window (just a box)
 		.fg = {0, 0, 255, 255}, // TODO: border color
@@ -132,9 +137,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		.alpha = 1,
 	};
 	
+	float lineNumWidth = ceil(log10(b->numLines)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	
 	Vector2 tl = gbe->header.absTopLeft;
-	if(bdp->showLineNums) tl.x += bdp->lineNumWidth;
+	if(bdp->showLineNums) tl.x += lineNumWidth;
 	
 	BufferLine* bl = b->first; // BUG broken 
 	
@@ -159,14 +165,20 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	};
 	
 	
-	
 	// draw
 	while(bl) {
 		
 		// line numbers
 		if(bdp->showLineNums) {
 			sprintf(lnbuf, "%d", bl->lineNum);
-			drawTextLine(gm, tdp, &lineColors[!!(bl->flags & BL_BOOKMARK_FLAG)], lnbuf, 100, (Vector2){tl.x - bdp->lineNumWidth, tl.y});
+			float nw = (floor(log10(bl->lineNum)) + 1) * tdp->charWidth;
+			drawTextLine(
+				gm, 
+				tdp, 
+				&lineColors[!!(bl->flags & BL_BOOKMARK_FLAG)], 
+				lnbuf, 
+				100, 
+				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y});
 		}
 		
 		float adv = 0;
@@ -279,7 +291,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	
 	// draw cursor
 	if(gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
-		tl = (Vector2){gbe->header.absTopLeft.x + 50, gbe->header.absTopLeft.y};
+		tl = (Vector2){gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y};
 		v = GUIManager_reserveElements(gm, 1);
 		float cursorOff = getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;
 		float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;

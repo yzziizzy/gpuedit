@@ -47,7 +47,17 @@ void setupFBOs(AppState* as, int resized);
 // MapBlock* map;
 // TerrainBlock* terrain;
 
-
+void resize_callback(XStuff* xs, void* gm_) {
+	GUIManager* gm = (GUIManager*)gm_;
+	
+	GUIEvent gev = {
+		.type = GUIEVENT_ParentResize,
+		.size = {.x = xs->winSize.x, .y = xs->winSize.y},
+		.originalTarget = gm->root,
+	};
+	
+	GUITriggerEvent(gm->root, &gev);
+}
 
 
 // nothing in here can use opengl at all.
@@ -73,6 +83,10 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	
 	as->gui = GUIManager_alloc(&as->globalSettings);
+	xs->onResize = resize_callback;
+	xs->onResizeData = as->gui;
+
+	
 	
 	EditorParams* ep = pcalloc(ep);
 	ep->lineCommentPrefix = "// ";
@@ -141,7 +155,7 @@ void initApp(XStuff* xs, AppState* as) {
 	bdp->tdp = tdp;
 	bdp->theme = theme;
 	bdp->showLineNums = 1;
-	bdp->lineNumWidth = 50;
+	bdp->lineNumExtraWidth = 10;
 	
 	gbe->bdp = bdp;
 // 	gbe2->bdp = bdp;
