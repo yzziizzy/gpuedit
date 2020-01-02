@@ -1,13 +1,11 @@
 
 
-
 == TODO ==
 * Dragging for scrollbar
 * Hotkey customization
 * Settings editor
 * Mouse based selection editing
 * Highlight current line
-* dlopen(): libpng, libalsa, libvorbis
 * On-demand frame rendering
 * Serviceable C highlighter
 * Color selector control
@@ -27,6 +25,8 @@
 * Implement INCR selection handling for X
 * Circular undo buffer
 * Redo
+* Console
+* Slide-out windows
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
 * Save/reload workspace
@@ -37,10 +37,11 @@
 * Speed scrolling with ctrl
 * Small shade variation on matching pairs of brackets
 * Bitmap font option
-* Optimize Buffer_raw_GetLine starting point and direction
 * Check all column usage for correct 1/0 basing
 * Visible glyph for tabs
 * Wanted column rounding on moving across tabs
+* Status bar
+* Track indentation level per line
 
 
 == Editor Features ==
@@ -74,6 +75,10 @@
 * Scroll half the distance in a direction as can be scrolled (log2 scroll)
 * Option to place comment chars before or after whitespace, and control padding ws
 * SLOC count
+* Option: scroll past end of file or not.
+* Option: trim leading/trailing whitespace of file.
+* Option: disable highlighter, by default over a certain file size.
+* Option: set cursors for anything.
 
 
 == BUGS ==
@@ -86,7 +91,8 @@
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering
-
+* dlopen(): libpng, libalsa, libvorbis
+* Optimize Buffer_raw_GetLine starting point and direction
 
 
 

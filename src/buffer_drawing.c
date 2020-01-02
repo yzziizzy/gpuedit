@@ -307,32 +307,6 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	}
 	
 	
-	// draw scrollbar
-	
-	float sbWidth = 10;
-	float sbMinHeight = 20;
-	
-	// calculate scrollbar height
-	float wh = gbe->header.size.y;
-	float sbh = fmax(wh / (b->numLines - gbe->linesOnScreen), sbMinHeight);
-	
-	// calculate scrollbar offset
-	float sboff = ((wh - sbh) / b->numLines) * (gbe->scrollLines);
-	
-	tl = (Vector2){gbe->header.absTopLeft.x + gbe->header.size.x - sbWidth, gbe->header.absTopLeft.y};
-// 	tl = (Vector2){0,0};
-	v = GUIManager_reserveElements(gm, 1);
-	*v = (GUIUnifiedVertex){
-		.pos = {tl.x, tl.y + sboff, tl.x + sbWidth, tl.y + sboff + sbh},
-		.clip = {0, 0, 18000, 18000},
-		.guiType = 0, // window (just a box)
-		.fg = {255, 255, 255, 255}, // TODO: border color
-		.bg = {255, 255, 255, 255}, 
-		.z = 2.5,
-		.alpha = 1,
-	};
-	
-	
 	// HACK
 // 	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
 }

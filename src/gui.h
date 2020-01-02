@@ -25,14 +25,23 @@ typedef struct GUIManager GUIManager;
 
 
 #define GUI_GRAV_TOP_LEFT      0x00
+#define GUI_GRAV_LEFT_TOP      0x00
 #define GUI_GRAV_CENTER_LEFT   0x01
+#define GUI_GRAV_LEFT_CENTER   0x01
 #define GUI_GRAV_BOTTOM_LEFT   0x02
+#define GUI_GRAV_LEFT_BOTTOM   0x02
 #define GUI_GRAV_CENTER_BOTTOM 0x03
+#define GUI_GRAV_BOTTOM_CENTER 0x03
 #define GUI_GRAV_BOTTOM_RIGHT  0x04
+#define GUI_GRAV_RIGHT_BOTTOM  0x04
 #define GUI_GRAV_CENTER_RIGHT  0x05
+#define GUI_GRAV_RIGHT_CENTER  0x05
 #define GUI_GRAV_TOP_RIGHT     0x06
+#define GUI_GRAV_RIGHT_TOP     0x06
 #define GUI_GRAV_CENTER_TOP    0x07
+#define GUI_GRAV_TOP_CENTER    0x07
 #define GUI_GRAV_CENTER        0x08
+#define GUI_GRAV_CENTER_CENTER 0x08
 
 
 struct Color4 {

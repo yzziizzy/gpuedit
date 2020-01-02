@@ -160,6 +160,9 @@ void hlfn(Highlighter* h, hlinfo* hl);
 typedef struct GUIBufferEditor {
 	GUIHeader header;
 	
+	GUIWindow* scrollbar;
+	float sbMinHeight;
+	
 	Buffer* buffer;
 	BufferDrawParams* bdp;
 	Highlighter* h;

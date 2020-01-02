@@ -23,7 +23,7 @@
 
 
 static size_t lineFromPos(GUIBufferEditor* w, Vector2 pos) {
-	return floor(pos.y / w->bdp->tdp->lineHeight) + w->scrollLines;
+	return floor(pos.y / w->bdp->tdp->lineHeight) + 1 + w->scrollLines;
 }
 
 static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
@@ -70,6 +70,11 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	Buffer* b = w->buffer;
 	
+	if(gev->originalTarget == w->scrollbar) {
+		printf("scrollbar drag start\n");
+		return;
+	}
+	
 	BufferLine* bl = Buffer_raw_GetLine(b, lineFromPos(w, gev->pos));
 	size_t col = getColForPos(w, bl, gev->pos.x);
 	
@@ -85,6 +90,21 @@ static void dragStop(GUIObject* w_, GUIEvent* gev) {
 static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	Buffer* b = w->buffer;
+// 	w->header.gm
+	
+	if(gev->originalTarget == w->scrollbar) {
+		gev->cancelled = 1;
+		
+		float val;
+		
+		val = /*gev->dragStartPos.y -*/ gev->pos.y / w->header.size.y;
+		
+		
+		w->scrollLines = MIN(MAX(0, b->numLines * val), b->numLines);
+		
+		return;
+	}
+	
 	
 	BufferLine* bl = Buffer_raw_GetLine(b, lineFromPos(w, gev->pos));
 	size_t col = getColForPos(w, bl, gev->pos.x);
@@ -273,9 +293,23 @@ static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
 
 static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	gui_defaultUpdatePos(w, grp, pfp);
+	Buffer* b = w->buffer;
 	
+	// cursor blink
 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
+	
+	w->sbMinHeight = 20;
+	// scrollbar position calculation
+	// calculate scrollbar height
+	float wh = w->header.size.y;
+	float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
+	
+	// calculate scrollbar offset
+	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
+	
+	GUIResize(w->scrollbar, (Vector2){10, sbh});
+	w->scrollbar->header.topleft.y = sboff;
 }
 
 
@@ -303,6 +337,14 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	GUIBufferEditor* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
+	
+	w->scrollbar = GUIWindow_new(gm);
+	GUIResize(w->scrollbar, (Vector2){10, 50});
+	w->scrollbar->color = (Vector){.9,.9,.9};
+	w->scrollbar->header.z = 100;
+	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
+	
+	GUIRegisterObject(w->scrollbar, w);
 	
 	// HACK
 	w->linesPerScrollWheel = 3;
