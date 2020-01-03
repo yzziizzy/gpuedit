@@ -309,7 +309,7 @@ void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt) {
 		amt = -amt;
 		
 		while(amt-- > 0) {
-			bl = Buffer_InsertLineBefore(b, bl, src->buf, src->length);
+			bl = Buffer_InsertLineBefore(b, src, src->buf, src->length);
 		}
 	}
 }
