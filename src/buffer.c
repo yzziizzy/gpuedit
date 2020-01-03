@@ -107,6 +107,9 @@ void Buffer_UndoTruncateStack(Buffer* b) {
 // rolls back to the previous sequence break
 void Buffer_UndoReplayToSeqBreak(Buffer* b) {
 	while(Buffer_UndoReplayTop(b));
+	
+	// pop off the sequence break
+	if(VEC_LEN(&b->undoStack) >= 0) VEC_POP1(&b->undoStack);
 }
 
 
@@ -1011,7 +1014,8 @@ void Buffer_DebugPrint(Buffer* b) {
 
 
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol) {
-	
+	size_t tmplen;
+	char* tmp;
 	BufferLine* blc, *bl;
 		
 	// check for easy special  cases
@@ -1022,13 +1026,17 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 	}
 	
 	// cutting the remainder of the first line to a temporary buffer
-	size_t tmplen = tline->length - tcol + 1;
-	char* tmp = malloc(tmplen);
-	tmp[tmplen] = 0;
-	memcpy(tmp, tline->buf + tcol, tmplen);
+	if(tline->length) {
+		tmplen = tline->length - tcol + 1;
+		tmp = malloc(tmplen);
+		tmp[tmplen] = 0;
+		memcpy(tmp, tline->buf + tcol, tmplen);
+		
+		tline->length = tcol;
+		tline->buf[tcol] = 0;
+	}
 	
-	tline->length = tcol;
-	tline->buf[tcol] = 0;
+
 	Buffer_LineAppendText(target, tline, graft->first->buf, graft->first->length);
 	
 	// copy in the middle lines
@@ -1041,9 +1049,11 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 		gbl = gbl->next;
 	}
 	
-	// prepend the last line to the temp buffer
-	t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
-	Buffer_LineAppendText(target, t, tmp, tmplen);
+	if(tline->length) {
+		// prepend the last line to the temp buffer
+		t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
+		Buffer_LineAppendText(target, t, tmp, tmplen);
+	}
 	
 	free(tmp);
 }
