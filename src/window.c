@@ -10,6 +10,7 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/extensions/Xfixes.h> // clipboard notification
+#include <X11/cursorfont.h>
 
 #include <GL/glew.h>
 #include <GL/glx.h>
@@ -149,7 +150,6 @@ int initXWindow(XStuff* xs) {
 
 	xs->rootWin = DefaultRootWindow(xs->display);
 	
-	
 	// find a framebuffer config
 	fbconfigs = glXChooseFBConfig(xs->display, DefaultScreen(xs->display), visual_attr, &fbcount);
 	if(!fbconfigs) {
@@ -261,7 +261,8 @@ int initXWindow(XStuff* xs) {
 	// disable vsync; it causes glXSwapBuffers to block on (at least) nVidia drivers
 	PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((const GLubyte*)"glXSwapIntervalEXT");
 	glexit("");
-	glXSwapIntervalEXT(xs->display, xs->clientWin, 0); 
+	if(glXSwapIntervalEXT)
+		glXSwapIntervalEXT(xs->display, xs->clientWin, 0); 
 	glexit("");
 	
 	// have to have a current GLX context before initializing GLEW
@@ -279,6 +280,10 @@ int initXWindow(XStuff* xs) {
 	emptyPx = XCreateBitmapFromData(xs->display, xs->clientWin, zeros, 1, 1);
 	xs->noCursor = XCreatePixmapCursor(xs->display, emptyPx, emptyPx, &black, &black, 0, 0);
 	XFreePixmap(xs->display, emptyPx);
+	
+	xs->arrowCursor = XCreateFontCursor(xs->display, XC_left_ptr);
+	xs->textCursor = XCreateFontCursor(xs->display, XC_xterm);
+	xs->waitCursor = XCreateFontCursor(xs->display,  XC_watch);// XC_coffee_mug
 	
 	return 0;
 }

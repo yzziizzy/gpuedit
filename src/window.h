@@ -4,6 +4,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
+
 #include "common_gl.h"
 #include "input.h"
 
@@ -20,6 +21,9 @@ typedef struct XStuff {
 	XWindowAttributes winAttr;
 	
 	Cursor noCursor;
+	Cursor arrowCursor;
+	Cursor textCursor;
+	Cursor waitCursor;
 	
 	Vector2i winSize;
 	
