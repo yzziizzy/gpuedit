@@ -78,14 +78,17 @@ void initApp(XStuff* xs, AppState* as) {
 // 	TextureAtlas_finalize(ta);
 // 	
 	
-
+#define twobuffers
 	
 	
 	
 	as->gui = GUIManager_alloc(&as->globalSettings);
 	xs->onResize = resize_callback;
 	xs->onResizeData = as->gui;
-
+	as->gui->defaults.tabBorderColor = (struct Color4){120,120,120,255};
+	as->gui->defaults.tabActiveBgColor = (struct Color4){80,80,80,255};
+	as->gui->defaults.tabBgColor = (struct Color4){10,10,10,255};
+	as->gui->defaults.tabTextColor = (struct Color4){200,200,200,255};
 	
 	
 	EditorParams* ep = pcalloc(ep);
@@ -111,8 +114,8 @@ void initApp(XStuff* xs, AppState* as) {
 // 	Buffer_LoadFromFile(buf2, "config.h");
 // 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
 	
-	Buffer_DebugPrint(as->currentBuffer);
-	Buffer_DebugPrintUndoStack(as->currentBuffer);
+// 	Buffer_DebugPrint(as->currentBuffer);
+// 	Buffer_DebugPrintUndoStack(as->currentBuffer);
 // 	BufferSelection* sel = pcalloc(sel);
 // 	sel->startLine = as->currentBuffer->first->next->next->next->next->next->next->next->next->next->next->next->next;
 // 	sel->endLine = sel->startLine->next->next->next;
@@ -131,11 +134,20 @@ void initApp(XStuff* xs, AppState* as) {
 	
 	GUIBufferEditor_RefreshHighlight(gbe);
 
-// 	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
-// 	gbe2->header.size = (Vector2){800, 800-20}; // TODO update dynamically
-// 	gbe2->buffer = buf2;
-// 	gbe2->font = FontManager_findFont(as->gui->fm, "Courier New");
-// 	gbe2->scrollLines = 0;
+#ifdef twobuffers
+	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
+	gbe2->header.size = (Vector2){800, 800-20}; // TODO update dynamically
+	gbe2->buffer = buf2;
+	gbe2->font = FontManager_findFont(as->gui->fm, "Courier New");
+	gbe2->scrollLines = 0;
+	
+	gbe2->h = pcalloc(gbe->h);
+	initCStyles(gbe2->h);
+	
+	Buffer_LoadFromFile(buf2, "src/buffer.h");
+	GUIBufferEditor_RefreshHighlight(gbe2);
+
+#endif 
 	
 	TextDrawParams* tdp = pcalloc(tdp);
 	tdp->font = gbe->font;
@@ -158,16 +170,24 @@ void initApp(XStuff* xs, AppState* as) {
 	bdp->lineNumExtraWidth = 10;
 	
 	gbe->bdp = bdp;
-// 	gbe2->bdp = bdp;
+#ifdef twobuffers
+	gbe2->bdp = bdp;
+#endif
 	
 	GUITabControl* tabs = GUITabControl_New(as->gui);
 	GUIRegisterObject(tabs, as->gui->root);
 	as->tc = tabs;
 	
-	GUIRegisterObject(gbe, tabs);
-// 	GUIRegisterObject(gbe2, tabs);
+	GUITabControl_AddTab(tabs, gbe, "Buffer A");
+// 	GUIRegisterObject(gbe, tabs);
+#ifdef twobuffers
+
+	GUITabControl_AddTab(tabs, gbe2, "Buffer B");
+#endif
 	
-	GUIManager_pushFocusedObject(as->gui, gbe);
+	// TODO: pass kb events through somehow
+	GUIManager_pushFocusedObject(as->gui, tabs);
+// 	GUIManager_pushFocusedObject(as->gui, gbe);
 	
 	
 	

@@ -619,6 +619,7 @@ GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count) {
 
 
 void GUIHeader_render(GUIHeader* gh, PassFrameParams* pfp) {
+	if(gh == NULL) return;
 	if(gh->hidden || gh->deleted) return;
 	
 	if(gh->vt->Render)
@@ -1053,30 +1054,30 @@ GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
 	return o;
 }
 
+
 void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
 	VEC_PUSH(&gm->focusStack, (GUIObject*)h);
+	
+	GUIEvent gev = {};
+	gev.type = GUIEVENT_GainedFocus;
+	gev.originalTarget = h;
+	gev.currentTarget = h;
+	
+	GUIManager_BubbleEvent(gm, h, &gev);
 }
 
 
 
+
+
 /*
-int GUIManager_DispatchEvent(GUIManager* gm, GUIEvent* ev) {
-	int ret = 99;
-	if(VEC_LEN(&stack->stack) == 0) return;
-	
-	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
-		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
-	
-		ret = InputFocusTarget_Dispatch(h, ev);
-		if(ret == 0) return 0; 
-	}
-	
-	return ret;
+
+// uses default font type and size
+draw_ui_text(pos, color, aabb, str, len) {
+
+
 }
-*/
 
-
-/*
 
 size_t drawCharacter(
 	GUIManager* gm, 
@@ -1150,27 +1151,34 @@ size_t drawCharacter(
 	
 	return 0;
 }
+*/
+
 
 // stops on linebreak
-void gui_drawTextLine(
+void gui_drawDefaultUITextLine(
 	GUIManager* gm,
-	GUIFont* f,
-	float fontSize,
-	AABB2 box,  
+	AABB2* box,  
 	struct Color4* color, 
+	float zIndex,
 	char* txt, 
 	size_t charCount
 ) {
 	
+	
+	
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
+	Vector2 tl = {box->min.x, box->min.y};
+	
 	int charsDrawn = 0;
-	float size = fontSize; // HACK
+	GUIFont* f = gm->defaults.font;
+	float size = gm->defaults.fontSize; // HACK
 	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
 	float adv = 0;
+	if(!color) color = &gm->defaults.textColor;
 	
-	float maxAdv = box->right - box->left;
+	float maxAdv = box->max.x - box->min.x;
 	
 	
 	float spaceadv = f->regular[' '].advance;
@@ -1210,7 +1218,8 @@ void gui_drawTextLine(
 			v->clip.l = 0;
 			v->clip.b = 1000000;
 			v->clip.r = 1000000;
-			v->fg = *textColor,
+			v->fg = *color;
+			v->z = zIndex;
 			
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
 			//v++;
@@ -1226,4 +1235,4 @@ void gui_drawTextLine(
 	}
 
 }
-*/
+

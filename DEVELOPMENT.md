@@ -1,7 +1,7 @@
 
 
 == TODO ==
-* Dragging for scrollbar
+* Polish scrollbar dragging
 * Hotkey customization
 * Settings editor
 * Mouse based selection editing
@@ -106,5 +106,5 @@ static type logic in macros
 swap() builtin
 endianness builtins
 able to mix pointer types if first member of struct is other struct
-
-
+"prefixed" structs, with limited inheritance-type properties. only one prefixed struct possible
+count_of() initiializer function to set a field to the number of array members initialized to another field

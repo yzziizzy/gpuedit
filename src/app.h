@@ -1,6 +1,5 @@
-
-#ifndef __EACSMB_GAME_H__
-#define __EACSMB_GAME_H__
+#ifndef __gpuedit_app_h__
+#define __gpuedit_app_h__
 
 #include "common_math.h"
 #include "common_gl.h"
@@ -8,6 +7,7 @@
 #include "settings.h"
 #include "window.h"
 #include "gui.h"
+#include "settingsEditor.h"
 #include "buffer.h"
 
 
@@ -115,6 +115,8 @@ typedef struct AppState {
 	Buffer* currentBuffer;
 	GUITabControl* tc;
 	
+	
+	
 } AppState;
 
 
@@ -134,4 +136,4 @@ void initRenderLoop(AppState* gs);
 
 
 
-#endif // __EACSMB_GAME_H__
+#endif // __gpuedit_app_h__

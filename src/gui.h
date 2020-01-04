@@ -262,7 +262,6 @@ typedef struct GUIHeader {
 #include "ui/window.h"
 #include "ui/text.h"
 #include "ui/scrollWindow.h"
-#include "ui/tabControl.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "ui/imgButton.h"
@@ -271,6 +270,8 @@ typedef struct GUIHeader {
 #include "ui/slider.h"
 #include "ui/columnLayout.h"
 #include "ui/gridLayout.h"
+#include "ui/tabBar.h"
+#include "ui/tabControl.h"
 #include "ui/monitors.h"
 #include "ui/debugAdjuster.h"
 #include "ui/structAdjuster.h"
@@ -350,6 +351,10 @@ typedef struct GUIManager {
 		struct Color4 windowBgColor;
 		struct Color4 editBgColor;
 		struct Color4 cursorColor;
+		struct Color4 tabTextColor;
+		struct Color4 tabBorderColor;
+		struct Color4 tabActiveBgColor;
+		struct Color4 tabBgColor;
 	} defaults;
 	
 	

@@ -23,7 +23,7 @@
 
 
 static size_t lineFromPos(GUIBufferEditor* w, Vector2 pos) {
-	return floor(pos.y / w->bdp->tdp->lineHeight) + 1 + w->scrollLines;
+	return floor((pos.y - w->header.absTopLeft.y) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines;
 }
 
 static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {

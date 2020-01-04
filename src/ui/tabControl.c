@@ -11,7 +11,9 @@ static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* p
 
 static void render(GUITabControl* w, PassFrameParams* pfp) {
 	// only render the active tab
-	GUIHeader_render(VEC_ITEM(&w->header.children, w->currentIndex), pfp);
+	GUIHeader_render(w->activeTab, pfp);
+	
+	GUIHeader_renderChildren(&w->header, pfp);
 }
 
 static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* pfp) {
@@ -26,16 +28,17 @@ static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* p
 	
 	h->absZ = grp->baseZ + h->z;
 	
+	float tabHeight = w->tabHeight;
+	if(VEC_LEN(&w->tabs) <= 1) tabHeight = 0;
 	
-	
-	VEC_EACH(&w->header.children, i, child) { 
+	VEC_EACH(&w->tabs, i, child) { 
 		
 		GUIRenderParams grp2 = {
 			.clip = grp->clip, // TODO: update the clip
-			.size = child->h.size, // sized to the child to eliminate gravity 
+			.size = child->size, // sized to the child to eliminate gravity 
 			.offset = {
 				.x = tl.x,
-				.y = tl.y /*+ w->tabHeight*/,
+				.y = tl.y + tabHeight,
 			},
 			.baseZ = grp->baseZ + w->header.z,
 		};
@@ -47,7 +50,19 @@ static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* p
 
 GUIObject* hitTest(GUITabControl* w, Vector2 absTestPos) {
 // 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
-	return gui_defaultHitTest(VEC_ITEM(&w->header.children, w->currentIndex), absTestPos);
+	if(w->activeTab) {
+		GUIObject* o = gui_defaultHitTest(w->activeTab, absTestPos);
+		if(o) return o;
+	}
+	
+	return gui_defaultHitTest(w, absTestPos);
+}
+
+
+void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+	GUITabControl* w = (GUITabControl*)w_;
+	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+	
 }
 
 
@@ -62,6 +77,7 @@ GUITabControl* GUITabControl_New(GUIManager* gm) {
 	
 	static struct GUIEventHandler_vtbl event_vt = {
 		.ParentResize = gui_default_ParentResize,
+		.GainedFocus = gainedFocus,
 	};
 	
 	GUITabControl* w = pcalloc(w);
@@ -69,13 +85,39 @@ GUITabControl* GUITabControl_New(GUIManager* gm) {
 	
 	w->tabHeight = 20;
 	
+	// TODO: resize
+	w->bar = GUITabBar_New(gm);
+	GUIRegisterObject(w->bar, w);
+	GUIResize(w->bar, (Vector2){800, 20});
+	
 	return w;
 }
 
 
+static void switchtab(int index, void* w_) {
+	GUITabControl* w = (GUITabControl*)w_;
+	GUITabControl_GoToTab(w, index);
+	GUIManager_popFocusedObject(w->header.gm);
+	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+}
+
+
+int GUITabControl_AddTab(GUITabControl* w, GUIHeader* tab, char* title) {
+	if(w->activeTab == NULL) {
+		w->activeTab = tab;
+		w->currentIndex = 0;
+	}
+	
+	VEC_PUSH(&w->tabs, tab);
+	
+	GUITabBar_AddTabEx(w->bar, title, switchtab, w, NULL, NULL);
+	
+	return VEC_LEN(&w->tabs) - 1;
+}
+
 
 GUIObject* GUITabControl_NextTab(GUITabControl* w, char cyclic) {
-	int len = VEC_LEN(&w->header.children);
+	int len = VEC_LEN(&w->tabs);
 	if(cyclic) {
 		w->currentIndex = (w->currentIndex + 1) % len;
 	}
@@ -83,12 +125,13 @@ GUIObject* GUITabControl_NextTab(GUITabControl* w, char cyclic) {
 		w->currentIndex = MIN(w->currentIndex + 1, len - 1);
 	}
 	
-	return VEC_ITEM(&w->header.children, w->currentIndex);
+	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
+	return w->activeTab;
 }
 
 
 GUIObject* GUITabControl_PrevTab(GUITabControl* w, char cyclic) {
-	int len = VEC_LEN(&w->header.children);
+	int len = VEC_LEN(&w->tabs);
 	if(cyclic) {
 		w->currentIndex = (w->currentIndex - 1 + len) % len;
 	}
@@ -96,14 +139,16 @@ GUIObject* GUITabControl_PrevTab(GUITabControl* w, char cyclic) {
 		w->currentIndex = MAX(w->currentIndex + 1, 0);
 	}
 	
-	return VEC_ITEM(&w->header.children, w->currentIndex);
+	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
+	return w->activeTab;
 }
 
 
 GUIObject* GUITabControl_GoToTab(GUITabControl* w, int i) {
-	int len = VEC_LEN(&w->header.children);
+	int len = VEC_LEN(&w->tabs);
 	w->currentIndex = MAX(0, MIN(len - 1, i));
 	
-	return VEC_ITEM(&w->header.children, w->currentIndex);
+	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
+	return w->activeTab;
 }
 
