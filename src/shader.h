@@ -2,7 +2,7 @@
 #define __EACSMB_SHADER_H__
 
  
-#include "hash.h"
+#include "sti/sti.h"
 
  
  

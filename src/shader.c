@@ -11,7 +11,7 @@
 
 #include "utilities.h"
 #include "shader.h"
-#include "hash.h"
+#include "sti/sti.h"
 
 
 /*

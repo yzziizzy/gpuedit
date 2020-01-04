@@ -9,7 +9,7 @@
 #include "common_gl.h"
 #include "common_math.h"
 
-#include "hash.h"
+#include "sti/sti.h"
 #include "utilities.h"
 #include "texture.h"
 

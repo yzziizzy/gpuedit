@@ -4,7 +4,7 @@
 
 #include "c_json/json.h"
 #include "json_gl.h" 
-#include "hash.h" 
+#include "sti/sti.h" 
 
 static HashTable* lookup;
 

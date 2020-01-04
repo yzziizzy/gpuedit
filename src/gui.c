@@ -8,7 +8,7 @@
 #include "window.h"
 #include "app.h"
 #include "texture.h"
-#include "hash.h"
+#include "sti/sti.h"
 
 #include "gui.h"
 #include "gui_internal.h"

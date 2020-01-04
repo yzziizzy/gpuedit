@@ -7,7 +7,6 @@
 #include "../window.h"
 #include "../gui.h"
 #include "../gui_internal.h"
-#include "../hash.h"
 
 #include "../utilities.h"
 

@@ -79,6 +79,7 @@
 * Option: trim leading/trailing whitespace of file.
 * Option: disable highlighter, by default over a certain file size.
 * Option: set cursors for anything.
+* Option: hide tabs when only one buffer, hide tabs always
 
 
 == BUGS ==

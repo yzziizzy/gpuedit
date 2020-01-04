@@ -1,7 +1,7 @@
 #ifndef __EACSMB__input_h__
 #define __EACSMB__input_h__
 
-#include "ds.h"
+#include "sti/sti.h"
 #include "common_math.h"
 
 

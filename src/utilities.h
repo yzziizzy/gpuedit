@@ -1,13 +1,11 @@
-
-#ifndef __EACSMB_UTILITIES_H__
-#define __EACSMB_UTILITIES_H__
+#ifndef __gpuedit_utilities_h__
+#define __gpuedit_utilities_h__
 
 #include <stdio.h> // fprintf
 #include <stdlib.h> // exit
 #include <strings.h> // strcasecmp. yes, it's "strings" with an s at the end.
 
 #include "common_gl.h"
-#include "fsUtils.h"
 
 
 #define MAX(a,b) ({ \
@@ -71,24 +69,10 @@ if(!(p)) { \
 #endif
 
 
-	
-// super nifty site:
-// http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-static inline int nextPOT(int in) {
-	
-	in--;
-	in |= in >> 1;
-	in |= in >> 2;
-	in |= in >> 4;
-	in |= in >> 8;
-	in |= in >> 16;
-	in++;
-	
-	return in;
-}
 
 
-#include "ds.h"
+
+#include "sti/sti.h"
 
 
 
@@ -141,9 +125,6 @@ size_t calcVAOStride(int bufferIndex, VAOConfig* details);
 #define streq(a, b) (0 == strcmp(a, b))
 #define strcaseeq(a, b) (0 == strcasecmp(a, b))
 
-size_t strlnlen(const char* s);
-char* strlndup(const char* s);
-int   strlinecnt(const char* s);
 
 
-#endif // __EACSMB_UTILITIES_H__
+#endif // __gpuedit_utilities_h__

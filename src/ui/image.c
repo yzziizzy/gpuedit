@@ -6,7 +6,6 @@
 #include "../gui.h"
 #include "../gui_internal.h"
 
-#include "hash.h"
 #include "shader.h"
 #include "texture.h"
 #include "c_json/json.h"

@@ -2,8 +2,7 @@
 #define __EACSMB_texture_h__
 
 
-#include "hash.h"
-#include "ds.h"
+#include "sti/sti.h"
 #include "utilities.h"
 #include "settings.h"
 

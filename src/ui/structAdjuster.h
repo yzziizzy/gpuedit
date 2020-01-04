@@ -2,6 +2,25 @@
 #define __EACSMB_ui_structAdjuster_h__
 
 
+/*
+types:
+	c: signed char
+	s: signed short
+	i: signed int
+	l: signed long
+	1: unsigned char
+	2: unsigned short
+	4: unsigned int
+	8: unsigned long
+	f: float
+	d: double
+	a: string
+	p: pointer
+	
+TODO: enums, multichoice, color, vector
+*/
+
+
 typedef struct GUISA_Field {
 	char* name;
 	

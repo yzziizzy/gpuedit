@@ -5,8 +5,7 @@
 #include "common_gl.h"
 #include "common_math.h"
 
-#include "ds.h"
-#include "hash.h"
+#include "sti/sti.h"
 
 #include "fbo.h"
 #include "shader.h"

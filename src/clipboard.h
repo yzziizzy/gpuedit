@@ -2,7 +2,7 @@
 #define __gpuedit_clipboard_h__
 
 
-#include "ds.h"
+#include "sti/sti.h"
 
 
 

@@ -13,7 +13,7 @@
 #include <GL/glx.h>
 #include <GL/glu.h>
 
-#include "hash.h"
+#include "sti/sti.h"
 #include "utilities.h"
 #include "texture.h"
 

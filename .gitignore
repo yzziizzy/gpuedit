@@ -60,7 +60,8 @@ Makefile
 # ignore the external libs for now, i'll figure something out later for it
 /src/c3dlas
 /src/c_json
-#/src/text #merged into this project for now
+/src/sti
+
 
 # these are not build files
 !/assets/**/*.obj

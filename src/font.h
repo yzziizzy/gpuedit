@@ -4,9 +4,7 @@
 #include <stdatomic.h>
 
 #include "common_math.h"
-
-#include "ds.h"
-#include "hash.h"
+#include "sti/sti.h"
 
 #include "settings.h"
 

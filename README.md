@@ -14,6 +14,7 @@ An OpenGL 4.4+ text editor. Not done yet.
 
 * `https://github.com/yzziizzy/c3dlas` symlinked as `src/c3dlas`
 * `https://github.com/yzziizzy/c_json` symlinked as `src/c_json`
+* `https://github.com/yzziizzy/sti` symlinked as `src/sti`
 
 * `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev`
 
