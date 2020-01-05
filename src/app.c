@@ -91,116 +91,24 @@ void initApp(XStuff* xs, AppState* as) {
 	as->gui->defaults.tabTextColor = (struct Color4){200,200,200,255};
 	
 	
-	EditorParams* ep = pcalloc(ep);
-	ep->lineCommentPrefix = "// ";
-	ep->selectionCommentPrefix = "/*";
-	ep->selectionCommentPostfix= "*/";
-	ep->tabWidth = 4;
-// 	ep->indentIncreaseTerminals = (char**){
-// 		"{",
-// 		NULL,
-// 	};
-	
-	Buffer* buf2 = Buffer_New(as->gui);
-	buf2->curCol = 0;
-	buf2->ep = ep;
-	
-	as->currentBuffer = Buffer_New(as->gui);
-	as->currentBuffer->curCol = 0;
-	as->currentBuffer->ep = ep;
-	
-// 	Buffer_LoadFromFile(as->currentBuffer, "lextest.c");
-	Buffer_LoadFromFile(as->currentBuffer, "src/buffer.c");
-// 	Buffer_LoadFromFile(buf2, "config.h");
-// 	Buffer_SaveToFile(as->currentBuffer, "test-LICENSE");
-	
-// 	Buffer_DebugPrint(as->currentBuffer);
-// 	Buffer_DebugPrintUndoStack(as->currentBuffer);
-// 	BufferSelection* sel = pcalloc(sel);
-// 	sel->startLine = as->currentBuffer->first->next->next->next->next->next->next->next->next->next->next->next->next;
-// 	sel->endLine = sel->startLine->next->next->next;
-// 	sel->startCol = 5;
-// 	sel->endCol = 15;
-// 	as->currentBuffer->sel = sel;
-// 	
-	GUIBufferEditor* gbe = GUIBufferEditor_New(as->gui);
-	gbe->header.size = (Vector2){800, 800-20}; // TODO update dynamically
-	gbe->buffer = as->currentBuffer;
-	gbe->font = FontManager_findFont(as->gui->fm, "Courier New");
-	gbe->scrollLines = 0;
-	
-	gbe->h = pcalloc(gbe->h);
-	initCStyles(gbe->h);
-	
-	GUIBufferEditor_RefreshHighlight(gbe);
+	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
+	GUIRegisterObject(as->mc, as->gui->root);
 
-#ifdef twobuffers
-	GUIBufferEditor* gbe2 = GUIBufferEditor_New(as->gui);
-	gbe2->header.size = (Vector2){800, 800-20}; // TODO update dynamically
-	gbe2->buffer = buf2;
-	gbe2->font = FontManager_findFont(as->gui->fm, "Courier New");
-	gbe2->scrollLines = 0;
 	
-	gbe2->h = pcalloc(gbe->h);
-	initCStyles(gbe2->h);
+	GUIMainControl_LoadFile(as->mc, "src/buffer.h");
+	GUIMainControl_LoadFile(as->mc, "src/buffer.c");
+	GUIMainControl_LoadFile(as->mc, "src/bufferEditor.c");
 	
-	Buffer_LoadFromFile(buf2, "src/buffer.h");
-	GUIBufferEditor_RefreshHighlight(gbe2);
-
-#endif 
-	
-	TextDrawParams* tdp = pcalloc(tdp);
-	tdp->font = gbe->font;
-	tdp->fontSize = .5;
-	tdp->charWidth = 10;
-	tdp->lineHeight = 20;
-	tdp->tabWidth = 4;
-	
-	ThemeDrawParams* theme = pcalloc(theme);
-	theme->bgColor =      (struct Color4){ 15,  15,  15, 255};
-	theme->textColor =    (struct Color4){240, 240, 240, 255};
-	theme->cursorColor =  (struct Color4){255,   0, 255, 180};
-	theme->hl_bgColor =   (struct Color4){  0, 200, 200, 255};
-	theme->hl_textColor = (struct Color4){250,   0,  50, 255};
-	
-	BufferDrawParams* bdp = pcalloc(bdp);
-	bdp->tdp = tdp;
-	bdp->theme = theme;
-	bdp->showLineNums = 1;
-	bdp->lineNumExtraWidth = 10;
-	
-	gbe->bdp = bdp;
-#ifdef twobuffers
-	gbe2->bdp = bdp;
-#endif
-	
-	GUITabControl* tabs = GUITabControl_New(as->gui);
-	GUIRegisterObject(tabs, as->gui->root);
-	as->tc = tabs;
-	
-	GUITabControl_AddTab(tabs, gbe, "Buffer A");
-// 	GUIRegisterObject(gbe, tabs);
-#ifdef twobuffers
-
-	GUITabControl_AddTab(tabs, gbe2, "Buffer B");
-#endif
-	
-	// TODO: pass kb events through somehow
-	GUIManager_pushFocusedObject(as->gui, tabs);
-// 	GUIManager_pushFocusedObject(as->gui, gbe);
+	GUIManager_pushFocusedObject(as->gui, as->mc);
 	
 	
 	
 	
 	
 	as->frameCount = 0;
-
 	
 	as->debugMode = 0;
-
-	as->nearClipPlane = .5;
-	as->farClipPlane = 1700;
-
+	
 	int ww, wh;
 	ww = xs->winAttr.width;
 	wh = xs->winAttr.height;
@@ -401,13 +309,13 @@ void handleEvent(AppState* as, InputState* is, InputEvent* ev) {
 	
 	if(ev->type == EVENT_KEYUP && is->keyState[64]) {
 		if(ev->keysym == XK_Right) {
-			GUIObject* o = GUITabControl_NextTab(as->tc, 1);
+			GUIObject* o = GUIMainControl_NextTab(as->mc, 1);
 			GUIManager_popFocusedObject(as->gui);
 			GUIManager_pushFocusedObject(as->gui, o);
 			return;
 		}
 		else if(ev->keysym == XK_Left) {
-			GUIObject* o = GUITabControl_PrevTab(as->tc, 1);
+			GUIObject* o = GUIMainControl_PrevTab(as->mc, 1);
 			GUIManager_popFocusedObject(as->gui);
 			GUIManager_pushFocusedObject(as->gui, o);
 			return;

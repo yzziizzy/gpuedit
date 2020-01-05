@@ -504,6 +504,6 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
 	
 	hlfn(h, &hl);
 	
-	printf("hl time: %f\n", timeSince(then)  * 1000.0);
+// 	printf("hl time: %f\n", timeSince(then)  * 1000.0);
 }
 

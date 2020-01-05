@@ -33,6 +33,10 @@ typedef struct XStuff {
 	void (*onResize)(struct XStuff*, void*);
 	void* onResizeData;
 
+	// return non-zero to deny exit
+	int (*onTryExit)(struct XStuff*, void*);
+	void* onTryExitData;
+
 	int targetMSAA;
 	char* windowTitle;
 	
@@ -46,6 +50,9 @@ typedef struct XStuff {
 	Atom utf8ID;
 	Atom textID;
 	Atom targetsID;
+	
+	Atom wmProtocolsID;
+	Atom wmDeleteWindowID;
 	
 	
 	Bool ready;

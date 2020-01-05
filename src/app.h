@@ -9,6 +9,7 @@
 #include "gui.h"
 #include "settingsEditor.h"
 #include "buffer.h"
+#include "mainControl.h"
 
 
 typedef struct AppScreen {
@@ -19,19 +20,6 @@ typedef struct AppScreen {
 	int resized;
 	
 } AppScreen;
-
-
-typedef struct AppSettings {
-	
-	float keyRotate;
-	float keyScroll;
-	float keyZoom;
-	
-	float mouseRotate;
-	float mouseScroll;
-	float mouseZoom;
-	
-} AppSettings;
 
 
 
@@ -55,7 +43,6 @@ typedef struct AppState {
 	
 	AppScreen screen;
 	
-	AppSettings settings;
 	GlobalSettings globalSettings;
 	
 	GUIManager* gui;
@@ -67,14 +54,6 @@ typedef struct AppState {
 	Matrix invView; // TODO: rename these
 	Matrix invProj;
 	Matrix mProjWorld;
-	
-	double nearClipPlane;
-	double farClipPlane;
-	
-	Vector eyePos;
-	Vector eyeDir;
-	Vector eyeUp;
-	Vector eyeRight;
 	
 	Vector2 cursorPos;
 // 	Vector cursorPos;
@@ -113,7 +92,7 @@ typedef struct AppState {
 
 	
 	Buffer* currentBuffer;
-	GUITabControl* tc;
+	GUIMainControl* mc;
 	
 	
 	

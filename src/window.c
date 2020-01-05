@@ -209,6 +209,13 @@ int initXWindow(XStuff* xs) {
 	
 	XStoreName(xs->display, xs->clientWin, xs->windowTitle);
 	
+	// window manager interaction
+	xs->wmProtocolsID = XInternAtom(xs->display, "WM_PROTOCOLS", False);
+	xs->wmDeleteWindowID = XInternAtom(xs->display, "WM_DELETE_WINDOW", False);
+  
+	XSetWMProtocols(xs->display, xs->clientWin, &xs->wmDeleteWindowID, 1);
+	
+	// clipboard handling
 	xs->clipboardID = XInternAtom(xs->display, "CLIPBOARD", False);
 	xs->primaryID = XInternAtom(xs->display, "PRIMARY", False);
 	xs->secondaryID = XInternAtom(xs->display, "SECONDARY", False);
@@ -216,7 +223,6 @@ int initXWindow(XStuff* xs) {
 	xs->utf8ID = XInternAtom(xs->display, "UTF8_STRING", False);
 	xs->textID = XInternAtom(xs->display, "TEXT", False);
 	xs->targetsID = XInternAtom(xs->display, "TARGETS", False);
-	
 	
 	Clipboard_RegisterOnChange(clipNotify, xs);
 	
@@ -353,6 +359,25 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			xs->ready = 1;
 			continue;
+		}
+		else if(xev.type == ClientMessage) { // wm events
+			XClientMessageEvent* cev = (XClientMessageEvent*)&xev;
+			if(cev->message_type == xs->wmProtocolsID) {
+				
+				// the X button in the window title bar
+				if(cev->data.l[0] == xs->wmDeleteWindowID) {
+					int denyExit = 0; 
+					
+					if(xs->onTryExit) denyExit = xs->onTryExit(xs, xs->onTryExitData);
+					if(!denyExit) {
+						glXDestroyContext(xs->display, xs->glctx);
+						XDestroyWindow(xs->display, xs->clientWin);
+						XCloseDisplay(xs->display);
+						exit(0);
+					}
+				}
+				
+			}
 		}
 		else if(xev.type == ConfigureNotify) { // window resizes
 			XConfigureEvent* conf = (XConfigureEvent*)&xev;

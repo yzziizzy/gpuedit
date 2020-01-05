@@ -58,8 +58,8 @@ void SetUpPDP(AppState* as, PassDrawParams* pdp) {
 	mInverse(pdp->mViewProj, &as->invProj);
 	mInverse(pdp->mWorldView, &as->invView);
 	
-	pdp->eyeVec = as->eyeDir;
-	pdp->eyePos = as->eyePos;
+// 	pdp->eyeVec = as->eyeDir;
+// 	pdp->eyePos = as->eyePos;
 	pdp->targetSize = (Vector2i){as->screen.wh.x, as->screen.wh.y};
 	pdp->timeSeconds = (float)(long)as->frameTime;
 	pdp->timeFractional = as->frameTime - pdp->timeSeconds;

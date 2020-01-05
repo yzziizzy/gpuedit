@@ -10,10 +10,11 @@
 * Serviceable C highlighter
 * Color selector control
 * Proper tabstops
-* Skip List for BufferLines
+* Options file
+* CLI, ENV options parsing
 * File browser
 * Open/save/reload commands
-* Save Changes? close hook
+* Save Changes? close hook buffer integration
 * Don't render bg quads for chars with no bg color
 * Cache lines of ready buffer commands
 * Split GUIManager draw calls into layers for less sorting
@@ -22,7 +23,6 @@
 * Shortcut config presets
 * Pause render loop on X window losing focus
 * Typing with a selection overwrites it
-* Implement INCR selection handling for X
 * Circular undo buffer
 * Redo
 * Console
@@ -34,20 +34,20 @@
 * Persist bookmarks
 * Monitor file changes on disk
 * Scroll when dragging
-* Speed scrolling with ctrl
 * Small shade variation on matching pairs of brackets
 * Bitmap font option
-* Check all column usage for correct 1/0 basing
 * Visible glyph for tabs
 * Wanted column rounding on moving across tabs
 * Status bar
 * Track indentation level per line
 
 
+
 == Editor Features ==
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
 * Go to line
+* Speed scrolling with ctrl
 * Plain/escaped/regex search and replace
 * Copy/paste, with X interaction
 * Duplicate selected lines up/down
@@ -89,11 +89,15 @@
 * Should not be able to delete the last line
 * Fix cursor position after undo
 * GUIManager should pop focus stack if focused control is deleted
+* Check all column usage for correct 1/0 basing
+
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering
 * dlopen(): libpng, libalsa, libvorbis
 * Optimize Buffer_raw_GetLine starting point and direction
+* Skip List for BufferLines
+* Implement INCR selection handling for X
 
 
 

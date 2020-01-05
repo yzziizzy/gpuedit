@@ -48,7 +48,7 @@ static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* p
 }
 
 
-GUIObject* hitTest(GUITabControl* w, Vector2 absTestPos) {
+static GUIObject* hitTest(GUITabControl* w, Vector2 absTestPos) {
 // 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
 	if(w->activeTab) {
 		GUIObject* o = gui_defaultHitTest(w->activeTab, absTestPos);
@@ -59,7 +59,7 @@ GUIObject* hitTest(GUITabControl* w, Vector2 absTestPos) {
 }
 
 
-void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
 	GUITabControl* w = (GUITabControl*)w_;
 	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
 	
