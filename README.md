@@ -10,7 +10,12 @@ An OpenGL 4.4+ text editor. Not done yet.
 	only support OpenGL 3.0, but with sub-optimal performance.
 
 
-# Installing (ubuntu)
+# Installing
+## Automatically on Ubuntu
+
+Run `setup.sh`
+
+## Manually
 
 * `https://github.com/yzziizzy/c3dlas` symlinked as `src/c3dlas`
 * `https://github.com/yzziizzy/c_json` symlinked as `src/c_json`
