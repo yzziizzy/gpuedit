@@ -167,6 +167,8 @@ typedef struct GUIBufferEditor {
 	BufferDrawParams* bdp;
 	Highlighter* h;
 	
+	float textAreaOffsetX; // accounts for line numbers and such
+	
 	float cursorBlinkTimer;
 	float cursorBlinkOnTime;
 	float cursorBlinkOffTime;

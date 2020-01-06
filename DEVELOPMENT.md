@@ -13,10 +13,8 @@
 * Open/save/reload commands
 * Save Changes? close hook buffer integration
 * Don't render bg quads for chars with no bg color
-* Cache lines of ready buffer commands
+* Cache lines of prepared buffer commands
 * Split GUIManager draw calls into layers for less sorting
-* Custom X cursor
-* Hide mouse cursor when typing
 * Shortcut config presets
 * Pause render loop on X window losing focus
 * Typing with a selection overwrites it
@@ -37,6 +35,7 @@
 * Polish scrollbar dragging
 * Color selector control
 * CLI, ENV options parsing
+* Hide mouse cursor when typing
 
 
 
@@ -92,7 +91,8 @@
 * Selection rendering when scrolled half-out of the selection
 * Selection rendering on empty lines
 * Click testing needs to account for dynamic line num gutter width
-
+* Active tab does not highlight correctly
+* Theme styling of selection stub on empty lines
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

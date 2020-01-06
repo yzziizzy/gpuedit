@@ -129,7 +129,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			gbe->header.absTopLeft.x + gbe->header.size.x, 
 			gbe->header.absTopLeft.y + gbe->header.size.y
 		},
-		.clip = {0, 0, 18000, 18000},		
+		.clip = {0, 0, 18000, 18000},
 		.guiType = 0, // window (just a box)
 		.fg = {0, 0, 255, 255}, // TODO: border color
 		.bg = theme->bgColor, 
@@ -141,6 +141,8 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	
 	Vector2 tl = gbe->header.absTopLeft;
 	if(bdp->showLineNums) tl.x += lineNumWidth;
+	
+	gbe->textAreaOffsetX = tl.x; // save for other functions
 	
 	BufferLine* bl = b->first; // BUG broken 
 	
@@ -191,7 +193,41 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		}
 		
 		
-		if(bl->buf) { // only draw lines with text
+		if(!bl->buf) { // still check selection info on empty lines 
+			if(b->sel && b->sel->startLine->lineNum == bl->lineNum) {
+				inSelection = 1;
+				fg = &theme->hl_textColor;
+				bg = &theme->hl_bgColor;
+			}
+			if(b->sel && b->sel->endLine->lineNum == bl->lineNum) {
+				inSelection = 0;
+				fg = &theme->textColor;
+				bg = &theme->bgColor;
+			} 
+			
+			// draw a little half-char of selection on empty lines 
+			if(inSelection) {
+				v = GUIManager_reserveElements(gm, 1);
+		
+				*v = (GUIUnifiedVertex){
+					.pos.t = tl.y,
+					.pos.l = tl.x,
+					.pos.b = tl.y + tdp->lineHeight,
+					.pos.r = tl.x + MAX(5, (float)tdp->charWidth / 2.0),
+					
+					.guiType = 0, // box
+					
+					.bg = *bg,
+					.z = .5,
+					
+					// disabled in the shader right now
+					.clip = {0,0, 1000000,1000000},
+				};
+				
+			}
+			
+		}
+		else {// only draw lines with text
 			
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
@@ -203,12 +239,12 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			
 			// main text
 			for(int i = 0; i < maxCols; i++) { 
-				if(b->sel && b->sel->startLine == bl && b->sel->startCol <= i + gbe->scrollCols) {
+				if(b->sel && b->sel->startLine->lineNum == bl->lineNum && b->sel->startCol <= i + gbe->scrollCols) {
 					inSelection = 1;
 					fg = &theme->hl_textColor;
 					bg = &theme->hl_bgColor;
 				}
-				if(b->sel && b->sel->endLine == bl && b->sel->endCol <= i + gbe->scrollCols) {
+				if(b->sel && b->sel->endLine->lineNum == bl->lineNum && b->sel->endCol <= i + gbe->scrollCols) {
 					inSelection = 0;
 					fg = &theme->textColor;
 					bg = &theme->bgColor;

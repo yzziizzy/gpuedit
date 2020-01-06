@@ -30,7 +30,8 @@ static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
 	if(bl->buf == NULL) return 0;
 	
 	// must handle tabs
-	ptrdiff_t screenCol = floor((x - w->header.absTopLeft.x - 50) / w->bdp->tdp->charWidth) + w->scrollCols;
+	float a = (x - w->header.absTopLeft.x - w->textAreaOffsetX) / w->bdp->tdp->charWidth;
+	ptrdiff_t screenCol = floor(a + .5) + w->scrollCols;
 	
 	int tabwidth = w->bdp->tdp->tabWidth;
 	ptrdiff_t charCol = 0;
@@ -108,7 +109,6 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	
 	BufferLine* bl = Buffer_raw_GetLine(b, lineFromPos(w, gev->pos));
 	size_t col = getColForPos(w, bl, gev->pos.x);
-	
 	Buffer_SetCurrentSelection(b, bl, col, w->selectPivotLine, w->selectPivotCol);
 	/*
 	if(bl->lineNum < w->selectPivotLine->lineNum) {

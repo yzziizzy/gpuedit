@@ -1289,8 +1289,8 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, 
 	assert(startL != NULL);
 	assert(endL != NULL);
 	
-	startC = MIN(startL->length, MAX(startC, 1));
-	endC = MIN(endL->length, MAX(endC, 1));
+	startC = MIN(startL->length, MAX(startC, 0));
+	endC = MIN(endL->length, MAX(endC, 0));
 	
 	if(startL->lineNum < endL->lineNum) {
 		b->sel->startLine = startL;
