@@ -99,6 +99,9 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->windowTitleSetFn = XStuff_SetWindowTitle;
 	as->gui->windowTitleSetData = xs;
 	
+	as->gui->mouseCursorSetFn = XStuff_SetMouseCursor;
+	as->gui->mouseCursorSetData = xs;
+	
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
 	GUIRegisterObject(as->mc, as->gui->root);
 

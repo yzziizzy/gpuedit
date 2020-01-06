@@ -92,6 +92,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 }
 
 
+
 GUITabBar* GUITabBar_New(GUIManager* gm) {
 	
 	GUITabBar* w;

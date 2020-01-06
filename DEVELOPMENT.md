@@ -24,13 +24,10 @@
 * Slide-out windows
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
-* Save/reload workspace
-* File/path in titlebar
 * Persist bookmarks
 * Monitor file changes on disk
 * Scroll when dragging
 * Small shade variation on matching pairs of brackets
-* Bitmap font option
 * Visible glyph for tabs
 * Wanted column rounding on moving across tabs
 * Status bar
@@ -81,6 +78,7 @@
 * Option: hide tabs when only one buffer, hide tabs always
 * Execute arbitrary shell commands 
 * Automatically keep commas in arrays of initializers lined up.
+* Autocorrect
 
 
 == BUGS ==
@@ -93,6 +91,7 @@
 * Check all column usage for correct 1/0 basing
 * Selection rendering when scrolled half-out of the selection
 * Selection rendering on empty lines
+* Click testing needs to account for dynamic line num gutter width
 
 
 == Low Priority ==
@@ -101,8 +100,9 @@
 * Optimize Buffer_raw_GetLine starting point and direction
 * Skip List for BufferLines
 * Implement INCR selection handling for X
-
-
+* --help, man page
+* Bitmap font option
+* Save/reload workspace
 
 == Language Notes ==
 "i don't care about member layout" flag for structs

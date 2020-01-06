@@ -338,6 +338,8 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
+	w->header.cursor = GUIMOUSECURSOR_TEXT;
+	
 	w->scrollbar = GUIWindow_new(gm);
 	GUIResize(w->scrollbar, (Vector2){10, 50});
 	w->scrollbar->color = (Vector){.9,.9,.9};

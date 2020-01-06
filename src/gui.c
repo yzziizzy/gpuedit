@@ -135,6 +135,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->defaults.editBgColor = (struct Color4){20,50,25,255};
 	gm->defaults.cursorColor = (struct Color4){240,240,240,255};
 	
+	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
 }
 
 
@@ -226,6 +227,12 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 
 void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title) {
 	if(gm->windowTitleSetFn) gm->windowTitleSetFn(gm->windowTitleSetData, title);
+}
+
+void GUIManager_SetCursor(GUIManager* gm, int cursor) {
+	if(gm->currentCursor == cursor) return;
+	gm->currentCursor = cursor;
+	if(gm->mouseCursorSetFn) gm->mouseCursorSetFn(gm->mouseCursorSetData, cursor);
 }
 
 
@@ -776,6 +783,11 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	// find the deepest target
 	GUIObject* t = GUIManager_hitTest(gm, newPos);
 	if(!t) return; // TODO handle mouse leaves;
+	
+	
+	// set the cursor, maybe
+	int cur = t->h.cursor; 
+	GUIManager_SetCursor(gm, cur);
 	
 	
 	GUIEvent gev = {

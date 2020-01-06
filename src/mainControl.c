@@ -58,8 +58,10 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 
 static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 // 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
+	GUIObject* o;
+	
 	if(w->activeTab) {
-		GUIObject* o = gui_defaultHitTest(w->activeTab, absTestPos);
+		o = gui_defaultHitTest(w->activeTab, absTestPos);
 		if(o) return o;
 	}
 	

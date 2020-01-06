@@ -667,6 +667,28 @@ void XStuff_SetWindowTitle(XStuff* xs, char* title) {
 	XStoreName(xs->display, xs->clientWin, title);
 }
 
+void XStuff_SetMouseCursor(XStuff* xs, int index) {
+	static int x = 0;
+	
+	if(index <= 0) {
+		XUndefineCursor(xs->display, xs->clientWin); 
+		return;
+	}
+	
+	
+	Cursor c;
+	switch(index) {
+		case 1:
+		default:
+			c = xs->arrowCursor;
+			break;
+		case 2: c = xs->textCursor; break;
+		case 3: c = xs->waitCursor; break;
+	}
+	
+	XDefineCursor(xs->display, xs->clientWin, c);
+}
+
 
 
 

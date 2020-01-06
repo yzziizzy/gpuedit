@@ -210,6 +210,10 @@ typedef void (*GUI_OnMouseEnterFn)(GUIEvent* e);
 typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 
 
+#define GUIMOUSECURSOR_ARROW 0x01
+#define GUIMOUSECURSOR_TEXT  0x02
+#define GUIMOUSECURSOR_WAIT  0x03
+
 
 typedef struct GUIHeader {
 	struct GUIManager* gm;
@@ -244,6 +248,7 @@ typedef struct GUIHeader {
 	char deleted;
 	char gravity;
 	
+	int cursor;
 	
 	GUI_OnClickFn onClick;
 	GUI_OnMouseEnterFn onMouseEnter;
@@ -330,6 +335,9 @@ typedef struct GUIManager {
 	void (*windowTitleSetFn)(void*, char*);
 	void* windowTitleSetData;
 	
+	void (*mouseCursorSetFn)(void*, int);
+	void* mouseCursorSetData;
+	
 	// input 
 	Vector2 lastMousePos;
 	char mouseIsOutOfWindow;
@@ -344,6 +352,9 @@ typedef struct GUIManager {
 	
 	float lastClickTime;
 	float multiClickSpan;
+	
+	int defaultCursor;
+	int currentCursor;
 	
 	VEC(GUIObject*) focusStack;
 	
@@ -380,7 +391,7 @@ RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
 PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
 
 void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title);
-
+void GUIManager_SetCursor(GUIManager* gm, int cursor);
 
 
 
