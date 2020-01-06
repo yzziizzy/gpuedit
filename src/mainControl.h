@@ -11,6 +11,31 @@
 
 
 
+enum MainCmdType {
+	MainCmd_None = 0,
+	MainCmd_SaveActiveTab,
+	MainCmd_SaveAll,
+	MainCmd_Quit,
+	MainCmd_SaveQuit,
+	MainCmd_QuitWithoutSave,
+	MainCmd_LoadFile,
+	MainCmd_NewEmptyBuffer,
+	MainCmd_ReloadTab,
+	MainCmd_CloseTab,
+	MainCmd_SaveAndCloseTab,
+	MainCmd_NextTab,
+	MainCmd_PrevTab,
+};
+
+
+typedef struct MainCmd {
+	enum MainCmdType type;
+	int n;
+	char* path;
+} MainCmd;
+
+
+
 
 typedef struct GUIMainControl {
 	GUIHeader header;
@@ -48,6 +73,10 @@ int GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* tab, char* title)
 GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic);
 GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic);
 GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i);
+
+
+
+void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd);
 
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path);

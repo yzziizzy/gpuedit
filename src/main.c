@@ -40,6 +40,8 @@ static InputState input;
 
 
 
+
+
 int main(int argc, char* argv[]) {
 	int first = 1;
 	int configStatus = 0;
@@ -49,10 +51,11 @@ int main(int argc, char* argv[]) {
 // 	GlobalSettings_loadFromFile(&app.globalSettings, "assets/config/core.json");
 	
 	// init some path info. 
-	wd = getcwd(NULL, 0);
+// 	wd = getcwd(NULL, 0);
 // 	app.dataDir = pathJoin(wd, "data");
-
-	free(wd);
+	
+// 	free(wd);
+	
 	
 	input.doubleClickTime = 0.200;
 	input.dragMinDist = 4;
@@ -69,7 +72,8 @@ int main(int argc, char* argv[]) {
 	initXWindow(&xs);
 	
 	
-	initApp(&xs, &app);
+	initApp(&xs, &app, argc, argv);
+	
 	
 	// initialization loop
 	while(1) {
@@ -106,6 +110,7 @@ int main(int argc, char* argv[]) {
 
  
  
+
 
 
 

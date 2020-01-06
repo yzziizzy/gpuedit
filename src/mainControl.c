@@ -1,4 +1,4 @@
-
+#include <ctype.h>
 
 #include "mainControl.h"
 #include "gui.h"
@@ -83,7 +83,100 @@ static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
 static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	
+	// special commands
+	unsigned int S = GUIMODKEY_SHIFT;
+	unsigned int C = GUIMODKEY_CTRL;
+	unsigned int A = GUIMODKEY_ALT;
+	unsigned int T = GUIMODKEY_TUX;
 	
+// 	unsigned int scrollToCursor   = 1 << 0;
+	
+	struct {
+		unsigned int mods;
+		int keysym;
+		enum MainCmdType mcmd;
+		int n;
+		unsigned int flags;
+		
+	} cmds[] = {
+		{A,    XK_Right,     MainCmd_NextTab,         1, 0},
+		{A,    XK_Left,      MainCmd_PrevTab,         1, 0},
+		{C|S,  'q',          MainCmd_QuitWithoutSave, 0, 0},
+		{0,0,0,0,0},
+	};
+	
+	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
+	unsigned int ANY_MASK = ~ANY;
+	for(int i = 0; cmds[i].mcmd != 0; i++) {
+// 			printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+		if(cmds[i].keysym != tolower(gev->keycode)) continue;
+		if((cmds[i].mods & ANY) != (gev->modifiers & ANY)) continue;
+		// TODO: specific mods
+		
+		// GUIBufferEditor will pass on commands to the buffer
+		GUIMainControl_ProcessCommand(w, &(MainCmd){
+			.type = cmds[i].mcmd, 
+			.n = cmds[i].n,
+			.path = NULL,
+		});
+		
+		
+// 		if(cmds[i].flags & scrollToCursor) {
+// 			GUIBufferEditor_scrollToCursor(w);
+// 		}
+		
+	}
+}
+
+
+
+void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
+	switch(cmd->type) {
+	case MainCmd_None:
+		// do nothing
+		break;
+		
+	case MainCmd_SaveActiveTab:
+		printf("NYI\n");
+		break;
+		
+	case MainCmd_SaveAll:
+		printf("NYI\n");
+		break;
+		
+	case MainCmd_Quit:
+		printf("NYI\n");
+		break;
+		
+	case MainCmd_SaveQuit:
+		printf("NYI\n");
+		break;
+		
+	case MainCmd_QuitWithoutSave:
+		// TODO: nicer
+		exit(0);
+		break;
+		
+	case MainCmd_LoadFile:
+		GUIMainControl_LoadFile(w, cmd->path);
+		break;
+		
+	case MainCmd_NewEmptyBuffer:
+		printf("NYI\n");
+		break;
+		
+	case MainCmd_CloseTab:
+		printf("NYI\n");
+		break;
+		
+	case MainCmd_SaveAndCloseTab:
+		printf("NYI\n");
+		break;
+		
+	case MainCmd_NextTab: GUIMainControl_NextTab(w, cmd->n); break;
+	case MainCmd_PrevTab: GUIMainControl_PrevTab(w, cmd->n); break;
+	
+	}
 }
 
 
@@ -231,6 +324,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->scrollLines = 0;
 	gbe->bdp = bdp;
 	gbe->header.name = strdup(path);
+	gbe->header.parent = w; // important for bubbling
 	
 	gbe->h = pcalloc(gbe->h);
 	initCStyles(gbe->h);

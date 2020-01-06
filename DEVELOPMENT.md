@@ -9,7 +9,6 @@
 * On-demand frame rendering
 * Proper tabstops
 * Options file
-* CLI, ENV options parsing
 * File browser
 * Open/save/reload commands
 * Save Changes? close hook buffer integration
@@ -40,6 +39,7 @@
 * Serviceable C highlighter
 * Polish scrollbar dragging
 * Color selector control
+* CLI, ENV options parsing
 
 
 
@@ -80,6 +80,7 @@
 * Option: set cursors for anything.
 * Option: hide tabs when only one buffer, hide tabs always
 * Execute arbitrary shell commands 
+* Automatically keep commas in arrays of initializers lined up.
 
 
 == BUGS ==

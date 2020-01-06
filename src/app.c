@@ -64,7 +64,7 @@ void resize_callback(XStuff* xs, void* gm_) {
 
 
 // nothing in here can use opengl at all.
-void initApp(XStuff* xs, AppState* as) {
+void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	srand((unsigned int)time(NULL));
 	
@@ -103,6 +103,28 @@ void initApp(XStuff* xs, AppState* as) {
 	GUIRegisterObject(as->mc, as->gui->root);
 
 	
+	
+	// look for files to load in arguments
+	for(int i = 1; i < argc; i++) {
+		char* a = argv[i];
+		
+		// -f works too
+		if(a[0] == '-') {
+			if(a[1] == 'f' && a[2] == NULL) {
+				i++;
+				if(i < argc) {
+					GUIMainControl_LoadFile(as->mc, argv[i]);
+				}
+			}
+			
+			continue;
+		}
+		
+		GUIMainControl_LoadFile(as->mc, a);
+	}
+	
+	
+	// for debugging
 	GUIMainControl_LoadFile(as->mc, "src/buffer.h");
 	GUIMainControl_LoadFile(as->mc, "src/buffer.c");
 	GUIMainControl_LoadFile(as->mc, "src/bufferEditor.c");

@@ -101,7 +101,7 @@ typedef struct AppState {
 
 
 
-void initApp(XStuff* xs, AppState* gs);
+void initApp(XStuff* xs, AppState* gs, int argc, char* argv[]);
 void initAppGL(XStuff* xs, AppState* gs);
 
 
