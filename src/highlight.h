@@ -54,10 +54,10 @@ typedef struct hlinfo {
 typedef struct StyleInfo {
 	int index;
 	int category;
-	Vector4 fgColorDefault; // temporary colors
-	Vector4 bgColorDefault;
-	Vector4 fgSelColorDefault; // temporary colors
-	Vector4 bgSelColorDefault;
+	Vector4 fgColor;
+	Vector4 bgColor;
+	Vector4 fgSelColor; 
+	Vector4 bgSelColor;
 	char* name;
 	
 	int underline : 1;
@@ -97,7 +97,8 @@ typedef struct Highlighter_C {
 
 
 
-void initCStyles(Highlighter* hl);
+void Highlighter_LoadStyles(Highlighter* h, char* path);
+void Highlighter_PrintStyles(Highlighter* h);
 
 
 #pragma magic [random] baz()

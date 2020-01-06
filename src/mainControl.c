@@ -6,6 +6,8 @@
 #include "gui.h"
 #include "gui_internal.h"
 
+#include "highlighters/c.h"
+
 
 static void render(GUIMainControl* w, PassFrameParams* pfp);
 static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* pfp);
@@ -225,6 +227,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
 	gbe->h = pcalloc(gbe->h);
 	initCStyles(gbe->h);
+	Highlighter_LoadStyles(gbe->h, "config/c_colors.txt");
 	
 	Buffer_LoadFromFile(buf, path);
 	GUIBufferEditor_RefreshHighlight(gbe);

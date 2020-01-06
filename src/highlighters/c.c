@@ -4,6 +4,27 @@
 // HACK
 #include "../buffer.h"
 
+#define CATS \
+	X(Normal) \
+	X(Identifier) \
+	X(Keyword) \
+	X(ControlFlow) \
+	X(DataType) \
+	X(Operator) \
+	X(Number) \
+	X(CharLiteral) \
+	X(String) \
+	X(CommentSingle) \
+	X(CommentMulti) \
+	X(LineContinuation) \
+	X(Brackets) \
+	X(Braces) \
+	X(Parenthesis) \
+	X(Semicolon) \
+	X(Comma) \
+	X(Preprocessor)
+
+
 
 #define X_2(a,b)               X(a) X(a##b)
 #define X_3(a,b,c)             X_2(a,b) X(a##b##c)
@@ -14,68 +35,82 @@
 #define X_8(a,b,c,d,e,f,g,h)   X_7(a,b,c,d,e,f,g) X(a##b##c##d##e##f##g##h)
 #define X_9(a,b,c,d,e,f,g,h,i) X_8(a,b,c,d,e,f,g,h) X(a##b##c##d##e##f##g##h##i)
 
+#define Y_2(a,b, y,z)               X(a) Y(a##b, y,z)
+#define Y_3(a,b,c, y,z)             X_2(a,b) Y(a##b##c, y,z)
+#define Y_4(a,b,c,d, y,z)           X_3(a,b,c) Y(a##b##c##d, y,z)
+#define Y_5(a,b,c,d,e, y,z)         X_4(a,b,c,d) Y(a##b##c##d##e, y,z)
+#define Y_6(a,b,c,d,e,f, y,z)       X_5(a,b,c,d,e) Y(a##b##c##d##e##f, y,z)
+#define Y_7(a,b,c,d,e,f,g, y,z)     X_6(a,b,c,d,e,f) Y(a##b##c##d##e##f##g, y,z)
+#define Y_8(a,b,c,d,e,f,g,h, y,z)   X_7(a,b,c,d,e,f,g) Y(a##b##c##d##e##f##g##h, y,z)
+#define Y_9(a,b,c,d,e,f,g,h,i, y,z) X_8(a,b,c,d,e,f,g,h) Y(a##b##c##d##e##f##g##h##i, y,z)
 
+#define Y(a, b, c) X(a)
+
+// X states are intermediaries
+// Y states are (potentially) terminal
+
+// ID,        name, category 
 #define FINAL_TOKENS \
-	X(linebreak) \
-	X(id) \
-	X(num) \
-	X(string) \
-	X(charlit) \
-	X(mlcomment) \
-	X(slcomment) \
-	X(pound) \
-	X(pound_pound) \
-	X(preprocessor) \
-	X(plus) \
-	X(plus_plus) \
-	X(plus_eq) \
-	X(minus) \
-	X(minus_minus) \
-	X(minus_eq) \
-	X(minus_gt) \
-	X(star) \
-	X(star_eq) \
-	X(slash) \
-	X(slash_eq) \
-	X(eq) \
-	X(eq_eq) \
-	X(bang) \
-	X(bang_eq) \
-	X(quest) \
-	X(colon) \
-	X(colon_colon) \
-	X(amp) \
-	X(amp_amp) \
-	X(amp_eq) \
-	X(pipe) \
-	X(pipe_pipe) \
-	X(pipe_eq) \
-	X(lbracket) \
-	X(rbracket) \
-	X(lbrace) \
-	X(rbrace) \
-	X(lparen) \
-	X(rparen) \
-	X(gt) \
-	X(gt_eq) \
-	X(gt_gt) \
-	X(gt_gt_eq) \
-	X(lt) \
-	X(lt_eq) \
-	X(lt_lt) \
-	X(lt_lt_eq) \
-	X(comma) \
-	X(dot) \
-	X(dot_dot_dot) \
-	X(tilde) \
-	X(tilde_eq) \
-	X(pct) \
-	X(pct_eq) \
-	X(caret) \
-	X(caret_eq) \
-	X(semi) \
+	Y(linebreak,  "", 0) \
+	Y(id,         "", HLO_Identifier) \
+	Y(num,        "", HLO_Number) \
+	Y(string,     "", HLO_String) \
+	Y(charlit,    "", HLO_CharLiteral) \
+	Y(mlcomment,  "", HLO_CommentMulti) \
+	Y(slcomment,  "", HLO_CommentSingle) \
+	Y(pound,      "", HLO_Preprocessor) \
+	Y(pound_pound,"", HLO_Preprocessor) \
+	Y(preprocessor, "", HLO_Preprocessor) \
+	Y(plus,       "Add", HLO_Operator) \
+	Y(plus_plus,  "Increment", HLO_Operator) \
+	Y(plus_eq,    "Add Assignment", HLO_Operator) \
+	Y(minus,      "Minus", HLO_Operator) \
+	Y(minus_minus,"Decrement", HLO_Operator) \
+	Y(minus_eq,   "Minus Assignment", HLO_Operator) \
+	Y(minus_gt,   "Arrow", HLO_Operator) \
+	Y(star,       "Multiply", HLO_Operator) \
+	Y(star_eq,    "Multiply Assignment", HLO_Operator) \
+	Y(slash,      "Divide", HLO_Operator) \
+	Y(slash_eq,   "Divide Assignment", HLO_Operator) \
+	Y(eq,         "Assignment", HLO_Operator) \
+	Y(eq_eq,      "Equality", HLO_Operator) \
+	Y(bang,       "Not", HLO_Operator) \
+	Y(bang_eq,    "Not Equals", HLO_Operator) \
+	Y(quest,      "Ternary", HLO_Operator) \
+	Y(colon,      "Ternary (colon)", HLO_Operator) \
+	Y(colon_colon,"Blasphemy", HLO_Operator) \
+	Y(amp,        "Bitwise AND", HLO_Operator) \
+	Y(amp_amp,    "Logical AND", HLO_Operator) \
+	Y(amp_eq,     "Bitwise AND Assignment", HLO_Operator) \
+	Y(pipe,       "Bitwise OR", HLO_Operator) \
+	Y(pipe_pipe,  "Logical OR", HLO_Operator) \
+	Y(pipe_eq,    "Bitwise OR Assignment", HLO_Operator) \
+	Y(lbracket,   "", HLO_Brackets) \
+	Y(rbracket,   "", HLO_Brackets) \
+	Y(lbrace,     "", HLO_Braces) \
+	Y(rbrace,     "", HLO_Braces) \
+	Y(lparen,     "", HLO_Parenthesis) \
+	Y(rparen,     "", HLO_Parenthesis) \
+	Y(gt,         "", HLO_Operator) \
+	Y(gt_eq,      "", HLO_Operator) \
+	Y(gt_gt,      "", HLO_Operator) \
+	Y(gt_gt_eq,   "", HLO_Operator) \
+	Y(lt,         "", HLO_Operator) \
+	Y(lt_eq,      "", HLO_Operator) \
+	Y(lt_lt,      "", HLO_Operator) \
+	Y(lt_lt_eq,   "", HLO_Operator) \
+	Y(comma,      "", HLO_Comma) \
+	Y(dot,        "", HLO_Operator) \
+	Y(dot_dot_dot,"", HLO_Operator) \
+	Y(tilde,      "", HLO_Operator) \
+	Y(tilde_eq,   "", HLO_Operator) \
+	Y(pct,        "", HLO_Operator) \
+	Y(pct_eq,     "", HLO_Operator) \
+	Y(caret,      "", HLO_Operator) \
+	Y(caret_eq,   "", HLO_Operator) \
+	Y(semi,       "", HLO_Semicolon) \
 	\
-	X(backslash) \
+	Y(backslash,  "", HLO_LineContinuation) \
 	X(mlcomment_star) \
 	X(star_slash) \
 	X(slash_slash) \
@@ -83,63 +118,63 @@
 	X(dot_dot) \
 	\
 	/* keyword names */ \
-	X_4(_a,u,t,o) \
-	X_5(_b,r,e,a,k) \
+	Y_4(_a,u,t,o, "", HLO_Keyword) \
+	Y_5(_b,r,e,a,k, "", HLO_Keyword) \
 	  X(_c) \
-	X_3(_ca,s,e) \
-	X_3(_ch,a,r) \
+	Y_3(_ca,s,e, "", HLO_Keyword) \
+	Y_3(_ch,a,r, "", HLO_DataType) \
 	X_2(_co,n) \
-	X_2(_cons,t) \
-	X_5(_cont,i,n,u,e) \
+	Y_2(_cons,t, "", HLO_DataType) \
+	Y_5(_cont,i,n,u,e, "", HLO_Keyword) \
 	  X(_d) \
-	X_6(_de,f,a,u,l,t) \
-	X_5(_do,u,b,l,e) \
+	Y_6(_de,f,a,u,l,t, "", HLO_Keyword) \
+	Y_5(_do,u,b,l,e, "", HLO_DataType) \
 	  X(_e) \
-	X_3(_el,s,e) \
-	X_3(_en,u,m) \
-	X_5(_ex,t,e,r,n) \
+	Y_3(_el,s,e, "", HLO_Keyword) \
+	Y_3(_en,u,m, "", HLO_Keyword) \
+	Y_5(_ex,t,e,r,n, "", HLO_DataType) \
 	  X(_f) \
-	X_4(_fl,o,a,t) \
-	X_2(_fo,r) \
-	X_4(_g,o,t,o) \
+	Y_4(_fl,o,a,t, "", HLO_DataType) \
+	Y_2(_fo,r, "", HLO_Keyword) \
+	Y_4(_g,o,t,o, "", HLO_Keyword) \
 	  X(_i) \
-	X_4(_inl,i,n,e) \
-	X_2(_in,t) \
-	X_3(_int8,_,t) \
-	X_4(_int1,6,_,t) \
-	X_4(_int3,2,_,t) \
-	X_4(_int6,4,_,t) \
-	  X(_if) \
-	X_4(_l,o,n,g) \
-	X_9(_p,t,r,d,i,f,f,_,t) \
+	Y_4(_inl,i,n,e, "", HLO_DataType) \
+	Y_2(_in,t, "", HLO_DataType) \
+	Y_3(_int8,_,t, "", HLO_DataType) \
+	Y_4(_int1,6,_,t, "", HLO_DataType) \
+	Y_4(_int3,2,_,t, "", HLO_DataType) \
+	Y_4(_int6,4,_,t, "", HLO_DataType) \
+	  Y(_if, "", HLO_Keyword) \
+	Y_4(_l,o,n,g, "", HLO_DataType) \
+	Y_9(_p,t,r,d,i,f,f,_,t, "", HLO_DataType) \
 	X_2(_r,e) \
-	X_6(_reg,i,s,t,e,r) \
-	X_4(_ret,u,r,n) \
+	Y_6(_reg,i,s,t,e,r, "", HLO_DataType) \
+	Y_4(_ret,u,r,n, "", HLO_Keyword) \
 	  X(_s) \
-	X_4(_sh,o,r,t) \
+	Y_4(_sh,o,r,t, "", HLO_DataType) \
 	  X(_si) \
-	X_4(_sig,n,e,d) \
+	Y_4(_sig,n,e,d, "", HLO_DataType) \
 	X_2(_siz,e) \
-	X_2(_size_,t) \
-	X_2(_sizeo,f) \
+	Y_2(_size_,t, "", HLO_DataType) \
+	Y_2(_sizeo,f, "", HLO_Keyword) \
 	  X(_st) \
-	X_4(_sta,t,i,c) \
-	X_4(_str,u,c,t) \
-	X_5(_sw,i,t,c,h) \
-	X_7(_t,y,p,e,d,e,f) \
+	Y_4(_sta,t,i,c, "", HLO_DataType) \
+	Y_4(_str,u,c,t, "", HLO_Keyword) \
+	Y_5(_sw,i,t,c,h, "", HLO_Keyword) \
+	Y_7(_t,y,p,e,d,e,f, "", HLO_Keyword) \
 	  X(_u) \
 	X_3(_ui,n,t) \
-	X_3(_uint8,_,t) \
-	X_4(_uint1,6,_,t) \
-	X_4(_uint3,2,_,t) \
-	X_4(_uint6,4,_,t) \
+	Y_3(_uint8,_,t, "", HLO_DataType) \
+	Y_4(_uint1,6,_,t, "", HLO_DataType) \
+	Y_4(_uint3,2,_,t, "", HLO_DataType) \
+	Y_4(_uint6,4,_,t, "", HLO_DataType) \
 	  X(_un) \
-	X_3(_uni,o,n) \
-	X_6(_uns,i,g,n,e,d) \
+	Y_3(_uni,o,n, "", HLO_Keyword) \
+	Y_6(_uns,i,g,n,e,d, "", HLO_DataType) \
 	X_2(_v,o) \
-	X_2(_voi,d) \
-	X_6(_vol,a,t,i,l,e) \
-	X_5(_w,h,i,l,e) \
+	Y_2(_voi,d, "", HLO_DataType) \
+	Y_6(_vol,a,t,i,l,e, "", HLO_DataType) \
+	Y_5(_w,h,i,l,e, "", HLO_Keyword)
 
 
 enum LexState {
@@ -159,6 +194,32 @@ char* stateNames[] = {
 	
 	#define X(t) [LST_##t] = #t,
 		FINAL_TOKENS
+	#undef X
+};
+
+enum HLOptions {
+	HLO_None = 0,
+	#define X(a) HLO_##a,
+		CATS
+	#undef X
+	HLO_MAXVALUE,
+};
+
+int HLOLookup[] = {
+	[LST_NULL] = 0,
+	[LST_INVALID] = 0,
+	#undef Y
+	#define Y(a, b, c) [LST_##a] = c,
+	#define X(t) [LST_##t] = 0,
+		FINAL_TOKENS
+	#undef X
+	#undef Y
+};
+
+char* HLONames[] = {
+	[HLO_None] = "None",
+	#define X(a) [HLO_##a] = #a,
+		CATS
 	#undef X
 };
 
@@ -260,7 +321,9 @@ void hlfn(Highlighter* h, hlinfo* hl) {
 					flop++;
 				}
 				
-				hl->writeSection(hl, ls.tokenState, span);
+				int hlo = HLOLookup[ls.tokenState];
+				
+				hl->writeSection(hl, hlo, span);
 				
 				// reset the lex state when done reading
 				ls.tokenFinished = 0;
@@ -838,19 +901,19 @@ LABEL_push_char_ret:
 
 void initCStyles(Highlighter* hl) {
 	
-	hl->numStyles = LST_MAXVALUE;
+	hl->numStyles = HLO_MAXVALUE;
 	
 	hl->styles = calloc(1, sizeof(*hl->styles) * hl->numStyles);
 	
-	for(int i = 0; i < LST_MAXVALUE; i++) {
+	for(int i = 0; i < HLO_MAXVALUE; i++) {
 		hl->styles[i].index = i;
 		hl->styles[i].category = 0;
-		hl->styles[i].name = stateNames[i];
-		hl->styles[i].fgColorDefault = (Vector4){(i%5)*.1 + .5, (i%50)*.01 + .5, ((i+17)%30)*.3 + .5, 1};
-		hl->styles[i].bgColorDefault = (Vector4){0,0,0,0};
+		hl->styles[i].name = HLONames[i];
+		hl->styles[i].fgColor = (Vector4){(i%5)*.1 + .5, (i%50)*.01 + .5, ((i+17)%30)*.3 + .5, 1};
+		hl->styles[i].bgColor = (Vector4){0,0,0,0};
 		
-		hl->styles[i].fgSelColorDefault = (Vector4){(i%5)*.1 + .2, (i%50)*.01 + .2, ((i+17)%30)*.3 + .2, 1};
-		hl->styles[i].bgSelColorDefault = (Vector4){1,1,1,1};
+		hl->styles[i].fgSelColor = (Vector4){(i%5)*.1 + .2, (i%50)*.01 + .2, ((i+17)%30)*.3 + .2, 1};
+		hl->styles[i].bgSelColor = (Vector4){1,1,1,1};
 		
 		hl->styles[i].underline = 0;
 		hl->styles[i].bold = 0;
@@ -862,6 +925,9 @@ void initCStyles(Highlighter* hl) {
 		
 	}
 }
+
+
+
 
 
 

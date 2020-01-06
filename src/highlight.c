@@ -23,6 +23,75 @@ do { \
 
 
 
+static StyleInfo* get_style(Highlighter* h, char* name) {
+	for(int i = 0; i < h->numStyles; i++) {
+		if(0 == strcmp(h->styles[i].name, name)) {
+			return &h->styles[i];
+		}
+	}
+	
+	return NULL;
+}
+
+
+
+void Highlighter_PrintStyles(Highlighter* h) {
+	
+	for(int i = 0; i < h->numStyles; i++) {
+		printf("%d: %s\n", i, h->styles[i].name);
+	}
+	
+}
+
+
+
+void Highlighter_LoadStyles(Highlighter* h, char* path) {
+	size_t len;
+	
+	char* src = readWholeFile(path, &len);
+	
+	
+	char** lines = strsplit_inplace(src, '\n', NULL);
+	
+	char** lines2 = lines;
+	for(int ln = 1; *lines2; lines2++, ln++) {
+		char name[128];
+		char value[128];
+		StyleInfo* style;
+		
+		if(2 != sscanf(*lines2, " %127[_a-zA-Z0-9] = %127s ", name, value)) {
+			printf("Invalid highlighting color line %s:%d: '%s'\n", path, ln, *lines2);
+			continue;
+		}
+		
+// 		printf("line: '%s' = '%s'\n", name, value);
+		
+		style = get_style(h, name);
+		if(!style) {
+			fprintf(stderr, "Unknown style name '%s' in %s:%d\n", name, path, ln);
+			continue;
+		}
+		
+		
+		if(value[0] == '#') { // hex code
+			decodeHexColorNorm(value, &style->fgColor);
+		}
+		
+		// TODO: rgba()
+		// TODO: backgrounds, formats, fonts, etc
+		
+	}
+	
+	
+	free(lines);
+	free(src);
+	
+	
+}
+
+
+
+
 
 
 

@@ -1,16 +1,17 @@
-#ifndef __gpuedit_hilighters_c_h__
-#define __gpuedit_hilighters_c_h__
+#ifndef __gpuedit_highlighters_c_h__
+#define __gpuedit_highlighters_c_h__
 
 
-// HACK: temporary
 
 #include "../highlight.h"
 
 
 
+void initCStyles(Highlighter* hl);
 
 
 
 
 
-#endif // __gpuedit_hilighters_c_h__
+
+#endif // __gpuedit_highlighters_c_h__

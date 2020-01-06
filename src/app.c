@@ -30,6 +30,9 @@
 #include "app.h"
 #include "gui.h"
 
+// temp
+#include "highlighters/c.h"
+
 
 GLuint proj_ul, view_ul, model_ul;
 
@@ -78,9 +81,12 @@ void initApp(XStuff* xs, AppState* as) {
 // 	TextureAtlas_finalize(ta);
 // 	
 	
-#define twobuffers
-	
-	
+	/*
+	Highlighter* ch = pcalloc(ch);
+	initCStyles(ch);
+	Highlighter_PrintStyles(ch);
+	Highlighter_LoadStyles(ch, "config/c_colors.txt");
+	*/
 	
 	as->gui = GUIManager_alloc(&as->globalSettings);
 	xs->onResize = resize_callback;
