@@ -81,6 +81,7 @@ static void renderRoot(GUIHeader* gh, PassFrameParams* pfp) {
 
 
 
+
 void gui_default_ParentResize(GUIObject* root, GUIEvent* gev) {
 	root->h.size = gev->size;
 	
@@ -220,6 +221,11 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 	
 	//////////////////////////////////
 	
+}
+
+
+void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title) {
+	if(gm->windowTitleSetFn) gm->windowTitleSetFn(gm->windowTitleSetData, title);
 }
 
 

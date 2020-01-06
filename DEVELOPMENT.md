@@ -1,14 +1,12 @@
 
 
 == TODO ==
-* Polish scrollbar dragging
+* Circular undo buffer
+* Redo
 * Hotkey customization
-* Settings editor
 * Mouse based selection editing
 * Highlight current line
 * On-demand frame rendering
-* Serviceable C highlighter
-* Color selector control
 * Proper tabstops
 * Options file
 * CLI, ENV options parsing
@@ -23,8 +21,6 @@
 * Shortcut config presets
 * Pause render loop on X window losing focus
 * Typing with a selection overwrites it
-* Circular undo buffer
-* Redo
 * Console
 * Slide-out windows
 * Outline box style of highlighting
@@ -40,6 +36,10 @@
 * Wanted column rounding on moving across tabs
 * Status bar
 * Track indentation level per line
+* Settings editor
+* Serviceable C highlighter
+* Polish scrollbar dragging
+* Color selector control
 
 
 
@@ -49,7 +49,6 @@
 * Go to line
 * Speed scrolling with ctrl
 * Plain/escaped/regex search and replace
-* Copy/paste, with X interaction
 * Duplicate selected lines up/down
 * Move by words
 * Multi-line indent and un-indent
@@ -80,6 +79,7 @@
 * Option: disable highlighter, by default over a certain file size.
 * Option: set cursors for anything.
 * Option: hide tabs when only one buffer, hide tabs always
+* Execute arbitrary shell commands 
 
 
 == BUGS ==
@@ -90,6 +90,8 @@
 * Fix cursor position after undo
 * GUIManager should pop focus stack if focused control is deleted
 * Check all column usage for correct 1/0 basing
+* Selection rendering when scrolled half-out of the selection
+* Selection rendering on empty lines
 
 
 == Low Priority ==

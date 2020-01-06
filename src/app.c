@@ -96,6 +96,8 @@ void initApp(XStuff* xs, AppState* as) {
 	as->gui->defaults.tabBgColor = (struct Color4){10,10,10,255};
 	as->gui->defaults.tabTextColor = (struct Color4){200,200,200,255};
 	
+	as->gui->windowTitleSetFn = XStuff_SetWindowTitle;
+	as->gui->windowTitleSetData = xs;
 	
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
 	GUIRegisterObject(as->mc, as->gui->root);

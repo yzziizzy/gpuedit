@@ -63,6 +63,9 @@ typedef struct XStuff {
 void XStuff_hideCursor(XStuff* xs);
 void XStuff_showCursor(XStuff* xs);
 
+void XStuff_SetWindowTitle(XStuff* xs, char* title);
+
+
 XErrorEvent* xLastError;
 char xLastErrorStr[1024];
  

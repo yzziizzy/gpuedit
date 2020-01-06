@@ -327,6 +327,9 @@ typedef struct GUIManager {
 	FontManager* fm;
 	TextureAtlas* ta;
 	
+	void (*windowTitleSetFn)(void*, char*);
+	void* windowTitleSetData;
+	
 	// input 
 	Vector2 lastMousePos;
 	char mouseIsOutOfWindow;
@@ -376,7 +379,7 @@ GUIManager* GUIManager_alloc(GlobalSettings* gs);
 RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
 PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
 
-
+void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title);
 
 
 

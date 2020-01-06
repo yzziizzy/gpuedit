@@ -1,12 +1,14 @@
 
 
-
-
 #include "mainControl.h"
 #include "gui.h"
 #include "gui_internal.h"
 
 #include "highlighters/c.h"
+
+// temporary, should be separated
+#include "window.h"
+
 
 
 static void render(GUIMainControl* w, PassFrameParams* pfp);
@@ -128,6 +130,9 @@ static void switchtab(int index, void* w_) {
 	GUIMainControl_GoToTab(w, index);
 	GUIManager_popFocusedObject(w->header.gm);
 	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+	
+	// HACK
+	GUIManager_SetMainWindowTitle(w->header.gm, w->activeTab->h.name);
 }
 
 
@@ -135,6 +140,7 @@ int GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* tab, char* title)
 	if(w->activeTab == NULL) {
 		w->activeTab = tab;
 		w->currentIndex = 0;
+		GUIManager_SetMainWindowTitle(w->header.gm, title);
 	}
 	
 	VEC_PUSH(&w->tabs, tab);
@@ -224,6 +230,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->font = tdp->font;
 	gbe->scrollLines = 0;
 	gbe->bdp = bdp;
+	gbe->header.name = strdup(path);
 	
 	gbe->h = pcalloc(gbe->h);
 	initCStyles(gbe->h);

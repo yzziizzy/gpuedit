@@ -663,6 +663,12 @@ void XStuff_showCursor(XStuff* xs) {
 
 
 
+void XStuff_SetWindowTitle(XStuff* xs, char* title) {
+	XStoreName(xs->display, xs->clientWin, title);
+}
+
+
+
 
 void initGLEW() {
 	GLenum err;
