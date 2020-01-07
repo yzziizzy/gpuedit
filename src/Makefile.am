@@ -58,7 +58,7 @@ gpuedit_SOURCES = main.c \
 	window.c 
 
 gpuedit_LDADD =  \
-	-lm -ldl \
+	-lm -ldl -lutil \
 	-lX11 -lXfixes -lpng \
 	-lGL -lGLU -lGLEW 
 

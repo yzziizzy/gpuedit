@@ -10,6 +10,8 @@
 * Proper tabstops
 * Options file
 * File browser
+* MIME type probing of some sort
+* Ability to change the highlighter
 * Open/save/reload commands
 * Save Changes? close hook buffer integration
 * Don't render bg quads for chars with no bg color
@@ -78,6 +80,7 @@
 * Execute arbitrary shell commands 
 * Automatically keep commas in arrays of initializers lined up.
 * Autocorrect
+* Option: rendering of selection on tabs and empty lines (and trailing spaces?)
 
 
 == BUGS ==
@@ -88,8 +91,6 @@
 * Fix cursor position after undo
 * GUIManager should pop focus stack if focused control is deleted
 * Check all column usage for correct 1/0 basing
-* Selection rendering when scrolled half-out of the selection
-* Selection rendering on empty lines
 * Click testing needs to account for dynamic line num gutter width
 * Active tab does not highlight correctly
 * Theme styling of selection stub on empty lines

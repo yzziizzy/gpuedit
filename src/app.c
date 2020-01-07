@@ -3,12 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
 #include <math.h>
 #include <time.h>
+#include <errno.h>
 
-
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/prctl.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <pty.h>
+#include <termios.h>
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -62,14 +69,21 @@ void resize_callback(XStuff* xs, void* gm_) {
 	GUITriggerEvent(gm->root, &gev);
 }
 
+static struct child_process_info* cc;
 
 // nothing in here can use opengl at all.
 void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	srand((unsigned int)time(NULL));
 	
+	char* args[] = {
+		"/bin/bash",
+		"-i",
+		"-l",
+		NULL,
+	};
 	
-	
+	cc = AppState_ExecProcessPipe(NULL, "/bin/bash", args);
 	
 	// this costs 5mb of ram
 // 	json_gl_init_lookup();
@@ -241,6 +255,242 @@ void initAppGL(XStuff* xs, AppState* as) {
 }
 
 
+// effectively a better, asynchronous version of system()
+void AppState_ExecProcess(AppState* as, char* execPath, char* args[]) {
+	
+	
+	int childPID = fork();
+	
+	if(childPID == -1) {
+		fprintf(stderr, "failed to fork trying to execute '%s'\n", execPath);
+		perror(strerror(errno));
+		return;
+	}
+	else if(childPID == 0) { // child process
+		
+		execvp(execPath, args); // never returns if successful
+		
+		fprintf(stderr, "failed to execute '%s'\n", execPath);
+		exit(1); // kill the forked process 
+	}
+	else { // parent process
+		// TODO: put the pid and info into an array somewhere
+		
+// 		int status;
+		// returns 0 if nothing happened, -1 on error
+// 		pid = waitpid(childPID, &status, WNOHANG);
+		
+	}
+}
+
+// http://git.suckless.org/st/file/st.c.html#l786
+
+// effectively a better, asynchronous version of system()
+// redirects and captures the child process i/o
+struct child_pty_info* AppState_ExecProcessPTY(AppState* as, char* execPath, char* args[]) {
+	
+	int master, slave; // pty
+	
+	
+	errno = 0;
+	if(openpty(&master, &slave, NULL, NULL, NULL) < 0) {
+		fprintf(stderr, "Error opening new pty for '%s' [errno=%d]\n", execPath, errno);
+		return NULL;
+	}
+	
+	errno = 0;
+	
+	int childPID = fork();
+	if(childPID == -1) {
+		
+		fprintf(stderr, "failed to fork trying to execute '%s'\n", execPath);
+		perror(strerror(errno));
+		return NULL;
+	}
+	else if(childPID == 0) { // child process
+		
+		setsid();
+		// redirect standard fd's to the pipe fd's 
+		if(dup2(slave, fileno(stdin)) == -1) {
+			printf("failed 1\n");
+			exit(errno);
+		}
+		if(dup2(slave, fileno(stdout)) == -1) {
+			printf("failed 2\n");
+			exit(errno);
+		}
+		if(dup2(slave, fileno(stderr)) == -1) {
+			printf("failed 3\n");
+			exit(errno);
+		}
+		
+		if(ioctl(slave, TIOCSCTTY, NULL) < 0) {
+			fprintf(stderr, "ioctl TIOCSCTTY failed: %s, %d\n", execPath, errno);
+		}
+		
+		// close original fd's
+		close(master);
+		close(slave);
+		
+		// die when the parent does (linux only)
+		prctl(PR_SET_PDEATHSIG, SIGHUP);
+		
+		// swap for the desired program
+		execvp(execPath, args); // never returns if successful
+		 
+		fprintf(stderr, "failed to execute '%s'\n", execPath);
+		exit(1); // kill the forked process 
+	}
+	else { // parent process
+		
+		// close the child-end of the pipes
+		struct child_pty_info* cpi;
+		cpi = calloc(1, sizeof(*cpi));
+		cpi->pid = childPID;
+		cpi->pty = master;
+		
+		// set to non-blocking
+		fcntl(master, F_SETFL, fcntl(master, F_GETFL) | FNDELAY | O_NONBLOCK);
+		
+		close(slave);
+		
+// 		tcsetattr(STDIN_FILENO, TCSANOW, &master);
+// 		fcntl(master, F_SETFL, FNDELAY);
+		
+// 		int status;
+		// returns 0 if nothing happened, -1 on error
+// 		pid = waitpid(childPID, &status, WNOHANG);
+		
+		return cpi;
+	}
+	
+	return NULL; // shouldn't reach here
+	
+}
+
+
+// effectively a better, asynchronous version of system()
+// redirects and captures the child process i/o
+struct child_process_info* AppState_ExecProcessPipe(AppState* as, char* execPath, char* args[]) {
+	
+	int master, slave; //pty
+	int in[2]; // io pipes
+	int out[2];
+	int err[2];
+	
+	const int RE = 0;
+	const int WR = 1;
+	
+	// 0 = read, 1 = write
+	
+	if(pipe(in) < 0) {
+		return NULL;
+	}
+	if(pipe(out) < 0) {
+		close(in[0]);
+		close(in[1]);
+		return NULL;
+	}
+	if(pipe(err) < 0) {
+		close(in[0]);
+		close(in[1]);
+		close(out[0]);
+		close(out[1]);
+		return NULL;
+	}
+	
+	errno = 0;
+	if(openpty(&master, &slave, NULL, NULL, NULL) < 0) {
+		close(in[0]);
+		close(in[1]);
+		close(out[0]);
+		close(out[1]);
+		fprintf(stderr, "Error opening new pty for '%s' [errno=%d]\n", execPath, errno);
+		return NULL;
+	}
+	
+	errno = 0;
+	
+	int childPID = fork();
+	if(childPID == -1) {
+		
+		fprintf(stderr, "failed to fork trying to execute '%s'\n", execPath);
+		perror(strerror(errno));
+		return NULL;
+	}
+	else if(childPID == 0) { // child process
+		
+		// redirect standard fd's to the pipe fd's 
+		if(dup2(in[RE], fileno(stdin)) == -1) {
+			printf("failed 1\n");
+			exit(errno);
+		}
+		if(dup2(out[WR], fileno(stdout)) == -1) {
+			printf("failed 2\n");
+			exit(errno);
+		}
+		if(dup2(err[WR], fileno(stderr)) == -1) {
+			printf("failed 3\n");
+			exit(errno);
+		}
+		
+		// close original fd's used by the parent
+		close(in[0]);
+		close(in[1]);
+		close(out[0]);
+		close(out[1]);
+		close(err[0]);
+		close(err[1]);
+		
+		close(master);
+		close(slave);
+		
+		// die when the parent does (linux only)
+		prctl(PR_SET_PDEATHSIG, SIGHUP);
+		
+		// swap for the desired program
+		execvp(execPath, args); // never returns if successful
+		
+		fprintf(stderr, "failed to execute '%s'\n", execPath);
+		exit(1); // kill the forked process 
+	}
+	else { // parent process
+		
+		// close the child-end of the pipes
+		struct child_process_info* cpi;
+		cpi = calloc(1, sizeof(*cpi));
+		
+		cpi->child_stdin = in[WR];
+		cpi->child_stdout = out[RE];
+		cpi->child_stderr = err[RE];
+		cpi->f_stdin = fdopen(cpi->child_stdin, "wb");
+		cpi->f_stdout = fdopen(cpi->child_stdout, "rb");
+		cpi->f_stderr = fdopen(cpi->child_stderr, "rb");
+		
+		// set to non-blocking
+		fcntl(cpi->child_stdout, F_SETFL, fcntl(cpi->child_stdout, F_GETFL) | O_NONBLOCK);
+		fcntl(cpi->child_stderr, F_SETFL, fcntl(cpi->child_stderr, F_GETFL) | O_NONBLOCK);
+		
+		close(in[0]);
+		close(out[1]); 
+		close(err[1]); 
+		
+		close(slave);
+		
+		cpi->pid = childPID;
+		
+// 		int status;
+		// returns 0 if nothing happened, -1 on error
+// 		pid = waitpid(childPID, &status, WNOHANG);
+		
+		return cpi;
+	}
+	
+	return NULL; // shouldn't reach here
+}
+
+
+
 
 void preFrame(AppState* as) {
 
@@ -403,6 +653,30 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 			if(drawRequired) break;
 		}
 		
+		char buffer[1024];
+		
+		
+		errno = 0;
+// 		int len = read(buffer, 5, cc->child_stdout);
+		int len = read(cc->child_stdout, buffer, 1023);
+		if(len == -1 && errno != EWOULDBLOCK) {
+			printf("1: %d %s\n", errno,  strerror(errno));
+		}
+		
+		if(len > 0) {
+			buffer[len] = 0;
+			printf("from bash[%d]: '%.*s'\n", len, len, buffer);
+		}
+		
+		errno = 0;
+		len = read(cc->child_stderr, buffer, 1023);
+		if(len == -1 && errno != EWOULDBLOCK) {
+			printf("2: %d %s\n", errno, strerror(errno));
+		}
+		if(len > 0) {
+			buffer[len] = 0;
+			printf("from bash[%d]: '%.*s'\n", len, len, buffer);
+		}
 		
 		checkResize(xs, as);
 		

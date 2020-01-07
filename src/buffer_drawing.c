@@ -167,6 +167,15 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	};
 	
 	
+	// for selections that cross the visible window boundary
+	if(b->sel && b->sel->startLine->lineNum <= bl->lineNum) {
+		if(b->sel->endLine->lineNum >= bl->lineNum) {
+			inSelection = 1;
+			fg = &theme->hl_textColor;
+			bg = &theme->hl_bgColor;
+		}
+	}
+	
 	// draw
 	while(bl) {
 		
