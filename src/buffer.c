@@ -1292,22 +1292,6 @@ void Buffer_CommentSelection(Buffer* b, BufferRange* sel) {
 	);
 }
 
-void Buffer_FindWord(Buffer* b, char* word) {
-	if(!b->first) return;
-	
-	BufferLine* bl = b->first;
-	while(bl) {
-		char* r = strstr(bl->buf, word);//, bl->length); 
-		if(r != NULL) {
-			intptr_t dist = r - bl->buf;
-			
-			printf("found: %d, %d\n", bl->lineNum, dist);
-			break;
-		}
-		
-		bl = bl->next;
-	}
-}
 
 /*
 void Buffer_AddCurrentSelectionToRing(Buffer* b) {

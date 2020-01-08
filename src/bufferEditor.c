@@ -60,11 +60,13 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	if(gev->originalTarget != w) return;
 	w->scrollLines = MAX(0, w->scrollLines - w->linesPerScrollWheel);
 }
 
 static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	if(gev->originalTarget != w) return;
 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
 }
 
@@ -160,7 +162,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	
 	// TODO: reverse calculate cursor position
 	if(gev->pos.x < tl.x + 50 || gev->pos.x > tl.x + sz.x) return;   
-	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
+	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y - w->trayHeight) return;
 	
 	size_t line = lineFromPos(w, gev->pos);
 	b->current = Buffer_raw_GetLine(b, line);
@@ -255,6 +257,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			{A,    XK_Prior,  BufferCmd_GoToPrevBookmark,     0, scrollToCursor}, // PageDown
 			{A,    XK_Home,   BufferCmd_GoToFirstBookmark,    0, scrollToCursor}, 
 			{A,    XK_End,    BufferCmd_GoToLastBookmark,     0, scrollToCursor}, 
+			{0,    XK_Escape, BufferCmd_CloseTray,            0, 0}, 
 			{0,0,0,0,0},
 		};
 		
@@ -386,18 +389,6 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 }
 
 
-void onEnter(GUIEdit* e, GUIBufferEditor* gbe) {
-	char* c = GUIEdit_GetText(e);
-	
-	printf("text: '%s'\n", c);
-	
-	Buffer_FindWord(gbe->buffer, c);
-	
-	
-	guiDelete(gbe->findBox);
-	gbe->findBox = NULL;
-	
-}
 
 
 
@@ -417,9 +408,45 @@ void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe) {
 // 	printf("sel0: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
 	
 	BufferRange_Normalize(&b->sel);
-	
-
 }
+
+
+int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
+	Buffer* b = w->buffer;
+	
+	if(!b->first) return;
+	
+	BufferLine* bl = b->first;
+	while(bl) {
+		if(bl->buf) {
+			char* r = strstr(bl->buf, word);//, bl->length); 
+			if(r != NULL) {
+				intptr_t dist = r - bl->buf;
+				
+// 				printf("found: %d, %d\n", bl->lineNum, dist);
+				
+				b->current = bl;
+				b->curCol = dist;
+				
+				if(!b->sel) b->sel = calloc(1, sizeof(*b->sel));
+				b->sel->startLine = bl; 
+				b->sel->endLine = bl; 
+				b->sel->startCol = dist;
+				b->sel->endCol = dist + strlen(word);
+				
+				w->selectPivotLine = bl;
+				w->selectPivotCol = b->sel->endCol;
+				
+				return 0;
+			}
+		}
+		bl = bl->next;
+	}
+	
+	return 1;
+// 	printf("not found: '%s'\n", word);
+}
+
 
 
 void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t col) {
@@ -447,6 +474,40 @@ static void gotoline_onenter(GUIEdit* ed, void* gbe_) {
 	GUIBufferEditor_CloseTray(w);
 	w->lineNumTypingMode = 0;
 	
+	GUIManager_popFocusedObject(w->header.gm);
+	
+}
+
+// event callbacks for the Find edit box
+static void find_onchange(GUIEdit* ed, void* gbe_) {
+	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
+	
+	char* word = GUIEdit_GetText(ed);
+// 	printf("word: '%s'\n", word);
+	if(word == 0 || strlen(word) == 0) return; 
+	
+	GUIBufferEditor_FindWord(w, word);
+	GUIBufferEditor_scrollToCursor(w);
+}
+
+static void find_onenter(GUIEdit* ed, void* gbe_) {
+	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
+	
+	GUIBufferEditor_CloseTray(w);
+	w->findTypingMode = 0;
+	
+	GUIManager_popFocusedObject(w->header.gm);
+	
+}
+
+static void loadfile_onenter(GUIEdit* ed, void* gbe_) {
+	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
+	
+	char* word = GUIEdit_GetText(ed);
+	if(word == 0 || strlen(word) == 0) return; 
+	
+	GUIBufferEditor_CloseTray(w);
+	w->loadTypingMode = 0;
 	GUIManager_popFocusedObject(w->header.gm);
 	
 }
@@ -509,32 +570,91 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				GUIRegisterObject(w->lineNumEntryBox, w->trayRoot);
 				
+				w->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
 				w->lineNumTypingMode = 0;
-				guiDelete(w->lineNumEntryBox);
+				w->cursorBlinkPaused = 0;
+// 				guiDelete(w->lineNumEntryBox);
 				GUIManager_popFocusedObject(w->header.gm);
 			}
 		// TODO: change hooks
 			break;
 		
 		case BufferCmd_FindStart:
-			e = GUIEdit_New(w->header.gm, "12");
+			GUIBufferEditor_ToggleTray(w, 50);
+			if(!w->findTypingMode) {
+				w->findTypingMode = 1;
+				
+				e = GUIEdit_New(w->header.gm, "");
+				GUIResize(&e->header, (Vector2){400, 20});
+				e->header.topleft = (Vector2){0,5};
+				e->header.gravity = GUI_GRAV_TOP_CENTER;
+				e->header.z = 600;
+				
+				e->onChange = find_onchange;
+				e->onChangeData = w;
+				
+				e->onEnter = find_onenter;
+				e->onEnterData = w;
+				
+				w->cursorBlinkPaused = 1;
+				GUIRegisterObject(e, w->trayRoot);
+				GUIManager_pushFocusedObject(w->header.gm, e);
+				
+				w->findBox = e;
+			}
+			else {
+				GUIBufferEditor_CloseTray(w);
+				w->findTypingMode = 0;
+				w->cursorBlinkPaused = 0;
+// 				guiDelete(w->findBox);
+				GUIManager_popFocusedObject(w->header.gm);
+			}
 			
-			GUIResize(&e->header, (Vector2){200, 20});
-			e->header.topleft = (Vector2){20,20};
-			e->header.gravity = GUI_GRAV_TOP_LEFT;
+			break;
 			
-			e->onEnter = (GUIEditOnEnterFn)onEnter;
-			e->onEnterData = w;
+		case BufferCmd_PromptLoad:
+			GUIBufferEditor_ToggleTray(w, 50);
+			if(!w->loadTypingMode) {
+				w->loadTypingMode = 1;
+				
+				e = GUIEdit_New(w->header.gm, "");
+				GUIResize(&e->header, (Vector2){400, 20});
+				e->header.topleft = (Vector2){0,5};
+				e->header.gravity = GUI_GRAV_TOP_CENTER;
+				e->header.z = 600;
+				
+				e->onEnter = find_onenter;
+				e->onEnterData = w;
+				
+				w->cursorBlinkPaused = 1;
+				GUIRegisterObject(e, w->trayRoot);
+				GUIManager_pushFocusedObject(w->header.gm, e);
+				
+				w->loadBox = e;
+			}
+			else {
+				GUIBufferEditor_CloseTray(w);
+				w->loadTypingMode = 0;
+				w->cursorBlinkPaused = 0;
+// 				guiDelete(w->findBox);
+				GUIManager_popFocusedObject(w->header.gm);
+			}
 			
-			GUIRegisterObject(e, w);
-			GUIManager_pushFocusedObject(w->header.gm, e);
+			break;
 			
-			w->findBox = e;
-			
+		case BufferCmd_CloseTray:
+			if(w->trayOpen) {
+				GUIBufferEditor_CloseTray(w);
+				w->lineNumTypingMode = 0;
+				w->findTypingMode = 0;
+				w->loadTypingMode = 0;
+				w->cursorBlinkPaused = 0;
+				GUIManager_popFocusedObject(w->header.gm);
+			}
 			break;
 			
 		case BufferCmd_Save:

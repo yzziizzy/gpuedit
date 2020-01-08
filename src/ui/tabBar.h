@@ -37,5 +37,7 @@ int GUITabBar_AddTabEx(
 );
 
 
+void GUITabBar_SetActive(GUITabBar* w, int index);
+
 
 #endif // __gpuedit_ui_tabBar_h__

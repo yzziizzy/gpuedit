@@ -88,10 +88,12 @@ Buffer* Clipboard_PopBuffer() {
 	Buffer* b;
 	
 	if(clipboard->selfOwned) {
+		if(VEC_LEN(&clipboard->stack) == 0) return NULL;
 		ClipboardClip* cc = VEC_TAIL(&clipboard->stack);
 		b = cc->b;
 	}
 	else {
+		if(clipboard->os[CLIP_SELECTION].length == 0) return NULL;
 		b = Buffer_New();
 		Buffer_AppendRawText(b, clipboard->os[CLIP_SELECTION].buf, clipboard->os[CLIP_SELECTION].length);
 	}

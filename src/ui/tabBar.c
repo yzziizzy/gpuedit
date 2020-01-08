@@ -32,7 +32,6 @@ static void render(GUITabBar* w, PassFrameParams* pfp) {
 	// tab backgrounds
 	VEC_EACH(&w->tabs, i, tab) {
 		struct Color4* color = tab->isActive ? &gm->defaults.tabActiveBgColor : &gm->defaults.tabBgColor; 
-		
 		*v++ = (GUIUnifiedVertex){
 			.pos = {tl.x + tabw * i + i + 1, tl.y + 1, tl.x + tabw * (i + 1) + i + 1, tl.y + w->header.size.y - 1},
 			.clip = {0, 0, 800, 800},
@@ -150,4 +149,18 @@ int GUITabBar_AddTabEx(
 	tbt->onActivateData = onActivateData;
 	
 	return index;
+}
+
+
+
+void GUITabBar_SetActive(GUITabBar* w, int index) {
+	if(index >= VEC_LEN(&w->tabs)) return;
+	
+	// clear all active tabs
+	VEC_EACH(&w->tabs, i, tab) {
+		tab->isActive = 0;
+	}
+	
+	// set the one we want
+	VEC_ITEM(&w->tabs, index)->isActive = 1;
 }

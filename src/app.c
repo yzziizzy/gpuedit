@@ -598,22 +598,6 @@ void checkResize(XStuff* xs, AppState* as) {
 void handleEvent(AppState* as, InputState* is, InputEvent* ev) {
 // 	printf("%d %c/* */%d-\n", ev->type, ev->character, ev->keysym);
 	
-	if(ev->type == EVENT_KEYUP && is->keyState[64]) {
-		if(ev->keysym == XK_Right) {
-			GUIObject* o = GUIMainControl_NextTab(as->mc, 1);
-			GUIManager_popFocusedObject(as->gui);
-			GUIManager_pushFocusedObject(as->gui, o);
-			return;
-		}
-		else if(ev->keysym == XK_Left) {
-			GUIObject* o = GUIMainControl_PrevTab(as->mc, 1);
-			GUIManager_popFocusedObject(as->gui);
-			GUIManager_pushFocusedObject(as->gui, o);
-			return;
-		}
-	}
-	
-	
 	switch(ev->type) {
 		case EVENT_KEYUP:
 		case EVENT_KEYDOWN:

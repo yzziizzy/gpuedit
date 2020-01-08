@@ -4,8 +4,9 @@
 * Circular undo buffer
 * Redo
 * Undo selection changes
+* Close tabs 
+* Mark changed tabs with "*" 
 * Hotkey customization
-* Mouse based selection editing
 * Highlight current line
 * On-demand frame rendering
 * Proper tabstops
@@ -21,7 +22,6 @@
 * Split GUIManager draw calls into layers for less sorting
 * Shortcut config presets
 * Pause render loop on X window losing focus
-* Typing with a selection overwrites it
 * Console
 * Built-in terminal
 * Slide-out windows
@@ -49,7 +49,6 @@
 == Editor Features ==
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
-* Go to line
 * Speed scrolling with ctrl
 * Plain/escaped/regex search and replace
 * Duplicate selected lines up/down
@@ -93,14 +92,13 @@
 
 == BUGS ==
 * Mouse scroll on files with fewer lines than the screen
-* Cut/Copy should do nothing without an active selection
 * Should not be able to delete the last line
 * Fix cursor position after undo
 * GUIManager should pop focus stack if focused control is deleted
 * Check all column usage for correct 1/0 basing
-* Active tab does not highlight correctly
 * Theme styling of selection stub on empty lines
 * Line numbers occasionally overlap the tray for a single frame when scrolling, in violation of z-index
+* Clicking on the find box/editor area should steal focus
 
 
 == Low Priority ==
@@ -112,6 +110,7 @@
 * --help, man page
 * Bitmap font option
 * Save/reload workspace
+* Options to look for config in ~/./etc/...
 
 == Language Notes ==
 "i don't care about member layout" flag for structs

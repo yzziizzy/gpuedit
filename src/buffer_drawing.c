@@ -337,7 +337,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	
 	
 	// draw cursor
-	if(gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
+	if(gbe->cursorBlinkPaused || gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
 		tl = (Vector2){gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y};
 		v = GUIManager_reserveElements(gm, 1);
 		float cursorOff = getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;

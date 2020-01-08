@@ -232,15 +232,18 @@ static void switchtab(int index, void* w_) {
 
 
 int GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* tab, char* title) {
-	if(w->activeTab == NULL) {
-		w->activeTab = tab;
-		w->currentIndex = 0;
-		GUIManager_SetMainWindowTitle(w->header.gm, title);
-	}
 	
 	VEC_PUSH(&w->tabs, tab);
 	
 	GUITabBar_AddTabEx(w->bar, title, switchtab, w, NULL, NULL);
+	
+	if(w->activeTab == NULL) {
+		w->activeTab = tab;
+		w->currentIndex = 0;
+		GUITabBar_SetActive(w->bar, w->currentIndex);
+		GUIManager_SetMainWindowTitle(w->header.gm, title);
+	}
+	
 	
 	return VEC_LEN(&w->tabs) - 1;
 }
@@ -255,7 +258,11 @@ GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 		w->currentIndex = MIN(w->currentIndex + 1, len - 1);
 	}
 	
+	GUITabBar_SetActive(w->bar, w->currentIndex);
 	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
+	
+	GUIManager_popFocusedObject(w->header.gm);
+	GUIManager_pushFocusedObject(w->header.gm, w->activeTab);
 	return w->activeTab;
 }
 
@@ -269,7 +276,9 @@ GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 		w->currentIndex = MAX(w->currentIndex + 1, 0);
 	}
 	
+	GUITabBar_SetActive(w->bar, w->currentIndex);
 	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
+	GUIManager_pushFocusedObject(w->header.gm, w->activeTab);
 	return w->activeTab;
 }
 
@@ -278,6 +287,7 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 	int len = VEC_LEN(&w->tabs);
 	w->currentIndex = MAX(0, MIN(len - 1, i));
 	
+	GUITabBar_SetActive(w->bar, w->currentIndex);
 	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
 	return w->activeTab;
 }

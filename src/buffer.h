@@ -174,6 +174,7 @@ typedef struct GUIBufferEditor {
 	float cursorBlinkTimer;
 	float cursorBlinkOnTime;
 	float cursorBlinkOffTime;
+	char cursorBlinkPaused;
 	
 	intptr_t scrollLines; // current scroll position, 0-based
 	intptr_t scrollCols; // NYI, waiting on next line draw fn iteration
@@ -190,9 +191,12 @@ typedef struct GUIBufferEditor {
 	intptr_t selectPivotCol;
 	
 	
+	char findTypingMode; 
 	char lineNumTypingMode; // flag for GoToLine being active
+	char loadTypingMode; 
 	GUIEdit* lineNumEntryBox;
 	GUIEdit* findBox;
+	GUIEdit* loadBox;
 	
 	// TODO: move elsewhere
 	GUIFont* font;
@@ -245,6 +249,8 @@ enum BufferCmdType {
 	BufferCmd_FindStart,
 	BufferCmd_Save,
 	BufferCmd_Reload,
+	BufferCmd_PromptLoad,
+	BufferCmd_CloseTray,
 	
 	
 	
@@ -403,7 +409,7 @@ void Buffer_DebugPrintUndoStack(Buffer* b);
 
 
 // temp
-void Buffer_FindWord(Buffer* b, char* word);
+int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 
 
 // GUIBufferEditor
@@ -419,6 +425,7 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
 
 void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe);
+void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t col);
 
 void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);

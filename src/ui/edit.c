@@ -125,10 +125,15 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	
 	// NOTE: paste will be an event type
 	
-	gev->cancelled = 1;
 	
-	if(gev->keycode == XK_Left) moveCursor(w, -1);
-	else if(gev->keycode == XK_Right) moveCursor(w, 1);
+	if(gev->keycode == XK_Left) {
+		moveCursor(w, -1);
+		gev->cancelled = 1;
+	}
+	else if(gev->keycode == XK_Right) {
+		moveCursor(w, 1);
+		gev->cancelled = 1;
+	}
 	else if(gev->keycode == XK_BackSpace) {
 		removeChar(w, w->cursorpos - 1);
 		moveCursor(w, -1);
@@ -136,11 +141,15 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		if(w->onChange) {
 			(*w->onChange)(w, w->onChangeData);
 		}
+		
+		gev->cancelled = 1;
 	}
 	else if(gev->keycode == XK_Return) {
 		if(w->onEnter) {
 			(*w->onEnter)(w, w->onEnterData);
 		}
+		
+		gev->cancelled = 1;
 	}
 	else if(gev->keycode == XK_Delete) {
 		removeChar(w, w->cursorpos);
@@ -148,11 +157,8 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		if(w->onChange) {
 			(*w->onChange)(w, w->onChangeData);
 		}
-	}
-	else if(gev->keycode == XK_Escape) {
-// 		GUIObject_revertFocus((GUIObject*)w);
-		w->hasFocus = 0;
-		return 0;
+		
+		gev->cancelled = 1;
 	}
 	else if(isprint(gev->character)) {
 		insertChar(w, gev->character);
@@ -161,6 +167,8 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		if(w->onChange) {
 			(*w->onChange)(w, w->onChangeData);
 		}
+		
+		gev->cancelled = 1;
 	}
 	
 	updateTextControl(w);
