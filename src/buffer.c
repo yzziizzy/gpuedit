@@ -24,6 +24,23 @@ Buffer* Buffer_New() {
 }
 
 
+void Buffer_Delete(Buffer* b) {
+	if(b->sel) free(b->sel);
+	
+	// free all the lines
+	BufferLine* bl = b->first;
+	BufferLine* bln = NULL;
+	
+	while(bl) {
+		bln = bl->next;
+		BufferLine_Delete(bl);
+		bl = bln;
+	}
+	
+	free(b);
+}
+
+
 void Buffer_UndoInsertText(
 	Buffer* b, 
 	intptr_t line, 
@@ -895,6 +912,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 				case 0: Buffer_DebugPrint(b); break;
 				case 1: Buffer_DebugPrintUndoStack(b); break;
 			} 
+			
 	}
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }

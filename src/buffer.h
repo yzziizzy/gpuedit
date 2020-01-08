@@ -167,6 +167,8 @@ typedef struct GUIBufferEditor {
 	BufferDrawParams* bdp;
 	Highlighter* h;
 	
+	char* sourceFile;
+	
 	float textAreaOffsetX; // accounts for line numbers and such
 	
 	float cursorBlinkTimer;
@@ -238,12 +240,13 @@ enum BufferCmdType {
 	BufferCmd_Indent,
 	BufferCmd_Unindent,
 	BufferCmd_FindStart,
+	BufferCmd_Save,
+	BufferCmd_Reload,
 	
 	
 	
 	// NYI
 	BufferCmd_Redo,
-	BufferCmd_Save,
 	BufferCmd_MatchPrevIndent,
 	BufferCmd_TruncateLine,
 	BufferCmd_TruncateLineExceptLeadingWS, // whitespace
@@ -369,6 +372,7 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe);
 
 
 Buffer* Buffer_New();
+void Buffer_Delete(Buffer* b);
 Buffer* Buffer_Copy(Buffer* src);
 Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);

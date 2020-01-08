@@ -327,6 +327,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->bdp = bdp;
 	gbe->header.name = strdup(path);
 	gbe->header.parent = w; // important for bubbling
+	gbe->sourceFile = strdup(path);
 	
 	gbe->h = pcalloc(gbe->h);
 	initCStyles(gbe->h);

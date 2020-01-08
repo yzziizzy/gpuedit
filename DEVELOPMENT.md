@@ -10,11 +10,10 @@
 * Proper tabstops
 * Options file
 * File browser
-* Set selection pivots whenever a selection is created
 * Move editing state from Buffer to GBE
 * MIME type probing of some sort
 * Ability to change the highlighter
-* Open/save/reload commands
+* Open file command
 * Save Changes? close hook buffer integration
 * Don't render bg quads for chars with no bg color
 * Cache lines of prepared buffer commands
@@ -40,6 +39,8 @@
 * Color selector control
 * CLI, ENV options parsing
 * Hide mouse cursor when typing
+* Unsaved changes crash recovery
+* Drag selection to new place
 
 
 
@@ -83,19 +84,20 @@
 * Automatically keep commas in arrays of initializers lined up.
 * Autocorrect
 * Option: rendering of selection on tabs and empty lines (and trailing spaces?)
+* Option: Render selection pivot marker
 
 
 == BUGS ==
-* Selection pivot is not consistent
 * Mouse scroll on files with fewer lines than the screen
 * Cut/Copy should do nothing without an active selection
 * Should not be able to delete the last line
 * Fix cursor position after undo
 * GUIManager should pop focus stack if focused control is deleted
 * Check all column usage for correct 1/0 basing
-* Click testing needs to account for dynamic line num gutter width
 * Active tab does not highlight correctly
 * Theme styling of selection stub on empty lines
+* Overwrite selection when typing/backspace/delete
+
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

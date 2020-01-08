@@ -13,6 +13,7 @@
 #include "highlighters/c.h"
 
 
+extern int g_DisableSave;
 
 
     //////////////////////////////////
@@ -241,6 +242,8 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			{C,    'g',       BufferCmd_GoToLine,       0, scrollToCursor}, 
 			{C,    'z',       BufferCmd_Undo,           0, scrollToCursor | rehighlight}, 
 			{C|S,  'z',       BufferCmd_Redo,           0, scrollToCursor | rehighlight}, 
+			{C,    's',       BufferCmd_Save,           0, 0}, 
+			{0,    XK_F5,     BufferCmd_Reload,         0, rehighlight}, 
 			{C,    'f',       BufferCmd_FindStart,      0, 0}, 
 			{C,    'q',       BufferCmd_Debug,          0, scrollToCursor}, 
 			{C,    'w',       BufferCmd_Debug,          1, scrollToCursor}, 
@@ -351,6 +354,8 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	GUIRegisterObject(w->scrollbar, w);
 	
+	w->sourceFile = "savetest.c";
+	
 	// HACK
 	w->linesPerScrollWheel = 3;
 	w->cursorBlinkOnTime = 0.6;
@@ -430,12 +435,21 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 			// TODO: init selectoin and pivots if no selection active
 		case BufferCmd_GrowSelectionH:
+// 			if(!w->selectPivotLine) {
+			if(!w->buffer->sel) {
+				w->selectPivotLine = w->buffer->current;
+				w->selectPivotCol = w->buffer->curCol;
+			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			Buffer_MoveCursorH(w->buffer, cmd->amt);
 			GUIBufferEditor_SetSelectionFromPivot(w);
 			break;
 		
 		case BufferCmd_GrowSelectionV:
+			if(!w->buffer->sel) {
+				w->selectPivotLine = w->buffer->current;
+				w->selectPivotCol = w->buffer->curCol;
+			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			Buffer_MoveCursorV(w->buffer, cmd->amt);
 			GUIBufferEditor_SetSelectionFromPivot(w);
@@ -474,6 +488,33 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			w->findBox = e;
 			
 			break;
+			
+		case BufferCmd_Save:
+			if(!g_DisableSave) {
+				Buffer_SaveToFile(w->buffer, w->sourceFile);
+			}
+			else {
+				printf("Buffer saving disabled.\n");
+			}
+			break;
+			
+		case BufferCmd_Reload:
+		{
+			struct hlinfo* hl = w->buffer->hl; // preserve the meta info
+			EditorParams* ep = w->buffer->ep;
+			
+			Buffer_Delete(w->buffer);
+			w->selectPivotLine = NULL;
+			w->selectPivotCol = 0;
+			// keep the scroll lines
+			w->buffer = Buffer_New();
+			Buffer_LoadFromFile(w->buffer, w->sourceFile);
+			
+			w->buffer->hl = hl;
+			w->buffer->ep = ep;
+			w->scrollLines = MIN(w->scrollLines, w->buffer->numLines);
+		}
+		break;
 		
 		default:
 			Buffer_ProcessCommand(w->buffer, cmd, needRehighlight);

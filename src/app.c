@@ -44,7 +44,7 @@
 GLuint proj_ul, view_ul, model_ul;
 
 
-
+int g_DisableSave = 0; // debug flag to disable saving
 
 RenderPipeline* rpipe;
 
@@ -121,10 +121,18 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 
 	
 	
-	// look for files to load in arguments
+	// command line args
 	for(int i = 1; i < argc; i++) {
 		char* a = argv[i];
 		
+		// for debugging
+		if(0 == strcmp(a, "--disable-save")) {
+			printf("Buffer saving disabled.\n");
+			g_DisableSave = 1;
+		}
+		
+		
+		// look for files to load in arguments
 		// -f works too
 		if(a[0] == '-') {
 			if(a[1] == 'f' && a[2] == NULL) {
