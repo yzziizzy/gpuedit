@@ -805,16 +805,35 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		
 		case BufferCmd_InsertChar:
 			// TODO: update
+			if(b->sel) {
+				b->current = b->sel->startLine; // TODO: undo cursor
+				b->curCol = b->sel->startCol;
+				Buffer_DeleteSelectionContents(b, b->sel);
+			}
 			Buffer_LineInsertChars(b, b->current, cc, b->curCol, 1);
 			Buffer_MoveCursorH(b, 1);
 			break;
 		
 		case BufferCmd_Backspace:
-			Buffer_BackspaceAt(b, b->current, b->curCol);
+			if(b->sel) {
+				b->current = b->sel->startLine;
+				b->curCol = b->sel->startCol;
+				Buffer_DeleteSelectionContents(b, b->sel);
+			}
+			else {
+				Buffer_BackspaceAt(b, b->current, b->curCol);
+			}
 			break;
 		
 		case BufferCmd_Delete:
-			Buffer_DeleteAt(b, b->current, b->curCol);
+			if(b->sel) {
+				b->current = b->sel->startLine;
+				b->curCol = b->sel->startCol;
+				Buffer_DeleteSelectionContents(b, b->sel);
+			}
+			else {
+				Buffer_DeleteAt(b, b->current, b->curCol);
+			}
 			break;
 		
 		case BufferCmd_SplitLine:

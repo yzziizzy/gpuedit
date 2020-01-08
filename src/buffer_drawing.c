@@ -118,7 +118,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	GUIUnifiedVertex* v;
 	
 	// TODO: move to gbe->resize or somewhere appropriate
-	gbe->linesOnScreen = gbe->header.size.y / tdp->lineHeight;
+	gbe->linesOnScreen = (gbe->header.size.y - gbe->trayHeight) / tdp->lineHeight;
 	
 	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
@@ -127,7 +127,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			gbe->header.absTopLeft.x, 
 			gbe->header.absTopLeft.y, 
 			gbe->header.absTopLeft.x + gbe->header.size.x, 
-			gbe->header.absTopLeft.y + gbe->header.size.y
+			gbe->header.absTopLeft.y + gbe->header.size.y - gbe->trayHeight
 		},
 		.clip = {0, 0, 18000, 18000},
 		.guiType = 0, // window (just a box)
@@ -321,14 +321,16 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 				}
 			}
 		}
-		
+
+		if(tl.y > gbe->header.size.y - gbe->trayHeight) break; // end of buffer control
+
 		// advance to the next line
 		tl.y += tdp->lineHeight;
 		bl = bl->next;
 		linesRendered++;
 		if(linesRendered > lineTo - lineFrom) break;
 		
-		if(tl.y > gbe->header.size.y) break; // end of buffer control
+		
 	}
 	
 	

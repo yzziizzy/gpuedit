@@ -3,6 +3,7 @@
 == TODO ==
 * Circular undo buffer
 * Redo
+* Undo selection changes
 * Hotkey customization
 * Mouse based selection editing
 * Highlight current line
@@ -22,6 +23,7 @@
 * Pause render loop on X window losing focus
 * Typing with a selection overwrites it
 * Console
+* Built-in terminal
 * Slide-out windows
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
@@ -41,7 +43,7 @@
 * Hide mouse cursor when typing
 * Unsaved changes crash recovery
 * Drag selection to new place
-
+* New Buffer/file
 
 
 == Editor Features ==
@@ -85,6 +87,8 @@
 * Autocorrect
 * Option: rendering of selection on tabs and empty lines (and trailing spaces?)
 * Option: Render selection pivot marker
+* Option: automatically scroll so that the cursor has n lines of padding on the top and bottom.
+* Goto line should move the middle of the screen to the cursor
 
 
 == BUGS ==
@@ -96,7 +100,7 @@
 * Check all column usage for correct 1/0 basing
 * Active tab does not highlight correctly
 * Theme styling of selection stub on empty lines
-* Overwrite selection when typing/backspace/delete
+* Line numbers occasionally overlap the tray for a single frame when scrolling, in violation of z-index
 
 
 == Low Priority ==

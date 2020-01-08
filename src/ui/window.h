@@ -21,7 +21,7 @@ typedef struct GUIWindow {
 
 
 
-GUIWindow* GUIWindow_new(GUIManager* gm);
+GUIWindow* GUIWindow_New(GUIManager* gm);
 
 
 

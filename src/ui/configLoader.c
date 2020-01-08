@@ -72,7 +72,7 @@ static GUIObject* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 	
 	// TODO: read json for values
 	
-	obj = GUIWindow_new(gm);
+	obj = GUIWindow_New(gm);
 	
 	return (GUIObject*)obj;
 }

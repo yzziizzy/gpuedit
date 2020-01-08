@@ -197,6 +197,9 @@ typedef struct GUIBufferEditor {
 	// TODO: move elsewhere
 	GUIFont* font;
 	
+	char trayOpen;
+	float trayHeight;
+	GUIWindow* trayRoot;
 	
 } GUIBufferEditor;
 
@@ -417,6 +420,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 
 void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe);
 
+void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
+void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
+void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height); 
 
 intptr_t getDisplayColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
 intptr_t getActualColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);

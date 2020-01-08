@@ -25,7 +25,7 @@ static void render(GUIWindow* gw, PassFrameParams* pfp);
 
 
 
-GUIWindow* GUIWindow_new(GUIManager* gm) {
+GUIWindow* GUIWindow_New(GUIManager* gm) {
 	
 	GUIWindow* gw;
 	

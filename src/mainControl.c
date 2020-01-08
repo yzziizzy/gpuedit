@@ -320,7 +320,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
-	gbe->header.size = (Vector2){800, 800-20}; // TODO update dynamically
+	gbe->header.size = (Vector2){800, 800}; // doesn't matter
 	gbe->buffer = buf;
 	gbe->font = tdp->font;
 	gbe->scrollLines = 0;

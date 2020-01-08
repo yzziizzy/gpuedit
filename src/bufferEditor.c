@@ -295,6 +295,9 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 
 static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
 	w->header.size = gev->size;
+	if(w->trayRoot) {
+		w->trayRoot->header.size.x = w->header.size.x;
+	}
 }
 
 static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams* pfp) {
@@ -346,7 +349,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	w->header.cursor = GUIMOUSECURSOR_TEXT;
 	
-	w->scrollbar = GUIWindow_new(gm);
+	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(w->scrollbar, (Vector2){10, 50});
 	w->scrollbar->color = (Vector){.9,.9,.9};
 	w->scrollbar->header.z = 100;
@@ -419,6 +422,36 @@ void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe) {
 }
 
 
+void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t col) {
+	if(line < 1) line = 1;
+	if(col < 0) col = 0;
+	gbe->buffer->current = Buffer_raw_GetLine(gbe->buffer, line);
+	gbe->buffer->curCol = MIN(col, gbe->buffer->current->length); // TODO: check for bounds
+}
+
+
+// event callbacks for the Go To Line edit box
+static void gotoline_onchange(GUIEdit* ed, void* gbe_) {
+	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
+	
+	intptr_t line = GUIEdit_GetDouble(ed);
+	if(line <= 0) return; 
+	
+	GUIBufferEditor_MoveCursorTo(w, line, 0);
+	GUIBufferEditor_scrollToCursor(w);
+}
+
+static void gotoline_onenter(GUIEdit* ed, void* gbe_) {
+	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
+	
+	GUIBufferEditor_CloseTray(w);
+	w->lineNumTypingMode = 0;
+	
+	GUIManager_popFocusedObject(w->header.gm);
+	
+}
+
+
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
 	GUIEdit* e;
 	
@@ -456,19 +489,34 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 			
 		case BufferCmd_GoToLine:
-		/*
-		if(!w->lineNumTypingMode) {
-			w->lineNumTypingMode = 1;
-			// activate the line number entry box
-			w->lineNumEntryBox = GUIEdit_New(w->header.gm, "");
-			GUIResize(&w->lineNumEntryBox->header, (Vector2){200, 20});
-			w->lineNumEntryBox->header.topleft = (Vector2){20,20};
-			w->lineNumEntryBox->header.gravity = GUI_GRAV_TOP_LEFT;
-			
-			GUIRegisterObject(w->lineNumEntryBox, w);
-			
-			GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
-		}*/
+			GUIBufferEditor_ToggleTray(w, 50);
+		
+			if(!w->lineNumTypingMode) {
+				w->lineNumTypingMode = 1;
+				// activate the line number entry box
+				w->lineNumEntryBox = GUIEdit_New(w->header.gm, "");
+				GUIResize(&w->lineNumEntryBox->header, (Vector2){200, 20});
+				w->lineNumEntryBox->header.topleft = (Vector2){0,5};
+				w->lineNumEntryBox->header.gravity = GUI_GRAV_TOP_CENTER;
+				w->lineNumEntryBox->header.z = 600;
+				w->lineNumEntryBox->numType = 1; // integers
+				
+				w->lineNumEntryBox->onChange = gotoline_onchange;
+				w->lineNumEntryBox->onChangeData = w;
+				
+				w->lineNumEntryBox->onEnter = gotoline_onenter;
+				w->lineNumEntryBox->onEnterData = w;
+				
+				GUIRegisterObject(w->lineNumEntryBox, w->trayRoot);
+				
+				GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
+			}
+			else {
+				GUIBufferEditor_CloseTray(w);
+				w->lineNumTypingMode = 0;
+				guiDelete(w->lineNumEntryBox);
+				GUIManager_popFocusedObject(w->header.gm);
+			}
 		// TODO: change hooks
 			break;
 		
@@ -594,3 +642,39 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
 // 	printf("hl time: %f\n", timeSince(then)  * 1000.0);
 }
 
+
+void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
+	if(!w->trayOpen) return;
+	
+	w->trayOpen = 0;
+	w->trayHeight = 0;
+	guiDelete(w->trayRoot);
+	w->trayRoot = NULL;
+}
+
+void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height) {
+	if(w->trayOpen) GUIBufferEditor_CloseTray(w);
+	else GUIBufferEditor_OpenTray(w, height);
+}
+
+void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
+	if(w->trayOpen) {
+		if(w->trayHeight != height) {
+			w->trayHeight = height;
+			return;
+		}
+	}
+	
+	w->trayOpen = 1; 
+	w->trayHeight = height;
+	w->trayRoot = GUIWindow_New(w->header.gm);
+	w->trayRoot->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->trayRoot->header.size.y = height; 
+	w->trayRoot->header.size.x = w->header.size.x;
+	w->trayRoot->header.z = 500;
+	
+	w->trayRoot->color = (Vector){.8,.2,.3,1};
+	w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
+	
+	GUIRegisterObject(w->trayRoot, w);
+}
