@@ -532,9 +532,39 @@ void Buffer_LastBookmark(Buffer* b) {
 	if(bl) b->current = bl;
 }
 
+// make sure a range goes in the right direction
+// delete selections that are zero
+void BufferRange_Normalize(BufferRange** pbr) {
+	BufferRange* br = *pbr;
+	if(!br) return;
+	
+	if(br->startLine == br->endLine) {
+		if(br->startCol == br->endCol) {
+			free(br); // delete empty ranges
+			*pbr = NULL;
+		}
+		else if(br->startCol > br->endCol) {
+			intptr_t t = br->startCol;
+			br->startCol = br->endCol;
+			br->endCol = t;
+		}
+	}
+	else if(br->startLine->lineNum > br->endLine->lineNum) {
+		void* tl = br->startLine;
+		br->startLine = br->endLine;
+		br->endLine = tl;
+		intptr_t t = br->startCol;
+		br->startCol = br->endCol;
+		br->endCol = t;
+	}
+	
+// 	printf("sel: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
+
+}
 
 
-// BUG: quite broken
+
+// only to be used for cursor-based selection growth.
 void Buffer_GrowSelectionH(Buffer* b, intptr_t cols) {
 	if(!b->sel) {
 		pcalloc(b->sel);
@@ -561,17 +591,15 @@ void Buffer_GrowSelectionH(Buffer* b, intptr_t cols) {
 	else {
 		Buffer_RelPosH(b, b->sel->startLine, b->sel->startCol, cols, &b->sel->startLine, &b->sel->startCol);
 	}
-		
-	
 	
 	// clear zero length selections
 	if(b->sel->startLine == b->sel->endLine && b->sel->startCol == b->sel->endCol) {
 		free(b->sel);
 		b->sel = NULL;
 	}
-	
-	
 }
+
+
 
 void Buffer_GrowSelectionV(Buffer* b, intptr_t lines) {
 	if(!b->sel) {
@@ -856,19 +884,10 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		case BufferCmd_GoToPrevBookmark:  Buffer_PrevBookmark(b);  break; 
 		case BufferCmd_GoToFirstBookmark: Buffer_FirstBookmark(b); break; 
 		case BufferCmd_GoToLastBookmark:  Buffer_LastBookmark(b);  break; 
-		
-		case BufferCmd_GrowSelectionH: 
-			Buffer_GrowSelectionH(b, cmd->amt);
-			Buffer_MoveCursorH(b, cmd->amt);
-			break; 
-		case BufferCmd_GrowSelectionV:
-			Buffer_GrowSelectionV(b, cmd->amt);
-			Buffer_MoveCursorV(b, cmd->amt);
-			break; 
-		
+			
 		case BufferCmd_Undo:
 			Buffer_UndoReplayToSeqBreak(b);  
-		
+			
 			break;
 			
 		case BufferCmd_Debug:

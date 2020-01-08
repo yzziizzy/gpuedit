@@ -359,6 +359,9 @@ void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_RelPosH(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t cols, BufferLine** outL, intptr_t* outC);
 void Buffer_RelPosV(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t lines, BufferLine** outL, intptr_t* outC);
 
+void BufferRange_Normalize(BufferRange** pbr);
+
+
 
 // HACK: temporary junk
 void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe);
@@ -408,6 +411,7 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
 
+void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe);
 
 
 intptr_t getDisplayColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);

@@ -110,6 +110,9 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	BufferLine* bl = Buffer_raw_GetLine(b, lineFromPos(w, gev->pos));
 	size_t col = getColForPos(w, bl, gev->pos.x);
 	Buffer_SetCurrentSelection(b, bl, col, w->selectPivotLine, w->selectPivotCol);
+	
+	w->buffer->current = bl;
+	w->buffer->curCol = col;
 	/*
 	if(bl->lineNum < w->selectPivotLine->lineNum) {
 		b->sel->startLine = bl;
@@ -389,16 +392,56 @@ void onEnter(GUIEdit* e, GUIBufferEditor* gbe) {
 }
 
 
-void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
-	if(cmd->type == BufferCmd_MovePage) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_MoveCursorV, 
-			cmd->amt * w->linesOnScreen
-		}, needRehighlight);
-		
-		w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
+
+void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe) {
+	Buffer* b = gbe->buffer;
+	if(!b->sel) {
+		pcalloc(b->sel);
 	}
-	else if(cmd->type == BufferCmd_GoToLine) {
+	
+	b->sel->startLine = b->current;
+	b->sel->startCol = b->curCol;
+	
+	b->sel->endLine = gbe->selectPivotLine;
+	b->sel->endCol = gbe->selectPivotCol;
+	
+// 	BufferRange* br = b->sel;
+// 	printf("sel0: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
+	
+	BufferRange_Normalize(&b->sel);
+	
+
+}
+
+
+void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
+	GUIEdit* e;
+	
+	switch(cmd->type){
+		case BufferCmd_MovePage:
+			Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+				BufferCmd_MoveCursorV, 
+				cmd->amt * w->linesOnScreen
+			}, needRehighlight);
+			
+			w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
+			break;
+		
+			
+			// TODO: init selectoin and pivots if no selection active
+		case BufferCmd_GrowSelectionH:
+// 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
+			Buffer_MoveCursorH(w->buffer, cmd->amt);
+			GUIBufferEditor_SetSelectionFromPivot(w);
+			break;
+		
+		case BufferCmd_GrowSelectionV:
+// 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
+			Buffer_MoveCursorV(w->buffer, cmd->amt);
+			GUIBufferEditor_SetSelectionFromPivot(w);
+			break;
+			
+		case BufferCmd_GoToLine:
 		/*
 		if(!w->lineNumTypingMode) {
 			w->lineNumTypingMode = 1;
@@ -413,26 +456,27 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
 		}*/
 		// TODO: change hooks
+			break;
 		
-	}
-	else if(cmd->type == BufferCmd_FindStart) {
-		GUIEdit* e = GUIEdit_New(w->header.gm, "12");
+		case BufferCmd_FindStart:
+			e = GUIEdit_New(w->header.gm, "12");
+			
+			GUIResize(&e->header, (Vector2){200, 20});
+			e->header.topleft = (Vector2){20,20};
+			e->header.gravity = GUI_GRAV_TOP_LEFT;
+			
+			e->onEnter = (GUIEditOnEnterFn)onEnter;
+			e->onEnterData = w;
+			
+			GUIRegisterObject(e, w);
+			GUIManager_pushFocusedObject(w->header.gm, e);
+			
+			w->findBox = e;
+			
+			break;
 		
-		GUIResize(&e->header, (Vector2){200, 20});
-		e->header.topleft = (Vector2){20,20};
-		e->header.gravity = GUI_GRAV_TOP_LEFT;
-		
-		e->onEnter = (GUIEditOnEnterFn)onEnter;
-		e->onEnterData = w;
-		
-		GUIRegisterObject(e, w);
-		GUIManager_pushFocusedObject(w->header.gm, e);
-		
-		w->findBox = e;
-		
-	}
-	else { // pass it on
-		Buffer_ProcessCommand(w->buffer, cmd, needRehighlight);
+		default:
+			Buffer_ProcessCommand(w->buffer, cmd, needRehighlight);
 	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);

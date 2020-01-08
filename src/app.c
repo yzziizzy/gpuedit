@@ -83,7 +83,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		NULL,
 	};
 	
-	cc = AppState_ExecProcessPipe(NULL, "/bin/bash", args);
+// 	cc = AppState_ExecProcessPipe(NULL, "/bin/bash", args);
 	
 	// this costs 5mb of ram
 // 	json_gl_init_lookup();
@@ -652,7 +652,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 			
 			if(drawRequired) break;
 		}
-		
+		/*
 		char buffer[1024];
 		
 		
@@ -677,6 +677,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 			buffer[len] = 0;
 			printf("from bash[%d]: '%.*s'\n", len, len, buffer);
 		}
+		*/
 		
 		checkResize(xs, as);
 		

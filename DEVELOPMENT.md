@@ -10,6 +10,8 @@
 * Proper tabstops
 * Options file
 * File browser
+* Set selection pivots whenever a selection is created
+* Move editing state from Buffer to GBE
 * MIME type probing of some sort
 * Ability to change the highlighter
 * Open/save/reload commands
