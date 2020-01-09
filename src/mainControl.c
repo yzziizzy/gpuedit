@@ -4,6 +4,8 @@
 #include "gui.h"
 #include "gui_internal.h"
 
+#include "fileBrowser.h"
+
 #include "highlighters/c.h"
 
 // temporary, should be separated

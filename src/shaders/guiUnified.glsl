@@ -171,14 +171,14 @@ void main(void) {
 // 	out_Color  = vec4(1,.1,.1, 1);
 // 	return;
 	// clipping
-// 	if(gl_FragCoord.x < gs_clip.x || gl_FragCoord.x > gs_clip.z
-// 		|| gl_FragCoord.y < gs_clip.y || gl_FragCoord.y > gs_clip.w) {
-// 		
-// 		out_Color = vec4(1,.1,.1,.4);
-// 		return;
+	if(gl_FragCoord.x < gs_clip.x || gl_FragCoord.x > gs_clip.z
+		|| gl_FragCoord.y < gs_clip.y || gl_FragCoord.y > gs_clip.w) {
 		
-	//	discard;
-// 	}
+		out_Color = vec4(1,.1,.1,.4);
+		return;
+		
+		discard;
+	}
 	
 	//out_Color = vec4(1,.1,.1, 1);
 	//return;

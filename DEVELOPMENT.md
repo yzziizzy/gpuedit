@@ -99,6 +99,7 @@
 * Theme styling of selection stub on empty lines
 * Line numbers occasionally overlap the tray for a single frame when scrolling, in violation of z-index
 * Clicking on the find box/editor area should steal focus
+* Window resize is broken somewhere
 
 
 == Low Priority ==
@@ -124,3 +125,4 @@ endianness builtins
 able to mix pointer types if first member of struct is other struct
 "prefixed" structs, with limited inheritance-type properties. only one prefixed struct possible
 count_of() initiializer function to set a field to the number of array members initialized to another field
+x -%= n : m; operator that works like this:  x = (x - n + m) % m; (keeps x positive) 

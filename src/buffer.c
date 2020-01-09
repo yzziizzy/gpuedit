@@ -18,7 +18,8 @@
 Buffer* Buffer_New() {
 	Buffer* b = pcalloc(b);
 	
-	VEC_INIT(&b->undoStack);
+	b->undoMax = 4096; // TODO: settings
+	b->undoRing = calloc(1, b->undoMax * sizeof(*b->undoRing));
 	
 	return b;
 }
@@ -41,6 +42,53 @@ void Buffer_Delete(Buffer* b) {
 }
 
 
+static int undo_avail(Buffer* b) {
+	return b->undoMax - b->undoFill;
+}
+
+static BufferUndo* undo_inc(Buffer* b) {
+	// TODO: adjust size dynamically sometimes
+	BufferUndo* u = b->undoRing + b->undoCurrent;
+	
+	if(b->undoFill == 0) {
+		b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
+		b->undoNext = b->undoCurrent;
+		b->undoFill++;
+		return u;
+	}
+	
+	if(undo_avail(b) <= 0) {
+		// clean up the old data
+		if(u->text) free(u->text);
+		u->text = NULL;
+		b->undoOldest = (b->undoOldest + 1) % b->undoMax;
+	}
+	else {
+		b->undoFill++;
+	}
+	
+	b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
+	b->undoNext = b->undoCurrent;
+	
+	return u;
+}
+
+static BufferUndo* undo_current(Buffer* b) {
+	return b->undoRing +  b->undoCurrent;
+}
+
+static BufferUndo* undo_dec(Buffer* b) {
+	if(b->undoFill <= 0) return NULL;
+	if(b->undoOldest == b->undoCurrent) return NULL;
+	
+	b->undoCurrent = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
+	
+	// next is not moved; it is the end of the redo stack
+// 	b->undoNext = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
+	
+	return b->undoRing + b->undoCurrent;
+}
+
 void Buffer_UndoInsertText(
 	Buffer* b, 
 	intptr_t line, 
@@ -51,8 +99,9 @@ void Buffer_UndoInsertText(
 	
 	if(len == 0) return;
 	
-	VEC_INC(&b->undoStack);
-	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_INC(&b->undoStack);
+// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	BufferUndo* u = undo_inc(b);
 	
 	u->action = UndoAction_InsertText;
 	u->lineNum = line;
@@ -65,8 +114,9 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 	
 	if(len == 0) return;
 	
-	VEC_INC(&b->undoStack);
-	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_INC(&b->undoStack);
+// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	BufferUndo* u = undo_inc(b);
 	
 	u->action = UndoAction_DeleteText;
 	u->lineNum = bl->lineNum;
@@ -78,12 +128,13 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 
 void Buffer_UndoSequenceBreak(Buffer* b) {
 	// don't add duplicates
-	if(VEC_LEN(&b->undoStack) > 0) {
-		if(VEC_TAIL(&b->undoStack).action == UndoAction_SequenceBreak) return;
+	if(b->undoFill > 0) {
+		if(undo_current(b)->action == UndoAction_SequenceBreak) return;
 	}
 	
-	VEC_INC(&b->undoStack);
-	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_INC(&b->undoStack);
+// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	BufferUndo* u = undo_inc(b);
 	
 	u->action = UndoAction_SequenceBreak;
 	u->lineNum = 0;
@@ -93,8 +144,9 @@ void Buffer_UndoSequenceBreak(Buffer* b) {
 }
 
 void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
-	VEC_INC(&b->undoStack);
-	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_INC(&b->undoStack);
+// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	BufferUndo* u = undo_inc(b);
 	
 	u->action = UndoAction_InsertLineAfter;
 	u->lineNum = before ? before->lineNum : 0; // 0 means the first line 
@@ -105,8 +157,9 @@ void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
 
 
 void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
-	VEC_INC(&b->undoStack);
-	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_INC(&b->undoStack);
+// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	BufferUndo* u = undo_inc(b);
 	
 	u->action = UndoAction_DeleteLine;
 	u->lineNum = bl->lineNum; // null means the first line 
@@ -118,7 +171,11 @@ void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
 
 // clears the entire undo buffer
 void Buffer_UndoTruncateStack(Buffer* b) {
-	VEC_TRUNC(&b->undoStack);
+// 	VEC_TRUNC(&b->undoStack);
+	b->undoFill = 0;
+	b->undoOldest = 0;
+	b->undoNext = 0;
+	b->undoCurrent = 0;
 }
 
 // rolls back to the previous sequence break
@@ -126,7 +183,27 @@ void Buffer_UndoReplayToSeqBreak(Buffer* b) {
 	while(Buffer_UndoReplayTop(b));
 	
 	// pop off the sequence break
-	if(VEC_LEN(&b->undoStack) >= 0) VEC_POP1(&b->undoStack);
+	undo_dec(b);
+// 	if(VEC_LEN(&b->undoStack) >= 0) VEC_POP1(&b->undoStack);
+}
+
+// rolls forward until a sequence break or undoNext
+void Buffer_RedoReplayToSeqBreak(Buffer* b) {
+	if(b->undoCurrent == b->undoNext) {
+// 		printf("redo: current reached next\n");
+		return;
+	}
+	
+	BufferUndo* u;
+	u = b->undoRing + b->undoCurrent;
+	b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
+	
+	
+	Buffer_RedoReplay(b, u);
+	
+	// pop off the sequence break
+// 	undo_dec(b);
+// 	if(VEC_LEN(&b->undoStack) >= 0) VEC_POP1(&b->undoStack);
 }
 
 
@@ -135,8 +212,10 @@ void Buffer_UndoReplayToSeqBreak(Buffer* b) {
 int Buffer_UndoReplayTop(Buffer* b) {
 	BufferLine* bl;
 	
-	if(VEC_LEN(&b->undoStack) == 0) return 0;
-	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	if(b->undoFill == 0) return 0;
+// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	BufferUndo* u = undo_dec(b);
+	if(u == NULL) return 0;
 	
 	// these all need to be the inverse
 	switch(u->action) {
@@ -187,10 +266,72 @@ int Buffer_UndoReplayTop(Buffer* b) {
 	}
 	
 	// cleanup
-	if(u->text) free(u->text);
-	u->text = NULL;
+// 	if(u->text) free(u->text);
+// 	u->text = NULL;
 	
-	VEC_POP1(&b->undoStack);
+// 	VEC_POP1(&b->undoStack);
+	
+	return 1;
+}
+
+// un-executes a single undo action
+// returns 0 on a sequence break
+int Buffer_RedoReplay(Buffer* b, BufferUndo* u) {
+	BufferLine* bl;
+	
+	// these all need to be the inverse
+	switch(u->action) {
+		case UndoAction_DeleteText:
+			bl = Buffer_raw_GetLine(b, u->lineNum);
+			Buffer_raw_DeleteChars(b, bl, u->colNum, u->length);
+			break;
+			
+		case UndoAction_InsertText:
+			bl = Buffer_raw_GetLine(b, u->lineNum);
+			Buffer_raw_InsertChars(b, bl, u->text, u->colNum, u->length);
+			b->current = bl; // BUG not right after <delete> key
+			b->curCol = u->colNum + u->length;
+			break;
+			
+		case UndoAction_DeleteLine: 
+			bl = Buffer_raw_GetLine(b, u->lineNum);
+			Buffer_raw_DeleteLine(b, bl);
+			break; 
+			
+		case UndoAction_InsertLineAfter:
+			if(u->lineNum == 0) {
+				BufferLine* bln = Buffer_raw_InsertLineBefore(b, b->first);
+				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
+			}
+			else {
+				bl = Buffer_raw_GetLine(b, u->lineNum);
+				BufferLine* bln = Buffer_raw_InsertLineBefore(b, bl);
+				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
+			}
+			break;
+			
+		case UndoAction_MoveCursorTo:
+			fprintf(stderr, "RedoAction_MoveCursorTo nyi\n");
+			break;
+			
+		case UndoAction_UnmodifiedFlag:
+			fprintf(stderr, "RedoAction_MoveCursorTo nyi\n");
+			
+			break;
+			
+		case UndoAction_SequenceBreak:
+			// do nothing at all for now
+			return 0;
+			
+		default:
+			fprintf(stderr, "Unknown redo action: %d\n", u->action);
+	}
+	
+	// cleanup
+// 	if(u->text) free(u->text);
+// 	u->text = NULL;
+	
+// 	VEC_POP1(&b->undoStack);
 	
 	return 1;
 }
@@ -923,6 +1064,10 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 			
 		case BufferCmd_Undo:
 			Buffer_UndoReplayToSeqBreak(b);  
+			break;
+			
+		case BufferCmd_Redo:
+			Buffer_RedoReplayToSeqBreak(b);  
 			
 			break;
 			
@@ -1363,7 +1508,7 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, 
 
 
 void Buffer_DebugPrintUndoStack(Buffer* b) {
-	printf("Undo stack for %p (%ld entries)\n", b, VEC_LEN(&b->undoStack));
+	printf("Undo stack for %p (%ld entries)\n", b, b->undoFill);
 	
 	char* names[] = { 
 		"InsText",
@@ -1378,9 +1523,11 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 		"SequBrk",
 	};
 	
-	VEC_EACH(&b->undoStack, i, u) {
-		printf(" %d [%s] {%d,%d} %d:'%.*s'\n", i, names[u.action], 
-			u.lineNum, u.colNum, u.length, u.length, u.text);
+	for(int ii = 0; ii < b->undoFill; ii++) {
+		int i = (ii + b->undoOldest) % b->undoMax;
+		BufferUndo* u = b->undoRing + ii;
+		printf(" %d [%s] {%d,%d} %d:'%.*s'\n", i, names[u->action], 
+			u->lineNum, u->colNum, u->length, u->length, u->text);
 	}
 	
 	

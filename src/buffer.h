@@ -111,7 +111,14 @@ typedef struct Buffer {
 	struct hlinfo* hl;
 	EditorParams* ep;
 	
-	VEC(BufferUndo) undoStack;
+	
+	int undoOldest; // the oldest undo item in the buffer; the end of undo
+	int undoCurrent; // the current state of the Buffer; goes backwards with undo, forwards with redo
+	int undoNext; // the index after the newest item; the end of redo
+	int undoMax; // the size of the ring buffer
+	int undoFill; // the number of undo slots used in the ring buffer
+	BufferUndo* undoRing;
+// 	VEC(BufferUndo) undoStack;
 } Buffer;
 
 
@@ -323,6 +330,9 @@ void Buffer_UndoSequenceBreak(Buffer* b);
 void Buffer_UndoReplayToSeqBreak(Buffer* b);
 int Buffer_UndoReplayTop(Buffer* b);
 void Buffer_UndoTruncateStack(Buffer* b);
+
+void Buffer_RedoReplayToSeqBreak(Buffer* b);
+int Buffer_RedoReplay(Buffer* b, BufferUndo* u);
 
 // functions below here will add to the undo stack
 
