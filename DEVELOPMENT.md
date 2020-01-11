@@ -1,8 +1,7 @@
 
 
 == TODO ==
-* Circular undo buffer
-* Redo
+* Undo/redo garbage collection
 * Undo selection changes
 * Close tabs 
 * Mark changed tabs with "*" 

@@ -33,7 +33,7 @@ typedef struct BufferRange {
 	intptr_t startCol, endCol;
 	
 	intptr_t charLength; // not implemented atm
-	int reverse : 1; // active end at: 0 = end, 1 = start
+	int reverse : 1; // DEAD CODE? // active end at: 0 = end, 1 = start
 	
 	
 	// type?
