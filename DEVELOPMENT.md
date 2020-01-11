@@ -87,7 +87,7 @@
 * Option: Render selection pivot marker
 * Option: automatically scroll so that the cursor has n lines of padding on the top and bottom.
 * Goto line should move the middle of the screen to the cursor
-
+* Comment hint to hilighter to treat a certain identifier as a certain type, for use with macros
 
 == BUGS ==
 * Mouse scroll on files with fewer lines than the screen
