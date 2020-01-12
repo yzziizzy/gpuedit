@@ -1,12 +1,43 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <X11/keysymdef.h>
 
 #include "sti/sti.h"
 
+#include "commands.h"
 #include "gui.h"
 
 
+
+static struct { 
+	char* name,
+	unsigned int key;
+} raw_keys[] = {
+	{"down", XK_Down},
+	{"up", XK_Up},
+	{"tab", XK_Tab},
+	{"enter", XK_Return},
+	{"return", XK_Return},
+	(NULL, 0},
+};
+
+
+static HashTable words;
+
+static void init_words() {
+	HT_init(&words);
+	
+	for(int i = 0; raw_words[i].name != 0; i++) {
+		HT_set(&words, raw_words[i].name, raw_words[i].key);
+	}
+}
+
+static int get_word(char* w) {
+	int64_t n;
+	if(HT_get(&words, w, &n)) return -1;
+	return n;
+} 
 
 
 void CommandList_loadFile(char* path) {
@@ -76,7 +107,7 @@ void CommandList_loadFile(char* path) {
 			}
 			
 			
-			if(*s == 'X' && *(s+1) == 'K' &&*(s+2) == '_') {
+			if(*s == 'X' && *(s+1) == 'K' && *(s+2) == '_') {
 				// X11 key macro
 				
 // 					cat keysymdef.h | grep '#define' | egrep -o 'XK_[^ ]* *[x0-9a-f]*' | sed 's/  */", /g;s/^/{"/;s/$/},/'

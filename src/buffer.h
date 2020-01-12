@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "font.h"
 #include "highlight.h"
+#include "commands.h"
 
 #define BL_BOOKMARK_FLAG  (1<<0)
 
@@ -217,67 +218,9 @@ typedef struct GUIBufferEditor {
 
 
 
-enum BufferCmdType {
-	BufferCmd_NULL = 0,
-	BufferCmd_Debug,
-	BufferCmd_MoveCursorV,
-	BufferCmd_MoveCursorH,
-	BufferCmd_InsertChar,
-	BufferCmd_SplitLine,
-	BufferCmd_Backspace,
-	BufferCmd_Delete,
-	BufferCmd_DeleteCurLine,
-	BufferCmd_MovePage,
-	BufferCmd_Home,
-	BufferCmd_End,
-	BufferCmd_DuplicateLine,
-	BufferCmd_SelectNone,
-	BufferCmd_SelectAll,
-	BufferCmd_SelectLine,
-	BufferCmd_SelectToEOL, // end of line
-	BufferCmd_SelectFromSOL, // start of line
-	BufferCmd_GoToLine,
-	BufferCmd_RehilightWholeBuffer,
-	BufferCmd_Cut,
-	BufferCmd_Copy,
-	BufferCmd_Paste,
-	BufferCmd_SetBookmark,
-	BufferCmd_RemoveBookmark,
-	BufferCmd_ToggleBookmark,
-	BufferCmd_GoToNextBookmark,
-	BufferCmd_GoToPrevBookmark,
-	BufferCmd_GoToFirstBookmark,
-	BufferCmd_GoToLastBookmark,
-	BufferCmd_Undo,
-	BufferCmd_GrowSelectionH,
-	BufferCmd_GrowSelectionV,
-	BufferCmd_Indent,
-	BufferCmd_Unindent,
-	BufferCmd_FindStart,
-	BufferCmd_Save,
-	BufferCmd_Reload,
-	BufferCmd_PromptLoad,
-	BufferCmd_CloseTray,
-	
-	
-	
-	// NYI
-	BufferCmd_Redo,
-	BufferCmd_MatchPrevIndent,
-	BufferCmd_TruncateLine,
-	BufferCmd_TruncateLineExceptLeadingWS, // whitespace
-	BufferCmd_TruncateLineAfterCursor,
-	BufferCmd_TruncateBeforeAfterCursor, // not the meaning of truncate, but it matches the prior
-	BufferCmd_CommentLine,
-	BufferCmd_CommentSelection,
-	BufferCmd_CommentSmart,
-	BufferCmd_MoveCursorToEOL,
-	BufferCmd_MoveCursorToSOL,
-	BufferCmd_MoveCursorToSOLT, // start of line text, ignoring leading whitespace
-};
 
 typedef struct BufferCmd {
-	enum BufferCmdType type;
+	enum CmdType type;
 	int amt;
 } BufferCmd;
 

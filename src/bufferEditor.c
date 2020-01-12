@@ -208,7 +208,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		struct {
 			unsigned int mods;
 			int keysym;
-			enum BufferCmdType bcmd;
+			enum CmdType bcmd;
 			int amt;
 			unsigned int flags;
 			

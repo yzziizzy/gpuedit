@@ -7,29 +7,14 @@
 
 #include "gui.h"
 #include "buffer.h"
+#include "commands.h"
 
 
 
-
-enum MainCmdType {
-	MainCmd_None = 0,
-	MainCmd_SaveActiveTab,
-	MainCmd_SaveAll,
-	MainCmd_Quit,
-	MainCmd_SaveQuit,
-	MainCmd_QuitWithoutSave,
-	MainCmd_LoadFile,
-	MainCmd_NewEmptyBuffer,
-	MainCmd_ReloadTab,
-	MainCmd_CloseTab,
-	MainCmd_SaveAndCloseTab,
-	MainCmd_NextTab,
-	MainCmd_PrevTab,
-};
 
 
 typedef struct MainCmd {
-	enum MainCmdType type;
+	enum CmdType type;
 	int n;
 	char* path;
 } MainCmd;

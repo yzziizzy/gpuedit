@@ -98,7 +98,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	struct {
 		unsigned int mods;
 		int keysym;
-		enum MainCmdType mcmd;
+		enum CmdType mcmd;
 		int n;
 		unsigned int flags;
 		
@@ -136,7 +136,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 
 void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 	switch(cmd->type) {
-	case MainCmd_None:
+	case Cmd_NULL:
 		// do nothing
 		break;
 		
