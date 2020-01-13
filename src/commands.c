@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <X11/keysymdef.h>
 
@@ -11,7 +12,7 @@
 
 
 static struct { 
-	char* name,
+	char* name;
 	unsigned int key;
 } raw_keys[] = {
 	{"down", XK_Down},
@@ -19,17 +20,17 @@ static struct {
 	{"tab", XK_Tab},
 	{"enter", XK_Return},
 	{"return", XK_Return},
-	(NULL, 0},
+	{NULL, 0},
 };
 
 
 static HashTable words;
 
 static void init_words() {
-	HT_init(&words);
+	HT_init(&words, 16);
 	
-	for(int i = 0; raw_words[i].name != 0; i++) {
-		HT_set(&words, raw_words[i].name, raw_words[i].key);
+	for(int i = 0; raw_keys[i].name != 0; i++) {
+		HT_set(&words, raw_keys[i].name, raw_keys[i].key);
 	}
 }
 
@@ -43,8 +44,8 @@ static int get_word(char* w) {
 void CommandList_loadFile(char* path) {
 	
 	size_t len;
-	char* src = readWhileFile(path, &len);
-	char** olines = strsplit_inplace(src, '\n');
+	char* src = readWholeFile(path, &len);
+	char** olines = strsplit_inplace(src, '\n', NULL);
 	char** lines = olines; // keep original for freeing
 	
 	
@@ -56,7 +57,7 @@ void CommandList_loadFile(char* path) {
 		unsigned int m = 0;
 		unsigned int key = 0;
 		
-		for(*s; s++) {
+		for(; *s; s++) {
 			if(*s == ' ') { 
 				s++;
 				break;
@@ -86,7 +87,7 @@ void CommandList_loadFile(char* path) {
 		}
 		
 		// next the main key
-		for(*s; s++) {
+		for(; *s; s++) {
 			if(*s == '\'') { // a key literal
 				s++;
 				
@@ -123,6 +124,27 @@ void CommandList_loadFile(char* path) {
 }
 
 
-
-
-
+int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter) {
+	
+	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
+	unsigned int ANY_MASK = ~ANY;
+	
+	unsigned int i = *iter;
+	
+	for(; list[i].cmd != 0; i++) {
+// 			printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+		if(list[i].keysym != tolower(gev->keycode)) continue;
+		if((list[i].mods & ANY) != (gev->modifiers & ANY)) continue;
+		// TODO: specific mods
+		
+		// found
+		*out = list[i];
+		
+		i++;
+		*iter = i;
+		return 1;
+	}
+	
+	*iter = i;
+	return 0; // no match
+}

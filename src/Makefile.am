@@ -15,6 +15,7 @@ gpuedit_SOURCES = main.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
 	clipboard.c \
+	commands.c \
 	dumpImage.c \
 	fbo.c \
 	fcfg.c \
@@ -58,9 +59,8 @@ gpuedit_SOURCES = main.c \
 	window.c 
 
 gpuedit_LDADD =  \
-	-lm -ldl -lutil \
-	-lX11 -lXfixes -lpng \
-	-lGL -lGLU -lGLEW 
+	-ldl -lutil \
+	-lXfixes -lpng
 
 # -ffast-math but without reciprocal approximations 
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \

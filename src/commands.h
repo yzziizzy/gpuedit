@@ -85,4 +85,23 @@ enum CmdType {
 
 
 
+
+
+typedef struct Cmd {
+	unsigned int mods;
+	int keysym;
+	enum CmdType cmd;
+// 	union {
+		int amt;
+// 	};
+	unsigned int flags;
+} Cmd;
+
+struct GUIEvent;
+typedef struct GUIEvent GUIEvent;
+
+int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter);
+
+
+
 #endif //__gpuedit_commands_h__

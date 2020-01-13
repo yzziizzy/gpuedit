@@ -205,14 +205,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		unsigned int undoSeqBreak     = 1 << 3;
 		unsigned int hideMouse        = 1 << 4;
 		
-		struct {
-			unsigned int mods;
-			int keysym;
-			enum CmdType bcmd;
-			int amt;
-			unsigned int flags;
-			
-		} cmds[] = {
+		Cmd cmds[] = {
 			{0,    XK_Left,      BufferCmd_MoveCursorH,    -1, scrollToCursor | resetCursorBlink},
 			{0,    XK_Right,     BufferCmd_MoveCursorH,     1, scrollToCursor | resetCursorBlink},
 			{0,    XK_Up,        BufferCmd_MoveCursorV,    -1, scrollToCursor | resetCursorBlink},
@@ -261,33 +254,28 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			{0,0,0,0,0},
 		};
 		
-		unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
-		unsigned int ANY_MASK = ~ANY;
-		for(int i = 0; cmds[i].bcmd != 0; i++) {
-// 			printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
-			if(cmds[i].keysym != tolower(gev->keycode)) continue;
-			if((cmds[i].mods & ANY) != (gev->modifiers & ANY)) continue;
-			// TODO: specific mods
-			
+		Cmd found;
+		unsigned int iter = 0;
+		while(Commands_ProbeCommand(gev, cmds, &found, &iter)) {
 			// GUIBufferEditor will pass on commands to the buffer
 			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
-				cmds[i].bcmd, cmds[i].amt 
+				found.cmd, found.amt 
 			}, &needRehighlight);
 			
 			
-			if(cmds[i].flags & scrollToCursor) {
+			if(found.flags & scrollToCursor) {
 				GUIBufferEditor_scrollToCursor(w);
 			}
 			
-			if(cmds[i].flags & rehighlight) {
+			if(found.flags & rehighlight) {
 				GUIBufferEditor_RefreshHighlight(w);
 			}
 			
-			if(cmds[i].flags & resetCursorBlink) {
+			if(found.flags & resetCursorBlink) {
 				w->cursorBlinkTimer = 0;
 			}
 			
-			if(cmds[i].flags & undoSeqBreak) {
+			if(found.flags & undoSeqBreak) {
 				Buffer_UndoSequenceBreak(w->buffer);
 			}
 		}
