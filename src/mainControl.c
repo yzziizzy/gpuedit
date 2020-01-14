@@ -95,37 +95,25 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	
 // 	unsigned int scrollToCursor   = 1 << 0;
 	
-	struct {
-		unsigned int mods;
-		int keysym;
-		enum CmdType mcmd;
-		int n;
-		unsigned int flags;
-		
-	} cmds[] = {
+	Cmd cmds[] = {
 		{A,    XK_Right,     MainCmd_NextTab,         1, 0},
 		{A,    XK_Left,      MainCmd_PrevTab,         1, 0},
 		{C|S,  'q',          MainCmd_QuitWithoutSave, 0, 0},
 		{0,0,0,0,0},
 	};
 	
-	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
-	unsigned int ANY_MASK = ~ANY;
-	for(int i = 0; cmds[i].mcmd != 0; i++) {
-// 			printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
-		if(cmds[i].keysym != tolower(gev->keycode)) continue;
-		if((cmds[i].mods & ANY) != (gev->modifiers & ANY)) continue;
-		// TODO: specific mods
-		
+	Cmd found;
+	unsigned int iter = 0;
+	while(Commands_ProbeCommand(gev, cmds, &found, &iter)) {	
 		// GUIBufferEditor will pass on commands to the buffer
 		GUIMainControl_ProcessCommand(w, &(MainCmd){
-			.type = cmds[i].mcmd, 
-			.n = cmds[i].n,
+			.type = found.cmd, 
+			.n = found.amt,
 			.path = NULL,
 		});
 		
 		
-// 		if(cmds[i].flags & scrollToCursor) {
+// 		if(found.flags & scrollToCursor) {
 // 			GUIBufferEditor_scrollToCursor(w);
 // 		}
 		
