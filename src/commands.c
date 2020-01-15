@@ -10,6 +10,14 @@
 #include "gui.h"
 
 
+static struct {
+	char* name;
+	uint64_t val;
+} keysym_lookup[] = {
+	#include "cmd_keysym_lookup.c"
+	{NULL, NULL},
+};
+
 
 static struct { 
 	char* name;
@@ -25,12 +33,18 @@ static struct {
 
 
 static HashTable words;
+static HashTable syms;
 
 static void init_words() {
 	HT_init(&words, 16);
+	HT_init(&syms, 2100);
 	
 	for(int i = 0; raw_keys[i].name != 0; i++) {
 		HT_set(&words, raw_keys[i].name, raw_keys[i].key);
+	}
+	
+	for(int i = 0; keysym_lookup[i].name != 0; i++) {
+		HT_set(&syms, keysym_lookup[i].name, keysym_lookup[i].val);
 	}
 }
 
@@ -110,8 +124,20 @@ void CommandList_loadFile(char* path) {
 			
 			if(*s == 'X' && *(s+1) == 'K' && *(s+2) == '_') {
 				// X11 key macro
+				// cat keysymdef.h | grep '#define' | egrep -o 'XK_[^ ]* *[x0-9a-f]*' | sed 's/  */", /g;s/^/{"/;s/$/},/'
+				char buf[128];
+				int len = 0;
+				int64_t n = 0;
+				len = sscanf("%.*s ", 127, buf); 
+				buf[len] = 0;
+				s += len;
 				
-// 					cat keysymdef.h | grep '#define' | egrep -o 'XK_[^ ]* *[x0-9a-f]*' | sed 's/  */", /g;s/^/{"/;s/$/},/'
+				if(HT_get(&syms, buf, &n)) {
+					printf("invalid X11 keysym name: '%s'\n", buf);
+					continue;
+				}
+				
+				key = n;
 				
 				break;
 			}

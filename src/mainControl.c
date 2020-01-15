@@ -104,7 +104,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	
 	Cmd found;
 	unsigned int iter = 0;
-	while(Commands_ProbeCommand(gev, cmds, &found, &iter)) {	
+	while(Commands_ProbeCommand(gev, cmds, &found, &iter)) {
 		// GUIBufferEditor will pass on commands to the buffer
 		GUIMainControl_ProcessCommand(w, &(MainCmd){
 			.type = found.cmd, 
