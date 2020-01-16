@@ -10,6 +10,18 @@
 #include "gui.h"
 
 
+
+static struct {
+	char* name;
+	int val;
+} enum_table[] = { 
+#define X(a, b) {#a "_" #b, a##_##b},
+	COMMANDTYPE_LIST
+#undef X
+};
+
+
+
 static struct {
 	char* name;
 	uint64_t val;
@@ -34,10 +46,12 @@ static struct {
 
 static HashTable words;
 static HashTable syms;
+static HashTable cmd_enums;
 
 static void init_words() {
 	HT_init(&words, 16);
 	HT_init(&syms, 2100);
+	HT_init(&cmd_enums, 120);
 	
 	for(int i = 0; raw_keys[i].name != 0; i++) {
 		HT_set(&words, raw_keys[i].name, raw_keys[i].key);
@@ -46,7 +60,12 @@ static void init_words() {
 	for(int i = 0; keysym_lookup[i].name != 0; i++) {
 		HT_set(&syms, keysym_lookup[i].name, keysym_lookup[i].val);
 	}
+	
+	for(int i = 0; enum_table[i].name != 0; i++) {
+		HT_set(&cmd_enums, enum_table[i].name, enum_table[i].val);
+	}
 }
+
 
 static int get_word(char* w) {
 	int64_t n;
@@ -54,14 +73,26 @@ static int get_word(char* w) {
 	return n;
 } 
 
-
-void CommandList_loadFile(char* path) {
+static void after(char** s, char* search) {
+	char* e = strstr(*s, search);
 	
-	size_t len;
-	char* src = readWholeFile(path, &len);
+	if(e) *s = e + strlen(search);
+}
+
+
+Cmd* CommandList_loadFile(char* path) {
+	
+	char buf[128];
+	size_t len = 0;
+	int64_t n = 0;
+	
+	char* src = readWholeFile(path, NULL);
 	char** olines = strsplit_inplace(src, '\n', NULL);
 	char** lines = olines; // keep original for freeing
 	
+	int cmdalloc = 32;
+	int cmdlen = 0;
+	Cmd* commands = calloc(1, sizeof(*commands) * cmdalloc);
 	
 	while(*lines) {
 		char* s = *lines;
@@ -125,9 +156,6 @@ void CommandList_loadFile(char* path) {
 			if(*s == 'X' && *(s+1) == 'K' && *(s+2) == '_') {
 				// X11 key macro
 				// cat keysymdef.h | grep '#define' | egrep -o 'XK_[^ ]* *[x0-9a-f]*' | sed 's/  */", /g;s/^/{"/;s/$/},/'
-				char buf[128];
-				int len = 0;
-				int64_t n = 0;
 				len = sscanf("%.*s ", 127, buf); 
 				buf[len] = 0;
 				s += len;
@@ -146,7 +174,45 @@ void CommandList_loadFile(char* path) {
 			
 			
 		}
+		
+		// find an equals
+		after(&s, "=");
+		
+		// the command enum
+		int64_t n = 0;
+		len = sscanf("%.*s ", 127, buf); 
+		buf[len] = 0;
+		s += len;
+		
+		if(HT_get(&cmd_enums, buf, &n)) {
+			printf("unknown command enum: '%s'\n", buf);
+			continue;
+		}
+		
+		
+		printf("cmd_enum: %d\n", n);
+		
+		if(cmdlen + 1 >= cmdalloc) {
+			cmdalloc *= 2;
+			commands = realloc(commands, sizeof(*commands) * cmdalloc);
+		}
+		
+		Cmd* c = commands + cmdlen;
+		cmdlen++;
+		
+		c->mods = m;
+		c->keysym = key;
+		c->cmd = n;
+		
+		c->amt = 0;
+		c->flags = 0;
+		
 	}
+	
+	// terminate the list
+	commands[cmdlen] = (Cmd){};
+	
+	return commands;
 }
 
 

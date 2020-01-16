@@ -100,8 +100,11 @@ typedef struct Cmd {
 struct GUIEvent;
 typedef struct GUIEvent GUIEvent;
 
+
 int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter);
 
+
+Cmd* CommandList_loadFile(char* path);
 
 
 #endif //__gpuedit_commands_h__
