@@ -97,12 +97,19 @@ typedef struct Cmd {
 	unsigned int flags;
 } Cmd;
 
+
+typedef struct CmdList {
+	Cmd* mods[16]; // ctl, alt, shift, tux
+} CmdList;
+
+
 struct GUIEvent;
 typedef struct GUIEvent GUIEvent;
 
 
 int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter);
 
+CmdList* Commands_SeparateCommands(Cmd* in);
 
 Cmd* CommandList_loadFile(char* path);
 

@@ -240,3 +240,49 @@ int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter
 	*iter = i;
 	return 0; // no match
 }
+
+enum {
+	has_ctl = 1<<0,
+	has_alt = 1<<1,
+	has_shift = 1<<2,
+	has_tux = 1<<3,
+};
+
+
+static get_index(unsigned int mods) {
+	unsigned int o = 0;
+	if(mods & GUIMODKEY_CTRL) o |= has_ctl;
+	if(mods & GUIMODKEY_ALT) o |= has_alt;
+	if(mods & GUIMODKEY_SHIFT) o |= has_shift;
+	if(mods & GUIMODKEY_TUX) o |= has_tux;
+	return o;
+}
+
+
+// split up a single command list by the modifiers on the commands
+CmdList* Commands_SeparateCommands(Cmd* in) {
+	CmdList* cl = pcalloc(cl);
+	
+	int counts[16] = {};
+	int lens[16] = {};
+	
+	for(int i = 0; in[i].cmd != 0; i++) {
+		counts[get_index(in[i].mods)]++;
+	}
+	
+	for(int j = 0; j < 16; j++) {
+		if(counts[j] <= 0) continue;
+		
+		cl->mods[j] = calloc(1, sizeof(*cl->mods[0]) * (counts[j] + 1));
+	}
+	
+	for(int i = 0; in[i].cmd != 0; i++) {
+		int j = get_index(in[i].mods);
+		
+		cl->mods[j][lens[j]] = in[i];
+		
+		lens[j]++;
+	}
+	
+	return cl;
+}
