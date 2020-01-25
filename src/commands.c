@@ -82,11 +82,22 @@ static void after(char** s, char* search) {
 
 Cmd* CommandList_loadFile(char* path) {
 	
+	static is_init = 0;
+	if(!is_init) {
+		is_init = 1;
+		init_words();
+	}
+	
 	char buf[128];
 	size_t len = 0;
 	int64_t n = 0;
 	
 	char* src = readWholeFile(path, NULL);
+	if(!src) {
+		fprintf(stderr, "Could not read file '%s'\n", path);
+		return NULL;
+	}
+	
 	char** olines = strsplit_inplace(src, '\n', NULL);
 	char** lines = olines; // keep original for freeing
 	
@@ -149,6 +160,8 @@ Cmd* CommandList_loadFile(char* path) {
 				key = *s;
 				s += 2; // skip the closing quote too
 				
+				printf("found key literal: %c (%d)\n", key, key);
+				
 				break;
 			}
 			
@@ -156,7 +169,15 @@ Cmd* CommandList_loadFile(char* path) {
 			if(*s == 'X' && *(s+1) == 'K' && *(s+2) == '_') {
 				// X11 key macro
 				// cat keysymdef.h | grep '#define' | egrep -o 'XK_[^ ]* *[x0-9a-f]*' | sed 's/  */", /g;s/^/{"/;s/$/},/'
-				len = sscanf("%.*s ", 127, buf); 
+// 				len = sscanf(s, "%.*s ", 127, buf); 
+				while(*s == ' ') s++;
+				
+				// the command enum
+				char* e = s;
+				while(isalnum(*e) || *e == '_') e++;
+				
+				len = e - s;
+				strncpy(buf, s, len);
 				buf[len] = 0;
 				s += len;
 				
@@ -166,6 +187,8 @@ Cmd* CommandList_loadFile(char* path) {
 				}
 				
 				key = n;
+				
+				printf("found X11 key: 0x%x\n", key);
 				
 				break;
 			}
@@ -177,20 +200,30 @@ Cmd* CommandList_loadFile(char* path) {
 		
 		// find an equals
 		after(&s, "=");
+		while(*s == ' ') s++;
 		
 		// the command enum
-		int64_t n = 0;
-		len = sscanf("%.*s ", 127, buf); 
+		char* e = s;
+		while(isalnum(*e) || *e == '_') e++;
+		
+// 		int64_t n = 0;
+// 		printf(s);
+// 		sscanf(s, "%.*s%n", 127, buf, &len); 
+		len = e - s;
+		strncpy(buf, s, len);
 		buf[len] = 0;
 		s += len;
-		
+		printf("b: '%s'\n", buf);
 		if(HT_get(&cmd_enums, buf, &n)) {
 			printf("unknown command enum: '%s'\n", buf);
+			
+			lines++;
 			continue;
 		}
 		
 		
 		printf("cmd_enum: %d\n", n);
+		printf("mods: %x\n", m);
 		
 		if(cmdlen + 1 >= cmdalloc) {
 			cmdalloc *= 2;
@@ -207,6 +240,7 @@ Cmd* CommandList_loadFile(char* path) {
 		c->amt = 0;
 		c->flags = 0;
 		
+		lines++;
 	}
 	
 	// terminate the list

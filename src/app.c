@@ -83,6 +83,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		NULL,
 	};
 	
+	CommandList_loadFile("./config/commands.txt");
+	
 // 	cc = AppState_ExecProcessPipe(NULL, "/bin/bash", args);
 	
 	// this costs 5mb of ram
