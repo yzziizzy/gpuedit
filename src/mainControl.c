@@ -104,7 +104,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	
 	Cmd found;
 	unsigned int iter = 0;
-	while(Commands_ProbeCommand(gev, cmds, &found, &iter)) {
+	while(Commands_ProbeCommand(gev, w->commands, &found, &iter)) {
 		// GUIBufferEditor will pass on commands to the buffer
 		GUIMainControl_ProcessCommand(w, &(MainCmd){
 			.type = found.cmd, 
@@ -328,6 +328,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->header.name = strdup(path);
 	gbe->header.parent = w; // important for bubbling
 	gbe->sourceFile = strdup(path);
+	gbe->commands = w->commands;
 	
 	gbe->h = pcalloc(gbe->h);
 	initCStyles(gbe->h);

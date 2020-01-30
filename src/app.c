@@ -83,7 +83,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		NULL,
 	};
 	
-	CommandList_loadFile("./config/commands.txt");
+	as->commands = CommandList_loadFile("./config/commands.txt");
 	
 // 	cc = AppState_ExecProcessPipe(NULL, "/bin/bash", args);
 	
@@ -119,6 +119,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->mouseCursorSetData = xs;
 	
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
+	as->mc->commands = as->commands;
 	GUIRegisterObject(as->mc, as->gui->root);
 
 	

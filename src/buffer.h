@@ -213,6 +213,8 @@ typedef struct GUIBufferEditor {
 	float trayHeight;
 	GUIWindow* trayRoot;
 	
+	Cmd* commands;
+	
 } GUIBufferEditor;
 
 

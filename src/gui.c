@@ -1039,7 +1039,7 @@ void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
 // does not do bubbling
 void GUITriggerEvent_(GUIHeader* o, GUIEvent* gev) {
 	
-	if(!o->event_vt) return;
+	if(!o || !o->event_vt) return;
 	
 	switch(gev->type) {
 		#define X(name, b) case GUIEVENT_##name: \

@@ -46,6 +46,7 @@ typedef struct GUIMainControl {
 	VEC(GUIBufferEditor*) editors;
 	VEC(Buffer*) buffers;
 	
+	Cmd* commands;
 	
 	
 } GUIMainControl;
