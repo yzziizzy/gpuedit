@@ -1,0 +1,54 @@
+
+A  XK_Right  = MainCmd_NextTab 1
+A  XK_Left   = MainCmd_PrevTab 1
+CS 'q'       = MainCmd_QuitWithoutSave 
+
+
+   XK_Left      = BufferCmd_MoveCursorH    -1 scrollToCursor resetCursorBlink
+   XK_Right     = BufferCmd_MoveCursorH     1 scrollToCursor resetCursorBlink
+   XK_Up        = BufferCmd_MoveCursorV    -1 scrollToCursor resetCursorBlink
+   XK_Down      = BufferCmd_MoveCursorV     1 scrollToCursor resetCursorBlink
+   XK_BackSpace = BufferCmd_Backspace       0 scrollToCursor resetCursorBlink rehighlight
+   XK_Delete    = BufferCmd_Delete          0 scrollToCursor resetCursorBlink rehighlight
+   XK_Return    = BufferCmd_SplitLine       0 scrollToCursor resetCursorBlink rehighlight
+   XK_Prior     = BufferCmd_MovePage       -1 
+   XK_Next      = BufferCmd_MovePage        1 
+   XK_Home      = BufferCmd_Home            0 scrollToCursor
+   XK_End       = BufferCmd_End             0 scrollToCursor
+S  XK_Left      = BufferCmd_GrowSelectionH -1 scrollToCursor resetCursorBlink
+S  XK_Right     = BufferCmd_GrowSelectionH  1 scrollToCursor resetCursorBlink
+S  XK_Up        = BufferCmd_GrowSelectionV -1 scrollToCursor resetCursorBlink
+S  XK_Down      = BufferCmd_GrowSelectionV  1 scrollToCursor resetCursorBlink
+   XK_Tab       = BufferCmd_Indent       0 rehighlight undoSeqBreak
+S  XK_Tab       = BufferCmd_Unindent     0 rehighlight undoSeqBreak
+S  XK_ISO_Left_Tab = BufferCmd_Unindent 0 rehighlight undoSeqBreak
+C  'k'       = BufferCmd_DeleteCurLine  0 scrollToCursor rehighlight undoSeqBreak
+CA XK_Down   = BufferCmd_DuplicateLine  1 scrollToCursor rehighlight undoSeqBreak
+CA XK_Up     = BufferCmd_DuplicateLine -1 scrollToCursor rehighlight undoSeqBreak
+C  'x'       = BufferCmd_Cut            0 rehighlight undoSeqBreak
+C  'c'       = BufferCmd_Copy           0 
+C  'v'       = BufferCmd_Paste          0 scrollToCursor rehighlight undoSeqBreak
+C  'a'       = BufferCmd_SelectAll      0 
+CS 'a'       = BufferCmd_SelectNone     0 
+C  'l'       = BufferCmd_SelectToEOL    0 
+CS 'l'       = BufferCmd_SelectFromSOL  0 
+C  'g'       = BufferCmd_GoToLine       0 scrollToCursor
+C  'z'       = BufferCmd_Undo           0 scrollToCursor rehighlight
+CS 'z'       = BufferCmd_Redo           0 scrollToCursor rehighlight
+C  's'       = BufferCmd_Save           0 
+   XK_F5     = BufferCmd_Reload         0 rehighlight
+C  'f'       = BufferCmd_FindStart      0 
+C  'q'       = BufferCmd_Debug          0 scrollToCursor
+C  'w'       = BufferCmd_Debug          1 scrollToCursor
+CS 'r'       = BufferCmd_RehilightWhole= Buffer 0 scrollToCursor rehighlight
+CA 'b'       = BufferCmd_SetBookmark          0 scrollToCursor
+CS 'b'       = BufferCmd_RemoveBookmark       0 scrollToCursor
+C  'b'       = BufferCmd_ToggleBookmark       0 scrollToCursor
+A  XK_Next   = BufferCmd_GoToNextBookmark     0 scrollToCursor
+A  XK_Prior  = BufferCmd_GoToPrevBookmark     0 scrollToCursor
+A  XK_Home   = BufferCmd_GoToFirstBookmark    0 scrollToCursor
+A  XK_End    = BufferCmd_GoToLastBookmark     0 scrollToCursor
+   XK_Escape = BufferCmd_CloseTray            0 
+
+   
+   

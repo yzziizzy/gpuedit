@@ -205,58 +205,10 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		unsigned int undoSeqBreak     = 1 << 3;
 		unsigned int hideMouse        = 1 << 4;
 		
-		Cmd cmds[] = {
-			{0,    XK_Left,      BufferCmd_MoveCursorH,    -1, scrollToCursor | resetCursorBlink},
-			{0,    XK_Right,     BufferCmd_MoveCursorH,     1, scrollToCursor | resetCursorBlink},
-			{0,    XK_Up,        BufferCmd_MoveCursorV,    -1, scrollToCursor | resetCursorBlink},
-			{0,    XK_Down,      BufferCmd_MoveCursorV,     1, scrollToCursor | resetCursorBlink},
-			{0,    XK_BackSpace, BufferCmd_Backspace,       0, scrollToCursor | resetCursorBlink | rehighlight},
-			{0,    XK_Delete,    BufferCmd_Delete,          0, scrollToCursor | resetCursorBlink | rehighlight},
-			{0,    XK_Return,    BufferCmd_SplitLine,       0, scrollToCursor | resetCursorBlink | rehighlight},
-			{0,    XK_Prior,     BufferCmd_MovePage,       -1, 0}, // PageUp
-			{0,    XK_Next,      BufferCmd_MovePage,        1, 0}, // PageDown
-			{0,    XK_Home,      BufferCmd_Home,            0, scrollToCursor},
-			{0,    XK_End,       BufferCmd_End,             0, scrollToCursor}, 
-			{S,    XK_Left,      BufferCmd_GrowSelectionH, -1, scrollToCursor | resetCursorBlink},
-			{S,    XK_Right,     BufferCmd_GrowSelectionH,  1, scrollToCursor | resetCursorBlink},
-			{S,    XK_Up,        BufferCmd_GrowSelectionV, -1, scrollToCursor | resetCursorBlink},
-			{S,    XK_Down,      BufferCmd_GrowSelectionV,  1, scrollToCursor | resetCursorBlink},
-			{0,    XK_Tab,       BufferCmd_Indent,      0, rehighlight | undoSeqBreak},
-			{S,    XK_Tab,       BufferCmd_Unindent,    0, rehighlight | undoSeqBreak},
-			{S,    XK_ISO_Left_Tab, BufferCmd_Unindent, 0, rehighlight | undoSeqBreak}, // wtf?
-			{C,    'k',       BufferCmd_DeleteCurLine,  0, scrollToCursor | rehighlight | undoSeqBreak},
-			{C|A,  XK_Down,   BufferCmd_DuplicateLine,  1, scrollToCursor | rehighlight | undoSeqBreak}, 
-			{C|A,  XK_Up,     BufferCmd_DuplicateLine, -1, scrollToCursor | rehighlight | undoSeqBreak}, 
-			{C,    'x',       BufferCmd_Cut,            0, rehighlight | undoSeqBreak}, 
-			{C,    'c',       BufferCmd_Copy,           0, 0}, 
-			{C,    'v',       BufferCmd_Paste,          0, scrollToCursor | rehighlight | undoSeqBreak}, 
-			{C,    'a',       BufferCmd_SelectAll,      0, 0}, 
-			{C|S,  'a',       BufferCmd_SelectNone,     0, 0}, 
-			{C,    'l',       BufferCmd_SelectToEOL,    0, 0}, 
-			{C|S,  'l',       BufferCmd_SelectFromSOL,  0, 0}, 
-			{C,    'g',       BufferCmd_GoToLine,       0, scrollToCursor}, 
-			{C,    'z',       BufferCmd_Undo,           0, scrollToCursor | rehighlight}, 
-			{C|S,  'z',       BufferCmd_Redo,           0, scrollToCursor | rehighlight}, 
-			{C,    's',       BufferCmd_Save,           0, 0}, 
-			{0,    XK_F5,     BufferCmd_Reload,         0, rehighlight}, 
-			{C,    'f',       BufferCmd_FindStart,      0, 0}, 
-			{C,    'q',       BufferCmd_Debug,          0, scrollToCursor}, 
-			{C,    'w',       BufferCmd_Debug,          1, scrollToCursor}, 
-			{C|S,  'r',       BufferCmd_RehilightWholeBuffer, 0, scrollToCursor | rehighlight}, 
-			{C|A,  'b',       BufferCmd_SetBookmark,          0, scrollToCursor}, 
-			{C|S,  'b',       BufferCmd_RemoveBookmark,       0, scrollToCursor}, 
-			{C,    'b',       BufferCmd_ToggleBookmark,       0, scrollToCursor}, 
-			{A,    XK_Next,   BufferCmd_GoToNextBookmark,     0, scrollToCursor}, // PageUp
-			{A,    XK_Prior,  BufferCmd_GoToPrevBookmark,     0, scrollToCursor}, // PageDown
-			{A,    XK_Home,   BufferCmd_GoToFirstBookmark,    0, scrollToCursor}, 
-			{A,    XK_End,    BufferCmd_GoToLastBookmark,     0, scrollToCursor}, 
-			{0,    XK_Escape, BufferCmd_CloseTray,            0, 0}, 
-			{0,0,0,0,0},
-		};
 		
 		Cmd found;
 		unsigned int iter = 0;
-		while(Commands_ProbeCommand(gev, cmds, &found, &iter)) {
+		while(Commands_ProbeCommand(gev, w->commands, &found, &iter)) {
 			// GUIBufferEditor will pass on commands to the buffer
 			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
 				found.cmd, found.amt 

@@ -43,13 +43,28 @@ static struct {
 	{NULL, 0},
 };
 
+static struct { 
+	char* name;
+	unsigned int key;
+} raw_flags[] = {
+	{"scrollToCursor",   1 << 0},
+	{"rehighlight",      1 << 1},
+	{"resetCursorBlink", 1 << 2},
+	{"undoSeqBreak",     1 << 3},
+	{"hideMouse",        1 << 4},
+	{NULL, 0},
+};
+
+
 
 static HashTable words;
 static HashTable syms;
+static HashTable flag_lookup;
 static HashTable cmd_enums;
 
 static void init_words() {
 	HT_init(&words, 16);
+	HT_init(&flag_lookup, 16);
 	HT_init(&syms, 2100);
 	HT_init(&cmd_enums, 120);
 	
@@ -64,6 +79,10 @@ static void init_words() {
 	for(int i = 0; enum_table[i].name != 0; i++) {
 		HT_set(&cmd_enums, enum_table[i].name, enum_table[i].val);
 	}
+	
+	for(int i = 0; raw_flags[i].name != 0; i++) {
+		HT_set(&flag_lookup, raw_flags[i].name, raw_flags[i].key);
+	}
 }
 
 
@@ -72,12 +91,18 @@ static int get_word(char* w) {
 	if(HT_get(&words, w, &n)) return -1;
 	return n;
 } 
+static unsigned int get_flag(char* w) {
+	int64_t n;
+	if(HT_get(&flag_lookup, w, &n)) return -1;
+	return n;
+} 
 
 static void after(char** s, char* search) {
 	char* e = strstr(*s, search);
 	
 	if(e) *s = e + strlen(search);
 }
+
 
 
 Cmd* CommandList_loadFile(char* path) {
@@ -105,6 +130,8 @@ Cmd* CommandList_loadFile(char* path) {
 	int cmdlen = 0;
 	Cmd* commands = calloc(1, sizeof(*commands) * cmdalloc);
 	
+	int lineNum = 1;
+	
 	while(*lines) {
 		char* s = *lines;
 		
@@ -122,6 +149,7 @@ Cmd* CommandList_loadFile(char* path) {
 				s++;
 				     if(*s == 'C') m |= GUIMODKEY_LCTRL | GUIMODKEY_CTRL;
 				else if(*s == 'A') m |= GUIMODKEY_LALT | GUIMODKEY_ALT;
+				else if(*s == 'S') m |= GUIMODKEY_LSHIFT | GUIMODKEY_SHIFT;
 				else if(*s == 'T') m |= GUIMODKEY_LTUX | GUIMODKEY_TUX;
 				else if(*s == 'W') m |= GUIMODKEY_LTUX | GUIMODKEY_TUX;
 			}
@@ -129,15 +157,17 @@ Cmd* CommandList_loadFile(char* path) {
 				s++;
 				     if(*s == 'C') m |= GUIMODKEY_RCTRL | GUIMODKEY_CTRL;
 				else if(*s == 'A') m |= GUIMODKEY_RALT | GUIMODKEY_ALT;
+				else if(*s == 'S') m |= GUIMODKEY_RSHIFT | GUIMODKEY_SHIFT;
 				else if(*s == 'T') m |= GUIMODKEY_RTUX | GUIMODKEY_TUX;
 				else if(*s == 'W') m |= GUIMODKEY_RTUX | GUIMODKEY_TUX;
 			}
 			else if(*s == 'C') m |= GUIMODKEY_CTRL;
 			else if(*s == 'A') m |= GUIMODKEY_ALT;
+			else if(*s == 'S') m |= GUIMODKEY_SHIFT;
 			else if(*s == 'T') m |= GUIMODKEY_TUX;
 			else if(*s == 'W') m |= GUIMODKEY_TUX;
 			else {
-				printf("Unknown character looking for command modifiers: '%c'\n", *s);
+				printf("Unknown character looking for command modifiers: \"%c\" (%s:%d) \n", *s, path, lineNum);
 				s++;
 			}
 		}
@@ -160,7 +190,7 @@ Cmd* CommandList_loadFile(char* path) {
 				key = *s;
 				s += 2; // skip the closing quote too
 				
-				printf("found key literal: %c (%d)\n", key, key);
+// 				printf("found key literal: %c (%d)\n", key, key);
 				
 				break;
 			}
@@ -188,7 +218,7 @@ Cmd* CommandList_loadFile(char* path) {
 				
 				key = n;
 				
-				printf("found X11 key: 0x%x\n", key);
+// 				printf("found X11 key: 0x%x\n", key);
 				
 				break;
 			}
@@ -213,17 +243,47 @@ Cmd* CommandList_loadFile(char* path) {
 		strncpy(buf, s, len);
 		buf[len] = 0;
 		s += len;
-		printf("b: '%s'\n", buf);
+// 		printf("b: '%s'\n", buf);
 		if(HT_get(&cmd_enums, buf, &n)) {
 			printf("unknown command enum: '%s'\n", buf);
 			
 			lines++;
+			lineNum++;
 			continue;
 		}
 		
+		// get the amount integer
+		while(*s == ' ') s++;
+		int amt = 0;
+		amt = strtol(s, NULL, 10);
+		e = strpbrk(s, "\n\r\t ");
+		if(e) s = e;
 		
-		printf("cmd_enum: %d\n", n);
-		printf("mods: %x\n", m);
+		
+		unsigned int flags = 0;
+		// get the flags
+		while(*s != '\n' && *s != '\r') {
+			while(*s == ' ') s++;
+			e = strpbrk(s, "\n\r\t ");
+			char oc;
+			if(e) {
+				oc = *e;
+				*e = 0;
+			}
+			
+			
+			int64_t x;
+			if(!HT_get(&flag_lookup, s, &x)) {
+				flags |= x;
+			}
+			
+			if(!e) break;
+			*e = oc;
+			s = e;
+		}
+		
+// 		printf("cmd_enum: %d\n", n);
+// 		printf("mods: %x\n", m);
 		
 		if(cmdlen + 1 >= cmdalloc) {
 			cmdalloc *= 2;
@@ -237,9 +297,10 @@ Cmd* CommandList_loadFile(char* path) {
 		c->keysym = key;
 		c->cmd = n;
 		
-		c->amt = 0;
-		c->flags = 0;
+		c->amt = amt;
+		c->flags = flags;
 		
+		lineNum++;
 		lines++;
 	}
 	

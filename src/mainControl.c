@@ -94,13 +94,14 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	unsigned int T = GUIMODKEY_TUX;
 	
 // 	unsigned int scrollToCursor   = 1 << 0;
-	
+	/*
 	Cmd cmds[] = {
 		{A,    XK_Right,     MainCmd_NextTab,         1, 0},
 		{A,    XK_Left,      MainCmd_PrevTab,         1, 0},
 		{C|S,  'q',          MainCmd_QuitWithoutSave, 0, 0},
 		{0,0,0,0,0},
 	};
+	*/
 	
 	Cmd found;
 	unsigned int iter = 0;
@@ -165,8 +166,8 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		printf("NYI\n");
 		break;
 		
-	case MainCmd_NextTab: GUIMainControl_NextTab(w, cmd->n); break;
-	case MainCmd_PrevTab: GUIMainControl_PrevTab(w, cmd->n); break;
+	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;
+	case MainCmd_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n*/); break;
 	
 	}
 }
@@ -263,7 +264,7 @@ GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 		w->currentIndex = (w->currentIndex - 1 + len) % len;
 	}
 	else {
-		w->currentIndex = MAX(w->currentIndex + 1, 0);
+		w->currentIndex = MAX(w->currentIndex - 1, 0);
 	}
 	
 	GUITabBar_SetActive(w->bar, w->currentIndex);
