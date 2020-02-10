@@ -1,6 +1,8 @@
 #ifndef __gpuedit_buffer_h__
 #define __gpuedit_buffer_h__
 
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 
 #include "gui.h"
@@ -205,6 +207,14 @@ typedef struct GUIBufferEditor {
 	GUIEdit* lineNumEntryBox;
 	GUIEdit* findBox;
 	GUIEdit* loadBox;
+	
+	pcre2_code* findRE;
+	pcre2_match_data* findMatch;
+	BufferLine* findLine;
+	intptr_t findChar;
+	intptr_t findLen;
+	char* findREError;
+	int findREErrorChar;
 	
 	// TODO: move elsewhere
 	GUIFont* font;

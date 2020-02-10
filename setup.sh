@@ -28,6 +28,13 @@ if [[ -z $F || ! -f $F ]] ; then
 	sudo apt-get install libpng-dev
 fi
 
+F=$(locate pcre.h | grep 'pcre.h' | tail -n 1)
+echo $F
+if [[ -z $F || ! -f $F ]] ; then
+	echo "libpcre3 dev files are missing..."
+	sudo apt-get install libpcre3-dev
+fi
+
 F=$(locate freetype/freetype.h | grep 'freetype/freetype.h' | tail -n 1)
 echo $F
 if [[ -z $F || ! -f $F ]] ; then

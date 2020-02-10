@@ -60,7 +60,7 @@ gpuedit_SOURCES = main.c \
 
 gpuedit_LDADD =  \
 	-ldl -lutil \
-	-lXfixes -lpng
+	-lXfixes -lpng -lpcre2-8
 
 # -ffast-math but without reciprocal approximations 
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \

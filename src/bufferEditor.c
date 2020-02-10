@@ -13,6 +13,8 @@
 #include "highlighters/c.h"
 
 
+
+
 extern int g_DisableSave;
 
 
@@ -349,6 +351,69 @@ void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe) {
 	
 	BufferRange_Normalize(&b->sel);
 }
+
+
+int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
+	
+	int errno;
+	PCRE2_SIZE erroff;
+	PCRE2_UCHAR errbuf[256];
+	
+	// free previous regex 
+	if(w->findRE) {
+		pcre2_code_free(w->findRE);
+		pcre2_match_data_free(w->findMatch);
+		w->findMatch = 0;
+	}
+	
+	w->findRE = pcre2_compile((PCRE2_SPTR)pattern, PCRE2_ZERO_TERMINATED, 0, &errno, &erroff, NULL);
+	if(!w->findRE) {
+		pcre2_get_error_message(errno, errbuf, sizeof(errbuf));
+		w->findREError = strdup(errbuf);
+		w->findREErrorChar = erroff;
+		
+		return 1;
+	}
+	
+	// compilation was successful. clear any old errors.
+	if(w->findREError) {
+		free(w->findREError);
+		w->findREError = 0;
+		w->findREErrorChar = -1;
+	}
+	
+	w->findMatch = pcre2_match_data_create_from_pattern(w->findRE, NULL);
+	
+	return 0;
+}
+
+
+int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
+	
+	BufferLine* bl = w->buffer->current;
+	int off = 0;
+	uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;
+	int res;
+	
+	while(bl) {
+		res = pcre2_match(w->findRE, bl->buf, bl->length, off, opts, w->findMatch, NULL);
+		
+		if(res > 0) break;
+		if(res != PCRE2_ERROR_NOMATCH) {
+			// real error of some sort
+			return 1;
+		}
+		
+		bl = bl->next;
+	}
+
+	PCRE2_SIZE* ovec = pcre2_get_ovector_pointer(w->findMatch);
+	w->findChar = (int)ovec[0];
+	w->findLine = bl;
+	
+	return 0;
+}
+
 
 
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {

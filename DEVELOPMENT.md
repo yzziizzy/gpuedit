@@ -99,6 +99,7 @@
 * Line numbers occasionally overlap the tray for a single frame when scrolling, in violation of z-index
 * Clicking on the find box/editor area should steal focus
 * Window resize is broken somewhere
+* Selection dragging freezes after scrolling while dragging
 
 
 == Low Priority ==
@@ -111,6 +112,8 @@
 * Bitmap font option
 * Save/reload workspace
 * Options to look for config in ~/./etc/...
+
+
 
 == Language Notes ==
 "i don't care about member layout" flag for structs

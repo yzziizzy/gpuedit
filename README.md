@@ -21,7 +21,7 @@ Run `setup.sh`
 * `https://github.com/yzziizzy/c_json` symlinked as `src/c_json`
 * `https://github.com/yzziizzy/sti` symlinked as `src/sti`
 
-* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev`
+* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev libpcre3-dev`
 
 * Optional Dependencies: `sudo apt-get install libjpeg-turbo8-dev libvorbis-dev alsa-source`
 
