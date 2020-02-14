@@ -165,6 +165,11 @@ typedef struct BufferDrawParams {
 void hlfn(Highlighter* h, hlinfo* hl);
 
 
+typedef struct GBEFindRange {
+	BufferLine* bl;
+	intptr_t startChar, endChar;
+} GBEFindRange;
+
 
 
 typedef struct GUIBufferEditor {
@@ -211,10 +216,13 @@ typedef struct GUIBufferEditor {
 	pcre2_code* findRE;
 	pcre2_match_data* findMatch;
 	BufferLine* findLine;
-	intptr_t findChar;
+	intptr_t findCharS;
+	intptr_t findCharE;
 	intptr_t findLen;
 	char* findREError;
 	int findREErrorChar;
+	
+	VEC(GBEFindRange) findRanges;
 	
 	// TODO: move elsewhere
 	GUIFont* font;
@@ -361,6 +369,7 @@ void Buffer_InsertLinebreak(Buffer* b);
 void Buffer_MoveCursorV(Buffer* b, intptr_t lines);
 void Buffer_MoveCursorH(Buffer* b, intptr_t cols);
 void Buffer_MoveCursor(Buffer* b, intptr_t lines, intptr_t cols);
+void Buffer_MoveCursorTo(Buffer* b, BufferLine* bl, intptr_t col); // absolute move
 void Buffer_NextBookmark(Buffer* b);
 void Buffer_PrevBookmark(Buffer* b);
 void Buffer_FirstBookmark(Buffer* b);
@@ -396,9 +405,13 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height); 
 
+int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
+int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
+
 intptr_t getDisplayColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
 intptr_t getActualColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
 intptr_t getDisplayColFromActual(Buffer* b, BufferLine* bl, intptr_t col);
+
 
 
 #endif // __gpuedit_buffer_h__

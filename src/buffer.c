@@ -643,6 +643,13 @@ void Buffer_MoveCursorH(Buffer* b, ptrdiff_t cols) {
 	b->curColWanted = b->curColDisp; // the wanted column gets set to the display column
 }
 
+// absolute move
+void Buffer_MoveCursorTo(Buffer* b, BufferLine* bl, intptr_t col) {
+	// TODO: undo
+	b->current = bl;
+	b->curCol = col;
+}
+
 
 void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl) {
 	bl->flags |= BL_BOOKMARK_FLAG;

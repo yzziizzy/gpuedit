@@ -5,7 +5,6 @@
 * Undo selection changes
 * Close tabs 
 * Mark changed tabs with "*" 
-* Hotkey customization
 * Highlight current line
 * On-demand frame rendering
 * Proper tabstops

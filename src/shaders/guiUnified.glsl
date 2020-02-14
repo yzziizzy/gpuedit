@@ -214,6 +214,7 @@ void main(void) {
 		out_Color = gs_bg_color;
 		
 		
+		
 		return;
 	}
 	else if(gs_guiType == 1) { // text

@@ -358,7 +358,7 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 	int errno;
 	PCRE2_SIZE erroff;
 	PCRE2_UCHAR errbuf[256];
-	
+	printf("starting RE find: '%s'\n", pattern);
 	// free previous regex 
 	if(w->findRE) {
 		pcre2_code_free(w->findRE);
@@ -371,6 +371,7 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 		pcre2_get_error_message(errno, errbuf, sizeof(errbuf));
 		w->findREError = strdup(errbuf);
 		w->findREErrorChar = erroff;
+		printf("find error: '%s' \n", errbuf);
 		
 		return 1;
 	}
@@ -380,6 +381,7 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 		free(w->findREError);
 		w->findREError = 0;
 		w->findREErrorChar = -1;
+		printf("find error\n");
 	}
 	
 	w->findMatch = pcre2_match_data_create_from_pattern(w->findRE, NULL);
@@ -391,16 +393,22 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 	
 	BufferLine* bl = w->buffer->current;
-	int off = 0;
+	int off = w->buffer->curCol;
 	uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;
 	int res;
 	
 	while(bl) {
-		res = pcre2_match(w->findRE, bl->buf, bl->length, off, opts, w->findMatch, NULL);
+		res = pcre2_match(w->findRE, bl->buf ? bl->buf : "", bl->length, off, opts, w->findMatch, NULL);
 		
 		if(res > 0) break;
 		if(res != PCRE2_ERROR_NOMATCH) {
 			// real error of some sort
+			
+			char errbuf[256];
+			pcre2_get_error_message(res, errbuf, sizeof(errbuf));
+			
+			printf("real regex error: %p %p %d '%s'\n", w->findRE, bl->buf, bl->lineNum, errbuf);
+			
 			return 1;
 		}
 		
@@ -408,13 +416,23 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 	}
 
 	PCRE2_SIZE* ovec = pcre2_get_ovector_pointer(w->findMatch);
-	w->findChar = (int)ovec[0];
+	w->findCharS = (int)ovec[0];
+	w->findCharE = (int)ovec[1];
 	w->findLine = bl;
+	
+	Buffer_MoveCursorTo(w->buffer, bl, w->findCharS);
+	Buffer_SetCurrentSelection(w->buffer, bl, w->findCharS, bl, w->findCharE); 
+	
+	printf("match found at: %d:%d\n", bl->lineNum, w->findCharS);
 	
 	return 0;
 }
 
 
+
+int GUIBufferEditor_StopFind(GUIBufferEditor* w) {
+	return 0;
+}
 
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 	Buffer* b = w->buffer;
@@ -491,7 +509,11 @@ static void find_onchange(GUIEdit* ed, void* gbe_) {
 // 	printf("word: '%s'\n", word);
 	if(word == 0 || strlen(word) == 0) return; 
 	
-	GUIBufferEditor_FindWord(w, word);
+	GUIBufferEditor_StopFind(w);
+	GUIBufferEditor_StartFind(w, word);
+	GUIBufferEditor_NextFindMatch(w);
+	
+// 	GUIBufferEditor_FindWord(w, word);
 	GUIBufferEditor_scrollToCursor(w);
 }
 
