@@ -221,6 +221,8 @@ typedef struct GUIBufferEditor {
 	intptr_t findLen;
 	char* findREError;
 	int findREErrorChar;
+	BufferLine* nextFindLine;
+	intptr_t nextFindChar;
 	
 	VEC(GBEFindRange) findRanges;
 	

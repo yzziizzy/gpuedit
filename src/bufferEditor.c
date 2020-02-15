@@ -386,19 +386,23 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 	
 	w->findMatch = pcre2_match_data_create_from_pattern(w->findRE, NULL);
 	
+	w->nextFindLine = w->buffer->current;
+	w->nextFindChar = w->buffer->curCol;
+	
+	
 	return 0;
 }
 
 
 int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 	
-	BufferLine* bl = w->buffer->current;
-	int off = w->buffer->curCol;
+	BufferLine* bl = w->nextFindLine;
+	int off = 0; // this is for partial matches
 	uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;
 	int res;
 	
 	while(bl) {
-		res = pcre2_match(w->findRE, bl->buf ? bl->buf : "", bl->length, off, opts, w->findMatch, NULL);
+		res = pcre2_match(w->findRE, bl->buf ? bl->buf + w->nextFindChar : "", bl->length, off, opts, w->findMatch, NULL);
 		
 		if(res > 0) break;
 		if(res != PCRE2_ERROR_NOMATCH) {
@@ -413,12 +417,21 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 		}
 		
 		bl = bl->next;
+		w->nextFindChar = 0;
+		
+		if(!bl) { // end of file
+			bl = w->buffer->first;
+			printf("find wrapped\n");
+		}
 	}
+	
 
 	PCRE2_SIZE* ovec = pcre2_get_ovector_pointer(w->findMatch);
-	w->findCharS = (int)ovec[0];
-	w->findCharE = (int)ovec[1];
+	w->findCharS = (int)ovec[0] + w->nextFindChar;
+	w->findCharE = (int)ovec[1] + w->nextFindChar;
 	w->findLine = bl;
+	w->nextFindLine = bl;
+	w->nextFindChar = w->findCharE;
 	
 	Buffer_MoveCursorTo(w->buffer, bl, w->findCharS);
 	Buffer_SetCurrentSelection(w->buffer, bl, w->findCharS, bl, w->findCharE); 
@@ -641,6 +654,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				GUIManager_popFocusedObject(w->header.gm);
 			}
 			
+			break;
+			
+		case BufferCmd_FindNext:
+			GUIBufferEditor_NextFindMatch(w);
 			break;
 			
 		case BufferCmd_PromptLoad:

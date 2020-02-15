@@ -38,6 +38,7 @@ CS 'z'       = BufferCmd_Redo           0 scrollToCursor rehighlight
 C  's'       = BufferCmd_Save           0 
    XK_F5     = BufferCmd_Reload         0 rehighlight
 C  'f'       = BufferCmd_FindStart      0 
+   XK_F3     = BufferCmd_FindNext       0 
 C  'q'       = BufferCmd_Debug          0 scrollToCursor
 C  'w'       = BufferCmd_Debug          1 scrollToCursor
 CS 'r'       = BufferCmd_RehilightWhole= Buffer 0 scrollToCursor rehighlight

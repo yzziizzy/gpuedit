@@ -43,6 +43,7 @@
 	X(BufferCmd, Indent) \
 	X(BufferCmd, Unindent) \
 	X(BufferCmd, FindStart) \
+	X(BufferCmd, FindNext) \
 	X(BufferCmd, Save) \
 	X(BufferCmd, Reload) \
 	X(BufferCmd, PromptLoad) \
