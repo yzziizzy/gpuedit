@@ -191,6 +191,8 @@ typedef struct GUIBufferEditor {
 	float cursorBlinkOffTime;
 	char cursorBlinkPaused;
 	
+	char outlineCurLine;
+	
 	intptr_t scrollLines; // current scroll position, 0-based
 	intptr_t scrollCols; // NYI, waiting on next line draw fn iteration
 	

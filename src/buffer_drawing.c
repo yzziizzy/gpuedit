@@ -194,6 +194,26 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		
 		float adv = 0;
 		
+		// highlight current line
+		if(bl == b->current && gbe->outlineCurLine) {
+			GUIUnifiedVertex* vv = GUIManager_reserveElements(gm, 1);
+			*vv = (GUIUnifiedVertex){
+				.pos = {
+					tl.x - 1, 
+					tl.y, 
+					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
+					tl.y + tdp->lineHeight
+				},
+				.clip = {0, 0, 800, 800},
+				.texIndex1 = 1, // order width
+				.guiType = 4, // bordered window (just a box)
+				.fg = {50, 50, 50, 255}, // border color
+				.bg = {0,0,0,0},
+				.z = .75,
+				.alpha = 1.0,
+			};
+		}
+		
 		// handle selections ending on empty lines
 		if(b->sel && b->sel->endLine == bl && bl->length == 0) {
 			inSelection = 0;

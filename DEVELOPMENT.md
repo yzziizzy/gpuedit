@@ -100,6 +100,7 @@
 * Window resize is broken somewhere
 * Selection dragging freezes after scrolling while dragging
 * Infinite loop in the find wrapping. Search "alloc"
+* Mouse drag start params need tuning 
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

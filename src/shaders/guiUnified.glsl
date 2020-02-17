@@ -194,41 +194,9 @@ void main(void) {
 		discard;
 	}
 	
-	//out_Color = vec4(1,.1,.1, 1);
-	//return;
-	
-// 	out_Color = texture(textures, vec3(gs_tex.xy, 0)) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
-
-	/*
-		// fade the edges
-	float ei1 = smoothstep(0.0, borderWidth, tc.x);
-	float ei2 = 1.0 - smoothstep(1.0 - borderWidth, 1.0, tc.x);
-	float ei3 = smoothstep(0.0, borderWidth, tc.y);
-	float ei4 = 1.0 - smoothstep(1.0 - borderWidth, 1.0, tc.y);
-	
-	vec4 edgeFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
-	
-	float bi1 = smoothstep(0.0, fadeWidth, tc.x);
-	float bi2 = 1.0 - smoothstep(1.0 -fadeWidth, 1.0, tc.x);
-	float bi3 = smoothstep(0.0, fadeWidth, tc.y);
-	float bi4 = 1.0 - smoothstep(1.0 - fadeWidth, 1.0, tc.y);
-	
-	vec4 borderFactor = vec4(min(min(bi1, bi2), min(bi3, bi4)), 0,0,1).rrra;
-	vec3 bc = borderColor.rgb; 
-	float ba = borderColor.a;
-	
-	FragColor = vec4(mix(bc * ba, color, borderFactor.r), alpha * edgeFactor);
-	
-	*/
-	
-	
 	
 	if(gs_guiType == 0) { // just a rectangle
-// 		out_Color = gs_fg_color;
 		out_Color = gs_bg_color;
-		
-		
-		
 		return;
 	}
 	else if(gs_guiType == 1) { // text
@@ -269,18 +237,16 @@ void main(void) {
 		return;
 	}
 	// 3 is for render targets
-	else if(gs_guiType == 4) { // just a rectangle, but with a border
+	else if(gs_guiType == 4) { // square-bordered rectangle 
 // 		out_Color = gs_fg_color;
 		out_Color = gs_bg_color;
 		
 		float bwidth = gs_tex.z;
 		
-		if(
-			gs_geom.x + bwidth > gl_FragCoord.x ||
+		if(gs_geom.x + bwidth > gl_FragCoord.x ||
 			gs_geom.z < gl_FragCoord.x + bwidth ||
 			gl_FragCoord.y > gs_geom.y - bwidth || 
-			gl_FragCoord.y < gs_geom.w + bwidth  
-		) {
+			gl_FragCoord.y < gs_geom.w + bwidth) {
 			out_Color = gs_fg_color;
 		}
 		

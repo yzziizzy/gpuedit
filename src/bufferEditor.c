@@ -308,6 +308,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->linesPerScrollWheel = 3;
 	w->cursorBlinkOnTime = 0.6;
 	w->cursorBlinkOffTime = 0.6;
+	w->outlineCurLine = 1;
 	
 	return w;
 }
