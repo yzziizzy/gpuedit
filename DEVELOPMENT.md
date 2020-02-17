@@ -99,7 +99,7 @@
 * Clicking on the find box/editor area should steal focus
 * Window resize is broken somewhere
 * Selection dragging freezes after scrolling while dragging
-
+* Infinite loop in the find wrapping. Search "alloc"
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

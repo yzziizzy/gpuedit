@@ -264,6 +264,36 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	GUIHeader_render(gm->root, pfp);
 	
 	
+	// test element 
+	/*
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+		
+	*v = (GUIUnifiedVertex){
+// 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
+// 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
+		.pos = { 250, 250, 700, 700},
+		.clip = {0, 0, 800, 800},
+		
+		.texIndex1 = 2,
+		.texIndex2 = 0,
+		.texFade = .5,
+		.guiType = 4, // bordered window (just a box)
+		
+		.texOffset1 = 0,
+		.texOffset2 = 0,
+		.texSize1 = 0,
+		.texSize2 = 0,
+		
+		.fg = {255, 255, 255, 255}, // TODO: border color
+		.bg = {128, 0, 0, 0}, // TODO: color
+		
+		.z = 99999,
+		.alpha = 1.0,
+	};
+	/* */ 
+	
+	
+	
 	double sort;
 	
 // 	sort = getCurrentTime();

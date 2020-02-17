@@ -17,6 +17,7 @@ uniform ivec2 targetSize;
 
 out Vertex {
 	vec4 lt_rb;
+	vec4 lt_rb_abs;
 	vec4 clip;
 	vec2 wh;
 	float opacity;
@@ -38,6 +39,12 @@ void main() {
 	
 	// convert to NDC
 	vertex.lt_rb = toNDC(lt_rb_in / vec4(targetSize.xy, targetSize.xy));
+	vertex.lt_rb_abs = vec4(
+		lt_rb_in.x,
+		targetSize.y - lt_rb_in.y,
+		lt_rb_in.z,
+		targetSize.y - lt_rb_in.w
+	);
 
 	// flip y
 	vertex.clip = vec4(
@@ -74,6 +81,7 @@ layout (triangle_strip, max_vertices = 4) out;
 
 in Vertex {
 	vec4 lt_rb;
+	vec4 lt_rb_abs;
 	vec4 clip;
 	vec2 wh;
 	float opacity;
@@ -93,6 +101,7 @@ flat out vec4 gs_clip;
 flat out vec4 gs_fg_color; 
 flat out vec4 gs_bg_color; 
 flat out int gs_guiType;
+flat out vec4 gs_geom;
 
 
 
@@ -107,6 +116,7 @@ void main() {
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
 // 	gs_texHandle = vertex[0].texHandle;
+	gs_geom = vertex[0].lt_rb_abs;
 	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 
@@ -118,6 +128,7 @@ void main() {
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
 // 	gs_texHandle = vertex[0].texHandle;
+	gs_geom = vertex[0].lt_rb_abs;
 	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 	
@@ -128,6 +139,7 @@ void main() {
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
 // 	gs_texHandle = vertex[0].texHandle;
+	gs_geom = vertex[0].lt_rb_abs;
 	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
@@ -138,6 +150,7 @@ void main() {
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
 // 	gs_texHandle = vertex[0].texHandle;
+	gs_geom = vertex[0].lt_rb_abs;
 	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
@@ -160,6 +173,7 @@ flat in vec4 gs_clip;
 flat in vec4 gs_fg_color; 
 flat in vec4 gs_bg_color; 
 flat in int gs_guiType; 
+flat in vec4 gs_geom; 
 
 
 uniform sampler2DArray fontTex;
@@ -254,7 +268,26 @@ void main(void) {
 		out_Color = texture(atlasTex, gs_tex);
 		return;
 	}
-	
+	// 3 is for render targets
+	else if(gs_guiType == 4) { // just a rectangle, but with a border
+// 		out_Color = gs_fg_color;
+		out_Color = gs_bg_color;
+		
+		float bwidth = gs_tex.z;
+		
+		if(
+			gs_geom.x + bwidth > gl_FragCoord.x ||
+			gs_geom.z < gl_FragCoord.x + bwidth ||
+			gl_FragCoord.y > gs_geom.y - bwidth || 
+			gl_FragCoord.y < gs_geom.w + bwidth  
+		) {
+			out_Color = gs_fg_color;
+		}
+		
+		if(out_Color.z < 0.01) discard;
+		
+		return;
+	}
 	
 	
 	out_Color = vec4(1,.1,.1, .4);
