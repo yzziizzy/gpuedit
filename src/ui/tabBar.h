@@ -6,7 +6,7 @@ typedef struct GUITabBarTab {
 	char* title;
 	char isActive;
 	
-	void (*onClick)(int, void*);
+	void (*onClick)(int, int, void*);
 	void* onClickData;
 	void (*onActivate)(int, void*);
 	void* onActivateData;
@@ -30,7 +30,7 @@ int GUITabBar_AddTab(GUITabBar* w, char* title);
 int GUITabBar_AddTabEx(
 	GUITabBar* w, 
 	char* title, 
-	void (*onClick)(int, void*), 
+	void (*onClick)(int, int, void*), 
 	void* onClickData,
 	void (*onActivate)(int, void*), 
 	void* onActivateData

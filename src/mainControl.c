@@ -211,11 +211,16 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 
 
 
-static void switchtab(int index, void* w_) {
+static void switchtab(int index, int btn, void* w_) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	GUIMainControl_GoToTab(w, index);
 	GUIManager_popFocusedObject(w->header.gm);
 	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+	
+	if(btn == 2) { // close on middle click
+// 		GUIMainControl_CloseTab(w);
+		return;
+	}
 	
 	// HACK
 	GUIManager_SetMainWindowTitle(w->header.gm, w->activeTab->h.name);

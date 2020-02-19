@@ -81,7 +81,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 		box.max.y = tl.y + w->header.size.y - 1;
 		
 		if(boxContainsPoint2(&box, &gev->pos)) {
-			if(tab->onClick) tab->onClick(i, tab->onClickData);
+			if(tab->onClick) tab->onClick(i, gev->button, tab->onClickData);
 			if(tab->onActivate) tab->onActivate(i, tab->onActivateData);
 			
 			return NULL;
@@ -103,12 +103,13 @@ GUITabBar* GUITabBar_New(GUIManager* gm) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.Click = click,
+// 		.Click = click,
 // 		.ScrollUp = scrollUp,
 // 		.ScrollDown = scrollDown,
 // 		.DragStart = dragStart,
 // 		.DragStop = dragStop,
 // 		.DragMove = dragMove,
+		.MouseUp = click,
 	};
 	
 	
@@ -134,7 +135,7 @@ int GUITabBar_AddTab(GUITabBar* w, char* title) {
 int GUITabBar_AddTabEx(
 	GUITabBar* w, 
 	char* title, 
-	void (*onClick)(int, void*), 
+	void (*onClick)(int, int, void*), 
 	void* onClickData,
 	void (*onActivate)(int, void*), 
 	void* onActivateData
