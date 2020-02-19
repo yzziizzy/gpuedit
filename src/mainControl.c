@@ -17,9 +17,74 @@ static void render(GUIMainControl* w, PassFrameParams* pfp);
 static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
+
+
+
+static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
+	GUIManager* gm = w->header.gm;
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, VEC_LEN(&w->tabs) + 1);
+	
+	Vector2 tl = w->header.absTopLeft;
+	
+	// bg
+	*v++ = (GUIUnifiedVertex){
+		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->tabHeight},
+		.clip = {0, 0, 800, 800},
+		
+		.guiType = 0, // window (just a box)
+		
+		.fg = gm->defaults.tabBorderColor, // TODO: border color
+		.bg = gm->defaults.tabBorderColor, // TODO: color
+		
+		.z = /*w->header.z +*/ 1000,
+		.alpha = 1,
+	};
+	
+	float tabw = (w->header.size.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
+	
+	
+	// tab backgrounds
+	VEC_EACH(&w->tabs, i, tab) {
+		struct Color4* color = tab->isActive ? &gm->defaults.tabActiveBgColor : &gm->defaults.tabBgColor; 
+		*v++ = (GUIUnifiedVertex){
+			.pos = {tl.x + tabw * i + i + 1, tl.y + 1, tl.x + tabw * (i + 1) + i + 1, tl.y + w->tabHeight - 1},
+			.clip = {0, 0, 800, 800},
+			
+			.guiType = 0, // window (just a box)
+			
+			.fg = *color, // TODO: border color
+			.bg = *color, // TODO: color
+			
+			.z = /*w->header.z +*/ 100000,
+			.alpha = 1,
+		};
+		
+	}
+	
+	// tab titles
+	VEC_EACH(&w->tabs, i, tab) {
+		AABB2 box;
+		box.min.x = tl.x + tabw * i + i + 1;
+		box.min.y = tl.y + 1;
+		box.max.x = tl.x + tabw * (i + 1) + i + 1;
+		box.max.y = tl.y + w->tabHeight - 1;
+		
+		gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, tab->title, strlen(tab->title));
+	}
+}
+
+
+
+
 static void render(GUIMainControl* w, PassFrameParams* pfp) {
+	
+	renderTabs(w, pfp);
+	
 	// only render the active tab
-	GUIHeader_render(w->activeTab, pfp);
+	if(w->currentIndex > -1) {
+		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+		if(a) GUIHeader_render(a->client, pfp);
+	}
 	
 	GUIHeader_renderChildren(&w->header, pfp);
 }
@@ -37,6 +102,23 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 	
 	h->absZ = grp->baseZ + h->z;
 	
+	if(w->currentIndex > -1) {
+		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+		
+		GUIRenderParams grp2 = {
+			.clip = grp->clip, // TODO: update the clip
+			.size = {.x = h->size.x, .y = h->size.y - w->tabHeight}, // maximized
+			.offset = {
+				.x = tl.x,
+				.y = tl.y + w->tabHeight,
+			},
+			.baseZ = grp->baseZ + w->header.z,
+		};
+		
+		if(a) GUIHeader_updatePos(a->client, &grp2, pfp);
+	}
+
+	/*
 	// update all the tabs
 	float tabHeight = w->tabHeight;
 	if(VEC_LEN(&w->tabs) <= 1) tabHeight = 0;
@@ -55,6 +137,7 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 		
 		GUIHeader_updatePos(child, &grp2, pfp);
 	}
+	*/
 }
 
 
@@ -62,10 +145,33 @@ static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 // 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
 	GUIObject* o;
 	
-	if(w->activeTab) {
-		o = gui_defaultHitTest(w->activeTab, absTestPos);
+	if(w->currentIndex > -1) {
+		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+		if(a) o = gui_defaultHitTest(a->client, absTestPos);
 		if(o) return o;
 	}
+	
+	/*
+	// check the tabs
+	Vector2 tl = w->header.absTopLeft;
+	float tabw = (w->header.size.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
+	
+	VEC_EACH(&w->tabs, i, tab) {
+		AABB2 box;
+		box.min.x = tl.x + tabw * i + i + 1;
+		box.min.y = tl.y + 1;
+		box.max.x = tl.x + tabw * (i + 1) + i + 1;
+		box.max.y = tl.y + w->header.size.y - 1;
+		
+		if(boxContainsPoint2(&box, &gev->pos)) {
+			if(tab->onClick) tab->onClick(i, gev->button, tab->onClickData);
+			if(tab->onActivate) tab->onActivate(i, tab->onActivateData);
+			
+			return NULL;
+		}
+		
+	}
+	*/
 	
 	return gui_defaultHitTest(w, absTestPos);
 }
@@ -78,7 +184,11 @@ static void parentResize(GUIObject* w_, GUIEvent* gev) {
 
 static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
-	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+	
+	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	if(a) { 
+		GUIManager_pushFocusedObject(w->header.gm, a->client);
+	}
 }
 
 
@@ -201,9 +311,6 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	w->tabHeight = 20;
 	
 	// TODO: resize
-	w->bar = GUITabBar_New(gm);
-	GUIRegisterObject(w->bar, w);
-	GUIResize(w->bar, (Vector2){800, w->tabHeight});
 	
 	
 	return w;
@@ -211,42 +318,70 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 
 
 
-static void switchtab(int index, int btn, void* w_) {
-	GUIMainControl* w = (GUIMainControl*)w_;
+static void switchtab(int index, int btn, GUITabBarTab* t) {
+	GUIMainControl* w = (GUIMainControl*)t->userData1;
 	GUIMainControl_GoToTab(w, index);
 	GUIManager_popFocusedObject(w->header.gm);
-	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+	
+	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	if(!a) return; 
+	
+	GUIManager_pushFocusedObject(w->header.gm, a->client);
 	
 	if(btn == 2) { // close on middle click
-// 		GUIMainControl_CloseTab(w);
+		GUIMainControl_CloseTab(w, index);
 		return;
 	}
 	
 	// HACK
-	GUIManager_SetMainWindowTitle(w->header.gm, w->activeTab->h.name);
+	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
 }
 
 
-int GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* tab, char* title) {
+MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* client, char* title) {
 	
-	VEC_PUSH(&w->tabs, tab);
 	
-	GUITabBar_AddTabEx(w->bar, title, switchtab, w, NULL, NULL);
+	MainControlTab* t = pcalloc(t);
+	t->client = (GUIObject*)client;
+	t->title = strdup(title);
 	
-	if(w->activeTab == NULL) {
-		w->activeTab = tab;
+	VEC_PUSH(&w->tabs, t);
+	
+	if(w->currentIndex == -1) {
 		w->currentIndex = 0;
-		GUITabBar_SetActive(w->bar, w->currentIndex);
+		t->isActive = 1;
 		GUIManager_SetMainWindowTitle(w->header.gm, title);
 	}
-	
 	
 	return VEC_LEN(&w->tabs) - 1;
 }
 
 
+void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
+	
+	MainControlTab* t = VEC_ITEM(&w->tabs, index);
+	
+	VEC_RM_SAFE(&w->tabs, index);
+	
+	
+	if(t->onDestroy) t->onDestroy(t);
+	if(t->title) free(t->title);
+	free(t);
+	
+	// TODO: check active
+	
+	// update the current tab index
+	w->currentIndex %= VEC_LEN(&w->tabs);
+}
+
+
+
+
 GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
+	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a->isActive = 0;
+	
 	if(cyclic) {
 		w->currentIndex = (w->currentIndex + 1) % len;
 	}
@@ -254,17 +389,20 @@ GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 		w->currentIndex = MIN(w->currentIndex + 1, len - 1);
 	}
 	
-	GUITabBar_SetActive(w->bar, w->currentIndex);
-	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
+	a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a->isActive = 1;
 	
 	GUIManager_popFocusedObject(w->header.gm);
-	GUIManager_pushFocusedObject(w->header.gm, w->activeTab);
-	return w->activeTab;
+	GUIManager_pushFocusedObject(w->header.gm, a->client);
+	return a->client;
 }
 
 
 GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
+	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a->isActive = 0;
+	
 	if(cyclic) {
 		w->currentIndex = (w->currentIndex - 1 + len) % len;
 	}
@@ -272,20 +410,26 @@ GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 		w->currentIndex = MAX(w->currentIndex - 1, 0);
 	}
 	
-	GUITabBar_SetActive(w->bar, w->currentIndex);
-	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
-	GUIManager_pushFocusedObject(w->header.gm, w->activeTab);
-	return w->activeTab;
+	a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a->isActive = 1;
+	
+	GUIManager_pushFocusedObject(w->header.gm, a->client);
+	return a->client;
 }
 
 
 GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 	int len = VEC_LEN(&w->tabs);
+	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a->isActive = 0;
+	
 	w->currentIndex = MAX(0, MIN(len - 1, i));
 	
-	GUITabBar_SetActive(w->bar, w->currentIndex);
-	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
-	return w->activeTab;
+	a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a->isActive = 1;
+	
+	GUIManager_pushFocusedObject(w->header.gm, a->client);
+	return a->client;
 }
 
 

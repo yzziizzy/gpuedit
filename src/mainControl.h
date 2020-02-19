@@ -21,6 +21,21 @@ typedef struct MainCmd {
 
 
 
+typedef struct MainControlTab {
+	GUIObject* client;
+	char* title;
+	
+	unsigned int isActive : 1;
+	unsigned int isStarred : 1;
+	
+	int (*beforeClose)(struct MainControlTab*);
+	void (*afterClose)(struct MainControlTab*);
+	void (*onActive)(struct MainControlTab*);
+	void (*onDeactivate)(struct MainControlTab*);
+	void (*onDestroy)(struct MainControlTab*);
+	
+} MainControlTab;
+
 
 typedef struct GUIMainControl {
 	GUIHeader header;
@@ -37,11 +52,8 @@ typedef struct GUIMainControl {
 	// multiline tabs
 	// extra tab dropdown
 	
-	GUITabBar* bar;
-	
 	int currentIndex;
-	GUIObject* activeTab;
-	VEC(GUIObject*) tabs;
+	VEC(MainControlTab*) tabs;
 	
 	VEC(GUIBufferEditor*) editors;
 	VEC(Buffer*) buffers;
@@ -55,7 +67,8 @@ typedef struct GUIMainControl {
 
 GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs);
 
-int GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* tab, char* title);
+MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* client, char* title);
+void GUIMainControl_CloseTab(GUIMainControl* w, int index);
 GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic);
 GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic);
 GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i);

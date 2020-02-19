@@ -6,10 +6,12 @@ typedef struct GUITabBarTab {
 	char* title;
 	char isActive;
 	
-	void (*onClick)(int, int, void*);
-	void* onClickData;
-	void (*onActivate)(int, void*);
-	void* onActivateData;
+	void* userData1;
+	void* userData2;
+	
+	void (*onClick)(int, int, struct GUITabBarTab*);
+	void (*onActivate)(int, struct GUITabBarTab*);
+	void (*onRemove)(int, struct GUITabBarTab*);
 } GUITabBarTab;
 
 
@@ -29,12 +31,16 @@ GUITabBar* GUITabBar_New(GUIManager* gm);
 int GUITabBar_AddTab(GUITabBar* w, char* title);
 int GUITabBar_AddTabEx(
 	GUITabBar* w, 
-	char* title, 
-	void (*onClick)(int, int, void*), 
-	void* onClickData,
-	void (*onActivate)(int, void*), 
-	void* onActivateData
+	char* title,
+	void* userData1,
+	void* userData2,
+	void (*onClick)(int, int, GUITabBarTab*), 
+	void (*onActivate)(int, GUITabBarTab*), 
+	void (*onRemove)(int, GUITabBarTab*)
 );
+
+
+void GUITabBar_RemoveTab(GUITabBar* w, int index);
 
 
 void GUITabBar_SetActive(GUITabBar* w, int index);

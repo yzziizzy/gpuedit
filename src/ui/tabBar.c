@@ -81,8 +81,8 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 		box.max.y = tl.y + w->header.size.y - 1;
 		
 		if(boxContainsPoint2(&box, &gev->pos)) {
-			if(tab->onClick) tab->onClick(i, gev->button, tab->onClickData);
-			if(tab->onActivate) tab->onActivate(i, tab->onActivateData);
+			if(tab->onClick) tab->onClick(i, gev->button, tab);
+			if(tab->onActivate) tab->onActivate(i, tab);
 			
 			return NULL;
 		}
@@ -135,23 +135,38 @@ int GUITabBar_AddTab(GUITabBar* w, char* title) {
 int GUITabBar_AddTabEx(
 	GUITabBar* w, 
 	char* title, 
-	void (*onClick)(int, int, void*), 
-	void* onClickData,
-	void (*onActivate)(int, void*), 
-	void* onActivateData
+	void* userData1,
+	void* userData2,
+	void (*onClick)(int, int, GUITabBarTab*), 
+	void (*onActivate)(int, GUITabBarTab*), 
+	void (*onRemove)(int, GUITabBarTab*)
 ) {
 	int index = GUITabBar_AddTab(w, title);
 	
 	GUITabBarTab* tbt = VEC_ITEM(&w->tabs, index);
 	
+	tbt->userData1 = userData1;
+	tbt->userData2 = userData2;
+	
 	tbt->onClick = onClick;
-	tbt->onClickData = onClickData;
 	tbt->onActivate = onActivate;
-	tbt->onActivateData = onActivateData;
+	tbt->onRemove = onRemove;
 	
 	return index;
 }
 
+
+
+void GUITabBar_RemoveTab(GUITabBar* w, int index) {
+	GUITabBarTab* t = VEC_ITEM(&w->tabs, index);
+	
+	if(t->onRemove) t->onRemove(index, t);
+	
+	VEC_RM_SAFE(&w->tabs, index);
+	
+	if(t->title) free(t->title);
+	free(t);
+}
 
 
 void GUITabBar_SetActive(GUITabBar* w, int index) {

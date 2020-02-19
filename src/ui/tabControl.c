@@ -111,7 +111,7 @@ int GUITabControl_AddTab(GUITabControl* w, GUIHeader* tab, char* title) {
 	VEC_PUSH(&w->tabs, tab);
 	tab->parent = w; // important for event bubbling
 	
-	GUITabBar_AddTabEx(w->bar, title, switchtab, w, NULL, NULL);
+	GUITabBar_AddTabEx(w->bar, title, w, NULL, switchtab, NULL, NULL);
 	
 	return VEC_LEN(&w->tabs) - 1;
 }
