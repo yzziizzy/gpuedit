@@ -368,6 +368,7 @@ typedef struct GUIManager {
 		struct Color4 tabTextColor;
 		struct Color4 tabBorderColor;
 		struct Color4 tabActiveBgColor;
+		struct Color4 tabHoverBgColor;
 		struct Color4 tabBgColor;
 	} defaults;
 	

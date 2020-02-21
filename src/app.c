@@ -109,6 +109,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	xs->onResizeData = as->gui;
 	as->gui->defaults.tabBorderColor = (struct Color4){120,120,120,255};
 	as->gui->defaults.tabActiveBgColor = (struct Color4){80,80,80,255};
+	as->gui->defaults.tabHoverBgColor = (struct Color4){40,40,40,255};
 	as->gui->defaults.tabBgColor = (struct Color4){10,10,10,255};
 	as->gui->defaults.tabTextColor = (struct Color4){200,200,200,255};
 	

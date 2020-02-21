@@ -45,7 +45,11 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 	
 	// tab backgrounds
 	VEC_EACH(&w->tabs, i, tab) {
-		struct Color4* color = tab->isActive ? &gm->defaults.tabActiveBgColor : &gm->defaults.tabBgColor; 
+		struct Color4* color;
+		if(tab->isActive) color = &gm->defaults.tabActiveBgColor;
+		else if(tab->isHovered) color = &gm->defaults.tabHoverBgColor;
+		else color = &gm->defaults.tabBgColor;
+		
 		*v++ = (GUIUnifiedVertex){
 			.pos = {tl.x + tabw * i + i + 1, tl.y + 1, tl.x + tabw * (i + 1) + i + 1, tl.y + w->tabHeight - 1},
 			.clip = {0, 0, 800, 800},
@@ -217,11 +221,15 @@ static void mouseMove(GUIObject* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	if(VEC_LEN(&w->tabs) == 0) return;
 	
-	MainControlTab* t = hitTestTabs(w, gev);
-	if(t < 0) return;
+	int index = hitTestTabs(w, gev);
+	if(index < 0) return;
 	
-	// TODO hilite hovered tab
+	// highlight hovered tab
+	VEC_EACH(&w->tabs, i, t) {
+		t->isHovered = (i == index); 
+	}
 }
+
 
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
@@ -230,17 +238,16 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	int index = hitTestTabs(w, gev);
 	if(index < 0) return;
 	
-	if(w->currentIndex > -1) { 
+	if(w->currentIndex > -1) { // deactivate old tab
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
 		if(a) {
-			// TODO deactivate previous tab
 			a->isActive = 0;
 		}
 	}
 	
-	// TODO activate new tab
 	w->currentIndex = index;
 	
+	// activate new tab
 	MainControlTab* t = VEC_ITEM(&w->tabs, index);
 	t->isActive = 1;
 	

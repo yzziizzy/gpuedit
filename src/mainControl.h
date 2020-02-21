@@ -27,6 +27,7 @@ typedef struct MainControlTab {
 	
 	unsigned int isActive : 1;
 	unsigned int isStarred : 1;
+	unsigned int isHovered : 1;
 	
 	int (*beforeClose)(struct MainControlTab*);
 	void (*afterClose)(struct MainControlTab*);
