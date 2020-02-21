@@ -192,6 +192,62 @@ static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
 }
 
 
+static int hitTestTabs(GUIMainControl* w, GUIEvent* gev) {
+	Vector2 tl = w->header.absTopLeft;
+	float tabw = (w->header.size.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
+	
+	VEC_EACH(&w->tabs, i, tab) {
+		AABB2 box;
+		box.min.x = tl.x + tabw * i + i + 1;
+		box.min.y = tl.y + 1;
+		box.max.x = tl.x + tabw * (i + 1) + i + 1;
+		box.max.y = tl.y + w->tabHeight - 1;
+		
+		if(boxContainsPoint2(&box, &gev->pos)) {
+			return i;
+		}
+	}
+	
+	return -1;
+}
+
+
+
+static void mouseMove(GUIObject* w_, GUIEvent* gev) {
+	GUIMainControl* w = (GUIMainControl*)w_;
+	if(VEC_LEN(&w->tabs) == 0) return;
+	
+	MainControlTab* t = hitTestTabs(w, gev);
+	if(t < 0) return;
+	
+	// TODO hilite hovered tab
+}
+
+static void click(GUIObject* w_, GUIEvent* gev) {
+	GUIMainControl* w = (GUIMainControl*)w_;
+	if(VEC_LEN(&w->tabs) == 0) return;
+	
+	int index = hitTestTabs(w, gev);
+	if(index < 0) return;
+	
+	if(w->currentIndex > -1) { 
+		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+		if(a) {
+			// TODO deactivate previous tab
+			a->isActive = 0;
+		}
+	}
+	
+	// TODO activate new tab
+	w->currentIndex = index;
+	
+	MainControlTab* t = VEC_ITEM(&w->tabs, index);
+	t->isActive = 1;
+	
+	GUIManager_popFocusedObject(w->header.gm);
+	GUIManager_pushFocusedObject(w->header.gm, t->client);
+	GUIManager_SetMainWindowTitle(w->header.gm, t->title);
+}
 
 
 static void keyDown(GUIObject* w_, GUIEvent* gev) {
@@ -299,6 +355,10 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 // 		.DragStart = dragStart,
 // 		.DragStop = dragStop,
 // 		.DragMove = dragMove,
+		.Click = click,
+		.MouseEnter = mouseMove,
+		.MouseLeave = mouseMove,
+		.MouseMove = mouseMove,
 		.ParentResize = parentResize,
 		.GainedFocus = gainedFocus,
 	};
