@@ -122,6 +122,8 @@ typedef struct Buffer {
 	int undoFill; // the number of undo slots used in the ring buffer
 	BufferUndo* undoRing;
 // 	VEC(BufferUndo) undoStack;
+	
+	int refs;
 } Buffer;
 
 
@@ -358,6 +360,7 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe);
 
 
 Buffer* Buffer_New();
+void Buffer_AddRef(Buffer* b);
 void Buffer_Delete(Buffer* b);
 Buffer* Buffer_Copy(Buffer* src);
 Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
@@ -397,6 +400,7 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
 static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
+void GUIBufferEditor_Destroy(GUIBufferEditor* w);
 
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 

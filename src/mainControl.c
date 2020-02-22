@@ -238,22 +238,29 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	int index = hitTestTabs(w, gev);
 	if(index < 0) return;
 	
-	if(w->currentIndex > -1) { // deactivate old tab
-		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a) {
-			a->isActive = 0;
+	if(gev->button == 1) { // left click
+		if(w->currentIndex > -1) { // deactivate old tab
+			MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+			if(a) {
+				a->isActive = 0;
+			}
 		}
+		
+		w->currentIndex = index;
+		
+		// activate new tab
+		MainControlTab* t = VEC_ITEM(&w->tabs, index);
+		t->isActive = 1;
+		
+		GUIManager_popFocusedObject(w->header.gm);
+		GUIManager_pushFocusedObject(w->header.gm, t->client);
+		GUIManager_SetMainWindowTitle(w->header.gm, t->title);
+	}
+	else if(gev->button == 2) { // middle click
+		// close the tab
+		GUIMainControl_CloseTab(w, index);
 	}
 	
-	w->currentIndex = index;
-	
-	// activate new tab
-	MainControlTab* t = VEC_ITEM(&w->tabs, index);
-	t->isActive = 1;
-	
-	GUIManager_popFocusedObject(w->header.gm);
-	GUIManager_pushFocusedObject(w->header.gm, t->client);
-	GUIManager_SetMainWindowTitle(w->header.gm, t->title);
 }
 
 
@@ -363,6 +370,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 // 		.DragStop = dragStop,
 // 		.DragMove = dragMove,
 		.Click = click,
+		.MiddleClick = click,
 		.MouseEnter = mouseMove,
 		.MouseLeave = mouseMove,
 		.MouseMove = mouseMove,
@@ -420,7 +428,7 @@ MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* clien
 		GUIManager_SetMainWindowTitle(w->header.gm, title);
 	}
 	
-	return VEC_LEN(&w->tabs) - 1;
+	return t;
 }
 
 
@@ -439,6 +447,13 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 	
 	// update the current tab index
 	w->currentIndex %= VEC_LEN(&w->tabs);
+	
+	t = VEC_ITEM(&w->tabs, w->currentIndex);
+	t->isActive = 1;
+	
+	GUIManager_popFocusedObject(w->header.gm);
+	GUIManager_pushFocusedObject(w->header.gm, t->client);
+	GUIManager_SetMainWindowTitle(w->header.gm, t->title);
 }
 
 
@@ -500,6 +515,21 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 }
 
 
+static int gbeBeforeClose(MainControlTab* t) {
+	
+	return 0;
+}
+
+static void gbeAfterClose(MainControlTab* t) {
+	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
+	
+	GUIBufferEditor_Destroy(gbe);
+	
+}
+
+
+
+
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
 	// HACK: these structures should be looked up from elsewhere
@@ -557,5 +587,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	VEC_PUSH(&w->editors, gbe);
 	VEC_PUSH(&w->buffers, buf);
 	
-	GUIMainControl_AddGenericTab(w, gbe, path);
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, gbe, path);
+	tab->beforeClose = gbeBeforeClose;
+	tab->beforeClose = gbeAfterClose;
 }

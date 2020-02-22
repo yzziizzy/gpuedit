@@ -314,6 +314,38 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 }
 
 
+void GUIBufferEditor_Destroy(GUIBufferEditor* w) {
+#define SFREE(x) \
+do { \
+	if(x) { \
+		free(x); \
+		x = NULL; \
+	} \
+} while(0)
+	
+	
+	SFREE(w->sourceFile);
+	
+	// this is internally reference counted
+	Buffer_Delete(w->buffer);
+	
+	// TODO gui cleanup
+// 	w->scrollbar;
+// 	w->lineNumEntryBox;
+// 	w->findBox;
+// 	w->loadBox;
+// 	w->trayRoot;
+	
+	// TODO more regex cleanup
+	SFREE(w->findREError);
+	
+	
+	VEC_FREE(&w->findRanges);
+	
+	free(w);
+}
+
+
 // makes sure the cursor is on screen, with minimal necessary movement
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 	Buffer* b = gbe->buffer;

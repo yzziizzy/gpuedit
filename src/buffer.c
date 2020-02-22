@@ -18,6 +18,8 @@
 Buffer* Buffer_New() {
 	Buffer* b = pcalloc(b);
 	
+	b->refs = 1;
+	
 	b->undoMax = 4096; // TODO: settings
 	b->undoRing = calloc(1, b->undoMax * sizeof(*b->undoRing));
 	
@@ -25,7 +27,14 @@ Buffer* Buffer_New() {
 }
 
 
+void Buffer_AddRef(Buffer* b) {
+	b->refs++;
+}
+
 void Buffer_Delete(Buffer* b) {
+	b->refs--;
+	if(b->refs > 0) return;
+	
 	if(b->sel) free(b->sel);
 	
 	// free all the lines
