@@ -24,6 +24,7 @@ typedef struct GUIFileBrowserEntry {
 	unsigned int hasStats: 1;
 	unsigned int isAlreadyOpen : 1;
 	unsigned int isSelected : 1;
+	unsigned int isRoot: 1; // no parent folder
 	
 } GUIFileBrowserEntry;
 

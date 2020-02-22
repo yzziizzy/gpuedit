@@ -115,10 +115,10 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->fm = FontManager_alloc(gs);
 	
-	gm->ta = TextureAtlas_alloc(gs);
-	gm->ta->width = 256;
-	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
-	TextureAtlas_finalize(gm->ta);
+// 	gm->ta = TextureAtlas_alloc(gs);
+// 	gm->ta->width = 256;
+// 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
+// 	TextureAtlas_finalize(gm->ta);
 	
 	gm->minDragDist = 8;
 	

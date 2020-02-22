@@ -3,13 +3,10 @@
 == TODO ==
 * Undo/redo garbage collection
 * Undo selection changes
-* Close tabs 
 * Mark changed tabs with "*" 
-* Highlight current line
 * On-demand frame rendering
 * Proper tabstops
 * Options file
-* File browser
 * Move editing state from Buffer to GBE
 * MIME type probing of some sort
 * Ability to change the highlighter
@@ -88,6 +85,8 @@
 * Goto line should move the middle of the screen to the cursor
 * Comment hint to hilighter to treat a certain identifier as a certain type, for use with macros
 * Increment/decrement numbers in identifiers on this line. Combo with Dup Line.
+* File browser gives SLOC/git/etc stats in detail mode
+
 
 == BUGS ==
 * Mouse scroll on files with fewer lines than the screen
@@ -102,6 +101,7 @@
 * Selection dragging freezes after scrolling while dragging
 * Infinite loop in the find wrapping. Search "alloc"
 * Mouse drag start params need tuning 
+
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

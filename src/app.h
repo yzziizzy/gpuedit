@@ -65,6 +65,7 @@ typedef struct AppState {
 	
 	float zoom;
 	
+	TextureAtlas* ta;
 
 	InputFocusStack ifs;
 	InputEventHandler* defaultInputHandlers;

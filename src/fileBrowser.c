@@ -30,14 +30,14 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 	
 // 	drawTextLine();
 	
-	
+	float gutter = 35;
 	
 	for(intptr_t i = w->scrollOffset; i < VEC_LEN(&w->entries); i++) {
 		
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
 		AABB2 box;
-		box.min.x = tl.x + 10;
+		box.min.x = tl.x + gutter;
 		box.min.y = tl.y + (25 * i);
 		box.max.x = tl.x + 800;
 		box.max.y = tl.y + (25 * (i + 1));
@@ -61,6 +61,45 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 			};
 		}
 		
+		
+		char* iconame;
+		if(e->type == 1) iconame = "icon/document";
+		else if(e->type == 2) iconame = "icon/folder";
+		
+		TextureAtlasItem* it;
+		if(HT_get(&gm->ta->items, iconame, &it)) {
+			printf("could not find gui image '%s' %p \n", "icon_document");
+		}
+		else {
+			// icon
+			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+			*v = (GUIUnifiedVertex){
+				.pos = {tl.x +10, box.min.y, tl.x +10+20, box.min.y + 20},
+				.clip = {0, 0, 800, 800},
+				
+				.guiType = 0, // window (just a box)
+				
+				.texIndex1 = it->index,
+				.texIndex2 = 0,
+				.texFade = .5,
+				
+				.guiType = 2, // simple image
+				
+				.texOffset1 = { it->offsetNorm.x * 65535, it->offsetNorm.y * 65535 },
+		// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
+				.texOffset2 = 0,
+				.texSize1 = { it->sizeNorm.x * 65535, it->sizeNorm.y * 65535 },
+		// 		.texSize1 = { .5 * 65535, .5 * 65535 },
+				.texSize2 = 0,
+				
+				.fg = {255,255,255,255},
+				.bg = {255,255,255,255},
+				
+				.z = /*w->header.z +*/ 1000,
+				.alpha = 1,
+			};
+		}
+		
 		gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, e->name, strlen(e->name));
 		
 	}
@@ -69,7 +108,7 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
 		.pos = {
-			tl.x + 10, 
+			tl.x + gutter, 
 			tl.y + w->cursorIndex * 25, 
 			tl.x + 800,
 			tl.y + (w->cursorIndex + 1) * 25
@@ -226,6 +265,18 @@ int read_dir_cb(char* fullpath, char* filename, void* _w) {
 }
 
 
+// folders on top, then by name
+static int entry_cmp_fn(void* a_, void* b_) {
+	GUIFileBrowserEntry* a = (GUIFileBrowserEntry*)a_;
+	GUIFileBrowserEntry* b = (GUIFileBrowserEntry*)b_;
+	
+	if(a->type == 2 && b->type == 1) return -1;
+	if(a->type == 1 && b->type == 2) return 1;
+	
+	return strcmp(a->name, b->name);
+}
+
+
 void GUIFileBrowser_Refresh(GUIFileBrowser* w) {
 	
 	for(int i = 0; i < VEC_LEN(&w->entries); i++) {
@@ -286,6 +337,7 @@ void GUIFileBrowser_Refresh(GUIFileBrowser* w) {
 		
 	}
 	
+	VEC_SORT(&w->entries, entry_cmp_fn);
 	
 }
 

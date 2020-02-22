@@ -91,10 +91,10 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 // 	json_gl_init_lookup();
 	
 	
-// 	TextureAtlas* ta = TextureAtlas_alloc();
-// 	ta->width = 256;
-// 	TextureAtlas_addFolder(ta, "pre", "assets/ui/icons", 0);
-// 	TextureAtlas_finalize(ta);
+	as->ta = TextureAtlas_alloc(&as->globalSettings);
+	as->ta->width = 32;
+	TextureAtlas_addFolder(as->ta, "icon", "images", 0);
+	TextureAtlas_finalize(as->ta);
 // 	
 	
 	/*
@@ -105,6 +105,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	*/
 	
 	as->gui = GUIManager_alloc(&as->globalSettings);
+	as->gui->ta = as->ta;
 	xs->onResize = resize_callback;
 	xs->onResizeData = as->gui;
 	as->gui->defaults.tabBorderColor = (struct Color4){120,120,120,255};
@@ -201,6 +202,7 @@ void initAppGL(XStuff* xs, AppState* as) {
 	
 	glerr("left over error on app init");
 	
+	TextureAtlas_initGL(as->ta, &as->globalSettings);
 	
 	GUIManager_initGL(as->gui, &as->globalSettings);
 	as->guiPass = GUIManager_CreateRenderPass(as->gui);
