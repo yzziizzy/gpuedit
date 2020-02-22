@@ -19,6 +19,7 @@ gpuedit_SOURCES = main.c \
 	dumpImage.c \
 	fbo.c \
 	fcfg.c \
+	fileBrowser.c \
 	font.c \
 	gui.c \
 	highlight.c \

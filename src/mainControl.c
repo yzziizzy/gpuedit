@@ -222,7 +222,7 @@ static void mouseMove(GUIObject* w_, GUIEvent* gev) {
 	if(VEC_LEN(&w->tabs) == 0) return;
 	
 	int index = hitTestTabs(w, gev);
-	if(index < 0) return;
+// 	if(index < 0) return;
 	
 	// highlight hovered tab
 	VEC_EACH(&w->tabs, i, t) {
@@ -513,6 +513,44 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 	GUIManager_pushFocusedObject(w->header.gm, a->client);
 	return a->client;
 }
+
+
+static int fbBeforeClose(MainControlTab* t) {
+	
+	return 0;
+}
+
+static void fbAfterClose(MainControlTab* t) {
+	GUIFileBrowser* fb = (GUIFileBrowser*)t->client;
+	
+	GUIFileBrowser_Destroy(fb);
+}
+
+
+static void fbOnChoose(void* w_, char** files, intptr_t len) {
+	GUIMainControl* w = (GUIMainControl*)w_;
+	char** ff = files;
+	
+	while(*ff) {
+// 		printf("files: %s\n", *ff);
+		GUIMainControl_LoadFile(w, *ff);
+		ff++;
+	}
+	
+}
+
+
+void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
+	
+	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
+	fb->onChooseData = w;
+	fb->onChoose = fbOnChoose;
+	
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
+	tab->beforeClose = fbBeforeClose;
+	tab->beforeClose = fbAfterClose;
+}
+
 
 
 static int gbeBeforeClose(MainControlTab* t) {

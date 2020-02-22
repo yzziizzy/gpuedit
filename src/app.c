@@ -158,6 +158,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	GUIMainControl_LoadFile(as->mc, "src/buffer.c");
 	GUIMainControl_LoadFile(as->mc, "src/bufferEditor.c");
 	
+	GUIMainControl_OpenFileBrowser(as->mc, "./");
+	
 	GUIManager_pushFocusedObject(as->gui, as->mc);
 	
 	

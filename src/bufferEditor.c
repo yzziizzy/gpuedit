@@ -342,6 +342,9 @@ do { \
 	
 	VEC_FREE(&w->findRanges);
 	
+	
+	// TODO: free gui stuff
+	
 	free(w);
 }
 

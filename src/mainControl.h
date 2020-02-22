@@ -80,6 +80,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd);
 
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path);
+void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);
 void GUIMainControl_CloseBuffer(GUIMainControl* w, int index);
 void GUIMainControl_CloseAllBufferPtr(GUIMainControl* w, Buffer* p);
 
