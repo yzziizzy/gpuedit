@@ -39,7 +39,7 @@
 * Unsaved changes crash recovery
 * Drag selection to new place
 * New Buffer/file
-
+* Async filebrowser fs operations
 
 == Editor Features ==
 * Extract selection to its own function in open file space
@@ -101,7 +101,7 @@
 * Selection dragging freezes after scrolling while dragging
 * Infinite loop in the find wrapping. Search "alloc"
 * Mouse drag start params need tuning 
-
+* Need warnings and protection against overrunning the persistent gpu vertex buffers
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

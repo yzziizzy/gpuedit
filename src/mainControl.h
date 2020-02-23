@@ -34,6 +34,7 @@ typedef struct MainControlTab {
 	void (*onActive)(struct MainControlTab*);
 	void (*onDeactivate)(struct MainControlTab*);
 	void (*onDestroy)(struct MainControlTab*);
+	void (*everyFrame)(struct MainControlTab*);
 	
 } MainControlTab;
 

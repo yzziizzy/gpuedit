@@ -33,6 +33,8 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 	float gutter = 35;
 	
 	for(intptr_t i = w->scrollOffset; i < VEC_LEN(&w->entries); i++) {
+		if(i > 20) break; // don't blow out the gpu buffer
+		// TODO stop drawing at end of window properly
 		
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
@@ -149,6 +151,36 @@ static void updatePos(GUIFileBrowser* w, GUIRenderParams* grp, PassFrameParams* 
 }
 
 
+static void click(GUIObject* w_, GUIEvent* gev) {
+	
+}
+
+
+static char* getParentDir(char* child) {
+	intptr_t len = strlen(child);
+	
+	for(intptr_t i = len - 1; i > 0; i--) {
+		if(child[i] == '/') {
+			
+			if(child[i-1] == '\\') {
+				i--; // escaped slash
+				continue;
+			}
+			
+			if(i == len - 1) { // this is a trailing slash; ignore it
+				continue;
+			}
+			
+			// found the last legitimate slash
+			
+			return strndup(child, i);
+		}
+		
+	}
+	
+	return strdup("/");
+}
+
 static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
 	
@@ -158,31 +190,48 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	else if(gev->keycode == XK_Up) {
 		w->cursorIndex = (w->cursorIndex - 1) % VEC_LEN(&w->entries);
 	}
+	else if(gev->keycode == XK_BackSpace) { // navigate to parent dir
+		char* p = getParentDir(w->curDir);
+		free(w->curDir);
+		w->curDir = p;
+		
+		GUIFileBrowser_Refresh(w);
+	}
 	else if(gev->keycode == XK_Return) {
+		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
 		
-		// collect a list of files
-		intptr_t n = 0;
-		char** files = malloc(sizeof(*files) * (w->numSelected + 1));
-		for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
-			GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
-			if(!e->isSelected) continue;
-			files[n++] = pathJoin(w->curDir, e->name);
+		if(e->type == 2) { // enter the directory
+			char* p = pathJoin(w->curDir, e->name);
+			free(w->curDir);
+			w->curDir = p;
 			
-			e->isSelected = 0; // unselect them 
+			GUIFileBrowser_Refresh(w);
 		}
-		files[n] = 0;
-		
-		
-		if(w->onChoose) w->onChoose(w->onChooseData, files, n);
-		
-		// clean up
-		char** ff = files;
-		while(*ff) {
-			free(*ff);
-			ff++;
+		else { // open selected files
+			
+			// collect a list of files
+			intptr_t n = 0;
+			char** files = malloc(sizeof(*files) * (w->numSelected + 1));
+			for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
+				GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
+				if(!e->isSelected) continue;
+				files[n++] = pathJoin(w->curDir, e->name);
+				
+				e->isSelected = 0; // unselect them 
+			}
+			files[n] = 0;
+			
+			
+			if(w->onChoose) w->onChoose(w->onChooseData, files, n);
+			
+			// clean up
+			char** ff = files;
+			while(*ff) {
+				free(*ff);
+				ff++;
+			}
+			free(files);
 		}
-		free(files);
-		
 	}
 	else if(gev->keycode == XK_space) {
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
@@ -232,7 +281,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	
 	GUIRegisterObject(w->scrollbar, w);
 	
-	w->curDir = strdup(path);
+	w->curDir = realpath(path, NULL);
 	
 	GUIFileBrowser_Refresh(w);
 	
@@ -278,6 +327,10 @@ static int entry_cmp_fn(void* a_, void* b_) {
 
 
 void GUIFileBrowser_Refresh(GUIFileBrowser* w) {
+	
+	w->cursorIndex = 0;
+	w->numSelected = 0;
+	w->scrollOffset = 0;
 	
 	for(int i = 0; i < VEC_LEN(&w->entries); i++) {
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
@@ -336,6 +389,8 @@ void GUIFileBrowser_Refresh(GUIFileBrowser* w) {
 		e->name = strdup(result->d_name);
 		
 	}
+	
+	closedir(derp);
 	
 	VEC_SORT(&w->entries, entry_cmp_fn);
 	

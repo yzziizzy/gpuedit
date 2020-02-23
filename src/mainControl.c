@@ -97,7 +97,7 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIHeader* h = &w->header;
 	
-		
+	
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	
 	h->absTopLeft = tl;
@@ -142,6 +142,11 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 		GUIHeader_updatePos(child, &grp2, pfp);
 	}
 	*/
+	
+	// as good a place as any, I suppose
+	VEC_EACH(&w->tabs, i, t) {
+		if(t->everyFrame) t->everyFrame(t);
+	}
 }
 
 
@@ -526,6 +531,17 @@ static void fbAfterClose(MainControlTab* t) {
 	GUIFileBrowser_Destroy(fb);
 }
 
+static void fbEveryFrame(MainControlTab* t) {
+	GUIFileBrowser* fb = (GUIFileBrowser*)t->client;
+	
+	if(0 != strcmp(t->title, fb->curDir)) {
+		if(t->title) free(t->title);
+		t->title = strdup(fb->curDir);
+		
+// 		GUIManager_SetMainWindowTitle(fb->header.gm, t->title);
+	}
+}
+
 
 static void fbOnChoose(void* w_, char** files, intptr_t len) {
 	GUIMainControl* w = (GUIMainControl*)w_;
@@ -548,7 +564,8 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
 	tab->beforeClose = fbBeforeClose;
-	tab->beforeClose = fbAfterClose;
+	tab->afterClose = fbAfterClose;
+// 	tab->everyFrame = fbEveryFrame;
 }
 
 
