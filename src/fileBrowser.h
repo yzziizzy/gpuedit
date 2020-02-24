@@ -32,6 +32,10 @@ typedef struct GUIFileBrowserEntry {
 typedef struct GUIFileBrowser {
 	GUIHeader header;
 	
+	float lineHeight;
+	float leftMargin;
+	// iconsize, font params, etc
+	
 	GUIWindow* scrollbar;
 	float sbMinHeight;
 	intptr_t scrollOffset;

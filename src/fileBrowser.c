@@ -28,21 +28,25 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 	
 	Vector2 tl = w->header.absTopLeft;
 	
-// 	drawTextLine();
 	
-	float gutter = 35;
+// 	drawTextLine();
+	float lh = w->lineHeight;
+	float gutter = w->leftMargin + 20;
+	
+	int linesDrawn = 0;
 	
 	for(intptr_t i = w->scrollOffset; i < VEC_LEN(&w->entries); i++) {
-		if(i > 20) break; // don't blow out the gpu buffer
+		if(lh * linesDrawn > w->header.size.y) break; // stop at the bottom of the window
+		
 		// TODO stop drawing at end of window properly
 		
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
 		AABB2 box;
 		box.min.x = tl.x + gutter;
-		box.min.y = tl.y + (25 * i);
+		box.min.y = tl.y + (lh * linesDrawn);
 		box.max.x = tl.x + 800;
-		box.max.y = tl.y + (25 * (i + 1));
+		box.max.y = tl.y + (lh * (linesDrawn + 1));
 		
 		
 		if(e->isSelected) { // backgrounds for selected items
@@ -102,8 +106,10 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 			};
 		}
 		
+		// the file name
 		gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, e->name, strlen(e->name));
 		
+		linesDrawn++;
 	}
 
 	// cursor
@@ -111,9 +117,9 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 	*v = (GUIUnifiedVertex){
 		.pos = {
 			tl.x + gutter, 
-			tl.y + w->cursorIndex * 25, 
+			tl.y + (w->cursorIndex - w->scrollOffset) * lh, 
 			tl.x + 800,
-			tl.y + (w->cursorIndex + 1) * 25
+			tl.y + (w->cursorIndex - w->scrollOffset + 1) * lh
 		},
 		.clip = {0, 0, 800, 800},
 		.texIndex1 = 1, // order width
@@ -133,10 +139,9 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 static void updatePos(GUIFileBrowser* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	gui_defaultUpdatePos(w, grp, pfp);
 	
-// 	// cursor blink
-// 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
-// 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
-// 	
+	// maximize
+	w->header.size = grp->size;
+
 // 	w->sbMinHeight = 20;
 // 	// scrollbar position calculation
 // 	// calculate scrollbar height
@@ -181,14 +186,31 @@ static char* getParentDir(char* child) {
 	return strdup("/");
 }
 
+// make sure the cursor never goes off-screen
+static void autoscroll(GUIFileBrowser* w) {
+	float linesOnScreen = floor(w->header.size.y / w->lineHeight);
+	
+	if(w->cursorIndex < w->scrollOffset) {
+		w->scrollOffset = w->cursorIndex;
+		return;
+	}
+	
+	if(w->cursorIndex > linesOnScreen + w->scrollOffset - 1) {
+		w->scrollOffset = w->cursorIndex - linesOnScreen + 1;
+		return;
+	}
+}
+
 static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
 	
 	if(gev->keycode == XK_Down) {
 		w->cursorIndex = (w->cursorIndex + 1) % VEC_LEN(&w->entries);
+		autoscroll(w);
 	}
 	else if(gev->keycode == XK_Up) {
-		w->cursorIndex = (w->cursorIndex - 1) % VEC_LEN(&w->entries);
+		w->cursorIndex = (w->cursorIndex - 1 + VEC_LEN(&w->entries)) % (intptr_t)VEC_LEN(&w->entries);
+		autoscroll(w);
 	}
 	else if(gev->keycode == XK_BackSpace) { // navigate to parent dir
 		char* p = getParentDir(w->curDir);
@@ -257,7 +279,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	
 	static struct GUIEventHandler_vtbl event_vt = {
 		.KeyUp = keyUp,
-// 		.Click = click,
+		.Click = click,
 // 		.ScrollUp = scrollUp,
 // 		.ScrollDown = scrollDown,
 // 		.DragStart = dragStart,
@@ -270,6 +292,10 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	GUIFileBrowser* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
+	
+	// TODO: from config
+	w->lineHeight = 22;
+	w->leftMargin = 10;
 	
 	w->header.cursor = GUIMOUSECURSOR_TEXT;
 	
