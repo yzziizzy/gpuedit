@@ -337,8 +337,7 @@ do { \
 // 	w->trayRoot;
 	
 	// TODO more regex cleanup
-	SFREE(w->findREError);
-	
+	GUIBufferEditor_StopFind(w);
 	
 	VEC_FREE(&w->findRanges);
 	
@@ -479,9 +478,26 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 
 
 
-int GUIBufferEditor_StopFind(GUIBufferEditor* w) {
-	return 0;
+void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
+	
+	// clear errors
+	if(w->findREError) {
+		free(w->findREError);
+		w->findREError = NULL;
+		w->findREErrorChar = -1;
+	}
+	
+	// clean up regex structures
+	if(w->findRE) {
+		pcre2_code_free(w->findRE);
+		pcre2_match_data_free(w->findMatch);
+		w->findMatch = NULL;
+		w->findRE = NULL;
+	}
+	
+	VEC_FREE(&w->findRanges);
 }
+
 
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 	Buffer* b = w->buffer;

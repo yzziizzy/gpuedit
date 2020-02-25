@@ -415,6 +415,7 @@ void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height);
 
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
 int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
+void GUIBufferEditor_StopFind(GUIBufferEditor* w);
 
 intptr_t getDisplayColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
 intptr_t getActualColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
