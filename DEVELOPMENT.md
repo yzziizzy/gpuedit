@@ -31,7 +31,6 @@
 * Status bar
 * Track indentation level per line
 * Settings editor
-* Serviceable C highlighter
 * Polish scrollbar dragging
 * Color selector control
 * CLI, ENV options parsing
@@ -40,6 +39,7 @@
 * Drag selection to new place
 * New Buffer/file
 * Async filebrowser fs operations
+* FB: new file/folder, delete, rename
 
 == Editor Features ==
 * Extract selection to its own function in open file space

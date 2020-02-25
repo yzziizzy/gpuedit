@@ -199,9 +199,9 @@ typedef struct GUIEvent {
 	
 	unsigned int modifiers;
 	
+	char multiClick;
 	char cancelled;
 	char requestRedraw;
-	
 } GUIEvent;
 
 
@@ -350,8 +350,12 @@ typedef struct GUIManager {
 	GUIObject* dragStartTarget;
 	float minDragDist;
 	
-	float lastClickTime;
-	float multiClickSpan;
+	struct {
+		float time;
+		int button;
+	} clickHistory[3];
+	float doubleClickTime;
+	float tripleClickTime;
 	
 	int defaultCursor;
 	int currentCursor;

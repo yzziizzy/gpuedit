@@ -156,10 +156,6 @@ static void updatePos(GUIFileBrowser* w, GUIRenderParams* grp, PassFrameParams* 
 }
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
-	
-}
-
 
 static char* getParentDir(char* child) {
 	intptr_t len = strlen(child);
@@ -257,17 +253,37 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	}
 	else if(gev->keycode == XK_space) {
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
-		if(e->isSelected) {
-			e->isSelected = 0;
-			w->numSelected--;
-		}
-		else {
-			e->isSelected = 1;
-			w->numSelected++;
-		}
+		e->isSelected = !e->isSelected;
+		w->numSelected += e->isSelected ? 1 : -1;
 	}
 	
 }
+
+
+static void click(GUIObject* w_, GUIEvent* gev) {
+	GUIFileBrowser* w = (GUIFileBrowser*)w_;
+	
+	intptr_t line = floor((gev->pos.y - w->header.absTopLeft.y) / w->lineHeight) + w->scrollOffset;
+	
+	w->cursorIndex = line;
+	autoscroll(w);
+	
+	GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
+	
+	// open the file on doubleclick
+	if(gev->multiClick == 2) {
+		char* files[2] = { pathJoin(w->curDir, e->name), NULL };
+		
+		if(w->onChoose) w->onChoose(w->onChooseData, files, 1);
+		
+		free(files[0]);
+	}
+	else {
+		e->isSelected = !e->isSelected;
+		w->numSelected += e->isSelected ? 1 : -1;
+	}
+}
+
 
 
 GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
@@ -280,6 +296,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	static struct GUIEventHandler_vtbl event_vt = {
 		.KeyUp = keyUp,
 		.Click = click,
+		.DoubleClick = click,
 // 		.ScrollUp = scrollUp,
 // 		.ScrollDown = scrollDown,
 // 		.DragStart = dragStart,
@@ -297,7 +314,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	w->lineHeight = 22;
 	w->leftMargin = 10;
 	
-	w->header.cursor = GUIMOUSECURSOR_TEXT;
+	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(w->scrollbar, (Vector2){10, 50});

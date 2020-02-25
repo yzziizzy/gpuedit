@@ -121,6 +121,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 // 	TextureAtlas_finalize(gm->ta);
 	
 	gm->minDragDist = 8;
+	gm->doubleClickTime = 0.300;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt, &event_vt); 
@@ -890,15 +891,18 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		.type = GUIEVENT_MouseUp,
 		.originalTarget = t,
 		.currentTarget = t,
-		.eventTime = 0,
+		.eventTime = iev->time,
 		.pos = newPos,
 		.button = iev->button, 
 		.keycode = 0, // N/A
 		.modifiers = translateModKeys(gm, iev),
+		.multiClick = 1,
 		.cancelled = 0,
 		.requestRedraw = 0,
 	};
 	
+	
+	// TODO doubleclick
 	
 	
 	// TODO: check requestRedraw between each dispatch
@@ -939,30 +943,8 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		gev.cancelled = 0;
 		GUIManager_BubbleEvent(gm, t, &gev);
 		
-		if(iev->button == 1) {
-			// TODO: replace when better input management exists
-			if(!suppressClick) {
-				gev.type = GUIEVENT_Click;
-				gev.currentTarget = t;
-				gev.cancelled = 0;
-				GUIManager_BubbleEvent(gm, t, &gev);
-			}
-		}
-		else if(iev->button == 2) {
-			// TODO: replace when better input management exists
-			gev.type = GUIEVENT_MiddleClick;
-			gev.currentTarget = t;
-			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, t, &gev);
-		}
-		else if(iev->button == 3) {
-			// TODO: replace when better input management exists
-			gev.type = GUIEVENT_RightClick;
-			gev.currentTarget = t;
-			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, t, &gev);
-		}
-		else if(iev->button == 4 || iev->button == 5) {
+		// scroll wheel
+		if(iev->button == 4 || iev->button == 5) {
 			
 			if(iev->button == 4) {
 				gev.type = GUIEVENT_ScrollUp;
@@ -981,13 +963,61 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 			gev.currentTarget = t;
 			gev.cancelled = 0;
 			GUIManager_BubbleEvent(gm, t, &gev);
+			
+			return;
 		}
-		else {
+		
+		// aux click; hscroll, etc
+		if(iev->button > 5) {
 			gev.type = GUIEVENT_AuxClick;
 			gev.currentTarget = t;
 			gev.cancelled = 0;
 			GUIManager_BubbleEvent(gm, t, &gev);
+			
+			return;
 		}
+		
+		
+		// normal clicks
+		if(iev->button == 1) {
+			
+			if(!suppressClick) {
+				if(gm->clickHistory[0].button == 1 && 
+					iev->time < gm->clickHistory[0].time + gm->doubleClickTime) {
+					
+					gev.multiClick = 2; 
+				}
+				
+				gev.type = GUIEVENT_Click;
+				gev.currentTarget = t;
+				gev.cancelled = 0;
+				GUIManager_BubbleEvent(gm, t, &gev);
+			
+			}
+		}
+		else if(iev->button == 2) {
+			// TODO: replace when better input management exists
+			gev.type = GUIEVENT_MiddleClick;
+			gev.currentTarget = t;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, t, &gev);
+		}
+		else if(iev->button == 3) {
+			// TODO: replace when better input management exists
+			gev.type = GUIEVENT_RightClick;
+			gev.currentTarget = t;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, t, &gev);
+		}
+		
+		
+		
+		// push the latest click onto the stack
+		gm->clickHistory[2] = gm->clickHistory[1];
+		gm->clickHistory[1] = gm->clickHistory[0];
+		gm->clickHistory[0].time = iev->time;
+		gm->clickHistory[0].button = iev->button;
+		
 	}
 	
 }
