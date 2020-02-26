@@ -314,6 +314,10 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		// do nothing
 		break;
 		
+	case MainCmd_OpenFileBrowser:
+		GUIMainControl_OpenFileBrowser(w, "./");
+		break;
+		
 	case MainCmd_SaveActiveTab:
 		printf("NYI\n");
 		break;

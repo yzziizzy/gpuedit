@@ -49,6 +49,7 @@
 	X(BufferCmd, PromptLoad) \
 	X(BufferCmd, CloseTray) \
 	\
+	X(MainCmd, OpenFileBrowser) \
 	X(MainCmd, SaveActiveTab) \
 	X(MainCmd, SaveAll) \
 	X(MainCmd, Quit) \
