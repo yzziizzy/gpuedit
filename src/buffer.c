@@ -35,6 +35,7 @@ void Buffer_Delete(Buffer* b) {
 	b->refs--;
 	if(b->refs > 0) return;
 	
+	if(b->filePath) free(b->filePath);
 	if(b->sel) free(b->sel);
 	
 	// free all the lines
@@ -48,6 +49,8 @@ void Buffer_Delete(Buffer* b) {
 	}
 	
 	free(b);
+	
+	Buffer_FreeAllUndo(b);
 }
 
 
@@ -97,6 +100,18 @@ static BufferUndo* undo_dec(Buffer* b) {
 	
 	return b->undoRing + b->undoCurrent;
 }
+
+// clean up all memory related to the undo system
+void Buffer_FreeAllUndo(Buffer* b) {
+	for(intptr_t i = 0; i < b->undoFill; i++) {
+		if(b->undoRing[i].text) {
+			free(b->undoRing[i].text);
+		}
+	}
+	
+	free(b->undoRing);
+}
+
 
 void Buffer_UndoInsertText(
 	Buffer* b, 
@@ -181,6 +196,15 @@ void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
 // clears the entire undo buffer
 void Buffer_UndoTruncateStack(Buffer* b) {
 // 	VEC_TRUNC(&b->undoStack);
+	
+	// clean up any text
+	for(intptr_t i = 0; i < b->undoFill; i++) {
+		if(b->undoRing[i].text) {
+			free(b->undoRing[i].text);
+			b->undoRing[i].text = NULL;
+		}
+	}
+	
 	b->undoFill = 0;
 	b->undoOldest = 0;
 	b->undoNext = 0;
@@ -528,7 +552,10 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 		// truncate start line after selection start
 		Buffer_LineTruncateAfter(b, sel->startLine, sel->startCol);
 		// append end line after selection ends to first line
-		Buffer_LineAppendText(b, sel->startLine, sel->endLine->buf + sel->endCol, strlen(sel->endLine->buf + sel->endCol));
+		
+		char* elb = sel->endLine->buf ? sel->endLine->buf + sel->endCol : "";
+		Buffer_LineAppendText(b, sel->startLine, elb, strlen(elb));
+		
 		
 		// delete lines 1-n
 		BufferLine* bl = sel->startLine->next;
@@ -1168,7 +1195,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	}
 	else {
 		// copy only the end
-		char* start = sel->startLine->buf + sel->startCol - 1;
+		char* start = sel->startLine->buf ? sel->startLine->buf + sel->startCol - 1 : "";
 		blc = BufferLine_FromStr(start, strlen(start));
 	}
 	

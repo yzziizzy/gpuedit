@@ -58,7 +58,7 @@ void Clipboard_PushBuffer(Buffer* b) {
 	
 	Clipboard_SendToOS(CLIP_SELECTION, cc->flatText, cc->flatTextLen, 0);
 	
-	VEC_POP1(&clipboard->stack); // HACK, effectively disabling the unfinished stack behavior
+	if(VEC_LEN(&clipboard->stack) > 0) VEC_POP1(&clipboard->stack); // HACK, effectively disabling the unfinished stack behavior
 	VEC_PUSH(&clipboard->stack, cc);
 }
 

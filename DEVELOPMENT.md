@@ -1,7 +1,7 @@
 
 
 == TODO ==
-* Undo/redo garbage collection
+* Fix undo not restoring text properly after overflow and segfault fixes 
 * Undo selection changes
 * Mark changed tabs with "*" 
 * On-demand frame rendering

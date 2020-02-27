@@ -53,6 +53,7 @@ BufferLine* BufferLine_New() {
 	return l;
 }
 
+
 void BufferLine_Delete(BufferLine* l) {
 	if(l->buf) free(l->buf);
 	VEC_FREE(&l->style);
@@ -86,7 +87,6 @@ void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len) {
 		l->allocSz = nextPOT(len + 1);
 		l->buf = realloc(l->buf, l->allocSz);
 // 		l->style = realloc(l->style, l->allocSz);
-		// BUG: check OOM and maybe try to crash gracefully
 	}
 }
 
@@ -116,7 +116,10 @@ void BufferLine_DeleteChars(BufferLine* l, intptr_t offset, intptr_t len) {
 	if(offset > l->length + 1) return; // strange overrun
 	
 	if(offset < l->length) {
-		memmove(l->buf + offset, l->buf + offset + len, l->length - offset + len);
+		intptr_t n = l->length - offset - len + 1; // +1 for the null terminator
+// 		n = MAX(0, n);
+// 		printf("length: %ld, alloc: %ld, off: %ld, len: %ld, n: %ld\n", l->length, l->allocSz, offset, len, n);
+		memmove(l->buf + offset, l->buf + offset + len, n);
 	}
 	
 	l->length -= len;

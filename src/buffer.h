@@ -79,12 +79,12 @@ typedef struct BufferUndo {
 	intptr_t colNum;
 	intptr_t cursorL;
 	intptr_t cursorC;
-	union{
+	union {
 		int character; // for single-char operations
 		
 		struct { // for text
 			char* text; 
-			intptr_t length;
+// 			intptr_t length;
 		};
 		
 		struct { // for selection changes
@@ -92,6 +92,7 @@ typedef struct BufferUndo {
 			intptr_t endCol;
 		};
 	};
+	intptr_t length;
 } BufferUndo;
 
 typedef struct Buffer {
@@ -299,6 +300,9 @@ void Buffer_UndoSequenceBreak(Buffer* b);
 void Buffer_UndoReplayToSeqBreak(Buffer* b);
 int Buffer_UndoReplayTop(Buffer* b);
 void Buffer_UndoTruncateStack(Buffer* b);
+
+// clean up all memory related to the undo system
+void Buffer_FreeAllUndo(Buffer* b);
 
 void Buffer_RedoReplayToSeqBreak(Buffer* b);
 int Buffer_RedoReplay(Buffer* b, BufferUndo* u);
