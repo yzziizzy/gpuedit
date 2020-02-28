@@ -101,7 +101,7 @@ size_t drawCharacter(
 	return 0;
 }
 
-
+// draws the editor's text area and line numbers
 void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
 	Buffer* b = gbe->buffer;
 	
@@ -117,8 +117,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	char lnbuf[32];
 	GUIUnifiedVertex* v;
 	
+	float edh = gbe->header.size.y - gbe->trayHeight;
+	
 	// TODO: move to gbe->resize or somewhere appropriate
-	gbe->linesOnScreen = (gbe->header.size.y - gbe->trayHeight) / tdp->lineHeight;
+	gbe->linesOnScreen = edh / tdp->lineHeight;
 	
 	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
@@ -127,7 +129,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			gbe->header.absTopLeft.x, 
 			gbe->header.absTopLeft.y, 
 			gbe->header.absTopLeft.x + gbe->header.size.x, 
-			gbe->header.absTopLeft.y + gbe->header.size.y - gbe->trayHeight
+			gbe->header.absTopLeft.y + edh
 		},
 		.clip = {0, 0, 18000, 18000},
 		.guiType = 0, // window (just a box)
@@ -168,7 +170,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	
 	
 	// for selections that cross the visible window boundary
-	if(b->sel && b->sel->startLine->lineNum <= bl->lineNum) {
+	if(b->sel && b->sel->startLine->lineNum < bl->lineNum) {
 		if(b->sel->endLine->lineNum >= bl->lineNum) {
 			inSelection = 1;
 			fg = &theme->hl_textColor;
@@ -283,6 +285,24 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 				if(c == 0) break;
 				
 				if(c == '\t') {
+					if(inSelection) {
+						v = GUIManager_reserveElements(gm, 1);
+						*v = (GUIUnifiedVertex){
+							.pos.t = tl.y,
+							.pos.l = tl.x + adv,
+							.pos.b = tl.y + tdp->lineHeight,
+							.pos.r = tl.x + adv + (tdp->charWidth * tdp->tabWidth),
+							
+							.guiType = 0, // box
+							
+							.bg = *bg,
+							.z = .5,
+							
+							// disabled in the shader right now
+							.clip = {0,0, 1000000,1000000},
+						};
+					}
+					
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
 				else {
@@ -342,7 +362,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			}
 		}
 
-		if(tl.y > gbe->header.size.y - gbe->trayHeight) break; // end of buffer control
+		if(tl.y > edh) break; // end of buffer control
 
 		// advance to the next line
 		tl.y += tdp->lineHeight;
