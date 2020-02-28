@@ -62,6 +62,7 @@ typedef struct GUIMainControl {
 	
 	Cmd* commands;
 	
+	GlobalSettings* gs;
 	
 } GUIMainControl;
 

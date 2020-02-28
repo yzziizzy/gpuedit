@@ -383,6 +383,8 @@ typedef struct GUIManager {
 	
 	VEC(GLuint64) texHandles;
 	
+	GlobalSettings* gs;
+	
 } GUIManager;
 
 

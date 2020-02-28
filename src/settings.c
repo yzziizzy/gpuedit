@@ -90,7 +90,7 @@ void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
 		SETTING_LIST
 	#undef SETTING
 	
-	// TODO: free json file
+	json_file_free(jsf);
 }
 
 

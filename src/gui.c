@@ -107,6 +107,8 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	VEC_INIT(&gm->reapQueue);
 	
+	gm->gs = gs;
+	
 	gm->maxInstances = gs->GUIManager_maxInstances;
 	
 	gm->elementCount = 0;

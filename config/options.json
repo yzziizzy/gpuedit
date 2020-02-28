@@ -1,0 +1,18 @@
+{
+	"GUIManager_maxInstances": 8192,
+	"Buffer_linesPerScrollWheel": 3,
+	"Buffer_cursorBlinkEnable": 1,
+	"Buffer_cursorBlinkOffTime": 0.200,
+	"Buffer_cursorBlinkOnTime": 0.300,
+	"Buffer_hideScrollbar": 0,
+	"Buffer_highlightCurrentLine": 1,
+	"Buffer_outlineCurrentLine": 1,
+	"Buffer_lineNumExtraWidth": 10,
+	"Buffer_showLineNums": 1,
+	"Buffer_charWidth": 10,
+	"Buffer_lineHeight": 20,
+	"Buffer_tabWidth": 4,
+	"Buffer_font": "Courier New",
+	"Buffer_fontSize": 12,
+	"Buffer_maxUndo": 4096,
+}

@@ -392,7 +392,8 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
-	w->tabHeight = 20;
+	w->gs = gs;
+	w->tabHeight = gs->MainControl_tabHeight;
 	
 	// TODO: resize
 	
@@ -596,14 +597,14 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	ep->lineCommentPrefix = "// ";
 	ep->selectionCommentPrefix = "/*";
 	ep->selectionCommentPostfix= "*/";
-	ep->tabWidth = 4;
+	ep->tabWidth = w->gs->Buffer_tabWidth;
 	
 	TextDrawParams* tdp = pcalloc(tdp);
 	tdp->font = FontManager_findFont(w->header.gm->fm, "Courier New");
 	tdp->fontSize = .5;
-	tdp->charWidth = 10;
-	tdp->lineHeight = 20;
-	tdp->tabWidth = 4;
+	tdp->charWidth = w->gs->Buffer_charWidth;
+	tdp->lineHeight = w->gs->Buffer_lineHeight;
+	tdp->tabWidth = w->gs->Buffer_tabWidth;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
 	theme->bgColor =      (struct Color4){ 15,  15,  15, 255};
@@ -615,8 +616,8 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;
 	bdp->theme = theme;
-	bdp->showLineNums = 1;
-	bdp->lineNumExtraWidth = 10;
+	bdp->showLineNums = w->gs->Buffer_showLineNums;
+	bdp->lineNumExtraWidth = w->gs->Buffer_lineNumExtraWidth;
 	
 	
 	
@@ -629,7 +630,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
 	gbe->buffer = buf;
 	gbe->font = tdp->font;
-	gbe->scrollLines = 0;
+	gbe->scrollLines = w->gs->Buffer_linesPerScrollWheel;
 	gbe->bdp = bdp;
 	gbe->header.name = strdup(path);
 	gbe->header.parent = w; // important for bubbling

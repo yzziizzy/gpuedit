@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 	char* wd;
 	
 	GlobalSettings_loadDefaults(&app.globalSettings);
-// 	GlobalSettings_loadFromFile(&app.globalSettings, "assets/config/core.json");
+	GlobalSettings_loadFromFile(&app.globalSettings, "config/options.json");
 	
 	// init some path info. 
 // 	wd = getcwd(NULL, 0);

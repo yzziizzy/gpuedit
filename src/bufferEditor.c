@@ -304,11 +304,11 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	w->sourceFile = "savetest.c";
 	
-	// HACK
-	w->linesPerScrollWheel = 3;
-	w->cursorBlinkOnTime = 0.6;
-	w->cursorBlinkOffTime = 0.6;
-	w->outlineCurLine = 1;
+	
+	w->linesPerScrollWheel = gm->gs->Buffer_linesPerScrollWheel;
+	w->cursorBlinkOnTime = gm->gs->Buffer_cursorBlinkOnTime;
+	w->cursorBlinkOffTime = gm->gs->Buffer_cursorBlinkOffTime;
+	w->outlineCurLine = gm->gs->Buffer_outlineCurrentLine;
 	
 	return w;
 }
