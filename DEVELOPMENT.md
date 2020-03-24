@@ -6,7 +6,6 @@
 * Mark changed tabs with "*" 
 * On-demand frame rendering
 * Proper tabstops
-* Options file
 * Move editing state from Buffer to GBE
 * MIME type probing of some sort
 * Ability to change the highlighter
@@ -17,6 +16,7 @@
 * Split GUIManager draw calls into layers for less sorting
 * Shortcut config presets
 * Pause render loop on X window losing focus
+* Function chain to dynamically reload settings
 * Console
 * Built-in terminal
 * Slide-out windows
@@ -34,12 +34,16 @@
 * Polish scrollbar dragging
 * Color selector control
 * CLI, ENV options parsing
+* Wire options through gui manager
 * Hide mouse cursor when typing
 * Unsaved changes crash recovery
 * Drag selection to new place
 * New Buffer/file
 * Async filebrowser fs operations
 * FB: new file/folder, delete, rename
+* Re-order MC tabs
+* User-specified automatic sorting for MC tabs
+* Command to jump to certain control
 
 == Editor Features ==
 * Extract selection to its own function in open file space
@@ -82,11 +86,13 @@
 * Option: rendering of selection on tabs and empty lines (and trailing spaces?)
 * Option: Render selection pivot marker
 * Option: automatically scroll so that the cursor has n lines of padding on the top and bottom.
+* Option: don't scroll to end cursor when ctrl-a
 * Goto line should move the middle of the screen to the cursor
 * Comment hint to hilighter to treat a certain identifier as a certain type, for use with macros
 * Increment/decrement numbers in identifiers on this line. Combo with Dup Line.
 * File browser gives SLOC/git/etc stats in detail mode
-
+* Jump to line of last edit
+* File-summoning fuzzy search interface 
 
 == BUGS ==
 * Mouse scroll on files with fewer lines than the screen

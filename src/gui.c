@@ -122,7 +122,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 // 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
 // 	TextureAtlas_finalize(gm->ta);
 	
-	gm->minDragDist = 8;
+	gm->minDragDist = 2;
 	gm->doubleClickTime = 0.300;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));

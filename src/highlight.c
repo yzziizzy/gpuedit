@@ -2,10 +2,85 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <dlfcn.h>
 
 #include "highlight.h"
 #include "common_math.h"
 #include "common_gl.h"
+
+
+void* a_malloc(Allocator* a, size_t sz) {
+	return malloc(sz);
+}
+void* a_realloc(Allocator* a, void* p, size_t sz) {
+	return realloc(p, sz);
+}
+void* a_free(Allocator* a, void* p) {
+	return free(p);
+}
+
+
+
+void (entryFn*)(Allocator*, HighlighterPluginInfo** /*list*/, uint64_t /*count*/);
+
+
+HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
+	
+	int flags = RTLD_LAZY;
+	
+	void* lib = dlopen(path, flags);
+	if(!lib) {
+		printf("Failed to open highlighter library: '%s'\n", path);
+		return;
+	}
+	
+	entryFn getList = dlsym(lib, "gpuedit_list_lighlighters");
+	if(!entry) {
+		printf("Invalid highlighter library: '%s'\n", path);
+		dlclose(lib);
+		return;
+	}
+	
+	Allocator al = {
+		.malloc = a_malloc,
+		.realloc = a_realloc,
+		.free = a_free,
+	};
+	
+	HighlighterPluginInfo** list;
+	uint64_t cnt;
+	
+	getList(&al, list, &cnt);
+	
+	for(int i = 0; i < cnt; i++) {
+		HighlighterPluginInfo* hpi = list[i];
+		
+		VEC_PUSH(&hm->plugins, hpi);
+		
+		
+		
+	}
+	
+	HighlighterModule* mod = calloc(mod);
+	mod->numHighlighters = cnt;
+	mod->highlighters = list;
+	mod->path = strdup(path);
+	mod->libHandle = lib;
+	
+	VEC_PUSH(&hm->modules, mod);
+	
+	return mod;
+}
+
+
+
+
+
+
+
+
+
+
 
 
  

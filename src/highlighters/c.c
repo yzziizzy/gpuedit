@@ -254,7 +254,6 @@ struct lexer_state {
 
 
 
-static int isKeyword(char* in);
 static int eatchar(struct lexer_state* st, int c);
 
 
@@ -362,76 +361,6 @@ void hlfn(Highlighter* h, hlinfo* hl) {
 }
 
 
-// must be sorted
-static char* preprocessors[] = {
-	"define",
-	"elif",
-	"else",
-	"endif",
-	"error",
-	"if",
-	"ifdef",
-	"ifndef",
-	"include",
-	"line",
-	"pragma",
-	"undef",
-	"warning",
-	NULL,
-};
-
-static char* keywords[] = {
-	"auto",
-	"break",
-	"case",
-	"char",
-	"const",
-	"continue",
-	"default",
-	"do",
-	"double",
-	"else",
-	"enum",
-	"extern",
-	"float",
-	"for",
-	"goto",
-	"if",
-	"int",
-	"int16_t",
-	"int32_t",
-	"int64_t",
-	"int8_t",
-	"long",
-	"register",
-	"return",
-	"short",
-	"signed",
-	"sizeof",
-	"static",
-	"struct",
-	"switch",
-	"typedef",
-	"uint16_t",
-	"uint32_t",
-	"uint64_t",
-	"uint8_t",
-	"union",
-	"unsigned",
-	"void",
-	"volatile",
-	"while",
-	NULL,
-};
-
-
-static int isKeyword(char* in) {
-	char** s = keywords;
-	while(*s) {
-		if(0 == strcmp(*s, in)) return 1;
-	}
-	return 0;
-}
 
 
 static int is_id_char(int c) {

@@ -2,6 +2,15 @@
 #define __gpuedit_highlighterAPI_h__
 
 
+typedef struct Allocator {
+	void* (malloc*)(struct Allocator*, size_t);
+	void* (realloc*)(struct Allocator*, void*, size_t);
+	void  (free*)(struct Allocator*, void*);
+	
+	char* (strdup*)(struct Allocator*, char*);
+	char* (strndup*)(struct Allocator*, char*, size_t);
+} Allocator;
+
 
 typedef struct TextStyleAtom {
 	unsigned char length;
@@ -18,7 +27,9 @@ struct BufferLine;
 typedef struct BufferLine BufferLine;
 
 
-typedef struct hlinfo {
+typedef struct HLContext {
+	Allocator* alloc;
+	
 // 	void (*getPrevLine)(struct hlinfo*, char** /*txt*/, size_t* /*len*/);
 	int  (*getNextLine)(struct hlinfo*, char** /*txt*/, size_t* /*len*/);
 	void (*writeSection)(struct hlinfo*, unsigned char /*style*/, unsigned char/*length*/);
@@ -37,7 +48,7 @@ typedef struct hlinfo {
 	int writeCol;
 	*/
 	
-} hlinfo;
+} HLContext;
 
 
 typedef struct Color4 {
@@ -71,6 +82,11 @@ typedef struct HighlighterPluginInfo {
 	uint32_t reserved_1;
 	
 	char* name;
+	char* description;
+	char* author;
+	
+	char* extensions; // semicolon separated
+	
 	
 	void (*getStyleNames)(char** /*nameList*/, size_t* /*len*/);
 	void (*getStyleDefaults)(char** /*nameList*/, size_t* /*len*/);
@@ -87,3 +103,4 @@ typedef struct HighlighterPluginInfo {
 
 
 #endif // __gpuedit_highlighterAPI_h__
+
