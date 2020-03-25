@@ -790,7 +790,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 
 
 
-int getNextLine(hlinfo* hl, char** txt, size_t* len) {
+int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
 	BufferLine* l = hl->readLine;
 	
 	if(!hl->readLine) return 1;
@@ -804,7 +804,7 @@ int getNextLine(hlinfo* hl, char** txt, size_t* len) {
 	return 0;
 }
 
-void writeSection(hlinfo* hl, unsigned char style, unsigned char len) {
+void writeSection(HLContextInternal* hl, unsigned char style, unsigned char len) {
 	if(len == 0) return;
 	
 	VEC_INC(&hl->writeLine->style);
@@ -825,6 +825,20 @@ void writeSection(hlinfo* hl, unsigned char style, unsigned char len) {
 }
 
 
+static void* a_malloc(Allocator* a, size_t sz) {
+	return malloc(sz);
+}
+static void* a_calloc(Allocator* a, size_t sz) {
+	return calloc(1, sz);
+}
+static void* a_realloc(Allocator* a, void* p, size_t sz) {
+	return realloc(p, sz);
+}
+static void* a_free(Allocator* a, void* p) {
+	return free(p);
+}
+
+
 void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
 	double then = getCurrentTime();
 	
@@ -832,12 +846,20 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
 	
 	if(!b->first) return;
 	Highlighter* h = gbe->h;
-
-	hlinfo hl = {
-		.getNextLine = getNextLine,
-		.writeSection = writeSection,
+	
+	static Allocator al = {
+		.malloc = a_malloc,
+		.calloc = a_calloc,
+		.realloc = a_realloc,
+		.free = a_free,
+	};
+	
+	HLContextInternal hlc = {
+		.ctx.alloc = &al,
+		.ctx.getNextLine = getNextLine,
+		.ctx.writeSection = writeSection,
 		
-		.dirtyLines = b->numLines,
+		.ctx.dirtyLines = b->numLines,
 		
 		.b = b,
 		.readLine = b->first,
@@ -853,7 +875,7 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
 		bl = bl->next;
 	}
 	
-	hlfn(h, &hl);
+	h->plugin->refreshStyle(&hlc->ctx);
 	
 // 	printf("hl time: %f\n", timeSince(then)  * 1000.0);
 }

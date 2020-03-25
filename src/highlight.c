@@ -9,19 +9,21 @@
 #include "common_gl.h"
 
 
-void* a_malloc(Allocator* a, size_t sz) {
+static void* a_malloc(Allocator* a, size_t sz) {
 	return malloc(sz);
 }
-void* a_realloc(Allocator* a, void* p, size_t sz) {
+static void* a_calloc(Allocator* a, size_t sz) {
+	return calloc(1, sz);
+}
+static void* a_realloc(Allocator* a, void* p, size_t sz) {
 	return realloc(p, sz);
 }
-void* a_free(Allocator* a, void* p) {
+static void* a_free(Allocator* a, void* p) {
 	return free(p);
 }
 
 
-
-void (entryFn*)(Allocator*, HighlighterPluginInfo** /*list*/, uint64_t /*count*/);
+void (entryFn*)(Allocator*, HighlighterPluginInfo** /*list*/, uint64_t* /*count*/);
 
 
 HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
@@ -34,7 +36,7 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 		return;
 	}
 	
-	entryFn getList = dlsym(lib, "gpuedit_list_lighlighters");
+	entryFn getList = dlsym(lib, "gpuedit_list_highlighters");
 	if(!entry) {
 		printf("Invalid highlighter library: '%s'\n", path);
 		dlclose(lib);
@@ -43,17 +45,18 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 	
 	Allocator al = {
 		.malloc = a_malloc,
+		.calloc = a_calloc,
 		.realloc = a_realloc,
 		.free = a_free,
 	};
 	
-	HighlighterPluginInfo** list;
+	HighlighterPluginInfo* list;
 	uint64_t cnt;
 	
-	getList(&al, list, &cnt);
+	getList(&al, &list, &cnt);
 	
 	for(int i = 0; i < cnt; i++) {
-		HighlighterPluginInfo* hpi = list[i];
+		HighlighterPluginInfo* hpi = list + i;
 		
 		VEC_PUSH(&hm->plugins, hpi);
 		

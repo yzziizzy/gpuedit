@@ -4,6 +4,7 @@
 
 typedef struct Allocator {
 	void* (malloc*)(struct Allocator*, size_t);
+	void* (calloc*)(struct Allocator*, size_t);
 	void* (realloc*)(struct Allocator*, void*, size_t);
 	void  (free*)(struct Allocator*, void*);
 	
@@ -31,23 +32,14 @@ typedef struct HLContext {
 	Allocator* alloc;
 	
 // 	void (*getPrevLine)(struct hlinfo*, char** /*txt*/, size_t* /*len*/);
-	int  (*getNextLine)(struct hlinfo*, char** /*txt*/, size_t* /*len*/);
-	void (*writeSection)(struct hlinfo*, unsigned char /*style*/, unsigned char/*length*/);
+	int  (*getNextLine)(struct HLContext*, char** /*txt*/, size_t* /*len*/);
+	void (*writeSection)(struct HLContext*, unsigned char /*style*/, unsigned char/*length*/);
 // 	void (*rewindStyle)(struct hlinfo*, int /*chars*/);
 	
 	// read-only
 	ptrdiff_t dirtyLines;
 	
-	
-	// private
-	void* privatedata; // ?
-	/*
-	Buffer* b;
-	BufferLine* readLine; 
-	BufferLine* writeLine; 
-	int writeCol;
-	*/
-	
+	void* userData;
 } HLContext;
 
 
@@ -79,7 +71,7 @@ typedef struct StyleInfo {
 typedef struct HighlighterPluginInfo {
 	uint16_t majorVersion;
 	uint16_t minorVersion;
-	uint32_t reserved_1;
+	uint32_t abiVersion;
 	
 	char* name;
 	char* description;
@@ -88,10 +80,10 @@ typedef struct HighlighterPluginInfo {
 	char* extensions; // semicolon separated
 	
 	
-	void (*getStyleNames)(char** /*nameList*/, size_t* /*len*/);
-	void (*getStyleDefaults)(char** /*nameList*/, size_t* /*len*/);
+	void (*getStyleNames)(char** /*nameList*/, uint64_t* /*len*/);
+	void (*getStyleDefaults)(char** /*nameList*/, uint64_t* /*len*/);
 	
-	void (*refreshStyle)(struct Highlighter*, hlinfo*);
+	void (*refreshStyle)(HLContext*);
 	
 	void (*init)();
 	void (*cleanup)();

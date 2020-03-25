@@ -13,8 +13,19 @@
 
 
 
+typedef struct HLContextInternal {
+	HLContext ctx;
+	
+	Buffer* b;
+	BufferLine* readLine; 
+	BufferLine* writeLine; 
+	int writeCol;
+	
+} HLContextInternal;
+
+
 typedef struct Highlighter {
-	HighlighterPluginInfo* header;
+	HighlighterPluginInfo* plugin;
 	
 	StyleInfo* styles;
 	int numStyles;
