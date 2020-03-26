@@ -18,12 +18,12 @@ static void* a_calloc(Allocator* a, size_t sz) {
 static void* a_realloc(Allocator* a, void* p, size_t sz) {
 	return realloc(p, sz);
 }
-static void* a_free(Allocator* a, void* p) {
-	return free(p);
+static void a_free(Allocator* a, void* p) {
+	free(p);
 }
 
 
-void (entryFn*)(Allocator*, HighlighterPluginInfo** /*list*/, uint64_t* /*count*/);
+typedef void (*entryFn)(Allocator*, HighlighterPluginInfo** /*list*/, uint64_t* /*count*/);
 
 
 HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
@@ -37,7 +37,7 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 	}
 	
 	entryFn getList = dlsym(lib, "gpuedit_list_highlighters");
-	if(!entry) {
+	if(!getList) {
 		printf("Invalid highlighter library: '%s'\n", path);
 		dlclose(lib);
 		return;
@@ -57,14 +57,17 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 	
 	for(int i = 0; i < cnt; i++) {
 		HighlighterPluginInfo* hpi = list + i;
+		Highlighter* h = pcalloc(h);
+		h->plugin = hpi;
+		h->numStyles = hpi->getStyleCount();
+		h->styles = calloc(1, sizeof(*h->styles) * h->numStyles);
 		
-		VEC_PUSH(&hm->plugins, hpi);
+		hpi->getStyleDefaults(h->styles, h->numStyles);
 		
-		
-		
+		VEC_PUSH(&hm->plugins, h);
 	}
 	
-	HighlighterModule* mod = calloc(mod);
+	HighlighterModule* mod = pcalloc(mod);
 	mod->numHighlighters = cnt;
 	mod->highlighters = list;
 	mod->path = strdup(path);

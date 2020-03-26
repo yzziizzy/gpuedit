@@ -164,9 +164,6 @@ typedef struct BufferDrawParams {
 
 
 
-// HACK
-void hlfn(Highlighter* h, hlinfo* hl);
-
 
 typedef struct GBEFindRange {
 	BufferLine* bl;

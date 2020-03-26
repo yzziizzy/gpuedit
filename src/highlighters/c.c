@@ -260,7 +260,7 @@ static int eatchar(struct lexer_state* st, int c);
 
 
 
-void hlfn(Highlighter* h, hlinfo* hl) {
+void hlfn(HLContext* hl) {
 	struct lexer_state ls;
 	ls.state = LST_NULL;
 	ls.buffer = malloc(9*4096); // shame on you for longer tokens :P
@@ -828,33 +828,72 @@ LABEL_push_char_ret:
 
 
 
-void initCStyles(Highlighter* hl) {
+static uint64_t get_style_count() { return HLO_MAXVALUE; };
+static void get_style_names(char** nameList, uint64_t maxNames) {};
+static void get_style_defaults(StyleInfo* styles, uint64_t maxStyles);
+// static void refresh_style(struct Highlighter*, hlinfo*);
+static void hl_init() {};
+static void hl_cleanup() {};
+
+
+
+
+void get_style_defaults(StyleInfo* styles, uint64_t maxStyles) {
 	
-	hl->numStyles = HLO_MAXVALUE;
+	int max = MIN(maxStyles, HLO_MAXVALUE);
 	
-	hl->styles = calloc(1, sizeof(*hl->styles) * hl->numStyles);
-	
-	for(int i = 0; i < HLO_MAXVALUE; i++) {
-		hl->styles[i].index = i;
-		hl->styles[i].category = 0;
-		hl->styles[i].name = HLONames[i];
-		hl->styles[i].fgColor = (Vector4){(i%5)*.1 + .5, (i%50)*.01 + .5, ((i+17)%30)*.3 + .5, 1};
-		hl->styles[i].bgColor = (Vector4){0,0,0,0};
+	for(int i = 0; i < max; i++) {
+		styles[i].index = i;
+		styles[i].category = 0;
+		styles[i].name = HLONames[i];
+		styles[i].fgColor = (Color4f){(i%5)*.1 + .5, (i%50)*.01 + .5, ((i+17)%30)*.3 + .5, 1};
+		styles[i].bgColor = (Color4f){0,0,0,0};
 		
-		hl->styles[i].fgSelColor = (Vector4){(i%5)*.1 + .2, (i%50)*.01 + .2, ((i+17)%30)*.3 + .2, 1};
-		hl->styles[i].bgSelColor = (Vector4){1,1,1,1};
+		styles[i].fgSelColor = (Color4f){(i%5)*.1 + .2, (i%50)*.01 + .2, ((i+17)%30)*.3 + .2, 1};
+		styles[i].bgSelColor = (Color4f){1,1,1,1};
 		
-		hl->styles[i].underline = 0;
-		hl->styles[i].bold = 0;
-		hl->styles[i].italic = 0;
-		hl->styles[i].useFGDefault = 0;
-		hl->styles[i].useBGDefault = 1;
-		hl->styles[i].useFGSelDefault = 0;
-		hl->styles[i].useBGSelDefault = 0;
+		styles[i].underline = 0;
+		styles[i].bold = 0;
+		styles[i].italic = 0;
+		styles[i].useFGDefault = 0;
+		styles[i].useBGDefault = 1;
+		styles[i].useFGSelDefault = 0;
+		styles[i].useBGSelDefault = 0;
 		
 	}
 }
 
+
+
+
+
+
+
+
+
+void gpuedit_list_highlighters(Allocator* al, HighlighterPluginInfo** hllist, uint64_t* count) {
+	
+	HighlighterPluginInfo* list = al->malloc(al, sizeof(*list));
+	
+	list->majorVersion = 0;
+	list->minorVersion = 0;
+	list->abiVersion = 0;
+	list->name = "c";
+	list->description = "C syntax highlighter";
+	list->author = "yzziizzy";
+	list->extensions = "c;h";
+	
+	list->getStyleCount = get_style_count;
+	list->getStyleNames = get_style_names;
+	list->getStyleDefaults = get_style_defaults;
+	list->refreshStyle = hlfn;
+	list->init = hl_init;
+	list->cleanup = hl_cleanup;
+	
+	
+	*hllist = list;
+	*count = 1;
+}
 
 
 

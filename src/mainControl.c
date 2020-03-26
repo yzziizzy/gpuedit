@@ -395,6 +395,11 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	w->gs = gs;
 	w->tabHeight = gs->MainControl_tabHeight;
 	
+	VEC_INIT(&w->hm.modules);
+	VEC_INIT(&w->hm.plugins);
+	Highlighter_LoadModule(&w->hm, "src/highlighters/c.so");
+	
+	
 	// TODO: resize
 	
 	
@@ -637,9 +642,9 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->sourceFile = strdup(path);
 	gbe->commands = w->commands;
 	
-	gbe->h = pcalloc(gbe->h);
-	initCStyles(gbe->h);
-	Highlighter_LoadStyles(gbe->h, "config/c_colors.txt");
+	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
+// 	initCStyles(gbe->h);
+// 	Highlighter_LoadStyles(gbe->h, "config/c_colors.txt");
 	
 	Buffer_LoadFromFile(buf, path);
 	GUIBufferEditor_RefreshHighlight(gbe);

@@ -311,10 +311,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
 							struct Color4 color = {
-								si->fgColor.x * 255,
-								si->fgColor.y * 255,
-								si->fgColor.z * 255,
-								si->fgColor.w * 255,
+								si->fgColor.r * 255,
+								si->fgColor.g * 255,
+								si->fgColor.b * 255,
+								si->fgColor.a * 255,
 							};
 							
 							drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + adv, tl.y});
@@ -326,16 +326,16 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
 							struct Color4 color = {
-								si->fgSelColor.x * 255,
-								si->fgSelColor.y * 255,
-								si->fgSelColor.z * 255,
-								si->fgSelColor.w * 255,
+								si->fgSelColor.r * 255,
+								si->fgSelColor.g * 255,
+								si->fgSelColor.b * 255,
+								si->fgSelColor.a * 255,
 							};
 							struct Color4 bcolor = {
-								si->bgSelColor.x * 255,
-								si->bgSelColor.y * 255,
-								si->bgSelColor.z * 255,
-								si->bgSelColor.w * 255,
+								si->bgSelColor.r * 255,
+								si->bgSelColor.g * 255,
+								si->bgSelColor.b * 255,
+								si->bgSelColor.a * 255,
 							};
 							
 							drawCharacter(gm, tdp, &color, &bcolor, c, (Vector2){tl.x + adv, tl.y});

@@ -3,13 +3,13 @@
 
 
 typedef struct Allocator {
-	void* (malloc*)(struct Allocator*, size_t);
-	void* (calloc*)(struct Allocator*, size_t);
-	void* (realloc*)(struct Allocator*, void*, size_t);
-	void  (free*)(struct Allocator*, void*);
+	void* (*malloc)(struct Allocator*, size_t);
+	void* (*calloc)(struct Allocator*, size_t);
+	void* (*realloc)(struct Allocator*, void*, size_t);
+	void  (*free)(struct Allocator*, void*);
 	
-	char* (strdup*)(struct Allocator*, char*);
-	char* (strndup*)(struct Allocator*, char*, size_t);
+	char* (*strdup)(struct Allocator*, char*);
+	char* (*strndup)(struct Allocator*, char*, size_t);
 } Allocator;
 
 
@@ -43,18 +43,19 @@ typedef struct HLContext {
 } HLContext;
 
 
-typedef struct Color4 {
+typedef struct Color4f {
 	float r, g, b, a;
-} Color4;
+} Color4f;
+
 
 
 typedef struct StyleInfo {
 	int index;
 	int category;
-	Color4 fgColor;
-	Color4 bgColor;
-	Color4 fgSelColor; 
-	Color4 bgSelColor;
+	Color4f fgColor;
+	Color4f bgColor;
+	Color4f fgSelColor; 
+	Color4f bgSelColor;
 	char* name;
 	
 	int underline : 1;
@@ -80,8 +81,9 @@ typedef struct HighlighterPluginInfo {
 	char* extensions; // semicolon separated
 	
 	
-	void (*getStyleNames)(char** /*nameList*/, uint64_t* /*len*/);
-	void (*getStyleDefaults)(char** /*nameList*/, uint64_t* /*len*/);
+	uint64_t (*getStyleCount)();
+	void (*getStyleNames)(char** /*nameList*/, uint64_t /*maxLen*/);
+	void (*getStyleDefaults)(StyleInfo* /*styles*/, uint64_t /*maxLen*/);
 	
 	void (*refreshStyle)(HLContext*);
 	

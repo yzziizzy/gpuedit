@@ -40,33 +40,19 @@ typedef struct HighlighterModule {
 	
 	uint64_t numHighlighters;
 	HighlighterPluginInfo** highlighters;
-} HighligherModule;
+} HighlighterModule;
 
 
 typedef struct HighlighterManager {
-	VEC(HighligherModule*) modules;
-	VEC(HighlighterPluginInfo*) plugins;
+	VEC(HighlighterModule*) modules;
+	VEC(Highlighter*) plugins;
 	
 	
 	
-} HighligherManager;
+} HighlighterManager;
 
 
-
-
-
-/*
-typedef struct Highlighter_C {
-	Highlighter hl;
-	
-	
-	
-	
-} Highlighter_C;*/
-
-// init
-// getPlugins
-// cleanup
+HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path);
 
 
 

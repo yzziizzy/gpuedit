@@ -819,7 +819,7 @@ void writeSection(HLContextInternal* hl, unsigned char style, unsigned char len)
 	if(hl->writeCol > hl->writeLine->length) {
 		hl->writeCol = 0;
 		hl->writeLine = hl->writeLine->next;
-		hl->dirtyLines--;
+		hl->ctx.dirtyLines--;
 	}
 	
 }
@@ -834,8 +834,8 @@ static void* a_calloc(Allocator* a, size_t sz) {
 static void* a_realloc(Allocator* a, void* p, size_t sz) {
 	return realloc(p, sz);
 }
-static void* a_free(Allocator* a, void* p) {
-	return free(p);
+static void a_free(Allocator* a, void* p) {
+	free(p);
 }
 
 
@@ -875,7 +875,7 @@ void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
 		bl = bl->next;
 	}
 	
-	h->plugin->refreshStyle(&hlc->ctx);
+	h->plugin->refreshStyle(&hlc.ctx);
 	
 // 	printf("hl time: %f\n", timeSince(then)  * 1000.0);
 }

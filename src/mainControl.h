@@ -8,7 +8,7 @@
 #include "gui.h"
 #include "buffer.h"
 #include "commands.h"
-
+#include "highlight.h"
 
 
 
@@ -59,6 +59,7 @@ typedef struct GUIMainControl {
 	
 	VEC(GUIBufferEditor*) editors;
 	VEC(Buffer*) buffers;
+	HighlighterManager hm;
 	
 	Cmd* commands;
 	
