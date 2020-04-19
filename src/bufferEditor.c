@@ -435,6 +435,7 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 	int off = 0; // this is for partial matches
 	uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;
 	int res;
+	int wraps = 0;
 	
 	while(bl) {
 		res = pcre2_match(w->findRE, bl->buf ? bl->buf + w->nextFindChar : "", bl->length, off, opts, w->findMatch, NULL);
@@ -457,6 +458,9 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 		if(!bl) { // end of file
 			bl = w->buffer->first;
 			printf("find wrapped\n");
+			wraps++;
+			
+			if(wraps > 1) return 1;
 		}
 	}
 	
