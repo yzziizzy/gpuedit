@@ -155,9 +155,10 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	
 	// for debugging
-	GUIMainControl_LoadFile(as->mc, "src/buffer.h");
-	GUIMainControl_LoadFile(as->mc, "src/buffer.c");
-	GUIMainControl_LoadFile(as->mc, "src/bufferEditor.c");
+	GUIMainControl_LoadFile(as->mc, "testfile.h");
+	GUIMainControl_LoadFile(as->mc, "testfile.c");
+// 	GUIMainControl_LoadFile(as->mc, "src/buffer.c");
+// 	GUIMainControl_LoadFile(as->mc, "src/bufferEditor.c");
 	
 	GUIMainControl_OpenFileBrowser(as->mc, "./");
 	

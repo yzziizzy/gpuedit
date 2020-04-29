@@ -44,6 +44,9 @@
 * Re-order MC tabs
 * User-specified automatic sorting for MC tabs
 * Command to jump to certain control
+* Drag and drop from the WM
+* Save-as and save dialog
+* Breadcrumbs/path in file browser
 
 == Editor Features ==
 * Extract selection to its own function in open file space
@@ -105,7 +108,6 @@
 * Clicking on the find box/editor area should steal focus
 * Window resize is broken somewhere
 * Selection dragging freezes after scrolling while dragging
-* Infinite loop in the find wrapping. Search "alloc"
 * Mouse drag start params need tuning 
 * Need warnings and protection against overrunning the persistent gpu vertex buffers
 

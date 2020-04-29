@@ -15,6 +15,10 @@
 
 
 
+extern int g_DisableSave;
+
+
+
 Buffer* Buffer_New() {
 	Buffer* b = pcalloc(b);
 	
@@ -150,10 +154,13 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 }
 
 
-void Buffer_UndoSequenceBreak(Buffer* b) {
+void Buffer_UndoSequenceBreak(Buffer* b, int saved) {
 	// don't add duplicates
 	if(b->undoFill > 0) {
-		if(undo_current(b)->action == UndoAction_SequenceBreak) return;
+		if(undo_current(b)->action == UndoAction_SequenceBreak) {
+			if(saved) b->undoSaveIndex = b->undoCurrent;
+			return;
+		}
 	}
 	
 // 	VEC_INC(&b->undoStack);
@@ -165,6 +172,8 @@ void Buffer_UndoSequenceBreak(Buffer* b) {
 	u->colNum = 0;
 	u->text = NULL;
 	u->length = 0;
+	
+	if(saved) b->undoSaveIndex = b->undoCurrent;
 }
 
 void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
@@ -285,10 +294,10 @@ int Buffer_UndoReplayTop(Buffer* b) {
 			fprintf(stderr, "UndoAction_MoveCursorTo nyi\n");
 			break;
 			
-		case UndoAction_UnmodifiedFlag:
-			fprintf(stderr, "UndoAction_MoveCursorTo nyi\n");
-			
-			break;
+// 		case UndoAction_UnmodifiedFlag:
+// 			fprintf(stderr, "UndoAction_MoveCursorTo nyi\n");
+// 			
+// 			break;
 			
 		case UndoAction_SequenceBreak:
 			// do nothing at all for now
@@ -347,10 +356,10 @@ int Buffer_RedoReplay(Buffer* b, BufferUndo* u) {
 			fprintf(stderr, "RedoAction_MoveCursorTo nyi\n");
 			break;
 			
-		case UndoAction_UnmodifiedFlag:
-			fprintf(stderr, "RedoAction_MoveCursorTo nyi\n");
-			
-			break;
+// 		case UndoAction_UnmodifiedFlag:
+// 			fprintf(stderr, "RedoAction_MoveCursorTo nyi\n");
+// 			
+// 			break;
 			
 		case UndoAction_SequenceBreak:
 			// do nothing at all for now
@@ -1114,6 +1123,15 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 			
 			break;
 			
+		case BufferCmd_Save:
+			if(!g_DisableSave) {
+				Buffer_SaveToFile(b, b->sourceFile);
+			}
+			else {
+				printf("Buffer saving disabled.\n");
+			}
+			break;
+			
 		case BufferCmd_Debug:
 			switch(cmd->amt) {
 				case 0: Buffer_DebugPrint(b); break;
@@ -1121,6 +1139,16 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 			} 
 			
 	}
+	
+	
+// 	if(b->undoFill > 0) {
+// 		BufferUndo* u = undo_current(b);
+// 		b->isModified = u->action != UndoAction_SequenceBreak || u->unModified == 0 ;
+// 	}
+
+	
+	
+	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
 
@@ -1249,7 +1277,7 @@ void Buffer_DebugPrint(Buffer* b) {
 	
 	bl = b->first;
 	while(bl) {
-		printf("%ld: [%ld/%ld] '%.*s'\n", i, bl->length, bl->allocSz, bl->length, bl->buf);
+		printf("%ld: [%ld/%ld] '%.*s'\n", i, bl->length, bl->allocSz, (int)bl->length, bl->buf);
 		bl = bl->next;
 		i++;
 	}
@@ -1422,6 +1450,8 @@ int Buffer_SaveToFile(Buffer* b, char* path) {
 	
 	free(o);
 	fclose(f);
+	printf("saved\n");
+	Buffer_UndoSequenceBreak(b, 1);
 	
 	return 0;
 }
@@ -1448,6 +1478,9 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	fclose(f);
 	
 	Buffer_UndoTruncateStack(b);
+	
+	if(b->sourceFile) free(b->sourceFile);
+	b->sourceFile = strdup(path);
 	
 	return 0;
 }
@@ -1551,7 +1584,7 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, 
 
 
 void Buffer_DebugPrintUndoStack(Buffer* b) {
-	printf("Undo stack for %p (%ld entries)\n", b, b->undoFill);
+	printf("Undo stack for %p (%d entries)\n", b, b->undoFill);
 	
 	char* names[] = { 
 		"InsText",
@@ -1569,9 +1602,11 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 	for(int ii = 0; ii < b->undoFill; ii++) {
 		int i = (ii + b->undoOldest) % b->undoMax;
 		BufferUndo* u = b->undoRing + ii;
-		printf(" %d [%s] {%d,%d} %d:'%.*s'\n", i, names[u->action], 
-			u->lineNum, u->colNum, u->length, u->length, u->text);
+		printf(" %d [%s] {%ld,%ld} %ld:'%.*s'\n", i, names[u->action], 
+			u->lineNum, u->colNum, u->length, (int)u->length, u->text);
 	}
 	
+	printf(" Undo save index: %d\n", b->undoSaveIndex);
+	printf(" Undo curr index: %d\n", b->undoCurrent);
 	
 }

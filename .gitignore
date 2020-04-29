@@ -78,4 +78,5 @@ Makefile
 *.sdf
 *.atlas
 
-#log file
+testfile.c
+testfile.h

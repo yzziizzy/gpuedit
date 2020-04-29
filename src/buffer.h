@@ -67,7 +67,7 @@ enum UndoActions {
 	UndoAction_DeleteLine,
 	UndoAction_MoveCursorTo,
 	UndoAction_SetSelection,
-	UndoAction_UnmodifiedFlag,
+// 	UndoAction_UnmodifiedFlag,
 	UndoAction_SequenceBreak,
 	
 };
@@ -123,6 +123,10 @@ typedef struct Buffer {
 	int undoFill; // the number of undo slots used in the ring buffer
 	BufferUndo* undoRing;
 // 	VEC(BufferUndo) undoStack;
+	int undoSaveIndex; // index of the undo position matching the file on disk
+// 	char isModified;
+	
+	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
 	
 	int refs;
 } Buffer;
@@ -182,7 +186,7 @@ typedef struct GUIBufferEditor {
 	BufferDrawParams* bdp;
 	Highlighter* h;
 	
-	char* sourceFile;
+	char* sourceFile; // issues with undo-save
 	
 	float textAreaOffsetX; // accounts for line numbers and such
 	
@@ -293,7 +297,7 @@ void Buffer_UndoInsertText(Buffer* b, intptr_t line, intptr_t col, char* txt, in
 void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t len);
 void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before); // safe to just pass in l->prev without checking
 void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl); // saves the text too
-void Buffer_UndoSequenceBreak(Buffer* b);
+void Buffer_UndoSequenceBreak(Buffer* b, int saved);
 void Buffer_UndoReplayToSeqBreak(Buffer* b);
 int Buffer_UndoReplayTop(Buffer* b);
 void Buffer_UndoTruncateStack(Buffer* b);

@@ -230,7 +230,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			}
 			
 			if(found.flags & undoSeqBreak) {
-				Buffer_UndoSequenceBreak(w->buffer);
+				Buffer_UndoSequenceBreak(w->buffer, 0);
 			}
 		}
 		
@@ -301,9 +301,6 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
 	GUIRegisterObject(w->scrollbar, w);
-	
-	w->sourceFile = "savetest.c";
-	
 	
 	w->linesPerScrollWheel = gm->gs->Buffer_linesPerScrollWheel;
 	w->cursorBlinkOnTime = gm->gs->Buffer_cursorBlinkOnTime;
@@ -757,15 +754,15 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 			break;
 			
-		case BufferCmd_Save:
-			if(!g_DisableSave) {
-				Buffer_SaveToFile(w->buffer, w->sourceFile);
-			}
-			else {
-				printf("Buffer saving disabled.\n");
-			}
-			break;
-			
+// 		case BufferCmd_Save:
+// 			if(!g_DisableSave) {
+// 				Buffer_SaveToFile(w->buffer, w->sourceFile);
+// 			}
+// 			else {
+// 				printf("Buffer saving disabled.\n");
+// 			}
+// 			break;
+// 			
 		case BufferCmd_Reload:
 		{
 			struct hlinfo* hl = w->buffer->hl; // preserve the meta info

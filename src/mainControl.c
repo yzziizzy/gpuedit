@@ -74,6 +74,11 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 		box.max.y = tl.y + w->tabHeight - 1;
 		
 		gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, tab->title, strlen(tab->title));
+		
+		if(tab->isStarred) {
+			box.min.x = box.max.x - 10; // TODO magic number
+			gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, "*", 1);
+		}
 	}
 }
 
@@ -593,6 +598,11 @@ static void gbeAfterClose(MainControlTab* t) {
 }
 
 
+static void gbeEveryFrame(MainControlTab* t) {
+	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
+	
+	t->isStarred = gbe->buffer->undoSaveIndex != gbe->buffer->undoCurrent;
+}
 
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
@@ -644,7 +654,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
 // 	initCStyles(gbe->h);
-// 	Highlighter_LoadStyles(gbe->h, "config/c_colors.txt");
+	Highlighter_LoadStyles(gbe->h, "config/c_colors.txt");
 	
 	Buffer_LoadFromFile(buf, path);
 	GUIBufferEditor_RefreshHighlight(gbe);
@@ -655,4 +665,5 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, gbe, path);
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;
+	tab->everyFrame = gbeEveryFrame;
 }
