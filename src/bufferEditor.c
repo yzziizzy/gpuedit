@@ -302,6 +302,22 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	GUIRegisterObject(w->scrollbar, w);
 	
+	
+	
+	w->statusBarHeight = 30;
+	w->statusBarRoot = GUIWindow_New(gm);
+	w->statusBarRoot->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->statusBarRoot->header.size.y = 30; 
+	w->statusBarRoot->header.size.x = w->header.size.x;
+	w->statusBarRoot->header.z = 500;
+	
+	w->statusBarRoot->color = (Vector){.2,.2,.2,1};
+	w->statusBarRoot->padding = (AABB2){{5,5}, {5,5}};
+	
+	GUIRegisterObject(w->statusBarRoot, w);
+	
+	
+	
 	w->linesPerScrollWheel = gm->gs->Buffer_linesPerScrollWheel;
 	w->cursorBlinkOnTime = gm->gs->Buffer_cursorBlinkOnTime;
 	w->cursorBlinkOffTime = gm->gs->Buffer_cursorBlinkOffTime;

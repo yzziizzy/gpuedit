@@ -7,6 +7,7 @@
 
 #include "gui.h"
 #include "buffer.h"
+#include "mainMenu.h"
 #include "commands.h"
 #include "highlight.h"
 
@@ -42,7 +43,6 @@ typedef struct MainControlTab {
 typedef struct GUIMainControl {
 	GUIHeader header;
 	
-	float tabHeight;
 	
 	int showFullPathInTitlebar : 1;
 	int showFullPathInTab : 1;
@@ -54,11 +54,16 @@ typedef struct GUIMainControl {
 	// multiline tabs
 	// extra tab dropdown
 	
+	float tabHeight;
 	int currentIndex;
 	VEC(MainControlTab*) tabs;
 	
+	float editorOffset;
+	float editorHeight;
+	
 	VEC(GUIBufferEditor*) editors;
 	VEC(Buffer*) buffers;
+	GUIMainMenu* menu; // there is only one main menu
 	HighlighterManager hm;
 	
 	Cmd* commands;
@@ -81,6 +86,8 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i);
 
 void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd);
 
+
+void GUIMainControl_OpenMainMenu(GUIMainControl* w);
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path);
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);

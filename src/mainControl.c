@@ -111,11 +111,13 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 	
 	h->absZ = grp->baseZ + h->z;
 	
+	// update the client of the current tab
 	if(w->currentIndex > -1) {
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
 		
 		GUIRenderParams grp2 = {
 			.clip = grp->clip, // TODO: update the clip
+			// TODO check showXXX flags for height calculation
 			.size = {.x = h->size.x, .y = h->size.y - w->tabHeight}, // maximized
 			.offset = {
 				.x = tl.x,
@@ -535,6 +537,17 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 }
 
 
+static int mmBeforeClose(MainControlTab* t) {
+	
+	return 0;
+}
+
+static void mmAfterClose(MainControlTab* t) {
+	GUIMainMenu* mm = (GUIMainMenu*)t->client;
+	
+	GUIMainMenu_Destroy(mm);
+}
+
 static int fbBeforeClose(MainControlTab* t) {
 	
 	return 0;
@@ -584,6 +597,21 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 }
 
 
+void GUIMainControl_OpenMainMenu(GUIMainControl* w) {
+	
+	if(w->menu) {
+		// TODO set the tab to active
+		return;
+	}
+	
+	w->menu = GUIMainMenu_New(w->header.gm);
+	
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, w->menu, "Main Menu");
+	tab->beforeClose = mmBeforeClose;
+	tab->afterClose = mmAfterClose;
+}
+
+
 
 static int gbeBeforeClose(MainControlTab* t) {
 	
@@ -602,6 +630,8 @@ static void gbeEveryFrame(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
 	t->isStarred = gbe->buffer->undoSaveIndex != gbe->buffer->undoCurrent;
+	
+	
 }
 
 

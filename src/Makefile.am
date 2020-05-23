@@ -27,6 +27,7 @@ gpuedit_SOURCES = main.c \
 	input.c \
 	json_gl.c \
 	mainControl.c \
+	mainMenu.c \
 	mdi.c \
 	pass.c \
 	pcBuffer.c \
