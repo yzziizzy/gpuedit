@@ -9,7 +9,7 @@
 typedef struct GUIColumnLayout {
 	GUIHeader header;
 	
-	GUIWindow* bg; // optional
+// 	GUIWindow* bg; // optional
 	
 	float spacing;
 	

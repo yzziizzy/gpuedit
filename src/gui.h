@@ -404,6 +404,7 @@ void GUIManager_SetCursor(GUIManager* gm, int cursor);
 
 void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
 
+
 GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos);
 GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
 // 

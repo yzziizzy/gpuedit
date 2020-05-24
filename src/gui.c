@@ -530,6 +530,41 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 	
 }
 
+void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
+	// TODO: fix fencepost issue with spacing
+	// TODO: figure out better phase for size calculation
+	float total_h = 0.0;
+	float max_w = 0.0;
+	VEC_EACH(&gh->children, i, child) { 
+		total_h += child->h.size.y;
+		max_w = fmax(max_w, child->h.size.x);
+	}
+	
+	gh->size.y = total_h;
+	gh->size.x = max_w;
+	
+	Vector2 tl = gui_calcPosGrav(gh, grp);
+	
+	// columnlayout works by spoofing the renderparams supplied to each child
+	total_h = 0.0;
+	VEC_EACH(&gh->children, i, child) { 
+		
+		GUIRenderParams grp2 = {
+			.clip = grp->clip,
+			.size = child->h.size, // sized to the child to eliminate gravity 
+			.offset = {
+				.x = tl.x,
+				.y = tl.y + total_h 
+			},
+			.baseZ = grp->baseZ + gh->z,
+		};
+		
+		GUIHeader_updatePos(child, &grp2, pfp);
+		
+		total_h += child->h.size.y;
+	}
+}
+
 
 
 void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {

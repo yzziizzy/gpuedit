@@ -15,14 +15,16 @@ typedef struct GUIMainMenuItem {
 	int type;
 	char isSelected;
 	
+	GUIWindow* base; 
 	GUIText* gLabel;
-	GUIHeader* gControl;
+	GUIObject* gControl;
 } GUIMainMenuItem;
 
 
 typedef struct GUIMainMenu {
 	GUIHeader header;
 	
+	GUIGridLayout* rows; 
 	GUIWindow* scrollbar;
 	float sbMinHeight;
 	intptr_t scrollOffset;
@@ -38,6 +40,8 @@ typedef struct GUIMainMenu {
 
 GUIMainMenu* GUIMainMenu_New(GUIManager* gm);
 void GUIMainMenu_Destroy(GUIMainMenu* w);
+
+GUIMainMenuItem* GUIMainMenu_AddItem(GUIMainMenu* w, char* name, int type);
 
 
 #endif // __gpuedit_mainMenu_h__

@@ -112,7 +112,7 @@ static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 absTestPos) {
 			}
 		}
 	}
-	printf("hit: %p, %p\n", h, bestKid);
+	
 	return bestKid;
 }
 

@@ -26,7 +26,7 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 	float gutter = 0;//w->leftMargin + 20;
 	
 	int linesDrawn = 0;
-	
+	/*
 	for(intptr_t i = w->scrollOffset; i < VEC_LEN(&w->items); i++) {
 		if(lh * linesDrawn > w->header.size.y) break; // stop at the bottom of the window
 		
@@ -54,7 +54,7 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 				.fg = *color, // TODO: border color
 				.bg = *color, // TODO: color
 				
-				.z = /*w->header.z +*/ 1000,
+				.z = /*w->header.z +* / 1000,
 				.alpha = 1,
 			};
 		}
@@ -66,7 +66,7 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 		
 		linesDrawn++;
 	}
-
+*/
 	// cursor
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
@@ -92,10 +92,16 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 
 
 static void updatePos(GUIMainMenu* w, GUIRenderParams* grp, PassFrameParams* pfp) {
-	gui_defaultUpdatePos(w, grp, pfp);
 	
 	// maximize
 	w->header.size = grp->size;
+
+	// expand the width of each item
+	VEC_EACH(&w->items, i, item) {
+		item->base->header.size.x = grp->size.x;
+	}
+
+	gui_columnUpdatePos(&w->header, grp, pfp);
 
 // 	w->sbMinHeight = 20;
 // 	// scrollbar position calculation
@@ -187,12 +193,33 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm) {
 	
 	GUIRegisterObject(w->scrollbar, w);
 	
-	
-	
+	GUIMainMenu_AddItem(w, "Foo", 1);
+ 	GUIMainMenu_AddItem(w, "Bar", 1);
 	
 	return w;
 }
 
+
+GUIMainMenuItem* GUIMainMenu_AddItem(GUIMainMenu* w, char* name, int type) {
+	GUIMainMenuItem* it = pcalloc(it);
+	it->label = strdup(name);
+	it->type = type;
+	
+	it->base = GUIWindow_New(w->header.gm);
+	it->base->header.size.x = 600;
+	it->base->header.size.y = 20;
+	
+	it->gLabel = GUIText_new(w->header.gm, name, NULL, -1);
+	it->gControl = GUIText_new(w->header.gm, name, NULL, -1);
+	it->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	GUIRegisterObject(it->base, w);
+	GUIRegisterObject(it->gLabel, it->base);
+	GUIRegisterObject(it->gControl, it->base);
+	
+	VEC_PUSH(&w->items, it);
+	
+	return it;
+}
 
 void GUIMainMenu_Destroy(GUIMainMenu* w) {
 	

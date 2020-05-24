@@ -36,8 +36,6 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	gui_headerInit(&gt->header, gm, &static_vt, NULL);
 // 	gt->header.vt = &static_vt; 
 	
-	// TODO: x size, fix y size
-	gt->header.size = (Vector2){0, fontSize * 5}; 
 	
 // 	gt->fontSize = fontSize;
 // 	gt->font = FontManager_findFont(gm->fm, fontname);
@@ -45,6 +43,10 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	if(str) {
 		gt->currentStr = strdup(str);
 	}
+
+	// TODO: x size, fix y size
+	gt->header.size = (Vector2){guiTextGetTextWidth(gt, 999999)+ 5, 14}; 
+
 	
 	return gt;
 }
@@ -71,6 +73,9 @@ static void render(GUIText* gt, PassFrameParams* pfp) {
 	float adv = 0;
 	
 	float spaceadv = f->regular[' '].advance;
+	
+// 	gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, e->label, strlen(e->label));
+
 	
 	// this algorithm needs to be kept in sync with the width calculation algorithm below
 	for(int n = 0; txt[n] != 0; n++) {

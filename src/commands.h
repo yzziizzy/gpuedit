@@ -62,6 +62,7 @@
 	X(MainCmd, SaveAndCloseTab) \
 	X(MainCmd, NextTab) \
 	X(MainCmd, PrevTab) \
+	X(MainCmd, MainMenu) \
 	
 	
 	/*

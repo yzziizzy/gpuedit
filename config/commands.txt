@@ -3,6 +3,7 @@ A  XK_Right  = MainCmd_NextTab 1
 A  XK_Left   = MainCmd_PrevTab 1
 CS 'q'       = MainCmd_QuitWithoutSave 0
    XK_F2     = MainCmd_OpenFileBrowser 0
+A  'm'       = MainCmd_MainMenu 0
 
 
    XK_Left      = BufferCmd_MoveCursorH    -1 scrollToCursor resetCursorBlink
