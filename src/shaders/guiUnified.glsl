@@ -250,7 +250,7 @@ void main(void) {
 			out_Color = gs_fg_color;
 		}
 		
-		if(out_Color.z < 0.01) discard;
+		if(out_Color.w < 0.01) discard;
 		
 		return;
 	}

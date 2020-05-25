@@ -15,6 +15,7 @@ typedef struct GUIRenderParams {
 
 void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt, struct GUIEventHandler_vtbl* event_vt); 
 void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
+void gui_selfUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
 void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
 
 Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
@@ -51,6 +52,13 @@ void gui_drawDefaultUITextLine(
 	float zIndex,
 	char* txt, 
 	size_t charCount
+);
+
+
+float gui_getDefaultUITextWidth(
+	GUIManager* gm,
+	char* txt, 
+	size_t maxChars
 );
 
 #endif // __EACSMB_gui_internal_h__

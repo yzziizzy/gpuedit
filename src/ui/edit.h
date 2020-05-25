@@ -29,8 +29,6 @@ typedef struct GUIEdit {
 	
 	// offsets, text align
 	
-	GUIText* textControl;
-	
 	GUIEditOnChangeFn onChange;
 	void* onChangeData;
 	

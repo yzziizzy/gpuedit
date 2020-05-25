@@ -15,6 +15,13 @@ typedef struct GUIMainMenuItem {
 	int type;
 	char isSelected;
 	
+	union {
+		int* i;
+		float* f;
+		double* d;
+		char** str;
+	} data;
+	
 	GUIWindow* base; 
 	GUIText* gLabel;
 	GUIObject* gControl;
@@ -26,12 +33,16 @@ typedef struct GUIMainMenu {
 	
 	GUIGridLayout* rows; 
 	GUIWindow* scrollbar;
+	GUIWindow* clientArea;
+	GUIWindow* saveBtn;
 	float sbMinHeight;
 	intptr_t scrollOffset;
 	
 	intptr_t cursorIndex;
 	
 	VEC(GUIMainMenuItem*) items;
+	
+	GlobalSettings newGS;
 	
 	
 } GUIMainMenu;

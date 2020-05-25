@@ -220,7 +220,13 @@ typedef struct GUIHeader {
 	GUIObject* parent;
 	struct gui_vtbl* vt;
 	struct GUIEventHandler_vtbl* event_vt;
-	char* name;
+	
+	VEC(struct {
+		enum GUIEventType type;
+		GUI_EventHandlerFn cb;
+	}) dynamicHandlers;
+	
+	char* name; // used by config loader atm
 
 	// fallback for easy hit testing
 	VEC(union GUIObject*) children;
@@ -266,6 +272,7 @@ typedef struct GUIHeader {
 // GUI elements
 #include "ui/window.h"
 #include "ui/text.h"
+#include "ui/button.h"
 #include "ui/scrollWindow.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
@@ -288,6 +295,7 @@ union GUIObject {
 	GUIHeader h; // legacy
 	GUIHeader header;
 	GUIText text;
+	GUIButton button;
 	GUIWindow window;
 	GUISimpleWindow simpleWindow;
 	GUIImage image;
@@ -368,6 +376,15 @@ typedef struct GUIManager {
 		struct Color4 textColor;
 		struct Color4 windowBgColor;
 		struct Color4 editBgColor;
+		struct Color4 editBorderColor;
+		float         editHeight;
+		float         editWidth;
+		struct Color4 buttonTextColor;
+		struct Color4 buttonHoverTextColor;
+		struct Color4 buttonBgColor;
+		struct Color4 buttonHoverBgColor;
+		struct Color4 buttonBorderColor;
+		struct Color4 buttonHoverBorderColor;
 		struct Color4 cursorColor;
 		struct Color4 tabTextColor;
 		struct Color4 tabBorderColor;

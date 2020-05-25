@@ -22,7 +22,7 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 	
 	
 // 	drawTextLine();
-	float lh = 20;//w->lineHeight;
+	float lh = 30;//w->lineHeight;
 	float gutter = 0;//w->leftMargin + 20;
 	
 	int linesDrawn = 0;
@@ -72,9 +72,9 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 	*v = (GUIUnifiedVertex){
 		.pos = {
 			tl.x + gutter, 
-			tl.y + (w->cursorIndex - w->scrollOffset) * lh, 
-			tl.x + 800,
-			tl.y + (w->cursorIndex - w->scrollOffset + 1) * lh
+			tl.y + 50 + (w->cursorIndex - w->scrollOffset) * lh - 1, 
+			tl.x + w->header.size.x - 49,
+			tl.y + 50 + (w->cursorIndex - w->scrollOffset + 1) * lh + 1
 		},
 		.clip = {0, 0, 800, 800},
 		.texIndex1 = 1, // order width
@@ -93,14 +93,46 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 
 static void updatePos(GUIMainMenu* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
+// 	// maximize
+	w->header.size = grp->size;
+	w->clientArea->header.size.y = grp->size.y - 50;
+	w->clientArea->header.size.x = grp->size.x - 50;
+
+	// expand the width of each item
+// 	VEC_EACH(&w->items, i, item) {
+// 		item->base->header.size.x = grp->size.x;
+// 	}
+
+	gui_defaultUpdatePos(&w->header, grp, pfp);
+	
+	
+// 	w->sbMinHeight = 20;
+// 	// scrollbar position calculation
+// 	// calculate scrollbar height
+// 	float wh = w->header.size.y;
+// 	float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
+// 	
+// 	// calculate scrollbar offset
+// 	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
+// 	
+// 	GUIResize(w->scrollbar, (Vector2){10, sbh});
+// 	w->scrollbar->header.topleft.y = sboff;
+}
+
+
+static void clientUpdatePos(GUIWindow* w, GUIRenderParams* grp, PassFrameParams* pfp) {
+	
+	GUIMainMenu* mm = (GUIMainMenu*)w->header.parent;
+	
 	// maximize
 	w->header.size = grp->size;
 
 	// expand the width of each item
-	VEC_EACH(&w->items, i, item) {
-		item->base->header.size.x = grp->size.x;
+	VEC_EACH(&mm->items, i, item) {
+		item->base->header.size.x = grp->size.x - 50;
 	}
-
+	
+	gui_selfUpdatePos(&w->header, grp, pfp);
 	gui_columnUpdatePos(&w->header, grp, pfp);
 
 // 	w->sbMinHeight = 20;
@@ -154,7 +186,17 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIMainMenu* w = (GUIMainMenu*)w_;
 	
+	if(gev->originalTarget == w->saveBtn) {
+		printf("save clicked \n");
+	}
+	else if(gev->originalTarget == w->clientArea) {
+		printf("CA clicked \n");
+	}
+	else {
+		printf("main menu clicked %p %p \n", gev->originalTarget, w);
+	}
 }
+
 
 
 
@@ -163,6 +205,10 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm) {
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
+	};
+	
+	static struct gui_vtbl client_vt = {
+		.UpdatePos = (void*)clientUpdatePos,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -185,6 +231,16 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm) {
 	
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
+	w->clientArea = GUIWindow_New(gm);
+	w->clientArea->header.vt = &client_vt;
+	w->clientArea->header.topleft.y = 50;
+	GUIRegisterObject(w->clientArea, w);
+
+	w->saveBtn = GUIButton_New(gm, "Save");
+	w->saveBtn->header.size = (Vector2){100, 30};
+	w->saveBtn->header.topleft = (Vector2){10, 10};
+	GUIRegisterObject(w->saveBtn, w);
+	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(w->scrollbar, (Vector2){10, 50});
 	w->scrollbar->color = (Vector){.9,.9,.9};
@@ -206,13 +262,18 @@ GUIMainMenuItem* GUIMainMenu_AddItem(GUIMainMenu* w, char* name, int type) {
 	it->type = type;
 	
 	it->base = GUIWindow_New(w->header.gm);
-	it->base->header.size.x = 600;
-	it->base->header.size.y = 20;
+	it->base->header.size.x = 400;
+	it->base->header.size.y = 30;
 	
 	it->gLabel = GUIText_new(w->header.gm, name, NULL, -1);
-	it->gControl = GUIText_new(w->header.gm, name, NULL, -1);
+	it->gControl = GUIEdit_New(w->header.gm, "sadsadf");
+// 	it->gControl->header.size.x = 120;
+// 	it->gControl->header.size.y = 30;
+// 	GUIEdit_SetText(it->gControl, "tttyerty");
+	GUIEdit_SetInt(it->gControl, 25);
+	
 	it->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
-	GUIRegisterObject(it->base, w);
+	GUIRegisterObject(it->base, w->clientArea);
 	GUIRegisterObject(it->gLabel, it->base);
 	GUIRegisterObject(it->gControl, it->base);
 	

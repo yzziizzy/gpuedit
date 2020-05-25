@@ -14,7 +14,10 @@ static void fireOnchange(GUIEdit* ed);
 static void moveCursor(GUIEdit* w, int delta) {
 	
 	w->cursorpos = MIN(w->textlen, MAX(0, w->cursorpos + delta));
-	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
+// 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
+	w->cursorOffset = gui_getDefaultUITextWidth(w->header.gm, w->buf, w->cursorpos);
+	printf("%d, %f\n", w->cursorpos, w->cursorOffset);
+
 }
 
 
@@ -25,7 +28,8 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 	int cursorAlpha = 0;
 	float cursorOff = 0;
-	if(/*w->hasFocus &&*/ fmod(pfp->wallTime, 1.0) > .5) {
+// 	printf("-%d, %f\n", w->cursorpos, w->cursorOffset);
+	if(w->hasFocus && fmod(pfp->wallTime, 1.0) > .5) {
 		cursorOff = tl.x + (w->cursorOffset /** w->textControl->fontSize * .01*/);
 		cursorAlpha = 255;
 	}
@@ -39,13 +43,13 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->header.size.y},
 		.clip = {0, 0, 800, 800},
 		
-		.guiType = 0, // window (just a box)
+		.guiType = 4, // bordered window 
 		
-		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
+		.texIndex1 = 1, .texIndex2 = 0, .texFade = 0,
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
-		.fg = gm->defaults.editBgColor, // TODO: border color
-		.bg = gm->defaults.editBgColor, // TODO: color
+		.fg = gm->defaults.editBorderColor,
+		.bg = gm->defaults.editBgColor,
 		
 		.z = w->header.z + 1,
 		.alpha = 1,
@@ -60,20 +64,28 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.pos = {cursorOff, tl.y, cursorOff + 2, tl.y + w->header.size.y},
 		.clip = {0, 0, 800, 800},
 		
-		.guiType = 0, // window (just a box)
+		.guiType = 0, // window 
 		
 		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
-		.fg = {0, 0, 0, 0}, // TODO: border color
+		.fg = {0, 0, 0, 0},
 		.bg = cc, 
 		
 		.z = w->header.z + 2.5,
 		.alpha = w->header.alpha,
 	};
 	
+	AABB2 box;
+	box.min.x = tl.x;
+	box.min.y = tl.y;
+	box.max.x = tl.x + 3000;
+	box.max.y = tl.y + 30;
 	
-	GUIHeader_renderChildren(&w->header, pfp);
+	gui_drawDefaultUITextLine(w->header.gm, &box, &gm->defaults.tabTextColor , 10000000, w->buf, w->textlen);
+// 	printf("%s %f,%f\n", w->buf, tl.x, tl.y);
+	
+// 	GUIHeader_renderChildren(&w->header, pfp);
 	
 	
 
@@ -115,12 +127,20 @@ static int recieveText(InputEvent* ev, GUIEdit* ed) {
 
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
-	
+	GUIManager_pushFocusedObject(w->header.gm, w);
+}
+
+static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+	GUIEdit* w = (GUIEdit*)w_;
 	w->hasFocus = 1;
+}
+static void lostFocus(GUIObject* w_, GUIEvent* gev) {
+	GUIEdit* w = (GUIEdit*)w_;
+	w->hasFocus = 0;
 }
 
 
-static void keyDown(GUIObject* w_, GUIEvent* gev) {
+static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	
 	// NOTE: paste will be an event type
@@ -189,8 +209,10 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyDown = keyDown,
+		.KeyUp = keyUp,
 		.Click = click,
+		.GainedFocus = gainedFocus,
+		.LostFocus = lostFocus,
 // 		.ScrollUp = scrollUp,
 // 		.ScrollDown = scrollDown,
 // 		.DragStart = dragStart,
@@ -204,6 +226,8 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
 	
+	w->header.size.x = gm->defaults.editWidth;
+	w->header.size.y = gm->defaults.editHeight;
 	
 	w->blinkRate = 1.5;
 	
@@ -222,13 +246,16 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	
 	w->cursorpos = w->textlen;
 	
-	w->textControl = GUIText_new(gm, initialValue, "Arial", 6.0f);
-	w->textControl->header.z = 10000.5;
-	GUIRegisterObject(w->textControl, &w->header);
+// 	w->textControl = GUIText_new(gm, initialValue, "Arial", 6.0f);
+// 	w->textControl->header.z = 10000.5;
+// 	GUIRegisterObject(w->textControl, &w->header);
 
-	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
+// 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
+	w->cursorOffset = gui_getDefaultUITextWidth(gm, initialValue, 9999999);
 	
-	w->textControl->header.onClick = (GUI_OnClickFn)click;
+	
+	
+// 	w->textControl->header.onClick = (GUI_OnClickFn)click;
 	
 	return w;
 }
@@ -260,10 +287,12 @@ static void insertChar(GUIEdit* ed, char c) {
 }
 
 static void updateTextControl(GUIEdit* ed) {
-	GUIText_setString(ed->textControl, ed->buf);
+// 	GUIText_setString(ed->textControl, ed->buf);
 	
 	// get new cursor pos
-	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
+// 	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
+	ed->cursorOffset = gui_getDefaultUITextWidth(ed->header.gm, ed->buf, ed->cursorpos);
+	
 	//printf("cursorpos %f\n", ed->cursorOffset); 
 	
 	fireOnchange(ed);
@@ -276,7 +305,11 @@ static void setText(GUIEdit* ed, char* s) {
 	
 	strcpy(ed->buf, s);
 	
-	// TODO: check and adjust cursor pos if text shrank
+	if(len < ed->cursorpos) {
+		ed->cursorpos = len;
+		ed->cursorOffset = gui_getDefaultUITextWidth(ed->header.gm, ed->buf, ed->cursorpos);
+	}
+	
 }
 
 static void fireOnchange(GUIEdit* ed) {

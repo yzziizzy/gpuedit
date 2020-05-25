@@ -47,6 +47,11 @@
 * Drag and drop from the WM
 * Save-as and save dialog
 * Breadcrumbs/path in file browser
+* Load GUIManager defaults from file
+* Make all gui font rendering by em's
+* GUIEdit right and center justify
+* GUIEdit int/float
+* GUIEdit scroll increment
 
 == Editor Features ==
 * Extract selection to its own function in open file space
@@ -110,6 +115,7 @@
 * Selection dragging freezes after scrolling while dragging
 * Mouse drag start params need tuning 
 * Need warnings and protection against overrunning the persistent gpu vertex buffers
+* GUIManager hit test needs to sort hits by z
 
 == Low Priority ==
 * Optimize all buffer operations for minimal line renumbering

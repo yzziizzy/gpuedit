@@ -39,6 +39,7 @@ gpuedit_SOURCES = main.c \
 	texture.c \
 	textureAtlas.c \
 	ui/animations/pulse.c \
+	ui/button.c \
 	ui/columnLayout.c \
 	ui/configLoader.c \
 	ui/debugAdjuster.c \

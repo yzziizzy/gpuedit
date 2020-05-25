@@ -135,7 +135,16 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->defaults.fontSize = .45;
 	gm->defaults.textColor = (struct Color4){200,200,200,255};
 	gm->defaults.windowBgColor = (struct Color4){10,10,10,255};
+	gm->defaults.buttonTextColor = (struct Color4){200,200,225,255};
+	gm->defaults.buttonHoverTextColor = (struct Color4){200,2,2,255};
+	gm->defaults.buttonBgColor = (struct Color4){2,2,225,255};
+	gm->defaults.buttonHoverBgColor = (struct Color4){200,200,2,255};
+	gm->defaults.buttonBorderColor = (struct Color4){200,2,225,255};
+	gm->defaults.buttonHoverBorderColor = (struct Color4){2,200,225,255};
+	gm->defaults.editBorderColor = (struct Color4){25,245,25,255};
 	gm->defaults.editBgColor = (struct Color4){20,50,25,255};
+	gm->defaults.editWidth = 150;
+	gm->defaults.editHeight = 18;
 	gm->defaults.cursorColor = (struct Color4){240,240,240,255};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
@@ -528,6 +537,22 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 		GUIHeader_updatePos(child, &grp2, pfp);
 	}
 	
+}
+
+
+// grp is data about the parent's positioning. 
+// the child must calculate its own (absolute) position based on the parent's info passed in.
+// this info is then passed down to its children
+// the default behavior is:
+//   position according to gravity
+//   no extra clipping
+//   add z values together
+void gui_selfUpdatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp) {
+	
+	Vector2 tl = gui_calcPosGrav(h, grp);
+	h->absTopLeft = tl;
+	h->absClip = grp->clip;
+	h->absZ = grp->baseZ + h->z;
 }
 
 void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
@@ -1166,14 +1191,26 @@ GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
 	if(VEC_LEN(&gm->focusStack) <= 1) return VEC_TAIL(&gm->focusStack);
 	
 	VEC_POP(&gm->focusStack, o);
+	
+	// TODO focus events
+	
 	return o;
 }
 
 
 void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
-	VEC_PUSH(&gm->focusStack, (GUIObject*)h);
+	
+	GUIHeader* old = (GUIHeader*)GUIManager_getFocusedObject(gm);
 	
 	GUIEvent gev = {};
+	gev.type = GUIEVENT_LostFocus;
+	gev.originalTarget = old;
+	gev.currentTarget = old;
+	
+	GUIManager_BubbleEvent(gm, old, &gev);
+
+	VEC_PUSH(&gm->focusStack, (GUIObject*)h);
+	
 	gev.type = GUIEVENT_GainedFocus;
 	gev.originalTarget = h;
 	gev.currentTarget = h;
@@ -1349,5 +1386,39 @@ void gui_drawDefaultUITextLine(
 		
 	}
 
+}
+
+
+float gui_getDefaultUITextWidth(
+	GUIManager* gm,
+	char* txt, 
+	size_t maxChars
+) {
+	
+	if(txt == NULL || maxChars == 0) return 0;
+	
+	GUIFont* f = gm->defaults.font;
+	float size = gm->defaults.fontSize; // HACK
+	float adv = 0;
+	
+	
+	float spaceadv = f->regular[' '].advance;
+	
+	for(int n = 0; txt[n] != 0 && n < maxChars; n++) {
+		char c = txt[n];
+		
+		if(c == '\t') {
+			adv += spaceadv * 4; // hardcoded to annoy you
+		}
+		else if(c != ' ') {
+			struct charInfo* ci = &f->regular[c];
+			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+		}
+		else {
+			adv += spaceadv;
+		}
+	}
+	
+	return adv;
 }
 
