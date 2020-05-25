@@ -875,18 +875,11 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	
 	// find the deepest target
 	GUIObject* t = GUIManager_hitTest(gm, newPos);
-	if(!t) return; // TODO handle mouse leaves;
-	
-	
-	// set the cursor, maybe
-	int cur = t->h.cursor; 
-	GUIManager_SetCursor(gm, cur);
-	
 	
 	GUIEvent gev = {
 		.type = GUIEVENT_MouseMove,
-		.originalTarget = t,
-		.currentTarget = t,
+		.originalTarget = NULL,
+		.currentTarget = NULL,
 		.eventTime = 0,
 		.pos = newPos,
 		.character = 0, // N/A
@@ -896,6 +889,47 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		.requestRedraw = 0,
 	};
 	
+	
+	if(!t) { // mouse left the window
+		gev.type = GUIEVENT_MouseLeave;
+		gev.originalTarget = gm->lastHoveredObject;
+		gev.currentTarget = gm->lastHoveredObject;
+		gev.cancelled = 0;
+		GUIManager_BubbleEvent(gm, gm->lastHoveredObject, &gev);
+		
+		gm->lastHoveredObject = NULL;
+		
+		return;
+	}
+	
+	
+	// set the cursor, maybe
+	int cur = t->h.cursor; 
+	GUIManager_SetCursor(gm, cur);
+
+	// mouse enter/leave
+	if(!gm->lastHoveredObject) {
+		gev.type = GUIEVENT_MouseEnter;
+		gev.originalTarget = t;
+		gev.currentTarget = t;
+		gev.cancelled = 0;
+		GUIManager_BubbleEvent(gm, t, &gev);
+	}
+	else if(gm->lastHoveredObject != t) {
+		gev.type = GUIEVENT_MouseLeave;
+		gev.originalTarget = gm->lastHoveredObject;
+		gev.currentTarget = gm->lastHoveredObject;
+		gev.cancelled = 0;
+		GUIManager_BubbleEvent(gm, gm->lastHoveredObject, &gev);
+		
+		gev.type = GUIEVENT_MouseEnter;
+		gev.originalTarget = t;
+		gev.currentTarget = t;
+		gev.cancelled = 0;
+		GUIManager_BubbleEvent(gm, t, &gev);
+	}
+	
+	gm->lastHoveredObject = t;
 	
 	// check for dragging
 	if(gm->isMouseDown && !gm->isDragging && gm->dragStartTarget) {
@@ -922,7 +956,10 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
 	}
 	
-	
+	gev.type = GUIEVENT_MouseMove;
+	gev.originalTarget = t;
+	gev.currentTarget = t;
+	gev.cancelled = 0;
 	GUIManager_BubbleEvent(gm, t, &gev);
 	
 	// TODO: handle redraw request

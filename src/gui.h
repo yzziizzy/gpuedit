@@ -348,6 +348,7 @@ typedef struct GUIManager {
 	
 	// input 
 	Vector2 lastMousePos;
+	GUIHeader* lastHoveredObject;
 	char mouseIsOutOfWindow;
 	
 	char isDragging;
