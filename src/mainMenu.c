@@ -9,6 +9,7 @@
 #include "common_gl.h"
 
 #include "mainMenu.h"
+#include "app.h"
 
 #include "gui_internal.h"
 
@@ -187,20 +188,19 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIMainMenu* w = (GUIMainMenu*)w_;
 	
 	if(gev->originalTarget == w->saveBtn) {
-		printf("save clicked \n");
+		
+		// TODO: get updated settings
+		GUIMainMenu_SaveAll(w);
+		AppState_UpdateSettings(w->as, &w->as->globalSettings);
+		return;
 	}
-	else if(gev->originalTarget == w->clientArea) {
-		printf("CA clicked \n");
-	}
-	else {
-		printf("main menu clicked %p %p \n", gev->originalTarget, w);
-	}
+	
 }
 
 
 
 
-GUIMainMenu* GUIMainMenu_New(GUIManager* gm) {
+GUIMainMenu* GUIMainMenu_New(GUIManager* gm, AppState* as) {
 
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
@@ -227,7 +227,7 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm) {
 	GUIMainMenu* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	
+	w->as = as;
 	
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
@@ -237,6 +237,7 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm) {
 	GUIRegisterObject(w->clientArea, w);
 
 	w->saveBtn = GUIButton_New(gm, "Save");
+// 	w->saveBtn->isDisabled = 1;
 	w->saveBtn->header.size = (Vector2){100, 30};
 	w->saveBtn->header.topleft = (Vector2){10, 10};
 	GUIRegisterObject(w->saveBtn, w);
@@ -249,38 +250,137 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm) {
 	
 	GUIRegisterObject(w->scrollbar, w);
 	
-	GUIMainMenu_AddItem(w, "Foo", 1);
- 	GUIMainMenu_AddItem(w, "Bar", 1);
+	GUIMainMenu_AddInt(w, "MainControl_tabHeight", &as->globalSettings.MainControl_tabHeight);
+	GUIMainMenu_AddInt(w, "Buffer_tabWidth", &as->globalSettings.Buffer_tabWidth);
 	
 	return w;
 }
 
 
-GUIMainMenuItem* GUIMainMenu_AddItem(GUIMainMenu* w, char* name, int type) {
+GUIMainMenuItem* GUIMainMenu_AddBaseItem(GUIMainMenu* w, char* name) {
 	GUIMainMenuItem* it = pcalloc(it);
 	it->label = strdup(name);
-	it->type = type;
 	
 	it->base = GUIWindow_New(w->header.gm);
 	it->base->header.size.x = 400;
 	it->base->header.size.y = 30;
 	
 	it->gLabel = GUIText_new(w->header.gm, name, NULL, -1);
-	it->gControl = GUIEdit_New(w->header.gm, "sadsadf");
+// 	it->gControl = GUIEdit_New(w->header.gm, "sadsadf");
 // 	it->gControl->header.size.x = 120;
 // 	it->gControl->header.size.y = 30;
 // 	GUIEdit_SetText(it->gControl, "tttyerty");
-	GUIEdit_SetInt(it->gControl, 25);
+// 	GUIEdit_SetInt(it->gControl, 25);
 	
-	it->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
 	GUIRegisterObject(it->base, w->clientArea);
 	GUIRegisterObject(it->gLabel, it->base);
-	GUIRegisterObject(it->gControl, it->base);
+// 	GUIRegisterObject(it->gControl, it->base);
 	
 	VEC_PUSH(&w->items, it);
 	
 	return it;
 }
+
+
+
+GUIMainMenuItem* GUIMainMenu_AddInt(GUIMainMenu* w, char* label, int* i) {
+	GUIMainMenuItem* item = GUIMainMenu_AddBaseItem(w, label);
+	item->type = 0;
+	item->data.i = i;
+	
+	item->gControl = GUIEdit_New(w->header.gm, "0");
+	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	GUIEdit_SetInt(item->gControl, *i);
+	GUIRegisterObject(item->gControl, item->base);
+	
+	return item;
+}
+
+GUIMainMenuItem* GUIMainMenu_AddFloat(GUIMainMenu* w, char* label, float* f) {
+	GUIMainMenuItem* item = GUIMainMenu_AddBaseItem(w, label);
+	item->type = 1;
+	item->data.f = f;
+	
+	item->gControl = GUIEdit_New(w->header.gm, "0");
+	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	GUIEdit_SetDouble(item->gControl, *f);
+	GUIRegisterObject(item->gControl, item->base);
+	
+	return item;
+}
+
+GUIMainMenuItem* GUIMainMenu_AddDouble(GUIMainMenu* w, char* label, double* f) {
+	GUIMainMenuItem* item = GUIMainMenu_AddBaseItem(w, label);
+	item->type = 2;
+	item->data.d = f;
+	
+	item->gControl = GUIEdit_New(w->header.gm, "0");
+	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	GUIEdit_SetDouble(item->gControl, *f);
+	GUIRegisterObject(item->gControl, item->base);
+	
+	return item;
+}
+
+GUIMainMenuItem* GUIMainMenu_AddString(GUIMainMenu* w, char* label, char** str) {
+	GUIMainMenuItem* item = GUIMainMenu_AddBaseItem(w, label);
+	item->type = 3;
+	item->data.str = str;
+	
+	item->gControl = GUIEdit_New(w->header.gm, *str);
+	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	GUIRegisterObject(item->gControl, item->base);
+	
+	return item;
+}
+
+
+
+int GUIMainMenu_SaveAll(GUIMainMenu* w) {
+	
+	VEC_EACH(&w->items, i, item) {
+		// TODO: accumulate errors
+		GUIMainMenu_SaveItem(w, item);
+	}
+	
+	return 0;
+}
+
+int GUIMainMenu_SaveItem(GUIMainMenu* w, GUIMainMenuItem* item) {
+	double d;
+	
+	// TODO return success value based on validity of the data
+	switch(item->type) {
+		case 0: // integer
+			// BUG fix 
+			d = GUIEdit_GetDouble(item->gControl);
+			*item->data.i = d;
+			break;
+			
+		case 1: // float
+			d = GUIEdit_GetDouble(item->gControl);
+			*item->data.f = d;
+			break;
+			
+		case 2: // double
+			d = GUIEdit_GetDouble(item->gControl);
+			*item->data.d = d;
+			break;
+			
+		case 3: // string
+			if(*item->data.str) free(*item->data.str);
+			*item->data.str = strdup(GUIEdit_GetText(item->gControl));
+			break;
+		
+		default:
+			printf("Unknown menu item type: %d\n", item->type);
+			return 1;
+	}
+	
+	return 0;
+}
+
+
 
 void GUIMainMenu_Destroy(GUIMainMenu* w) {
 	

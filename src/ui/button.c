@@ -73,7 +73,12 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 	struct Color4* bd = &gm->defaults.buttonBorderColor;
 	struct Color4* tx = &gm->defaults.buttonTextColor;
 	
-	if(w->isHovered) {
+	if(w->isDisabled) {
+		bg = &gm->defaults.buttonDisBgColor;
+		bd = &gm->defaults.buttonDisBorderColor;
+		tx = &gm->defaults.buttonDisTextColor;
+	}
+	else if(w->isHovered) {
 		bg = &gm->defaults.buttonHoverBgColor;
 		bd = &gm->defaults.buttonHoverBorderColor;
 		tx = &gm->defaults.buttonHoverTextColor;

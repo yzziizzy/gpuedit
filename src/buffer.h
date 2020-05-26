@@ -408,6 +408,7 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 // GUIBufferEditor
 
 
+void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s);
 
 void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
 static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl);

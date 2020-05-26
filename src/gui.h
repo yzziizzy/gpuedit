@@ -382,10 +382,13 @@ typedef struct GUIManager {
 		float         editWidth;
 		struct Color4 buttonTextColor;
 		struct Color4 buttonHoverTextColor;
+		struct Color4 buttonDisTextColor;
 		struct Color4 buttonBgColor;
 		struct Color4 buttonHoverBgColor;
+		struct Color4 buttonDisBgColor;
 		struct Color4 buttonBorderColor;
 		struct Color4 buttonHoverBorderColor;
+		struct Color4 buttonDisBorderColor;
 		struct Color4 cursorColor;
 		struct Color4 tabTextColor;
 		struct Color4 tabBorderColor;

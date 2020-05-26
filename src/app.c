@@ -121,6 +121,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->mouseCursorSetData = xs;
 	
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
+	as->mc->as = as;
 	as->mc->commands = as->commands;
 	GUIRegisterObject(as->mc, as->gui->root);
 
@@ -507,6 +508,12 @@ struct child_process_info* AppState_ExecProcessPipe(AppState* as, char* execPath
 }
 
 
+void AppState_UpdateSettings(AppState* as, GlobalSettings* gs) {
+	
+	as->globalSettings = *gs;
+	
+	GUIMainControl_UpdateSettings(as->mc, gs);
+}
 
 
 void preFrame(AppState* as) {

@@ -417,6 +417,15 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	return w;
 }
 
+void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s) {
+	
+	*w->gs = *s;
+	
+	VEC_EACH(&w->editors, i, e) {
+		GUIBufferEditor_UpdateSettings(e, s);
+	}
+}
+
 
 
 static void switchtab(int index, int btn, GUITabBarTab* t) {
@@ -608,7 +617,7 @@ void GUIMainControl_OpenMainMenu(GUIMainControl* w) {
 		return;
 	}
 	
-	w->menu = GUIMainMenu_New(w->header.gm);
+	w->menu = GUIMainMenu_New(w->header.gm, w->as);
 	
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, w->menu, "Main Menu");
 	tab->beforeClose = mmBeforeClose;

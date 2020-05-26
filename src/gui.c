@@ -137,10 +137,13 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->defaults.windowBgColor = (struct Color4){10,10,10,255};
 	gm->defaults.buttonTextColor = (struct Color4){200,200,225,255};
 	gm->defaults.buttonHoverTextColor = (struct Color4){200,2,2,255};
+	gm->defaults.buttonDisTextColor = (struct Color4){20,20,20,255};
 	gm->defaults.buttonBgColor = (struct Color4){2,2,225,255};
 	gm->defaults.buttonHoverBgColor = (struct Color4){200,200,2,255};
+	gm->defaults.buttonDisBgColor = (struct Color4){100,100,100,255};
 	gm->defaults.buttonBorderColor = (struct Color4){200,2,225,255};
 	gm->defaults.buttonHoverBorderColor = (struct Color4){2,200,225,255};
+	gm->defaults.buttonDisBorderColor = (struct Color4){20,20,125,255};
 	gm->defaults.editBorderColor = (struct Color4){25,245,25,255};
 	gm->defaults.editBgColor = (struct Color4){20,50,25,255};
 	gm->defaults.editWidth = 150;

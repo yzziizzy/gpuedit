@@ -361,6 +361,15 @@ do { \
 }
 
 
+
+void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s) {
+	w->linesPerScrollWheel = s->Buffer_linesPerScrollWheel;
+	w->cursorBlinkOnTime = s->Buffer_cursorBlinkOnTime;
+	w->cursorBlinkOffTime = s->Buffer_cursorBlinkOffTime;
+	w->outlineCurLine = s->Buffer_outlineCurrentLine;
+}
+
+
 // makes sure the cursor is on screen, with minimal necessary movement
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 	Buffer* b = gbe->buffer;

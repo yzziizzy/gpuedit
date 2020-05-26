@@ -52,6 +52,8 @@
 * GUIEdit right and center justify
 * GUIEdit int/float
 * GUIEdit scroll increment
+* GUIButton enabled/disabled
+* Wire all the settings updates through the app
 
 == Editor Features ==
 * Extract selection to its own function in open file space

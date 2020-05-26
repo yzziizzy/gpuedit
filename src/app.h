@@ -123,6 +123,7 @@ struct child_pty_info* AppState_ExecProcessPTY(AppState* as, char* execPath, cha
 void initApp(XStuff* xs, AppState* gs, int argc, char* argv[]);
 void initAppGL(XStuff* xs, AppState* gs);
 
+void AppState_UpdateSettings(AppState* as, GlobalSettings* gs);
 
 void renderFrame(XStuff* xs, AppState* gs, InputState* is, PassFrameParams* pfp);
 void appLoop(XStuff* xs, AppState* gs, InputState* is);

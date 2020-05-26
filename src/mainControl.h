@@ -40,9 +40,13 @@ typedef struct MainControlTab {
 } MainControlTab;
 
 
+struct AppState;
+typedef struct AppState AppState;
+
 typedef struct GUIMainControl {
 	GUIHeader header;
 	
+	AppState* as; 
 	
 	int showFullPathInTitlebar : 1;
 	int showFullPathInTab : 1;
@@ -75,6 +79,8 @@ typedef struct GUIMainControl {
 
 
 GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs);
+void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s);
+
 
 MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* client, char* title);
 void GUIMainControl_CloseTab(GUIMainControl* w, int index);
