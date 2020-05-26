@@ -1375,7 +1375,7 @@ void gui_drawDefaultUITextLine(
 	
 	float spaceadv = f->regular[' '].advance;
 	
-	for(int n = 0; txt[n] != 0 && adv < maxAdv; n++) {
+	for(int n = 0; txt[n] != 0 && adv < maxAdv && n < charCount; n++) {
 		char c = txt[n];
 		
 		struct charInfo* ci = &f->regular[c];

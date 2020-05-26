@@ -12,12 +12,8 @@ static void fireOnchange(GUIEdit* ed);
 
 
 static void moveCursor(GUIEdit* w, int delta) {
-	
-	w->cursorpos = MIN(w->textlen, MAX(0, w->cursorpos + delta));
-// 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
+	w->cursorpos = MIN(w->textlen + 1, MAX(0, w->cursorpos + delta));
 	w->cursorOffset = gui_getDefaultUITextWidth(w->header.gm, w->buf, w->cursorpos);
-	printf("%d, %f\n", w->cursorpos, w->cursorOffset);
-
 }
 
 
@@ -26,11 +22,23 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	GUIManager* gm = w->header.gm;
 	Vector2 tl = w->header.absTopLeft;
 	
+	float textOffset = 0;
+	float textWidth = gui_getDefaultUITextWidth(gm, w->buf, w->textlen);
+	
+	if(w->rightJustify) {
+		// HACK hardcoded padding offset
+		textOffset = w->header.size.x - textWidth - 4;
+	}
+	else if(w->centerJustify) {
+		textOffset = (w->header.size.x - textWidth) / 2;
+	}
+	
+	
 	int cursorAlpha = 0;
 	float cursorOff = 0;
-// 	printf("-%d, %f\n", w->cursorpos, w->cursorOffset);
+	
 	if(w->hasFocus && fmod(pfp->wallTime, 1.0) > .5) {
-		cursorOff = tl.x + (w->cursorOffset /** w->textControl->fontSize * .01*/);
+		cursorOff = textOffset + tl.x + (w->cursorOffset /** w->textControl->fontSize * .01*/);
 		cursorAlpha = 255;
 	}
 	
@@ -77,7 +85,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	};
 	
 	AABB2 box;
-	box.min.x = tl.x;
+	box.min.x = tl.x + textOffset;
 	box.min.y = tl.y;
 	box.max.x = tl.x + 3000;
 	box.max.y = tl.y + 30;
@@ -304,6 +312,7 @@ static void setText(GUIEdit* ed, char* s) {
 	checkBuffer(ed, len);
 	
 	strcpy(ed->buf, s);
+	ed->textlen = len;
 	
 	if(len < ed->cursorpos) {
 		ed->cursorpos = len;

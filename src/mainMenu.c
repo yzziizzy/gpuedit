@@ -289,6 +289,7 @@ GUIMainMenuItem* GUIMainMenu_AddInt(GUIMainMenu* w, char* label, int* i) {
 	item->data.i = i;
 	
 	item->gControl = GUIEdit_New(w->header.gm, "0");
+	((GUIEdit*)item->gControl)->rightJustify = 1;
 	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
 	GUIEdit_SetInt(item->gControl, *i);
 	GUIRegisterObject(item->gControl, item->base);
@@ -302,6 +303,7 @@ GUIMainMenuItem* GUIMainMenu_AddFloat(GUIMainMenu* w, char* label, float* f) {
 	item->data.f = f;
 	
 	item->gControl = GUIEdit_New(w->header.gm, "0");
+	((GUIEdit*)item->gControl)->rightJustify = 1;
 	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
 	GUIEdit_SetDouble(item->gControl, *f);
 	GUIRegisterObject(item->gControl, item->base);
@@ -315,6 +317,7 @@ GUIMainMenuItem* GUIMainMenu_AddDouble(GUIMainMenu* w, char* label, double* f) {
 	item->data.d = f;
 	
 	item->gControl = GUIEdit_New(w->header.gm, "0");
+	((GUIEdit*)item->gControl)->rightJustify = 1;
 	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
 	GUIEdit_SetDouble(item->gControl, *f);
 	GUIRegisterObject(item->gControl, item->base);

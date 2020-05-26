@@ -25,10 +25,13 @@ typedef struct GUIEdit {
 // 	float fontSize;
 	float blinkRate;
 	float cursorOffset; // in pixels
-	char hasFocus;
+	int hasFocus : 1;
+	int rightJustify : 1;
+	int centerJustify : 1;
 	
 	// offsets, text align
 	
+	// TODO: move to new event system
 	GUIEditOnChangeFn onChange;
 	void* onChangeData;
 	

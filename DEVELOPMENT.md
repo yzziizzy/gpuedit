@@ -4,6 +4,7 @@
 * Fix undo not restoring text properly after overflow and segfault fixes 
 * Undo selection changes
 * Mark changed tabs with "*" 
+* Choose highlighter based on file extension
 * On-demand frame rendering
 * Proper tabstops
 * Move editing state from Buffer to GBE
@@ -52,6 +53,7 @@
 * GUIEdit right and center justify
 * GUIEdit int/float
 * GUIEdit scroll increment
+* GUIEdit clipping and internal left/right scrolling on large values
 * GUIButton enabled/disabled
 * Wire all the settings updates through the app
 
