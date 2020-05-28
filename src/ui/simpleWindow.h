@@ -12,7 +12,11 @@ typedef struct GUISimpleWindow {
 	GUIWindow* titlebar;
 	GUIWindow* closebutton;
 	
-	GUIText* titleText;
+	GUIWindow* scrollbar;
+	float scrollPos;
+	
+	
+	GUIHeader clientArea;
 	
 	char* title;
 	
@@ -21,7 +25,7 @@ typedef struct GUISimpleWindow {
 
 
 
-GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex);
+GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm);
 
 
 

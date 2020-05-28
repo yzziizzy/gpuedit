@@ -367,6 +367,7 @@ void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s) {
 	w->cursorBlinkOnTime = s->Buffer_cursorBlinkOnTime;
 	w->cursorBlinkOffTime = s->Buffer_cursorBlinkOffTime;
 	w->outlineCurLine = s->Buffer_outlineCurrentLine;
+	
 }
 
 
