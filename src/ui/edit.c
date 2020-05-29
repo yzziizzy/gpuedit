@@ -256,7 +256,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	
 // 	w->textControl = GUIText_new(gm, initialValue, "Arial", 6.0f);
 // 	w->textControl->header.z = 10000.5;
-// 	GUIRegisterObject(w->textControl, &w->header);
+// 	GUIRegisterObject(&w->header, w->textControl);
 
 // 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
 	w->cursorOffset = gui_getDefaultUITextWidth(gm, initialValue, 9999999);

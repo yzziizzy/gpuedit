@@ -83,14 +83,14 @@ Vector2 guiSimpleWindowRecalcClientSize(GUIObject* go) {
 void addClient(GUIObject* _parent, GUIObject* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
 	
-	GUIRegisterObject_(&child->header, &p->clientArea);
+	GUIRegisterObject_(&p->clientArea, &child->header);
 };
 
 void removeClient(GUIObject* _parent, GUIObject* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
 	
 	printf("TODO: fix me; GUISimpleWindow.removeClient\n.");
-// 	guiRegisterObject(&w->clientArea, child)
+// 	guiRegisterObject(child, &w->clientArea)
 };
 
 
@@ -134,6 +134,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
+	w->border = (AABB2){{3, 3}, {3, 3}};
 	
 	w->bg = GUIWindow_New(gm);
 	w->bg->header.gravity = GUI_GRAV_TOP_LEFT;
@@ -145,7 +146,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 // 	sw->bg->padding.bottom = .05;
 // 	sw->bg->padding.right = .05;
 
-	GUIRegisterObject(w->bg, w);
+	GUIRegisterObject(w, w->bg);
 	
 	w->titlebar = GUIWindow_New(gm);
 // 		(Vector2){pos.x, pos.y}, 
@@ -156,7 +157,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->titlebar->color = (Vector){0.9, 0.1, .9};
 	w->titlebar->fadeWidth = 0.0;
 	w->titlebar->borderWidth = 0.0;
-	GUIRegisterObject(w->titlebar, w);
+	GUIRegisterObject(w, w->titlebar);
 // 	GUIRegisterObject(sw->titlebar, &sw->bg->header);
 	
 	w->closebutton = GUIWindow_New(gm);
@@ -169,7 +170,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->closebutton->color = (Vector){0.9, 0.1, 0.1};
 	w->closebutton->fadeWidth = 0.0;
 	w->closebutton->borderWidth = 0.0;
-	GUIRegisterObject(w->closebutton, w);
+	GUIRegisterObject(w, w->closebutton);
 // 	GUIRegisterObject(sw->closebutton, &sw->titlebar->header);
 	
 	

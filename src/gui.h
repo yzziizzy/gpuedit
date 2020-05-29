@@ -453,8 +453,11 @@ void guiTriggerClick(GUIEvent* e);
 
 
 
-#define GUIRegisterObject(o, p) GUIRegisterObject_(&(o)->header, (p) ? (&((GUIObject*)(p))->header) : NULL)
-void GUIRegisterObject_(GUIHeader* o, GUIHeader* parent);
+#define GUIRegisterObject(p, o) GUIRegisterObject_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
+void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o);
+
+#define GUIObject_AddClient(p, c) GUIRegisterObject_((p) ? (&((GUIObject*)(p))->header) : NULL, &(c)->header)
+void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client);
 
 
 void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);

@@ -410,7 +410,7 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 
 
 // add root objects to the root list, record the parent otherwise
-void GUIRegisterObject_(GUIHeader* o, GUIHeader* parent) {
+void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o) {
 	int i;
 	
 	if(!parent) {
@@ -422,6 +422,13 @@ void GUIRegisterObject_(GUIHeader* o, GUIHeader* parent) {
 		VEC_PUSH(&parent->children, o);
 	}
 }
+
+
+void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client) {
+	if(parent->vt->AddClient)
+		parent->vt->AddClient(parent, client);
+}
+
 
 
 

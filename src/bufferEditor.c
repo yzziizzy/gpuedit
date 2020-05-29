@@ -300,7 +300,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
-	GUIRegisterObject(w->scrollbar, w);
+	GUIRegisterObject(w, w->scrollbar);
 	
 	
 	
@@ -314,7 +314,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->statusBarRoot->color = (Vector){.2,.2,.2,1};
 	w->statusBarRoot->padding = (AABB2){{5,5}, {5,5}};
 	
-	GUIRegisterObject(w->statusBarRoot, w);
+	GUIRegisterObject(w, w->statusBarRoot);
 	
 	
 	
@@ -687,7 +687,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->lineNumEntryBox->onEnter = gotoline_onenter;
 				w->lineNumEntryBox->onEnterData = w;
 				
-				GUIRegisterObject(w->lineNumEntryBox, w->trayRoot);
+				GUIRegisterObject(w->trayRoot, w->lineNumEntryBox);
 				
 				w->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
@@ -720,7 +720,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				e->onEnterData = w;
 				
 				w->cursorBlinkPaused = 1;
-				GUIRegisterObject(e, w->trayRoot);
+				GUIRegisterObject(w->trayRoot, e);
 				GUIManager_pushFocusedObject(w->header.gm, e);
 				
 				w->findBox = e;
@@ -754,7 +754,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				e->onEnterData = w;
 				
 				w->cursorBlinkPaused = 1;
-				GUIRegisterObject(e, w->trayRoot);
+				GUIRegisterObject(w->trayRoot, e);
 				GUIManager_pushFocusedObject(w->header.gm, e);
 				
 				w->loadBox = e;
@@ -941,5 +941,5 @@ void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
 	w->trayRoot->color = (Vector){.8,.2,.3,1};
 	w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
 	
-	GUIRegisterObject(w->trayRoot, w);
+	GUIRegisterObject(w, w->trayRoot);
 }

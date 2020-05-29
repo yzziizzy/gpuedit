@@ -237,7 +237,7 @@ void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg) {
 		
 		read_header(&child->header, j_child);
 		
-		GUIRegisterObject(child, parent);
+		GUIRegisterObject(parent, child);
 		
 		
 		if(!json_obj_get_key(j_child, "children", &j_kids)) {

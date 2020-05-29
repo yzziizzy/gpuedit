@@ -50,7 +50,7 @@ GUIDebugAdjuster* GUIDebugAdjuster_new(GUIManager* gm, char* format, void* targe
 	da->text = GUIText_new(gm, "", "Arial", 3.0f);
 	updateText(da);
 	
-	GUIRegisterObject(da->text, da);
+	GUIRegisterObject(da, da->text);
 	
 	da->increments[0].f = 1.0f;
 	da->increments[0].d = 1.0;

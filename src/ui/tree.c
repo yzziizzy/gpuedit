@@ -49,7 +49,7 @@ GUITreeControl* GUITreeControl_New(GUIManager* gm) {
 	
 	
 	tc->root = GUITreeControlItem_New(gm);
-	GUIRegisterObject(tc->root, tc);
+	GUIRegisterObject(tc, tc->root);
 	
 	return tc;
 }
@@ -138,8 +138,8 @@ GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem
 	
 	VEC_PUSH(&parent->kids, it);
 	
-	GUIRegisterObject(it, parent);
-	GUIRegisterObject(o, it);
+	GUIRegisterObject(parent, it);
+	GUIRegisterObject(it, o);
 	
 	return it;
 }

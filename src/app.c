@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+#include <ctype.h>w
 #include <math.h>
 #include <time.h>
 #include <errno.h>
@@ -123,7 +123,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
 	as->mc->as = as;
 	as->mc->commands = as->commands;
-	GUIRegisterObject(as->mc, as->gui->root);
+	GUIRegisterObject(as->gui->root, as->mc);
 
 	
 	

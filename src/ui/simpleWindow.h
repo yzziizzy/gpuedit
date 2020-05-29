@@ -8,6 +8,8 @@
 typedef struct GUISimpleWindow {
 	GUIHeader header;
 	
+	AABB2 border;
+	
 	GUIWindow* bg;
 	GUIWindow* titlebar;
 	GUIWindow* closebutton;

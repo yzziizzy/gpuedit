@@ -122,7 +122,7 @@ GUISlider* GUISlider_New(GUIManager* gm, double min, double max, double initialV
 	w->textControl = GUIText_new(gm, "", "Arial", 6.0f);
 	w->textControl->header.size = w->header.size;
 	w->textControl->header.z = 100.5;
-	GUIRegisterObject(w->textControl, &w->header);
+	GUIRegisterObject(&w->header, w->textControl);
 	
 // 	w->textControl->header.onClick = (GUI_OnClickFn)click;
 	

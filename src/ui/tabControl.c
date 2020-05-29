@@ -87,7 +87,7 @@ GUITabControl* GUITabControl_New(GUIManager* gm) {
 	
 	// TODO: resize
 	w->bar = GUITabBar_New(gm);
-	GUIRegisterObject(w->bar, w);
+	GUIRegisterObject(w, w->bar);
 	GUIResize(w->bar, (Vector2){800, 20});
 	
 	return w;

@@ -69,7 +69,7 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, void* target, GUISA_Fie
 	
 	// container for the field adjusters
 	sa->column = GUIColumnLayout_new(gm, (Vector2){0,0}, 16, 0);
-	GUIRegisterObject(sa->column, sa);
+	GUIRegisterObject(sa, sa->column);
 	
 	
 	
@@ -89,7 +89,7 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, void* target, GUISA_Fie
 		free(base);
 		
 		VEC_PUSH(&sa->adjusters, da);
-		GUIRegisterObject(da, sa->column);
+		GUIRegisterObject(sa->column, da);
 	}
 	
 	

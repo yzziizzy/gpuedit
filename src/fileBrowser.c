@@ -322,7 +322,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
-	GUIRegisterObject(w->scrollbar, w);
+	GUIRegisterObject(w, w->scrollbar);
 	
 	w->curDir = realpath(path, NULL);
 	
