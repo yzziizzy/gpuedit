@@ -78,23 +78,21 @@ static void render(GUIWindow* gw, PassFrameParams* pfp) {
 	
 	// TODO: clip calculations
 	
-	//gw->header.gravity = (gw->header.gravity + 1) % 8;
+	Vector2 tl = gw->header.absTopLeft;
 	
-	
-	Vector2 tl = gw->header.absTopLeft;//gui_calcPosGrav(&gw->header, grp);
-	
-	//printf("tl: %f, %f\n", tl.x, tl.y);
-	
+// 	printf("tl: %f, %f - %f, %f\n", tl.x, tl.y, gw->header.size.x, gw->header.size.y);
+
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
 	
 	*v = (GUIUnifiedVertex){
 // 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
 // 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
-		.pos = {tl.x /*+ gw->header.topleft.x*/, tl.y /*+ gw->header.topleft.y*/,
-			tl.x + /*gw->header.topleft.x +*/ gw->header.size.x, tl.y + /*gw->header.topleft.y +*/ gw->header.size.y},
+		.pos = {tl.x, tl.y,
+			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
 		.clip = {0, 0, 800, 800},
 		
+		.guiType = 0,
 		.texIndex1 = 0,
 		.texIndex2 = 0,
 		.texFade = .5,
@@ -108,7 +106,7 @@ static void render(GUIWindow* gw, PassFrameParams* pfp) {
 		.fg = {255, 128, 64, 255}, // TODO: border color
 		.bg = {gw->color.x * 255, gw->color.y * 255, gw->color.z * 255, 255}, // TODO: color
 		
-		.z = gw->header.z,
+		.z = 9999999,//gw->header.z,
 		.alpha = gw->header.alpha,
 	};
 	

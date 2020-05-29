@@ -32,9 +32,7 @@ static int closeClick(GUIEvent* e) {
 
 void render(GUISimpleWindow* sw, PassFrameParams* pfp) {
 	
-// 	guiRender(sw->bg, gs, pfp);
-// 	guiRender(sw->titlebar, gs, pfp);
-// 	guiRender(sw->closebutton, gs, pfp);
+	GUIHeader_renderChildren(&sw->header, pfp);
 }
 
 void delete(GUISimpleWindow* sw) {
@@ -42,6 +40,18 @@ void delete(GUISimpleWindow* sw) {
 	
 	
 	
+}
+
+
+static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams* pfp) {
+	GUIHeader* h = &w->header;
+	
+	w->bg->header.size = h->size;
+	w->titlebar->header.size.x = h->size.x;
+	w->titlebar->header.size.y = 20;
+	
+	
+	gui_defaultUpdatePos(h, grp, pfp);
 }
 
 
@@ -73,7 +83,7 @@ Vector2 guiSimpleWindowRecalcClientSize(GUIObject* go) {
 void addClient(GUIObject* _parent, GUIObject* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
 	
-	guiRegisterObject(&w->clientArea, child)
+	GUIRegisterObject_(&child->header, &p->clientArea);
 };
 
 void removeClient(GUIObject* _parent, GUIObject* child) {
@@ -93,6 +103,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	static struct gui_vtbl static_vt = {
 		.Render = render,
 		.Delete = delete,
+		.UpdatePos = updatePos,
 // 		.GetClientSize = guiSimpleWindowGetClientSize,
 // 		.SetClientSize = guiSimpleWindowSetClientSize,
 // 		.RecalcClientSize = guiSimpleWindowRecalcClientSize,
@@ -101,9 +112,9 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyUp = keyUp,
-		.Click = click,
-		.DoubleClick = click,
+// 		.KeyUp = keyUp,
+// 		.Click = click,
+// 		.DoubleClick = click,
 // 		.ScrollUp = scrollUp,
 // 		.ScrollDown = scrollDown,
 // 		.DragStart = dragStart,
@@ -112,17 +123,20 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 // 		.ParentResize = parentResize,
 	};
 	
-	GUISimpleWindow* w = pcalloc(sw);
+	GUISimpleWindow* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
 	gui_headerInit(&w->clientArea, gm, NULL, NULL);
 	
 	
+	w->header.z = 99999;
+	
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
 	
 	w->bg = GUIWindow_New(gm);
+	w->bg->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->bg->color = (Vector){0.1, 0.9, 0.1};
 	w->bg->fadeWidth = 0.0;
 	w->bg->borderWidth = 0.0;
@@ -131,17 +145,18 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 // 	sw->bg->padding.bottom = .05;
 // 	sw->bg->padding.right = .05;
 
-	GUIRegisterObject(w, &w->bg);
+	GUIRegisterObject(w->bg, w);
 	
 	w->titlebar = GUIWindow_New(gm);
 // 		(Vector2){pos.x, pos.y}, 
 // 		(Vector2){size.x, tbh}, 
 // 		zIndex + .0001
 // 	);
+	w->titlebar->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->titlebar->color = (Vector){0.9, 0.1, .9};
 	w->titlebar->fadeWidth = 0.0;
 	w->titlebar->borderWidth = 0.0;
-	GUIRegisterObject(w, &w->titlebar);
+	GUIRegisterObject(w->titlebar, w);
 // 	GUIRegisterObject(sw->titlebar, &sw->bg->header);
 	
 	w->closebutton = GUIWindow_New(gm);
@@ -149,10 +164,12 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 // 		(Vector2){tbh * 0.9, tbh * 0.9},
 // 		zIndex + .0002
 // 	);
+	w->closebutton->header.gravity = GUI_GRAV_TOP_RIGHT;
+	w->closebutton->header.size = (Vector2){16,16};
 	w->closebutton->color = (Vector){0.9, 0.1, 0.1};
 	w->closebutton->fadeWidth = 0.0;
 	w->closebutton->borderWidth = 0.0;
-	GUIRegisterObject(w, &w->closebutton);
+	GUIRegisterObject(w->closebutton, w);
 // 	GUIRegisterObject(sw->closebutton, &sw->titlebar->header);
 	
 	

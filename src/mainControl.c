@@ -316,11 +316,22 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 
 
 void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
+	GUISimpleWindow* sw;
+	
 	switch(cmd->type) {
 	case Cmd_NULL:
 		// do nothing
 		break;
 		
+	case MainCmd_SimpleWindowTest:
+		
+		sw = GUISimpleWindow_New(w->header.gm);
+		sw->header.topleft = (Vector2){20, 20};
+		sw->header.size = (Vector2){400, 400};
+		GUIRegisterObject(sw, w->header.parent);
+		
+		break;
+	
 	case MainCmd_OpenFileBrowser:
 		GUIMainControl_OpenFileBrowser(w, "./");
 		break;

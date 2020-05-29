@@ -104,7 +104,8 @@
 * Increment/decrement numbers in identifiers on this line. Combo with Dup Line.
 * File browser gives SLOC/git/etc stats in detail mode
 * Jump to line of last edit
-* File-summoning fuzzy search interface 
+* File-summoning fuzzy search interface
+* Notify when semicolons appear to be missing
 
 == BUGS ==
 * Mouse scroll on files with fewer lines than the screen
