@@ -90,8 +90,12 @@ static void render(GUIWindow* gw, PassFrameParams* pfp) {
 // 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
 		.pos = {tl.x, tl.y,
 			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
-		.clip = {0, 0, 800, 800},
-		
+		.clip = { 
+			.l = gw->header.absClip.min.x,
+			.t = gw->header.absClip.min.y,
+			.r = gw->header.absClip.max.x,
+			.b = gw->header.absClip.max.y,
+		},
 		.guiType = 0,
 		.texIndex1 = 0,
 		.texIndex2 = 0,

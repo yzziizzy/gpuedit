@@ -424,9 +424,19 @@ void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o) {
 }
 
 
+
 void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client) {
 	if(parent->vt->AddClient)
 		parent->vt->AddClient(parent, client);
+	else
+		printf("Object does not have an AddClient function.");
+}
+
+void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client) {
+	if(parent->vt->RemoveClient)
+		parent->vt->RemoveClient(parent, client);
+	else
+		printf("Object does not have a RemoveClient function.");
 }
 
 

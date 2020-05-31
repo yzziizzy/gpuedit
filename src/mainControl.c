@@ -331,6 +331,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		GUIRegisterObject(w->header.parent, sw);
 		
 		GUIWindow* ww = GUIWindow_New(w->header.gm);
+		ww->header.size = (Vector2){500, 500};
 		GUIObject_AddClient(sw, ww);
 		
 		break;

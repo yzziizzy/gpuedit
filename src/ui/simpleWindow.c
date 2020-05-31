@@ -33,6 +33,7 @@ static int closeClick(GUIEvent* e) {
 void render(GUISimpleWindow* sw, PassFrameParams* pfp) {
 	
 	GUIHeader_renderChildren(&sw->header, pfp);
+	GUIHeader_renderChildren(&sw->clientArea, pfp);
 }
 
 void delete(GUISimpleWindow* sw) {
@@ -50,8 +51,36 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	w->titlebar->header.size.x = h->size.x;
 	w->titlebar->header.size.y = 20;
 	
-	
 	gui_defaultUpdatePos(h, grp, pfp);
+	
+	
+	// the client area is not updated by the parend updatePos function
+	// it must be done manually here
+	w->clientArea.size = (Vector2){
+		h->size.x - w->border.min.x - w->border.max.x,
+		h->size.y - w->border.min.y - w->border.max.y - 20,
+	};
+	
+	GUIRenderParams grp2 = {
+		.offset = {
+			h->absTopLeft.x + w->border.min.x, 
+			h->absTopLeft.y + w->border.min.y + 20,
+		},
+		.size = w->clientArea.size,
+		.baseZ = h->absZ,
+		
+	};
+	
+	grp2.clip = gui_clipTo(grp->clip, (AABB2){
+		.min = {grp2.offset.x, grp2.offset.y },
+		.max = {grp2.offset.x + grp2.size.x, grp2.offset.y + grp2.size.y },
+	});
+	
+	
+	// TODO: hardcoded titlebar height
+	
+	
+	gui_defaultUpdatePos(&w->clientArea, &grp2, pfp);
 }
 
 
