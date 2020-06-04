@@ -43,6 +43,34 @@ void delete(GUISimpleWindow* sw) {
 	
 }
 
+static void ShowXScroll(GUISimpleWindow* w) {
+	if(w->scrollbarX) return;
+	
+	w->scrollbarX = GUIWindow_New(w->header.gm);
+	w->scrollbarX->header.topleft = (Vector2){w->border.min.x, -w->border.max.y};
+	w->scrollbarX->header.size = (Vector2){60, 20};
+	w->scrollbarX->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->scrollbarX->color = (Vector){0.9, 0.7, .9};
+	w->scrollbarX->fadeWidth = 0.0;
+	w->scrollbarX->borderWidth = 0.0;
+	GUIRegisterObject(w, w->scrollbarX);
+}
+
+static void ShowYScroll(GUISimpleWindow* w) {
+	if(w->scrollbarY) return;
+	
+	w->scrollbarY = GUIWindow_New(w->header.gm);
+	w->scrollbarY->header.topleft = (Vector2){-w->border.max.y, w->border.min.x + 20};
+	w->scrollbarY->header.size = (Vector2){20, 60};
+	w->scrollbarY->header.gravity = GUI_GRAV_TOP_RIGHT;
+	w->scrollbarY->color = (Vector){0.9, 0.7, .9};
+	w->scrollbarY->fadeWidth = 0.0;
+	w->scrollbarY->borderWidth = 0.0;
+	GUIRegisterObject(w, w->scrollbarY);
+}
+
+
+
 
 static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIHeader* h = &w->header;
@@ -53,27 +81,74 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	
 	gui_defaultUpdatePos(h, grp, pfp);
 	
-	
-	// the client area is not updated by the parend updatePos function
+	// the client area is not updated by the parent updatePos function
 	// it must be done manually here
 	w->clientArea.size = (Vector2){
 		h->size.x - w->border.min.x - w->border.max.x,
 		h->size.y - w->border.min.y - w->border.max.y - 20,
 	};
 	
+	// look through the children and calculate their extent
+	Vector2 internalMax = {0,0};
+	VEC_EACH(&w->clientArea.children, i, child) {
+		// TODO: figure out
+		internalMax.x = fmax(internalMax.x, child->h.topleft.x + child->h.size.x);
+		internalMax.y = fmax(internalMax.y, child->h.topleft.y + child->h.size.y);
+	}
+	
+	w->clientExtent = internalMax;
+	
+	
+	
+	if(internalMax.y > w->clientArea.size.y) w->yScrollIsShown = 1;
+	if(w->alwaysShowYScroll) w->yScrollIsShown = 1;
+	if(w->disableYScroll) w->yScrollIsShown = 0;
+	if(w->yScrollIsShown) {
+		w->clientArea.size.x -= 20;
+		ShowYScroll(w);
+	}
+	
+	if(internalMax.x > w->clientArea.size.x) w->xScrollIsShown = 1;
+	if(w->alwaysShowXScroll) w->xScrollIsShown = 1;
+	if(w->disableXScroll) w->xScrollIsShown = 0;
+	if(w->xScrollIsShown) {
+		w->clientArea.size.y -= 20;
+		ShowXScroll(w);
+	}
+	
+	
+	float scrollpct = sin(fmod(pfp->appTime, 3.14));
+	
+	
+	
+	
+	w->absScrollPos = (Vector2){
+		-scrollpct * (internalMax.x - w->clientArea.size.x),
+		-scrollpct * (internalMax.y - w->clientArea.size.y),
+	};
+	
+// 	printf("%f, %f\n", internalMax.x, internalMax.y);
+// 	printf("%f, %f\n", w->absScrollPos.x, w->absScrollPos.y);
+	
 	GUIRenderParams grp2 = {
 		.offset = {
-			h->absTopLeft.x + w->border.min.x, 
-			h->absTopLeft.y + w->border.min.y + 20,
+			h->absTopLeft.x + w->border.min.x + w->absScrollPos.x, 
+			h->absTopLeft.y + w->border.min.y + 20 + w->absScrollPos.y,
 		},
 		.size = w->clientArea.size,
 		.baseZ = h->absZ,
-		
 	};
 	
+	
 	grp2.clip = gui_clipTo(grp->clip, (AABB2){
-		.min = {grp2.offset.x, grp2.offset.y },
-		.max = {grp2.offset.x + grp2.size.x, grp2.offset.y + grp2.size.y },
+		.min = {
+			grp2.offset.x - w->absScrollPos.x, 
+			grp2.offset.y - w->absScrollPos.y
+		},
+		.max = {
+			grp2.offset.x + grp2.size.x - w->absScrollPos.x, 
+			grp2.offset.y + grp2.size.y - w->absScrollPos.y
+		},
 	});
 	
 	
