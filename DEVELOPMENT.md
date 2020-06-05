@@ -56,6 +56,8 @@
 * GUIEdit clipping and internal left/right scrolling on large values
 * GUIButton enabled/disabled
 * Wire all the settings updates through the app
+* Garbage collection in GUI
+* Z-index is messed up everywhere in the GUI
 
 == Editor Features ==
 * Extract selection to its own function in open file space

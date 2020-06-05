@@ -9,6 +9,12 @@
 
 
 
+// TODO: close button
+// dragging
+// resizing
+// draw title text
+// dynamic scrollbar sizing
+// fn to resize to fit content or parent
 
 
 static int closeClick(GUIEvent* e) {
@@ -21,7 +27,8 @@ static int closeClick(GUIEvent* e) {
 	if(e->originalTarget == sw->closebutton) {
 		
 		sw->header.hidden = 1;
-		guiDelete(sw);
+		GUIObject_Delete(sw);
+		GUIObject_Delete_(&sw->clientArea);
 	}
 	
 	//TODO no further bubbling
@@ -41,32 +48,6 @@ void delete(GUISimpleWindow* sw) {
 	
 	
 	
-}
-
-static void ShowXScroll(GUISimpleWindow* w) {
-	if(w->scrollbarX) return;
-	
-	w->scrollbarX = GUIWindow_New(w->header.gm);
-	w->scrollbarX->header.topleft = (Vector2){w->border.min.x, -w->border.max.y};
-	w->scrollbarX->header.size = (Vector2){60, 20};
-	w->scrollbarX->header.gravity = GUI_GRAV_BOTTOM_LEFT;
-	w->scrollbarX->color = (Vector){0.9, 0.7, .9};
-	w->scrollbarX->fadeWidth = 0.0;
-	w->scrollbarX->borderWidth = 0.0;
-	GUIRegisterObject(w, w->scrollbarX);
-}
-
-static void ShowYScroll(GUISimpleWindow* w) {
-	if(w->scrollbarY) return;
-	
-	w->scrollbarY = GUIWindow_New(w->header.gm);
-	w->scrollbarY->header.topleft = (Vector2){-w->border.max.y, w->border.min.x + 20};
-	w->scrollbarY->header.size = (Vector2){20, 60};
-	w->scrollbarY->header.gravity = GUI_GRAV_TOP_RIGHT;
-	w->scrollbarY->color = (Vector){0.9, 0.7, .9};
-	w->scrollbarY->fadeWidth = 0.0;
-	w->scrollbarY->borderWidth = 0.0;
-	GUIRegisterObject(w, w->scrollbarY);
 }
 
 
@@ -91,33 +72,44 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	// look through the children and calculate their extent
 	Vector2 internalMax = {0,0};
 	VEC_EACH(&w->clientArea.children, i, child) {
-		// TODO: figure out
 		internalMax.x = fmax(internalMax.x, child->h.topleft.x + child->h.size.x);
 		internalMax.y = fmax(internalMax.y, child->h.topleft.y + child->h.size.y);
 	}
 	
 	w->clientExtent = internalMax;
 	
+	float scrollpct = sin(fmod(pfp->appTime, 6.28)) * .5 + .5;
 	
 	
 	if(internalMax.y > w->clientArea.size.y) w->yScrollIsShown = 1;
 	if(w->alwaysShowYScroll) w->yScrollIsShown = 1;
 	if(w->disableYScroll) w->yScrollIsShown = 0;
+	
+	// adjust client area size first
+	if(w->yScrollIsShown) w->clientArea.size.x -= w->yScrollbarThickness;
+	if(w->xScrollIsShown) w->clientArea.size.y -= w->xScrollbarThickness;
+	
 	if(w->yScrollIsShown) {
-		w->clientArea.size.x -= 20;
-		ShowYScroll(w);
+		w->scrollbarY->header.hidden = 0;
+		// BUG: borders
+		float travel = w->clientArea.size.y - 60; // length of the scrollbar
+		
+		w->scrollbarY->header.size.x = w->yScrollbarThickness;
+		w->scrollbarY->header.topleft.y = 20 + w->border.min.y +  ((1.0 - scrollpct) * travel);
 	}
 	
 	if(internalMax.x > w->clientArea.size.x) w->xScrollIsShown = 1;
 	if(w->alwaysShowXScroll) w->xScrollIsShown = 1;
 	if(w->disableXScroll) w->xScrollIsShown = 0;
+	
 	if(w->xScrollIsShown) {
-		w->clientArea.size.y -= 20;
-		ShowXScroll(w);
+		w->scrollbarX->header.hidden = 0;
+		float travel = w->clientArea.size.x - 60; // length of the scrollbar
+		
+		// BUG: borders
+		w->scrollbarX->header.size.y = w->xScrollbarThickness;
+		w->scrollbarX->header.topleft.x = w->border.min.x  + ((1.0 - scrollpct) * travel);
 	}
-	
-	
-	float scrollpct = sin(fmod(pfp->appTime, 3.14));
 	
 	
 	
@@ -230,57 +222,68 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	GUISimpleWindow* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	
 	gui_headerInit(&w->clientArea, gm, NULL, NULL);
 	
-	
+	// general options
+	w->xScrollbarThickness = 5;
+	w->yScrollbarThickness = 5;
+	w->xScrollbarMinLength = 15;
+	w->yScrollbarMinLength = 15;
 	w->header.z = 99999;
 	
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
 	w->border = (AABB2){{3, 3}, {3, 3}};
 	
+	
+	// background
 	w->bg = GUIWindow_New(gm);
 	w->bg->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->bg->color = (Vector){0.1, 0.9, 0.1};
 	w->bg->fadeWidth = 0.0;
 	w->bg->borderWidth = 0.0;
-// 	sw->bg->padding.top = .21;
-// 	sw->bg->padding.left = .05;
-// 	sw->bg->padding.bottom = .05;
-// 	sw->bg->padding.right = .05;
-
 	GUIRegisterObject(w, w->bg);
 	
+	
+	// title bar and close button
 	w->titlebar = GUIWindow_New(gm);
-// 		(Vector2){pos.x, pos.y}, 
-// 		(Vector2){size.x, tbh}, 
-// 		zIndex + .0001
-// 	);
 	w->titlebar->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->titlebar->color = (Vector){0.9, 0.1, .9};
 	w->titlebar->fadeWidth = 0.0;
 	w->titlebar->borderWidth = 0.0;
 	GUIRegisterObject(w, w->titlebar);
-// 	GUIRegisterObject(sw->titlebar, &sw->bg->header);
 	
 	w->closebutton = GUIWindow_New(gm);
-// 		(Vector2){pos.x + size.x - tbh, pos.y + tbh * .05}, 
-// 		(Vector2){tbh * 0.9, tbh * 0.9},
-// 		zIndex + .0002
-// 	);
 	w->closebutton->header.gravity = GUI_GRAV_TOP_RIGHT;
 	w->closebutton->header.size = (Vector2){16,16};
 	w->closebutton->color = (Vector){0.9, 0.1, 0.1};
 	w->closebutton->fadeWidth = 0.0;
 	w->closebutton->borderWidth = 0.0;
 	GUIRegisterObject(w, w->closebutton);
-// 	GUIRegisterObject(sw->closebutton, &sw->titlebar->header);
 	
+	// scrollbars
+	w->scrollbarX = GUIWindow_New(w->header.gm);
+	w->scrollbarX->header.topleft = (Vector2){w->border.min.x, -w->border.max.y};
+	w->scrollbarX->header.size = (Vector2){60, 20};
+	w->scrollbarX->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->scrollbarX->header.hidden = 1;
+	w->scrollbarX->header.z = 9999999999;
+	w->scrollbarX->color = (Vector){0.9, 0.7, .9};
+	w->scrollbarX->fadeWidth = 0.0;
+	w->scrollbarX->borderWidth = 0.0;
+	GUIRegisterObject(w, w->scrollbarX);
 	
-// 	w->header.onClick = closeClick;
-	
-	
+	w->scrollbarY = GUIWindow_New(w->header.gm);
+	w->scrollbarY->header.topleft = (Vector2){-w->border.max.y, w->border.min.x + 20};
+	w->scrollbarY->header.size = (Vector2){20, 60};
+	w->scrollbarY->header.gravity = GUI_GRAV_TOP_RIGHT;
+	w->scrollbarY->header.hidden = 1;
+	w->scrollbarX->header.z = 9999999999;
+	w->scrollbarY->color = (Vector){0.9, 0.7, .9};
+	w->scrollbarY->fadeWidth = 0.0;
+	w->scrollbarY->borderWidth = 0.0;
+	GUIRegisterObject(w, w->scrollbarY);
+
 	
 	return w;
 }

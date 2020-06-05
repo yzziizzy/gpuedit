@@ -913,7 +913,7 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 	
 	w->trayOpen = 0;
 	w->trayHeight = 0;
-	guiDelete(w->trayRoot);
+	GUIObject_Delete(w->trayRoot);
 	w->trayRoot = NULL;
 }
 

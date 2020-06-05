@@ -16,8 +16,13 @@ typedef struct GUISimpleWindow {
 	
 	GUIWindow* scrollbarY;
 	GUIWindow* scrollbarX;
+	float xScrollbarThickness;
+	float yScrollbarThickness;
+	float xScrollbarMinLength;
+	float yScrollbarMinLength;
 	Vector2 absScrollPos;
 	Vector2 clientExtent; // maximum extent of all the windows in the client area
+	
 	
 	int disableYScroll : 1;
 	int disableXScroll : 1;

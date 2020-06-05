@@ -443,21 +443,24 @@ void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client) {
 
 
 
-void guiDelete(GUIObject* go) {
-	go->h.deleted = 1;
+void GUIObject_Delete_(GUIHeader* h) {
+	h->deleted = 1;
 	
 // 	VEC_PUSH(&gui_reap_queue, go);
 	
-	for(int i = 0; i < VEC_LEN(&go->h.children); i++) {
+	// delete the children
+	for(int i = 0; i < VEC_LEN(&h->children); i++) {
 		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
-		guiDelete(VEC_ITEM(&go->h.children, i));
+		GUIObject_Delete_(VEC_ITEM(&h->children, i));
 	}
 	
-
+	if(h->vt->Delete)
+		h->vt->Delete(h);
 	
-	if(go->h.vt->Delete)
-		go->h.vt->Delete(go);
-} 
+	VEC_RM_VAL(&h->parent->header.children, &h);
+}
+
+
 
 void guiReap(GUIObject* go) {
 	if(!go->h.deleted) {

@@ -252,9 +252,9 @@ typedef struct GUIHeader {
 	
 	AABB2 hitbox; // in local coordinates
 	
-	char hidden;
-	char deleted;
-	char gravity;
+	unsigned int gravity : 8;
+	unsigned int hidden  : 1;
+	unsigned int deleted : 1;
 	
 	int cursor;
 	
@@ -444,7 +444,8 @@ void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h);
 GUIObject* GUIManager_popFocusedObject(GUIManager* gm);
 
 // GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
-void guiDelete(GUIObject* go);
+#define GUIObject_Delete(o) GUIObject_Delete_(&(o)->header)
+void GUIObject_Delete_(GUIHeader* h);
 // void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 void guiReap(GUIObject* go);
 void GUIResize(GUIHeader* gh, Vector2 newSz);
