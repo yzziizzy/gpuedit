@@ -959,9 +959,9 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		float dragDist = vDist2(&newPos, &gm->dragStartPos);
 		if(dragDist >= gm->minDragDist) {
 			gm->isDragging = 1;
-			gm->dragStartTarget = t;
 			
 			gev.type = GUIEVENT_DragStart;
+			gev.originalTarget = gm->dragStartTarget;
 			gev.currentTarget = t;
 			gev.dragStartPos = gm->dragStartPos;
 			gev.cancelled = 0;

@@ -17,24 +17,61 @@
 // fn to resize to fit content or parent
 
 
-static int closeClick(GUIEvent* e) {
+static void scrollUp(GUIObject* w_, GUIEvent* gev) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
-	GUISimpleWindow* sw;
+}
+static void scrollDown(GUIObject* w_, GUIEvent* gev) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
+}
 
-	sw = (GUISimpleWindow*)e->currentTarget;
+static void click(GUIObject* w_, GUIEvent* gev) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
-	if(e->originalTarget == sw->closebutton) {
-		
-		sw->header.hidden = 1;
-		GUIObject_Delete(sw);
-		GUIObject_Delete_(&sw->clientArea);
+	// close
+	if(gev->originalTarget == w->closebutton) {
+		w->header.hidden = 1;
+		GUIObject_Delete(w);
+		GUIObject_Delete_(&w->clientArea);
 	}
 	
 	//TODO no further bubbling
 	return 0;
 }
 
+static void dragStart(GUIObject* w_, GUIEvent* gev) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
+	
+// 	printf("dragstart %p, %p\n", gev->originalTarget, w->titlebar);
+	if(gev->originalTarget == w->titlebar) {
+		w->isDragging = 1;
+		
+		vSub2(&gev->dragStartPos, &w->header.topleft, &w->dragOffset);
+	}
+	
+	
+}
+
+
+static void dragStop(GUIObject* w_, GUIEvent* gev) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
+
+// 	printf("drag stop\n");
+	if(w->isDragging) {
+		w->isDragging = 0;
+	}
+	
+}
+
+static void dragMove(GUIObject* w_, GUIEvent* gev) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
+	
+// 	printf("drag move\n");
+	if(w->isDragging) {
+		vSub2(&gev->pos, &w->dragOffset, &w->header.topleft);
+	}
+}
 
 
 void render(GUISimpleWindow* sw, PassFrameParams* pfp) {
@@ -209,13 +246,13 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	
 	static struct GUIEventHandler_vtbl event_vt = {
 // 		.KeyUp = keyUp,
-// 		.Click = click,
+		.Click = click,
 // 		.DoubleClick = click,
-// 		.ScrollUp = scrollUp,
-// 		.ScrollDown = scrollDown,
-// 		.DragStart = dragStart,
-// 		.DragStop = dragStop,
-// 		.DragMove = dragMove,
+		.ScrollUp = scrollUp,
+		.ScrollDown = scrollDown,
+		.DragStart = dragStart,
+		.DragStop = dragStop,
+		.DragMove = dragMove,
 // 		.ParentResize = parentResize,
 	};
 	
@@ -239,6 +276,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	// background
 	w->bg = GUIWindow_New(gm);
 	w->bg->header.gravity = GUI_GRAV_TOP_LEFT;
+	w->bg->header.z = 999990;
 	w->bg->color = (Vector){0.1, 0.9, 0.1};
 	w->bg->fadeWidth = 0.0;
 	w->bg->borderWidth = 0.0;
@@ -248,6 +286,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	// title bar and close button
 	w->titlebar = GUIWindow_New(gm);
 	w->titlebar->header.gravity = GUI_GRAV_TOP_LEFT;
+	w->titlebar->header.z = 999991;
 	w->titlebar->color = (Vector){0.9, 0.1, .9};
 	w->titlebar->fadeWidth = 0.0;
 	w->titlebar->borderWidth = 0.0;
@@ -256,6 +295,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->closebutton = GUIWindow_New(gm);
 	w->closebutton->header.gravity = GUI_GRAV_TOP_RIGHT;
 	w->closebutton->header.size = (Vector2){16,16};
+	w->closebutton->header.z = 999992;
 	w->closebutton->color = (Vector){0.9, 0.1, 0.1};
 	w->closebutton->fadeWidth = 0.0;
 	w->closebutton->borderWidth = 0.0;

@@ -30,6 +30,9 @@ typedef struct GUISimpleWindow {
 	int alwaysShowXScroll: 1;
 	int yScrollIsShown : 1;
 	int xScrollIsShown : 1;
+	int isDragging : 1;
+	
+	Vector2 dragOffset;
 	
 	GUIHeader clientArea;
 	
