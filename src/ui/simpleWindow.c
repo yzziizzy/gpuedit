@@ -10,7 +10,6 @@
 
 
 // TODO: close button
-// dragging
 // resizing
 // draw title text
 // dynamic scrollbar sizing
@@ -74,10 +73,21 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-void render(GUISimpleWindow* sw, PassFrameParams* pfp) {
+void render(GUISimpleWindow* w, PassFrameParams* pfp) {
 	
-	GUIHeader_renderChildren(&sw->header, pfp);
-	GUIHeader_renderChildren(&sw->clientArea, pfp);
+	GUIHeader_renderChildren(&w->header, pfp);
+	GUIHeader_renderChildren(&w->clientArea, pfp);
+	
+	// title
+	Vector2 tl = w->header.absTopLeft;
+
+	AABB2 box;
+	box.min.x = tl.x + 5;
+	box.min.y = tl.y + 1;
+	box.max.x = tl.x + w->header.size.x - 10;
+	box.max.y = tl.y + 20;
+	
+	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.gm->defaults.tabTextColor , 10000000, w->title, strlen(w->title));
 }
 
 void delete(GUISimpleWindow* sw) {
