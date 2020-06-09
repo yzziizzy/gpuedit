@@ -439,6 +439,24 @@ void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client) {
 		printf("Object does not have a RemoveClient function.");
 }
 
+Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct) {
+	if(go->vt->SetScrollPct)
+		return go->vt->SetScrollPct(go, pct);
+	else
+		printf("Object does not have a SetScrollPct function.");
+	
+	return (Vector2){0, 0};
+}
+
+Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos) {
+	if(go->vt->SetScrollAbs)
+		return go->vt->SetScrollAbs(go, absPos);
+	else
+		printf("Object does not have a SetScrollAbs function.");
+	
+	return (Vector2){0, 0};
+}
+
 
 
 

@@ -17,15 +17,62 @@
 // scroll events
 
 
+
+static Vector2 setScrollAbs(GUIObject* w_, Vector2 absPos) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
+	
+	w->absScrollPos.x = fmax(0, fmin(absPos.x, w->clientExtent.x - w->clientArea.size.x));
+	w->absScrollPos.y = fmax(0, fmin(absPos.y, w->clientExtent.y - w->clientArea.size.y));
+	
+	return w->absScrollPos;
+}
+
+static Vector2 setScrollPct(GUIObject* w_, Vector2 pct) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
+	
+	float mx = w->clientExtent.x - w->clientArea.size.x;
+	float my = w->clientExtent.y - w->clientArea.size.y;
+	
+	w->absScrollPos.x = fmax(0, fmin(mx * pct.x, mx));
+	w->absScrollPos.y = fmax(0, fmin(my * pct.y, my));
+	
+	return w->absScrollPos;
+}
+
+
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
+	
+	if(gev->originalTarget == w->bg) {
+		if(gev->modifiers & GUIMODKEY_ALT) {
+			w->absScrollPos.x = fmax(0, w->absScrollPos.x - 20);
+		}
+		else {
+			w->absScrollPos.y = fmax(0, w->absScrollPos.y - 20);
+		}
+	}
 }
+
+
 static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
+	float mx = w->clientExtent.x - w->clientArea.size.x;
+	float my = w->clientExtent.y - w->clientArea.size.y;
+	
+	if(gev->originalTarget == w->bg) {
+		if(gev->modifiers & GUIMODKEY_ALT) {
+			w->absScrollPos.x = fmin(mx, w->absScrollPos.x + 20);
+		}
+		else {
+			w->absScrollPos.y = fmin(my, w->absScrollPos.y + 20);
+		}
+	}
 	
 }
+
+
 
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
@@ -128,7 +175,6 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	
 	w->clientExtent = internalMax;
 	
-// 	float scrollpct = sin(fmod(pfp->appTime, 6.28)) * .5 + .5;
 	
 	
 	if(internalMax.y > w->clientArea.size.y) w->yScrollIsShown = 1;
@@ -139,11 +185,13 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	if(w->yScrollIsShown) w->clientArea.size.x -= w->yScrollbarThickness;
 	if(w->xScrollIsShown) w->clientArea.size.y -= w->xScrollbarThickness;
 	
+	
 	if(w->yScrollIsShown) {
 		w->scrollbarY->header.hidden = 0;
-		// BUG: borders
+		
 		float travel = w->clientArea.size.y - 60; // length of the scrollbar
-		float scrollpct = w->absScrollPos.y / w->clientArea.size.y;
+		float m = w->clientExtent.y - w->clientArea.size.y;
+		float scrollpct = w->absScrollPos.y / m;
 		
 		w->scrollbarY->header.size.x = w->yScrollbarThickness;
 		w->scrollbarY->header.topleft.y = 20 + w->border.min.y +  ((scrollpct) * travel);
@@ -155,29 +203,21 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	
 	if(w->xScrollIsShown) {
 		w->scrollbarX->header.hidden = 0;
-		float travel = w->clientArea.size.x - 60; // length of the scrollbar
-		float scrollpct = w->absScrollPos.x / w->clientArea.size.x;
 		
-		// BUG: borders
+		float travel = w->clientArea.size.x - 60; // length of the scrollbar
+		float m = w->clientExtent.x - w->clientArea.size.x;
+		float scrollpct = w->absScrollPos.x / m;
+		
 		w->scrollbarX->header.size.y = w->xScrollbarThickness;
 		w->scrollbarX->header.topleft.x = w->border.min.x  + ((scrollpct) * travel);
 	}
 	
 	
 	
-	/*
-	w->absScrollPos = (Vector2){
-		-scrollpct * (internalMax.x - w->clientArea.size.x),
-		-scrollpct * (internalMax.y - w->clientArea.size.y),
-	};
-	*/
-// 	printf("%f, %f\n", internalMax.x, internalMax.y);
-// 	printf("%f, %f\n", w->absScrollPos.x, w->absScrollPos.y);
-	
 	GUIRenderParams grp2 = {
 		.offset = {
-			h->absTopLeft.x + w->border.min.x + w->absScrollPos.x, 
-			h->absTopLeft.y + w->border.min.y + 20 + w->absScrollPos.y,
+			h->absTopLeft.x + w->border.min.x - w->absScrollPos.x, 
+			h->absTopLeft.y + w->border.min.y + 20 - w->absScrollPos.y,
 		},
 		.size = w->clientArea.size,
 		.baseZ = h->absZ,
@@ -186,12 +226,12 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	
 	grp2.clip = gui_clipTo(grp->clip, (AABB2){
 		.min = {
-			grp2.offset.x - w->absScrollPos.x, 
-			grp2.offset.y - w->absScrollPos.y
+			grp2.offset.x + w->absScrollPos.x, 
+			grp2.offset.y + w->absScrollPos.y
 		},
 		.max = {
-			grp2.offset.x + grp2.size.x - w->absScrollPos.x, 
-			grp2.offset.y + grp2.size.y - w->absScrollPos.y
+			grp2.offset.x + grp2.size.x + w->absScrollPos.x, 
+			grp2.offset.y + grp2.size.y + w->absScrollPos.y
 		},
 	});
 	
@@ -203,24 +243,6 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 }
 
 
-
-static Vector2 setScrollAbs(GUIObject* w_, Vector2 absPos) {
-	GUISimpleWindow* w = (GUISimpleWindow*)w_;
-	
-	w->absScrollPos.x = absPos.x;
-	w->absScrollPos.y = absPos.y;
-	
-	return w->absScrollPos;
-}
-
-static Vector2 setScrollPct(GUIObject* w_, Vector2 pct) {
-	GUISimpleWindow* w = (GUISimpleWindow*)w_;
-	
-	return setScrollAbs(w_, (Vector2){
-		pct.x * w->clientExtent.x,
-		pct.y * w->clientExtent.y,
-	});
-}
 
 
 

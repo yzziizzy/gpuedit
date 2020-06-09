@@ -91,7 +91,7 @@ struct gui_vtbl {
 	
 	void (*AddClient)(GUIObject* parent, GUIObject* child);
 	void (*RemoveClient)(GUIObject* parent, GUIObject* child);
-	Vector2 (*SetScrollPct)(GUIObject* go, Vector2 pct);
+	Vector2 (*SetScrollPct)(GUIObject* go, Vector2 pct); // returns the final value
 	Vector2 (*SetScrollAbs)(GUIObject* go, Vector2 absPos);
 };
 
@@ -464,6 +464,12 @@ void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client);
 
 #define GUIObject_RemoveClient(p, c) GUIObject_RemoveClient_(&(p)->header, &(c)->header)
 void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client);
+
+#define GUIObject_SetScrollPct(o, pct) GUIObject_SetScrollPct_(&(o)->header, pct)
+Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct);
+
+#define GUIObject_SetScrollAbs(o, abs) GUIObject_SetScrollAbs_(&(o)->header, abs)
+Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos);
 
 
 
