@@ -329,6 +329,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		sw->header.topleft = (Vector2){20, 20};
 		sw->header.size = (Vector2){400, 400};
 		sw->title = "foobar";
+		sw->absScrollPos.x = 50;
 		GUIRegisterObject(w->header.parent, sw);
 		
 		GUIWindow* ww = GUIWindow_New(w->header.gm);

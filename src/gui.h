@@ -91,8 +91,8 @@ struct gui_vtbl {
 	
 	void (*AddClient)(GUIObject* parent, GUIObject* child);
 	void (*RemoveClient)(GUIObject* parent, GUIObject* child);
-	void (*SetScrollPct)(GUIObject* go, Vector2 pct);
-	void (*SetScrollAbs)(GUIObject* go, Vector2 absPos);
+	Vector2 (*SetScrollPct)(GUIObject* go, Vector2 pct);
+	Vector2 (*SetScrollAbs)(GUIObject* go, Vector2 absPos);
 };
 
 
