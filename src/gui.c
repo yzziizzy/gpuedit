@@ -150,6 +150,20 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->defaults.editHeight = 18;
 	gm->defaults.cursorColor = COLOR4_FROM_HEX(240,240,240,255);
 	
+	gm->defaults.windowBgBorderColor = COLOR4_FROM_HEX(180, 180, 0, 255);
+	gm->defaults.windowBgBorderWidth = 1;
+	gm->defaults.windowBgColor = COLOR4_FROM_HEX(20, 20, 20, 255);
+	gm->defaults.windowTitleBorderColor = COLOR4_FROM_HEX(180, 180, 0, 255);
+	gm->defaults.windowTitleBorderWidth = 1;
+	gm->defaults.windowTitleColor = COLOR4_FROM_HEX(40, 40, 40, 255);
+	gm->defaults.windowTitleTextColor = COLOR4_FROM_HEX(210, 210, 0, 255);
+	gm->defaults.windowCloseBtnBorderColor = COLOR4_FROM_HEX(210, 40, 0, 255);
+	gm->defaults.windowCloseBtnBorderWidth = 1;
+	gm->defaults.windowCloseBtnColor = COLOR4_FROM_HEX(180, 60, 0, 255);
+	gm->defaults.windowScrollbarColor = COLOR4_FROM_HEX(150, 150, 0, 255);
+	gm->defaults.windowScrollbarBorderColor = COLOR4_FROM_HEX(150, 150, 0, 255);
+	gm->defaults.windowScrollbarBorderWidth = 1;
+	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
 }
 

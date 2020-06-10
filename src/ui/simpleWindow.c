@@ -147,7 +147,7 @@ void render(GUISimpleWindow* w, PassFrameParams* pfp) {
 	box.max.x = tl.x + w->header.size.x - 10;
 	box.max.y = tl.y + 20;
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.gm->defaults.tabTextColor , 10000000, w->title, strlen(w->title));
+	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.gm->defaults.windowTitleTextColor, 10000000, w->title, strlen(w->title));
 }
 
 
@@ -352,8 +352,9 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->bg = GUIWindow_New(gm);
 	w->bg->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->bg->header.z = 999990;
-	w->bg->color = (Color4){0.1, 0.9, 0.1, 1};
-	w->bg->borderWidth = 0.0;
+	w->bg->color = gm->defaults.windowBgColor;
+	w->bg->borderColor = gm->defaults.windowBgBorderColor;
+	w->bg->borderWidth = gm->defaults.windowBgBorderWidth;
 	GUIRegisterObject(w, w->bg);
 	
 	
@@ -361,13 +362,15 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->titlebar = GUIWindow_New(gm);
 	w->titlebar->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->titlebar->header.z = 999991;
-	w->titlebar->color = (Color4){0.9, 0.1, .9, 1};
-	w->titlebar->borderWidth = 0.0;
+	w->titlebar->color = gm->defaults.windowTitleColor;
+	w->titlebar->borderColor = gm->defaults.windowTitleBorderColor;
+	w->titlebar->borderWidth = gm->defaults.windowTitleBorderWidth;
 	GUIRegisterObject(w, w->titlebar);
 	
 	w->closebutton = GUIWindow_New(gm);
+	w->closebutton->header.topleft = (Vector2){-gm->defaults.windowTitleBorderWidth, gm->defaults.windowTitleBorderWidth};
 	w->closebutton->header.gravity = GUI_GRAV_TOP_RIGHT;
-	w->closebutton->header.size = (Vector2){16,16};
+	w->closebutton->header.size = (Vector2){18,18};
 	w->closebutton->header.z = 999992;
 	w->closebutton->color = (Color4){0.9, 0.1, 0.1, 1};
 	w->closebutton->borderWidth = 0.0;
@@ -380,8 +383,9 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarX->header.gravity = GUI_GRAV_BOTTOM_LEFT;
 	w->scrollbarX->header.hidden = 1;
 	w->scrollbarX->header.z = 9999999999;
-	w->scrollbarX->color = (Color4){0.9, 0.7, .9, 1};
-	w->scrollbarX->borderWidth = 0.0;
+	w->scrollbarX->color = gm->defaults.windowScrollbarColor;;
+	w->scrollbarX->borderColor = gm->defaults.windowScrollbarBorderColor;;
+	w->scrollbarX->borderWidth = gm->defaults.windowScrollbarBorderWidth;
 	GUIRegisterObject(w, w->scrollbarX);
 	
 	w->scrollbarY = GUIWindow_New(w->header.gm);
@@ -389,9 +393,10 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarY->header.size = (Vector2){20, 60};
 	w->scrollbarY->header.gravity = GUI_GRAV_TOP_RIGHT;
 	w->scrollbarY->header.hidden = 1;
-	w->scrollbarX->header.z = 9999999999;
-	w->scrollbarY->color = (Color4){0.9, 0.7, .9, 1};
-	w->scrollbarY->borderWidth = 0.0;
+	w->scrollbarY->header.z = 9999999999;
+	w->scrollbarY->color = gm->defaults.windowScrollbarColor;;
+	w->scrollbarY->borderColor = gm->defaults.windowScrollbarBorderColor;;
+	w->scrollbarY->borderWidth = gm->defaults.windowScrollbarBorderWidth;
 	GUIRegisterObject(w, w->scrollbarY);
 
 	
