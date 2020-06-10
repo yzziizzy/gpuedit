@@ -96,7 +96,7 @@ GUIImageButton* GUIImageButton_New(GUIManager* gm, float border, char* imgName) 
 	GUIRegisterObject(&w->header, w->img);
 // 	w->header.onClick = (GUI_OnClickFn)click;
 	w->img->header.topleft = (Vector2){w->border, w->border};
-	w->img->header.onClick = (GUI_OnClickFn)click;
+// 	w->img->header.onClick = (GUI_OnClickFn)click;
 	
 	w->normalColor = (struct Color4){0, 0, 255, 64};
 	w->hoverColor = (struct Color4){0, 0, 255, 238};

@@ -35,12 +35,6 @@ GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing,
 	
 	w->spacing = spacing;
 	
-	// empty layout has no size
-	w->header.hitbox.min.x = 0;
-	w->header.hitbox.min.y = 0;
-	w->header.hitbox.max.x = 0;
-	w->header.hitbox.max.y = 0;
-	
 	w->header.topleft = pos;
 	
 	return w;

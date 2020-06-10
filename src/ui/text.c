@@ -106,9 +106,6 @@ static void render(GUIText* gt, PassFrameParams* pfp) {
 		
 	}
 	
-	// HACK
-	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
-	
 }
 
 static GUIObject* hitTest(GUIObject* go, Vector2 testPos) {

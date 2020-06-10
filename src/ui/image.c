@@ -365,11 +365,6 @@ GUIRenderTarget* GUIRenderTarget_new(GUIManager* gm, Vector2 pos, Vector2 size, 
 	
  	gui_headerInit(&im->header, gm, &static_vt, NULL);
 	
-	im->header.hitbox.min.x = pos.x;
-	im->header.hitbox.min.y = pos.y;
-	im->header.hitbox.max.x = pos.x + size.x;
-	im->header.hitbox.max.y = pos.y + size.y;
-	
 	im->header.topleft = pos;
 	im->header.size = size;
 	im->header.z = 0;

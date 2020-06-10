@@ -250,17 +250,11 @@ typedef struct GUIHeader {
 	float absZ;
 	
 	
-	AABB2 hitbox; // in local coordinates
-	
 	unsigned int gravity : 8;
 	unsigned int hidden  : 1;
 	unsigned int deleted : 1;
 	
 	int cursor;
-	
-	GUI_OnClickFn onClick;
-	GUI_OnMouseEnterFn onMouseEnter;
-	GUI_OnMouseLeaveFn onMouseLeave;
 	
 } GUIHeader;
 

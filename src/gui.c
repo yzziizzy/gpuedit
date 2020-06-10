@@ -634,8 +634,9 @@ void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* p
 
 
 void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {
-	if(go->h.onClick)
-		go->h.onClick(go, testPos);
+	printf("GUIObject_triggerClick not implemented.");
+// 	if(go->vt->Click)
+// 		go->vt->Click(go, testPos);
 }
 
 

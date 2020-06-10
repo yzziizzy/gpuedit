@@ -14,7 +14,6 @@
 // resizing
 // dynamic scrollbar sizing
 // fn to resize to fit content or parent
-// scroll events
 
 
 
@@ -51,6 +50,8 @@ static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 		else {
 			w->absScrollPos.y = fmax(0, w->absScrollPos.y - 20);
 		}
+		
+		gev->cancelled = 1;
 	}
 }
 
@@ -68,6 +69,8 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 		else {
 			w->absScrollPos.y = fmin(my, w->absScrollPos.y + 20);
 		}
+		
+		gev->cancelled = 1;
 	}
 	
 }
@@ -82,6 +85,8 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 		w->header.hidden = 1;
 		GUIObject_Delete(w);
 		GUIObject_Delete_(&w->clientArea);
+		
+		gev->cancelled = 1;
 	}
 	
 	//TODO no further bubbling
@@ -96,6 +101,8 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 		w->isDragging = 1;
 		
 		vSub2(&gev->dragStartPos, &w->header.topleft, &w->dragOffset);
+		
+		gev->cancelled = 1;
 	}
 	
 	
@@ -108,6 +115,8 @@ static void dragStop(GUIObject* w_, GUIEvent* gev) {
 // 	printf("drag stop\n");
 	if(w->isDragging) {
 		w->isDragging = 0;
+		
+		gev->cancelled = 1;
 	}
 	
 }
@@ -118,6 +127,8 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 // 	printf("drag move\n");
 	if(w->isDragging) {
 		vSub2(&gev->pos, &w->dragOffset, &w->header.topleft);
+		
+		gev->cancelled = 1;
 	}
 }
 
