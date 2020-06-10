@@ -61,10 +61,13 @@ struct ShaderColor3 {
 	uint8_t r,g,b;
 } __attribute__ ((packed));
 
+struct ShaderBox {
+	float l, t, r, b;
+} __attribute__ ((packed));
 
 typedef struct GUIUnifiedVertex {
-	struct { float l, t, r, b; } pos;
-	struct { float l, t, r, b; } clip;
+	struct ShaderBox pos;
+	struct ShaderBox clip;
 	uint8_t texIndex1, texIndex2, texFade, guiType; 
 	struct { uint16_t x, y; } texOffset1, texOffset2;
 	struct { uint16_t x, y; } texSize1, texSize2;
@@ -80,6 +83,8 @@ typedef struct GUIUnifiedVertex {
 #define GUI_COLOR4_TO_SHADER(c4) ((struct ShaderColor4){(c4).r * 255, (c4).g * 255, (c4).b * 255, (c4).a * 255})
 #define GUI_COLOR3_TO_SHADER(c3) ((struct ShaderColor3){(c4).r * 255, (c4).g * 255, (c4).b * 255})
 #define COLOR4_FROM_HEX(r,g,b,a) ((struct Color4){(float)r / 255.0, (float)g / 255.0, (float)b / 255.0, (float)a / 255.0});
+
+#define GUI_AABB2_TO_SHADER(c) ((struct ShaderBox){.l = (c).min.x, .t = (c).min.y, .r = (c).max.x, .b = (c).max.y})
 
 
 typedef union GUIObject GUIObject;
@@ -227,6 +232,8 @@ typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 #define GUIMOUSECURSOR_TEXT  0x02
 #define GUIMOUSECURSOR_WAIT  0x03
 
+#define GUIFLAG_MAXIMIZE_X 0x0001
+#define GUIFLAG_MAXIMIZE_Y 0x0002
 
 typedef struct GUIHeader {
 	struct GUIManager* gm;
@@ -261,9 +268,10 @@ typedef struct GUIHeader {
 	float absZ;
 	
 	
-	unsigned int gravity : 8;
-	unsigned int hidden  : 1;
-	unsigned int deleted : 1;
+	unsigned int flags   : 16;
+	unsigned int gravity :  8;
+	unsigned int hidden  :  1;
+	unsigned int deleted :  1;
 	
 	int cursor;
 	
@@ -291,6 +299,7 @@ typedef struct GUIHeader {
 #include "ui/gridLayout.h"
 #include "ui/tabBar.h"
 #include "ui/tabControl.h"
+#include "ui/formControl.h"
 #include "ui/monitors.h"
 #include "ui/debugAdjuster.h"
 #include "ui/structAdjuster.h"
@@ -461,10 +470,7 @@ GUIObject* GUIManager_getFocusedObject(GUIManager* gm);
 void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h);
 GUIObject* GUIManager_popFocusedObject(GUIManager* gm);
 
-// GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 
-// void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
-void guiReap(GUIObject* go);
 void GUIResize(GUIHeader* gh, Vector2 newSz);
 
 

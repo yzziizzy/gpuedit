@@ -88,7 +88,7 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
 		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->header.size.y},
-		.clip = {0, 0, 800, 800},
+		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 		.texIndex1 = 1, // border width
 		.guiType = 4, // bordered window 
 		.fg = GUI_COLOR4_TO_SHADER(*bd), // border color
@@ -108,7 +108,7 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 	box.max.x = tl.x + w->header.size.x - ((bw - textw) / 2);
 	box.max.y = tl.y + w->header.size.y - ((bh - 16) / 2);
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, tx, 10000000, w->label, strlen(w->label));
+	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.absClip, tx, 10000000, w->label, strlen(w->label));
 }
 
 

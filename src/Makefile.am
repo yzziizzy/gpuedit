@@ -45,6 +45,7 @@ gpuedit_SOURCES = main.c \
 	ui/configLoader.c \
 	ui/debugAdjuster.c \
 	ui/edit.c \
+	ui/formControl.c \
 	ui/gridLayout.c \
 	ui/image.c \
 	ui/imgButton.c \

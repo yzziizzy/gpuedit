@@ -15,14 +15,14 @@ static void render(GUITabBar* w, PassFrameParams* pfp) {
 	// bg
 	*v++ = (GUIUnifiedVertex){
 		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->header.size.y},
-		.clip = {0, 0, 800, 800},
+		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 		
 		.guiType = 0, // window (just a box)
 		
 		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: border color
 		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: color
 		
-		.z = /*w->header.z +*/ 1000,
+		.z = w->header.absZ,
 		.alpha = 1,
 	};
 	
@@ -34,14 +34,14 @@ static void render(GUITabBar* w, PassFrameParams* pfp) {
 		struct Color4* color = tab->isActive ? &gm->defaults.tabActiveBgColor : &gm->defaults.tabBgColor; 
 		*v++ = (GUIUnifiedVertex){
 			.pos = {tl.x + tabw * i + i + 1, tl.y + 1, tl.x + tabw * (i + 1) + i + 1, tl.y + w->header.size.y - 1},
-			.clip = {0, 0, 800, 800},
+			.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 			
 			.guiType = 0, // window (just a box)
 			
 			.fg = GUI_COLOR4_TO_SHADER(*color), 
 			.bg = GUI_COLOR4_TO_SHADER(*color), 
 			
-			.z = /*w->header.z +*/ 100000,
+			.z = w->header.absZ,
 			.alpha = 1,
 		};
 		
@@ -55,7 +55,7 @@ static void render(GUITabBar* w, PassFrameParams* pfp) {
 		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->header.size.y - 1;
 		
-		gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, tab->title, strlen(tab->title));
+		gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, tab->title, strlen(tab->title));
 	}
 }
 

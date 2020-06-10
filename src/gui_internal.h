@@ -49,6 +49,7 @@ static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {
 void gui_drawDefaultUITextLine(
 	GUIManager* gm,
 	AABB2* box,  
+	AABB2* clip,  
 	struct Color4* color,
 	float zIndex,
 	char* txt, 

@@ -29,14 +29,14 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 	// bg
 	*v++ = (GUIUnifiedVertex){
 		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->tabHeight},
-		.clip = {0, 0, 800, 800},
+		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 		
 		.guiType = 0, // window (just a box)
 		
 		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: border color
 		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: color
 		
-		.z = /*w->header.z +*/ 1000,
+		.z = w->header.absZ + 0.05,
 		.alpha = 1,
 	};
 	
@@ -52,14 +52,14 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 		
 		*v++ = (GUIUnifiedVertex){
 			.pos = {tl.x + tabw * i + i + 1, tl.y + 1, tl.x + tabw * (i + 1) + i + 1, tl.y + w->tabHeight - 1},
-			.clip = {0, 0, 800, 800},
+			.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 			
 			.guiType = 0, // window (just a box)
 			
 			.fg = GUI_COLOR4_TO_SHADER(*color),
 			.bg = GUI_COLOR4_TO_SHADER(*color),
 			
-			.z = /*w->header.z +*/ 100000,
+			.z = w->header.absZ + 0.1,
 			.alpha = 1,
 		};
 		
@@ -73,11 +73,11 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->tabHeight - 1;
 		
-		gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, tab->title, strlen(tab->title));
+		gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
 		
 		if(tab->isStarred) {
 			box.min.x = box.max.x - 10; // TODO magic number
-			gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, "*", 1);
+			gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, "*", 1);
 		}
 	}
 }
@@ -106,9 +106,7 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	
 	h->absTopLeft = tl;
-// 	h->absClip = gui_clipTo(grp->clip, (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}); // TODO: clip this to grp->clip
-// 	h->absClip = (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}; // TODO: clip this to grp->clip
-	
+	h->absClip = grp->clip;
 	h->absZ = grp->baseZ + h->z;
 	
 	// update the client of the current tab
@@ -329,12 +327,16 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		sw->header.topleft = (Vector2){20, 20};
 		sw->header.size = (Vector2){400, 400};
 		sw->title = "foobar";
-		sw->absScrollPos.x = 50;
+// 		sw->absScrollPos.x = 50;
 		GUIRegisterObject(w->header.parent, sw);
 		
-		GUIWindow* ww = GUIWindow_New(w->header.gm);
-		ww->header.size = (Vector2){500, 500};
-		GUIObject_AddClient(sw, ww);
+		
+		for(int i = 0; i < 20; i++) {
+			GUIFormControl* ww = GUIFormControl_New(w->header.gm, (i%3) +1, "Foo");
+			ww->header.topleft.y = i * 35;
+			ww->header.size = (Vector2){370, 35};
+			GUIObject_AddClient(sw, ww);
+		}
 		
 		break;
 	

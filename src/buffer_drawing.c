@@ -34,7 +34,9 @@ size_t drawCharacter(
 	struct Color4* fgColor, 
 	struct Color4* bgColor, 
 	int c, 
-	Vector2 tl
+	Vector2 tl,
+	float z,
+	AABB2* clip
 ) {
 // 		printf("'%s'\n", bl->buf);
 	GUIFont* f = tdp->font;
@@ -64,10 +66,9 @@ size_t drawCharacter(
 			
 			.bg = GUI_COLOR4_TO_SHADER(*bgColor),
 			
-			.z = .5,
+			.z = z,
 			
-			// disabled in the shader right now
-			.clip = {0,0, 1000000,1000000},
+			.clip = GUI_AABB2_TO_SHADER(*clip),
 		};
 	}
 	
@@ -91,10 +92,9 @@ size_t drawCharacter(
 			
 			.fg = GUI_COLOR4_TO_SHADER(*fgColor),
 			
-			.z = 1,
+			.z = z+0.001,
 			
-			// disabled in the shader right now
-			.clip = {0,0, 1000000,1000000},
+			.clip = GUI_AABB2_TO_SHADER(*clip),
 		};
 	}
 	
@@ -131,11 +131,11 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			gbe->header.absTopLeft.x + gbe->header.size.x, 
 			gbe->header.absTopLeft.y + edh
 		},
-		.clip = {0, 0, 18000, 18000},
+		.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 		.guiType = 0, // window (just a box)
 		.fg = {0, 0, 255, 255},
 		.bg = GUI_COLOR4_TO_SHADER(theme->bgColor), 
-		.z = .025,
+		.z = gbe->header.absZ,
 		.alpha = 1,
 	};
 	
@@ -191,7 +191,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 				&lineColors[!!(bl->flags & BL_BOOKMARK_FLAG)], 
 				lnbuf, 
 				100, 
-				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y});
+				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y},
+				gbe->header.absZ,
+				&gbe->header.absClip
+			);
 		}
 		
 		float adv = 0;
@@ -206,12 +209,12 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
 					tl.y + tdp->lineHeight
 				},
-				.clip = {0, 0, 800, 800},
+				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				.texIndex1 = 1, // order width
 				.guiType = 4, // bordered window (just a box)
 				.fg = {50, 50, 50, 255}, // border color
 				.bg = {0,0,0,0},
-				.z = .75,
+				.z = gbe->header.absZ,
 				.alpha = 1.0,
 			};
 		}
@@ -249,10 +252,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 					.guiType = 0, // box
 					
 					.bg = GUI_COLOR4_TO_SHADER(*bg),
-					.z = .5,
+					.z = gbe->header.absZ,
 					
 					// disabled in the shader right now
-					.clip = {0,0, 1000000,1000000},
+					.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				};
 				
 			}
@@ -296,10 +299,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 							.guiType = 0, // box
 							
 							.bg = GUI_COLOR4_TO_SHADER(*bg),
-							.z = .5,
+							.z = gbe->header.absZ,
 							
 							// disabled in the shader right now
-							.clip = {0,0, 1000000,1000000},
+							.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 						};
 					}
 					
@@ -317,10 +320,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 								si->fgColor.a,
 							};
 							
-							drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + adv, tl.y});
+							drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 						}
 						else 
-							drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y});
+							drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					}
 					else {
 						if(atom) {
@@ -338,10 +341,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 								si->bgSelColor.a,
 							};
 							
-							drawCharacter(gm, tdp, &color, &bcolor, c, (Vector2){tl.x + adv, tl.y});
+							drawCharacter(gm, tdp, &color, &bcolor, c, (Vector2){tl.x + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 						}
 						else 
-							drawCharacter(gm, tdp, fg2, bg2, c, (Vector2){tl.x + adv, tl.y});
+							drawCharacter(gm, tdp, fg2, bg2, c, (Vector2){tl.x + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					}
 					
 					
@@ -384,11 +387,11 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		*v = (GUIUnifiedVertex){
 			.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
-			.clip = {0, 0, 18000, 18000},
+			.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 			.guiType = 0, // window (just a box)
 			.fg = {255, 128, 64, 255}, // TODO: border color
 			.bg = GUI_COLOR4_TO_SHADER(theme->cursorColor), 
-			.z = 2.5,
+			.z = gbe->header.absZ,
 			.alpha = 1,
 		};
 	}
@@ -403,7 +406,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 
 
 // assumes no linebreaks
-void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl) {
+void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl, float z, AABB2* clip) {
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
@@ -449,10 +452,8 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 			v->texSize1.y = widy * 65535.0;
 			v->texIndex1 = ci->texIndex;
 			
-			v->clip.t = 0; // disabled in the shader right now
-			v->clip.l = 0;
-			v->clip.b = 1000000;
-			v->clip.r = 1000000;
+			v->clip = GUI_AABB2_TO_SHADER(*clip);
+			v->z = z;
 			
 			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
 			v->fg = GUI_COLOR4_TO_SHADER(*textColor),

@@ -89,8 +89,6 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 		gev->cancelled = 1;
 	}
 	
-	//TODO no further bubbling
-	return 0;
 }
 
 static void dragStart(GUIObject* w_, GUIEvent* gev) {
@@ -133,25 +131,26 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-void render(GUISimpleWindow* w, PassFrameParams* pfp) {
+static void render(GUISimpleWindow* w, PassFrameParams* pfp) {
+	GUIHeader* h = &w->header;
 	
 	GUIHeader_renderChildren(&w->header, pfp);
 	GUIHeader_renderChildren(&w->clientArea, pfp);
 	
 	// title
-	Vector2 tl = w->header.absTopLeft;
+	Vector2 tl = h->absTopLeft;
 
 	AABB2 box;
 	box.min.x = tl.x + 5;
 	box.min.y = tl.y + 1;
-	box.max.x = tl.x + w->header.size.x - 10;
+	box.max.x = tl.x + h->size.x - 10;
 	box.max.y = tl.y + 20;
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.gm->defaults.windowTitleTextColor, 10000000, w->title, strlen(w->title));
+	gui_drawDefaultUITextLine(h->gm, &box, &h->absClip, &h->gm->defaults.windowTitleTextColor, h->absZ + 0.3, w->title, strlen(w->title));
 }
 
 
-void delete(GUISimpleWindow* w) {
+static void delete(GUISimpleWindow* w) {
 	
 	// Delete modifies the parent's children array. A normal VEC_EACH cannot be used.
 	while(VEC_LEN(&w->clientArea.children)) {
@@ -306,8 +305,6 @@ void removeClient(GUIObject* _parent, GUIObject* child) {
 GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	
 	
-	float tbh = .03; // titleBarHeight
-	
 	static struct gui_vtbl static_vt = {
 		.Render = render,
 		.Delete = delete,
@@ -343,7 +340,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->yScrollbarThickness = 5;
 	w->xScrollbarMinLength = 15;
 	w->yScrollbarMinLength = 15;
-	w->header.z = 99999;
+	w->header.z = 0.2;
 	
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
@@ -353,7 +350,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	// background
 	w->bg = GUIWindow_New(gm);
 	w->bg->header.gravity = GUI_GRAV_TOP_LEFT;
-	w->bg->header.z = 999990;
+	w->bg->header.z = 0.1;
 	w->bg->color = gm->defaults.windowBgColor;
 	w->bg->borderColor = gm->defaults.windowBgBorderColor;
 	w->bg->borderWidth = gm->defaults.windowBgBorderWidth;
@@ -363,7 +360,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	// title bar and close button
 	w->titlebar = GUIWindow_New(gm);
 	w->titlebar->header.gravity = GUI_GRAV_TOP_LEFT;
-	w->titlebar->header.z = 999991;
+	w->titlebar->header.z = 0.11;
 	w->titlebar->color = gm->defaults.windowTitleColor;
 	w->titlebar->borderColor = gm->defaults.windowTitleBorderColor;
 	w->titlebar->borderWidth = gm->defaults.windowTitleBorderWidth;
@@ -373,7 +370,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->closebutton->header.topleft = (Vector2){-gm->defaults.windowTitleBorderWidth, gm->defaults.windowTitleBorderWidth};
 	w->closebutton->header.gravity = GUI_GRAV_TOP_RIGHT;
 	w->closebutton->header.size = (Vector2){18,18};
-	w->closebutton->header.z = 999992;
+	w->closebutton->header.z = 0.12;
 	w->closebutton->color = (Color4){0.9, 0.1, 0.1, 1};
 	w->closebutton->borderWidth = 0.0;
 	GUIRegisterObject(w, w->closebutton);
@@ -384,7 +381,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarX->header.size = (Vector2){60, 20};
 	w->scrollbarX->header.gravity = GUI_GRAV_BOTTOM_LEFT;
 	w->scrollbarX->header.hidden = 1;
-	w->scrollbarX->header.z = 9999999999;
+	w->scrollbarX->header.z = 0.13;
 	w->scrollbarX->color = gm->defaults.windowScrollbarColor;;
 	w->scrollbarX->borderColor = gm->defaults.windowScrollbarBorderColor;;
 	w->scrollbarX->borderWidth = gm->defaults.windowScrollbarBorderWidth;
@@ -395,7 +392,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarY->header.size = (Vector2){20, 60};
 	w->scrollbarY->header.gravity = GUI_GRAV_TOP_RIGHT;
 	w->scrollbarY->header.hidden = 1;
-	w->scrollbarY->header.z = 9999999999;
+	w->scrollbarY->header.z = 0.14;
 	w->scrollbarY->color = gm->defaults.windowScrollbarColor;;
 	w->scrollbarY->borderColor = gm->defaults.windowScrollbarBorderColor;;
 	w->scrollbarY->borderWidth = gm->defaults.windowScrollbarBorderWidth;

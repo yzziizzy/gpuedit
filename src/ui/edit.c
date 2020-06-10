@@ -49,7 +49,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	// bg
 	*v++ = (GUIUnifiedVertex){
 		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->header.size.y},
-		.clip = {0, 0, 800, 800},
+		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 		
 		.guiType = 4, // bordered window 
 		
@@ -59,7 +59,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.editBorderColor),
 		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.editBgColor),
 		
-		.z = w->header.z + 1,
+		.z = w->header.absZ + .1,
 		.alpha = 1,
 	};
 	
@@ -70,7 +70,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	// cursor
 	*v = (GUIUnifiedVertex){
 		.pos = {cursorOff, tl.y, cursorOff + 2, tl.y + w->header.size.y},
-		.clip = {0, 0, 800, 800},
+		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 		
 		.guiType = 0, // window 
 		
@@ -80,7 +80,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.fg = {0, 0, 0, 0},
 		.bg = GUI_COLOR4_TO_SHADER(cc), 
 		
-		.z = w->header.z + 2.5,
+		.z = w->header.absZ + .25,
 		.alpha = w->header.alpha,
 	};
 	
@@ -90,7 +90,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	box.max.x = tl.x + 3000;
 	box.max.y = tl.y + 30;
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, &gm->defaults.tabTextColor , 10000000, w->buf, w->textlen);
+	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + .3, w->buf, w->textlen);
 // 	printf("%s %f,%f\n", w->buf, tl.x, tl.y);
 	
 // 	GUIHeader_renderChildren(&w->header, pfp);

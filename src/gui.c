@@ -111,7 +111,7 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 	h->absClip = grp->clip;
-	h->absZ = grp->baseZ + h->z;
+	h->absZ = grp->baseZ + h->z + 0.00001;
 	
 	// TODO: relTopLeft, absClip
 	
@@ -141,7 +141,7 @@ void gui_selfUpdatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp)
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 	h->absClip = grp->clip;
-	h->absZ = grp->baseZ + h->z;
+	h->absZ = grp->baseZ + h->z + 0.00001;
 }
 
 void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
@@ -469,7 +469,8 @@ size_t drawCharacter(
 // stops on linebreak
 void gui_drawDefaultUITextLine(
 	GUIManager* gm,
-	AABB2* box,  
+	AABB2* box,
+	AABB2* clip,
 	struct Color4* color, 
 	float zIndex,
 	char* txt, 
@@ -526,10 +527,10 @@ void gui_drawDefaultUITextLine(
 			v->texSize1.y = widy * 65535.0;
 			v->texIndex1 = ci->texIndex;
 			
-			v->clip.t = 0; // disabled in the shader right now
-			v->clip.l = 0;
-			v->clip.b = 1000000;
-			v->clip.r = 1000000;
+			v->clip.t = clip->min.y;
+			v->clip.l = clip->min.x;
+			v->clip.b = clip->max.y;
+			v->clip.r = clip->max.x;
 			v->fg = GUI_COLOR4_TO_SHADER(*color);
 			v->z = zIndex;
 			

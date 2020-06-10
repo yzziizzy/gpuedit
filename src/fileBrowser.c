@@ -55,14 +55,14 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 			*v = (GUIUnifiedVertex){
 				.pos = {box.min.x, box.min.y, box.max.x, box.max.y},
-				.clip = {0, 0, 800, 800},
+				.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 				
 				.guiType = 0, // window (just a box)
 				
 				.fg = GUI_COLOR4_TO_SHADER(*color),
 				.bg = GUI_COLOR4_TO_SHADER(*color),
 				
-				.z = /*w->header.z +*/ 1000,
+				.z = w->header.absZ,
 				.alpha = 1,
 			};
 		}
@@ -81,7 +81,7 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 			*v = (GUIUnifiedVertex){
 				.pos = {tl.x +10, box.min.y, tl.x +10+20, box.min.y + 20},
-				.clip = {0, 0, 800, 800},
+				.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 				
 				.guiType = 0, // window (just a box)
 				
@@ -101,13 +101,13 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 				.fg = {255,255,255,255},
 				.bg = {255,255,255,255},
 				
-				.z = /*w->header.z +*/ 1000,
+				.z = w->header.absZ,
 				.alpha = 1,
 			};
 		}
 		
 		// the file name
-		gui_drawDefaultUITextLine(gm, &box, &gm->defaults.tabTextColor , 10000000, e->name, strlen(e->name));
+		gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, e->name, strlen(e->name));
 		
 		linesDrawn++;
 	}
@@ -121,12 +121,12 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 			tl.x + 800,
 			tl.y + (w->cursorIndex - w->scrollOffset + 1) * lh
 		},
-		.clip = {0, 0, 800, 800},
+		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 		.texIndex1 = 1, // order width
 		.guiType = 4, // bordered window (just a box)
 		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabActiveBgColor), // border color
 		.bg = {0,0,0,0},
-		.z = .75,
+		.z = w->header.absZ + 0.75,
 		.alpha = 1.0,
 	};
 

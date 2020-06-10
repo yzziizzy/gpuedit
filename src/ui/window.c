@@ -109,7 +109,7 @@ static void render(GUIWindow* w, PassFrameParams* pfp) {
 		.fg = GUI_COLOR4_TO_SHADER(w->borderColor),
 		.bg = GUI_COLOR4_TO_SHADER(w->color),
 		
-		.z = 9999999,// TODO BUG gw->header.z,
+		.z = w->header.absZ,
 		.alpha = w->header.alpha,
 	};
 	
