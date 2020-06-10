@@ -352,8 +352,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->bg = GUIWindow_New(gm);
 	w->bg->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->bg->header.z = 999990;
-	w->bg->color = (Vector){0.1, 0.9, 0.1};
-	w->bg->fadeWidth = 0.0;
+	w->bg->color = (Color4){0.1, 0.9, 0.1, 1};
 	w->bg->borderWidth = 0.0;
 	GUIRegisterObject(w, w->bg);
 	
@@ -362,8 +361,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->titlebar = GUIWindow_New(gm);
 	w->titlebar->header.gravity = GUI_GRAV_TOP_LEFT;
 	w->titlebar->header.z = 999991;
-	w->titlebar->color = (Vector){0.9, 0.1, .9};
-	w->titlebar->fadeWidth = 0.0;
+	w->titlebar->color = (Color4){0.9, 0.1, .9, 1};
 	w->titlebar->borderWidth = 0.0;
 	GUIRegisterObject(w, w->titlebar);
 	
@@ -371,8 +369,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->closebutton->header.gravity = GUI_GRAV_TOP_RIGHT;
 	w->closebutton->header.size = (Vector2){16,16};
 	w->closebutton->header.z = 999992;
-	w->closebutton->color = (Vector){0.9, 0.1, 0.1};
-	w->closebutton->fadeWidth = 0.0;
+	w->closebutton->color = (Color4){0.9, 0.1, 0.1, 1};
 	w->closebutton->borderWidth = 0.0;
 	GUIRegisterObject(w, w->closebutton);
 	
@@ -383,8 +380,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarX->header.gravity = GUI_GRAV_BOTTOM_LEFT;
 	w->scrollbarX->header.hidden = 1;
 	w->scrollbarX->header.z = 9999999999;
-	w->scrollbarX->color = (Vector){0.9, 0.7, .9};
-	w->scrollbarX->fadeWidth = 0.0;
+	w->scrollbarX->color = (Color4){0.9, 0.7, .9, 1};
 	w->scrollbarX->borderWidth = 0.0;
 	GUIRegisterObject(w, w->scrollbarX);
 	
@@ -394,8 +390,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarY->header.gravity = GUI_GRAV_TOP_RIGHT;
 	w->scrollbarY->header.hidden = 1;
 	w->scrollbarX->header.z = 9999999999;
-	w->scrollbarY->color = (Vector){0.9, 0.7, .9};
-	w->scrollbarY->fadeWidth = 0.0;
+	w->scrollbarY->color = (Color4){0.9, 0.7, .9, 1};
 	w->scrollbarY->borderWidth = 0.0;
 	GUIRegisterObject(w, w->scrollbarY);
 

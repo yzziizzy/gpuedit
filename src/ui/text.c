@@ -94,7 +94,7 @@ static void render(GUIText* gt, PassFrameParams* pfp) {
 			v->clip.r = gt->header.absClip.max.x;
 			
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
-			v->fg = gm->defaults.textColor,
+			v->fg = GUI_COLOR4_TO_SHADER(gm->defaults.textColor),
 			//v++;
 			gm->elementCount++;
 		}

@@ -91,8 +91,8 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 		.clip = {0, 0, 800, 800},
 		.texIndex1 = 1, // border width
 		.guiType = 4, // bordered window 
-		.fg = *bd, // border color
-		.bg = *bg,
+		.fg = GUI_COLOR4_TO_SHADER(*bd), // border color
+		.bg = GUI_COLOR4_TO_SHADER(*bg),
 		.z = 1.75,
 		.alpha = 1.0,
 	};

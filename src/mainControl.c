@@ -33,8 +33,8 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 		
 		.guiType = 0, // window (just a box)
 		
-		.fg = gm->defaults.tabBorderColor, // TODO: border color
-		.bg = gm->defaults.tabBorderColor, // TODO: color
+		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: border color
+		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: color
 		
 		.z = /*w->header.z +*/ 1000,
 		.alpha = 1,
@@ -56,8 +56,8 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 			
 			.guiType = 0, // window (just a box)
 			
-			.fg = *color, // TODO: border color
-			.bg = *color, // TODO: color
+			.fg = GUI_COLOR4_TO_SHADER(*color),
+			.bg = GUI_COLOR4_TO_SHADER(*color),
 			
 			.z = /*w->header.z +*/ 100000,
 			.alpha = 1,
@@ -682,11 +682,11 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	tdp->tabWidth = w->gs->Buffer_tabWidth;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
-	theme->bgColor =      (struct Color4){ 15,  15,  15, 255};
-	theme->textColor =    (struct Color4){240, 240, 240, 255};
-	theme->cursorColor =  (struct Color4){255,   0, 255, 180};
-	theme->hl_bgColor =   (struct Color4){  0, 200, 200, 255};
-	theme->hl_textColor = (struct Color4){250,   0,  50, 255};
+	theme->bgColor =      COLOR4_FROM_HEX( 15,  15,  15, 255);
+	theme->textColor =    COLOR4_FROM_HEX(240, 240, 240, 255);
+	theme->cursorColor =  COLOR4_FROM_HEX(255,   0, 255, 180);
+	theme->hl_bgColor =   COLOR4_FROM_HEX(  0, 200, 200, 255);
+	theme->hl_textColor = COLOR4_FROM_HEX(250,   0,  50, 255);
 	
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;

@@ -80,7 +80,7 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 		.clip = {0, 0, 800, 800},
 		.texIndex1 = 1, // order width
 		.guiType = 4, // bordered window (just a box)
-		.fg = gm->defaults.tabActiveBgColor, // border color
+		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabActiveBgColor), // border color
 		.bg = {0,0,0,0},
 		.z = .75,
 		.alpha = 1.0,
@@ -244,7 +244,7 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm, AppState* as) {
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(w->scrollbar, (Vector2){10, 50});
-	w->scrollbar->color = (Vector){.9,.9,.9};
+	w->scrollbar->color = (Color4){.9,.9,.9, 1};
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	

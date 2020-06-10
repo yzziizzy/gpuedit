@@ -296,7 +296,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(w->scrollbar, (Vector2){10, 50});
-	w->scrollbar->color = (Vector){.9,.9,.9};
+	w->scrollbar->color = (Color4){.9,.9,.9, 1};
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
@@ -311,7 +311,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->statusBarRoot->header.size.x = w->header.size.x;
 	w->statusBarRoot->header.z = 500;
 	
-	w->statusBarRoot->color = (Vector){.2,.2,.2,1};
+	w->statusBarRoot->color = (Color4){.2,.2,.2,1};
 	w->statusBarRoot->padding = (AABB2){{5,5}, {5,5}};
 	
 	GUIRegisterObject(w, w->statusBarRoot);
@@ -938,7 +938,7 @@ void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
 	w->trayRoot->header.size.x = w->header.size.x;
 	w->trayRoot->header.z = 500;
 	
-	w->trayRoot->color = (Vector){.8,.2,.3,1};
+	w->trayRoot->color = (Color4){.8,.2,.3,1};
 	w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
 	
 	GUIRegisterObject(w, w->trayRoot);

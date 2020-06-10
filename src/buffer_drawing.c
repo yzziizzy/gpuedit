@@ -62,7 +62,7 @@ size_t drawCharacter(
 			.texSize1.y = ci->texNormSize.y * 65535.0,
 			.texIndex1 = ci->texIndex,
 			
-			.bg = *bgColor,
+			.bg = GUI_COLOR4_TO_SHADER(*bgColor),
 			
 			.z = .5,
 			
@@ -89,7 +89,7 @@ size_t drawCharacter(
 			.texSize1.y = ci->texNormSize.y * 65535.0,
 			.texIndex1 = ci->texIndex,
 			
-			.fg = *fgColor,
+			.fg = GUI_COLOR4_TO_SHADER(*fgColor),
 			
 			.z = 1,
 			
@@ -133,8 +133,8 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 		},
 		.clip = {0, 0, 18000, 18000},
 		.guiType = 0, // window (just a box)
-		.fg = {0, 0, 255, 255}, // TODO: border color
-		.bg = theme->bgColor, 
+		.fg = {0, 0, 255, 255},
+		.bg = GUI_COLOR4_TO_SHADER(theme->bgColor), 
 		.z = .025,
 		.alpha = 1,
 	};
@@ -164,8 +164,8 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	struct Color4* bga[] = {bg, bga};
 	
 	struct Color4 lineColors[] = {
-		{255,255,255,255},
-		{ 55,255, 55,255}
+		{1,1,1,1},
+		{ .2,1, .2,1}
 	};
 	
 	
@@ -248,7 +248,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 					
 					.guiType = 0, // box
 					
-					.bg = *bg,
+					.bg = GUI_COLOR4_TO_SHADER(*bg),
 					.z = .5,
 					
 					// disabled in the shader right now
@@ -295,7 +295,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 							
 							.guiType = 0, // box
 							
-							.bg = *bg,
+							.bg = GUI_COLOR4_TO_SHADER(*bg),
 							.z = .5,
 							
 							// disabled in the shader right now
@@ -311,10 +311,10 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
 							struct Color4 color = {
-								si->fgColor.r * 255,
-								si->fgColor.g * 255,
-								si->fgColor.b * 255,
-								si->fgColor.a * 255,
+								si->fgColor.r,
+								si->fgColor.g,
+								si->fgColor.b,
+								si->fgColor.a,
 							};
 							
 							drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + adv, tl.y});
@@ -326,16 +326,16 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
 							struct Color4 color = {
-								si->fgSelColor.r * 255,
-								si->fgSelColor.g * 255,
-								si->fgSelColor.b * 255,
-								si->fgSelColor.a * 255,
+								si->fgSelColor.r,
+								si->fgSelColor.g,
+								si->fgSelColor.b,
+								si->fgSelColor.a,
 							};
 							struct Color4 bcolor = {
-								si->bgSelColor.r * 255,
-								si->bgSelColor.g * 255,
-								si->bgSelColor.b * 255,
-								si->bgSelColor.a * 255,
+								si->bgSelColor.r,
+								si->bgSelColor.g,
+								si->bgSelColor.b,
+								si->bgSelColor.a,
 							};
 							
 							drawCharacter(gm, tdp, &color, &bcolor, c, (Vector2){tl.x + adv, tl.y});
@@ -387,7 +387,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 			.clip = {0, 0, 18000, 18000},
 			.guiType = 0, // window (just a box)
 			.fg = {255, 128, 64, 255}, // TODO: border color
-			.bg = theme->cursorColor, 
+			.bg = GUI_COLOR4_TO_SHADER(theme->cursorColor), 
 			.z = 2.5,
 			.alpha = 1,
 		};
@@ -455,7 +455,7 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 			v->clip.r = 1000000;
 			
 			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
-			v->fg = *textColor,
+			v->fg = GUI_COLOR4_TO_SHADER(*textColor),
 			//v++;
 			gm->elementCount++;
 			charsDrawn++;

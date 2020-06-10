@@ -72,51 +72,50 @@ static void updatePos(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp)
 	Vector2 tl = gui_calcPosGrav(&gw->header, grp);
 }*/
 
-static void render(GUIWindow* gw, PassFrameParams* pfp) {
+static void render(GUIWindow* w, PassFrameParams* pfp) {
 	
-	if(gw->header.hidden || gw->header.deleted) return;
+	if(w->header.hidden || w->header.deleted) return;
 	
 	// TODO: clip calculations
 	
-	Vector2 tl = gw->header.absTopLeft;
+	Vector2 tl = w->header.absTopLeft;
 	
 // 	printf("tl: %f, %f - %f, %f\n", tl.x, tl.y, gw->header.size.x, gw->header.size.y);
 
 	
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
+	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 1);
 	
 	*v = (GUIUnifiedVertex){
 // 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
 // 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
 		.pos = {tl.x, tl.y,
-			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
+			tl.x + w->header.size.x, tl.y + w->header.size.y},
 		.clip = { 
-			.l = gw->header.absClip.min.x,
-			.t = gw->header.absClip.min.y,
-			.r = gw->header.absClip.max.x,
-			.b = gw->header.absClip.max.y,
+			.l = w->header.absClip.min.x,
+			.t = w->header.absClip.min.y,
+			.r = w->header.absClip.max.x,
+			.b = w->header.absClip.max.y,
 		},
-		.guiType = 0,
-		.texIndex1 = 0,
+		.guiType = w->borderWidth != 0 ? 4 : 0,
+		.texIndex1 = w->borderWidth,
 		.texIndex2 = 0,
 		.texFade = .5,
-		.guiType = 0, // window (just a box)
 		
 		.texOffset1 = 0,
 		.texOffset2 = 0,
 		.texSize1 = 0,
 		.texSize2 = 0,
 		
-		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = {gw->color.x * 255, gw->color.y * 255, gw->color.z * 255, 255}, // TODO: color
+		.fg = GUI_COLOR4_TO_SHADER(w->borderColor),
+		.bg = GUI_COLOR4_TO_SHADER(w->color),
 		
-		.z = 9999999,//gw->header.z,
-		.alpha = gw->header.alpha,
+		.z = 9999999,// TODO BUG gw->header.z,
+		.alpha = w->header.alpha,
 	};
 	
 	
 	
-	GUIHeader_renderChildren(&gw->header, pfp);
+	GUIHeader_renderChildren(&w->header, pfp);
 }
 
 void guiWindowDelete(GUIWindow* gw) {

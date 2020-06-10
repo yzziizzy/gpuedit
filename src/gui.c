@@ -133,22 +133,22 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
 	gm->defaults.fontSize = .45;
-	gm->defaults.textColor = (struct Color4){200,200,200,255};
-	gm->defaults.windowBgColor = (struct Color4){10,10,10,255};
-	gm->defaults.buttonTextColor = (struct Color4){200,200,225,255};
-	gm->defaults.buttonHoverTextColor = (struct Color4){200,2,2,255};
-	gm->defaults.buttonDisTextColor = (struct Color4){20,20,20,255};
-	gm->defaults.buttonBgColor = (struct Color4){2,2,225,255};
-	gm->defaults.buttonHoverBgColor = (struct Color4){200,200,2,255};
-	gm->defaults.buttonDisBgColor = (struct Color4){100,100,100,255};
-	gm->defaults.buttonBorderColor = (struct Color4){200,2,225,255};
-	gm->defaults.buttonHoverBorderColor = (struct Color4){2,200,225,255};
-	gm->defaults.buttonDisBorderColor = (struct Color4){20,20,125,255};
-	gm->defaults.editBorderColor = (struct Color4){25,245,25,255};
-	gm->defaults.editBgColor = (struct Color4){20,50,25,255};
+	gm->defaults.textColor = COLOR4_FROM_HEX(200,200,200,255);
+	gm->defaults.windowBgColor = COLOR4_FROM_HEX(10,10,10,255);
+	gm->defaults.buttonTextColor = COLOR4_FROM_HEX(200,200,225,255);
+	gm->defaults.buttonHoverTextColor = COLOR4_FROM_HEX(200,2,2,255);
+	gm->defaults.buttonDisTextColor = COLOR4_FROM_HEX(20,20,20,255);
+	gm->defaults.buttonBgColor = COLOR4_FROM_HEX(2,2,225,255);
+	gm->defaults.buttonHoverBgColor = COLOR4_FROM_HEX(200,200,2,255);
+	gm->defaults.buttonDisBgColor = COLOR4_FROM_HEX(100,100,100,255);
+	gm->defaults.buttonBorderColor = COLOR4_FROM_HEX(200,2,225,255);
+	gm->defaults.buttonHoverBorderColor = COLOR4_FROM_HEX(2,200,225,255);
+	gm->defaults.buttonDisBorderColor = COLOR4_FROM_HEX(20,20,125,255);
+	gm->defaults.editBorderColor = COLOR4_FROM_HEX(25,245,25,255);
+	gm->defaults.editBgColor = COLOR4_FROM_HEX(20,50,25,255);
 	gm->defaults.editWidth = 150;
 	gm->defaults.editHeight = 18;
-	gm->defaults.cursorColor = (struct Color4){240,240,240,255};
+	gm->defaults.cursorColor = COLOR4_FROM_HEX(240,240,240,255);
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
 }
@@ -1449,7 +1449,7 @@ void gui_drawDefaultUITextLine(
 			v->clip.l = 0;
 			v->clip.b = 1000000;
 			v->clip.r = 1000000;
-			v->fg = *color;
+			v->fg = GUI_COLOR4_TO_SHADER(*color);
 			v->z = zIndex;
 			
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?

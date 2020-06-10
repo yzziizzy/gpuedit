@@ -11,10 +11,9 @@ typedef struct GUIWindow {
 	AABB2 padding;
 	
 // 	uint32_t color;
-	Vector color;
-	Vector4 borderColor;
+	struct Color4 color;
+	struct Color4 borderColor;
 	float borderWidth;
-	float fadeWidth;
 	
 } GUIWindow;
 

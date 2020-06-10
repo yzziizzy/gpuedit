@@ -108,11 +108,11 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->ta = as->ta;
 	xs->onResize = resize_callback;
 	xs->onResizeData = as->gui;
-	as->gui->defaults.tabBorderColor = (struct Color4){120,120,120,255};
-	as->gui->defaults.tabActiveBgColor = (struct Color4){80,80,80,255};
-	as->gui->defaults.tabHoverBgColor = (struct Color4){40,40,40,255};
-	as->gui->defaults.tabBgColor = (struct Color4){10,10,10,255};
-	as->gui->defaults.tabTextColor = (struct Color4){200,200,200,255};
+	as->gui->defaults.tabBorderColor = COLOR4_FROM_HEX(120,120,120,255);
+	as->gui->defaults.tabActiveBgColor = COLOR4_FROM_HEX(80,80,80,255);
+	as->gui->defaults.tabHoverBgColor = COLOR4_FROM_HEX(40,40,40,255);
+	as->gui->defaults.tabBgColor = COLOR4_FROM_HEX(10,10,10,255);
+	as->gui->defaults.tabTextColor = COLOR4_FROM_HEX(200,200,200,255);
 	
 	as->gui->windowTitleSetFn = XStuff_SetWindowTitle;
 	as->gui->windowTitleSetData = xs;

@@ -44,11 +44,20 @@ typedef struct GUIManager GUIManager;
 #define GUI_GRAV_CENTER_CENTER 0x08
 
 
-struct Color4 {
+typedef struct Color4 {
+	float r,g,b,a;
+} Color4;
+
+typedef struct Color3 {
+	float r,g,b;
+} Color3;
+
+
+struct ShaderColor4 {
 	uint8_t r,g,b,a;
 } __attribute__ ((packed));
 
-struct Color3 {
+struct ShaderColor3 {
 	uint8_t r,g,b;
 } __attribute__ ((packed));
 
@@ -60,15 +69,17 @@ typedef struct GUIUnifiedVertex {
 	struct { uint16_t x, y; } texOffset1, texOffset2;
 	struct { uint16_t x, y; } texSize1, texSize2;
 	
-	struct Color4 fg;
-	struct Color4 bg;
+	struct ShaderColor4 fg;
+	struct ShaderColor4 bg;
 	
 	float z, alpha, opt1, opt2;
 	
 } __attribute__ ((packed)) GUIUnifiedVertex;
 
 
-
+#define GUI_COLOR4_TO_SHADER(c4) ((struct ShaderColor4){(c4).r * 255, (c4).g * 255, (c4).b * 255, (c4).a * 255})
+#define GUI_COLOR3_TO_SHADER(c3) ((struct ShaderColor3){(c4).r * 255, (c4).g * 255, (c4).b * 255})
+#define COLOR4_FROM_HEX(r,g,b,a) ((struct Color4){(float)r / 255.0, (float)g / 255.0, (float)b / 255.0, (float)a / 255.0});
 
 
 typedef union GUIObject GUIObject;
@@ -371,7 +382,6 @@ typedef struct GUIManager {
 		GUIFont* font;
 		float fontSize;
 		struct Color4 textColor;
-		struct Color4 windowBgColor;
 		struct Color4 editBgColor;
 		struct Color4 editBorderColor;
 		float         editHeight;
@@ -391,6 +401,19 @@ typedef struct GUIManager {
 		struct Color4 tabActiveBgColor;
 		struct Color4 tabHoverBgColor;
 		struct Color4 tabBgColor;
+		struct Color4 windowBgBorderColor;
+		float         windowBgBorderWidth;
+		struct Color4 windowBgColor;
+		struct Color4 windowTitleBorderColor;
+		float         windowTitleBorderWidth;
+		struct Color4 windowTitleColor;
+		struct Color4 windowTitleTextColor;
+		struct Color4 windowCloseBtnBorderColor;
+		float         windowCloseBtnBorderWidth;
+		struct Color4 windowCloseBtnColor;
+		struct Color4 windowScrollbarColor;
+		struct Color4 windowScrollbarBorderColor;
+		float         windowScrollbarBorderWidth;
 	} defaults;
 	
 	

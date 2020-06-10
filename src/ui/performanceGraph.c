@@ -42,6 +42,7 @@ void guiPerformanceGraphRender(GUIPerformanceGraph* w, PassFrameParams* pfp) {
 	for(int i = 0; i < w->length; i++) {
 		
 		float ih = h - (h * w->normTimes[i]);
+		Color4 cc = i == w->cursor ? bc : ac;
 		
 		*v = (GUIUnifiedVertex){
 			.pos = {tl.x + 2 * i, tl.y + ih,
@@ -58,8 +59,8 @@ void guiPerformanceGraphRender(GUIPerformanceGraph* w, PassFrameParams* pfp) {
 			.texSize1 = 0,
 			.texSize2 = 0,
 			
-			.fg = {0, 0, 0, 0}, // TODO: border color
-			.bg = i == w->cursor ? bc : ac, // TODO: color
+			.fg = {0, 0, 0, 0},
+			.bg = GUI_COLOR4_TO_SHADER(cc),
 			
 			.z = w->header.z,
 			.alpha = w->header.alpha,

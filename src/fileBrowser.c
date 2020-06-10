@@ -59,8 +59,8 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 				
 				.guiType = 0, // window (just a box)
 				
-				.fg = *color, // TODO: border color
-				.bg = *color, // TODO: color
+				.fg = GUI_COLOR4_TO_SHADER(*color),
+				.bg = GUI_COLOR4_TO_SHADER(*color),
 				
 				.z = /*w->header.z +*/ 1000,
 				.alpha = 1,
@@ -124,7 +124,7 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 		.clip = {0, 0, 800, 800},
 		.texIndex1 = 1, // order width
 		.guiType = 4, // bordered window (just a box)
-		.fg = gm->defaults.tabActiveBgColor, // border color
+		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabActiveBgColor), // border color
 		.bg = {0,0,0,0},
 		.z = .75,
 		.alpha = 1.0,
@@ -318,7 +318,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(w->scrollbar, (Vector2){10, 50});
-	w->scrollbar->color = (Vector){.9,.9,.9};
+	w->scrollbar->color = (Color4){.9,.9,.9, 1};
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	

@@ -56,8 +56,8 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.texIndex1 = 1, .texIndex2 = 0, .texFade = 0,
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
-		.fg = gm->defaults.editBorderColor,
-		.bg = gm->defaults.editBgColor,
+		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.editBorderColor),
+		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.editBgColor),
 		
 		.z = w->header.z + 1,
 		.alpha = 1,
@@ -78,7 +78,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
 		.fg = {0, 0, 0, 0},
-		.bg = cc, 
+		.bg = GUI_COLOR4_TO_SHADER(cc), 
 		
 		.z = w->header.z + 2.5,
 		.alpha = w->header.alpha,

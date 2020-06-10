@@ -19,8 +19,8 @@ static void render(GUITabBar* w, PassFrameParams* pfp) {
 		
 		.guiType = 0, // window (just a box)
 		
-		.fg = gm->defaults.tabBorderColor, // TODO: border color
-		.bg = gm->defaults.tabBorderColor, // TODO: color
+		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: border color
+		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.tabBorderColor), // TODO: color
 		
 		.z = /*w->header.z +*/ 1000,
 		.alpha = 1,
@@ -38,8 +38,8 @@ static void render(GUITabBar* w, PassFrameParams* pfp) {
 			
 			.guiType = 0, // window (just a box)
 			
-			.fg = *color, // TODO: border color
-			.bg = *color, // TODO: color
+			.fg = GUI_COLOR4_TO_SHADER(*color), 
+			.bg = GUI_COLOR4_TO_SHADER(*color), 
 			
 			.z = /*w->header.z +*/ 100000,
 			.alpha = 1,

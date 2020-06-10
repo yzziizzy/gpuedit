@@ -22,6 +22,8 @@ static void render(GUIImageButton* w, PassFrameParams* pfp) {
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 1);
 	
+	Color4 cc = w->active ? w->activeColor : (w->hovered ? w->hoverColor : w->normalColor);
+	
 	*v = (GUIUnifiedVertex){
 		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->header.size.y},
 		.clip = {0, 0, 800, 800},
@@ -32,7 +34,7 @@ static void render(GUIImageButton* w, PassFrameParams* pfp) {
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
 		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = w->active ? w-> activeColor : (w->hovered ? w->hoverColor : w->normalColor), // TODO: color
+		.bg = GUI_COLOR4_TO_SHADER(cc), // TODO: color
 		
 		.z = w->header.z,
 		.alpha = w->header.alpha,
