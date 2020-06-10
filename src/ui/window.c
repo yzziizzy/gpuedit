@@ -31,7 +31,7 @@ GUIWindow* GUIWindow_New(GUIManager* gm) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = render,
-		.Delete = guiWindowDelete,
+// 		.Delete = guiWindowDelete,
 // 		.GetClientSize = guiWindowGetClientSize,
 // 		.SetClientSize = guiWindowSetClientSize,
 // 		.RecalcClientSize = guiWindowRecalcClientSize,

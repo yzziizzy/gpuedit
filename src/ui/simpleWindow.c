@@ -84,7 +84,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	if(gev->originalTarget == w->closebutton) {
 		w->header.hidden = 1;
 		GUIObject_Delete(w);
-		GUIObject_Delete_(&w->clientArea);
+		
 		
 		gev->cancelled = 1;
 	}
@@ -151,11 +151,14 @@ void render(GUISimpleWindow* w, PassFrameParams* pfp) {
 }
 
 
-void delete(GUISimpleWindow* sw) {
+void delete(GUISimpleWindow* w) {
 	
+	// Delete modifies the parent's children array. A normal VEC_EACH cannot be used.
+	while(VEC_LEN(&w->clientArea.children)) {
+		GUIObject_Delete_(VEC_HEAD(&w->clientArea.children));
+	}
 	
-	
-	
+	gui_default_Delete(w);
 }
 
 
@@ -295,8 +298,7 @@ void addClient(GUIObject* _parent, GUIObject* child) {
 void removeClient(GUIObject* _parent, GUIObject* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
 	
-	printf("TODO: fix me; GUISimpleWindow.removeClient\n.");
-// 	guiRegisterObject(child, &w->clientArea)
+	GUIUnregisterObject(child);
 };
 
 
@@ -398,7 +400,6 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarY->borderColor = gm->defaults.windowScrollbarBorderColor;;
 	w->scrollbarY->borderWidth = gm->defaults.windowScrollbarBorderWidth;
 	GUIRegisterObject(w, w->scrollbarY);
-
 	
 	return w;
 }

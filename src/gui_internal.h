@@ -23,6 +23,7 @@ GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos);
 Vector2 gui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt);
 
 void gui_default_ParentResize(GUIObject* root, GUIEvent* gev);
+void gui_default_Delete(GUIHeader* h);
 
 GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm, int count);
 GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count);

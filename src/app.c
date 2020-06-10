@@ -66,7 +66,7 @@ void resize_callback(XStuff* xs, void* gm_) {
 		.originalTarget = gm->root,
 	};
 	
-	GUITriggerEvent(gm->root, &gev);
+	GUIObject_TriggerEvent(gm->root, &gev);
 }
 
 static struct child_process_info* cc;
@@ -576,6 +576,7 @@ void postFrame(AppState* as) {
 	
 	as->perfTimes.draw = now - as->frameTime;
 	
+	GUIManager_Reap(as->gui);
 }
 
 

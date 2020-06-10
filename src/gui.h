@@ -342,7 +342,7 @@ typedef struct GUIManager {
 	Vector2i screenSize;
 	
 	GUIObject* root;
-	VEC(GUIObject*) reapQueue; 
+	VEC(GUIHeader*) reapQueue; 
 	
 	FontManager* fm;
 	TextureAtlas* ta;
@@ -363,7 +363,7 @@ typedef struct GUIManager {
 	int dragButton;
 	Vector2 dragStartPos;
 	float dragStartTime;
-	GUIObject* dragStartTarget;
+	GUIHeader* dragStartTarget;
 	float minDragDist;
 	
 	struct {
@@ -443,6 +443,7 @@ void GUIManager_SetCursor(GUIManager* gm, int cursor);
 
 
 void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
+void GUIManager_Reap(GUIManager* gm);
 
 
 GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos);
@@ -461,12 +462,10 @@ void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h);
 GUIObject* GUIManager_popFocusedObject(GUIManager* gm);
 
 // GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
-#define GUIObject_Delete(o) GUIObject_Delete_(&(o)->header)
-void GUIObject_Delete_(GUIHeader* h);
+
 // void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 void guiReap(GUIObject* go);
 void GUIResize(GUIHeader* gh, Vector2 newSz);
-int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
 
 void guiTriggerClick(GUIEvent* e); 
@@ -475,6 +474,18 @@ void guiTriggerClick(GUIEvent* e);
 
 #define GUIRegisterObject(p, o) GUIRegisterObject_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
 void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o);
+
+#define GUIUnregisterObject(o) GUIUnregisterObject_(&(o)->header)
+void GUIUnregisterObject_(GUIHeader* o);
+
+// Delete marks things to be reaped later. It removes objects from the root tree.
+#define GUIObject_Delete(o) GUIObject_Delete_(&(o)->header)
+void GUIObject_Delete_(GUIHeader* h);
+
+// Reap is for garbage collection. 
+// It happens at a separate phase and does not depend on object relations. 
+#define GUIObject_Reap(o) GUIObject_Reap_(&(o)->header)
+void GUIObject_Reap_(GUIHeader* h);
 
 #define GUIObject_AddClient(p, c) GUIObject_AddClient_(&(p)->header, &(c)->header)
 void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client);
@@ -491,8 +502,8 @@ Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos);
 
 
 void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);
-#define GUITriggerEvent(o, gev) GUITriggerEvent_(&(o)->header, gev)
-void GUITriggerEvent_(GUIHeader* o, GUIEvent* gev);
+#define GUIObject_TriggerEvent(o, gev) GUIObject_TriggerEvent_(&(o)->header, gev)
+void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev);
 void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
 
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev);
