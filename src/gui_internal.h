@@ -20,6 +20,7 @@ void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* p
 
 Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
 GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos);
+GUIObject* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos);
 Vector2 gui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt);
 
 void gui_default_ParentResize(GUIObject* root, GUIEvent* gev);

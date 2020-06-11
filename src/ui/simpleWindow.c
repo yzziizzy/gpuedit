@@ -135,14 +135,22 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 }
 
 static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
+	GUIObject* a = NULL, *b = NULL;
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
-	GUIObject* a = gui_defaultHitTest(&w->header, testPos);
-	GUIObject* b = gui_defaultHitTest(&w->clientArea, testPos);
+	a = gui_defaultHitTest(&w->header, testPos);
+// 	printf("a: %p\n", a);
+	// TODO: take into account the scroll position and clipping
+	
+	if(boxContainsPoint2(&w->clientArea.absClip, &testPos)) {
+		b = gui_defaultChildrenHitTest(&w->clientArea, testPos);
+	}
 	
 	if(!a) return b;
+// 	printf("not b\n");
 	if(!b) return a;
-	
+// 	printf("not a\n");
+// 	
 	return a->header.absZ > b->header.absZ ? a : b;
 }
 
@@ -181,6 +189,7 @@ static void delete(GUISimpleWindow* w) {
 
 static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIHeader* h = &w->header;
+	GUIHeader* ch = &w->clientArea;
 	
 	w->bg->header.size = h->size;
 	w->titlebar->header.size.x = h->size.x;
@@ -267,7 +276,9 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	
 	// TODO: hardcoded titlebar height
 	
-	
+// 	VEC_EACH(&w->clientArea.children, ind, child) {
+// 		GUIHeader_updatePos(&child->header, &grp2, pfp);
+// 	}
 	gui_defaultUpdatePos(&w->clientArea, &grp2, pfp);
 }
 

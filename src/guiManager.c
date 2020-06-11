@@ -739,6 +739,7 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		.clip = {(0,0),{800,800}},
 	};
 	gm->root->h.size = (Vector2){800, 800};
+	gm->root->h.absClip = (AABB2){0,0,800, 800};
 	
 	GUIHeader_updatePos(gm->root, &grp, pfp);
 	

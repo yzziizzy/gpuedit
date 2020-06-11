@@ -201,6 +201,13 @@ GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos) {
 		return NULL;
 	}
 	
+	if(!boxContainsPoint2(&h->absClip, &absTestPos)) return NULL;
+	
+	return gui_defaultChildrenHitTest(h, absTestPos);
+}
+
+GUIObject* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos) {
+	
 	int i;
 	GUIObject* bestKid = NULL;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {

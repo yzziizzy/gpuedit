@@ -65,7 +65,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 	
 	struct Color4 cc = gm->defaults.cursorColor;
-	cc.a = cursorAlpha;
+	cc.a = 1.0; //cursorAlpha;
 	
 	// cursor
 	*v = (GUIUnifiedVertex){
@@ -136,6 +136,8 @@ static int recieveText(InputEvent* ev, GUIEdit* ed) {
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	GUIManager_pushFocusedObject(w->header.gm, w);
+	
+	// TODO: position cursor
 }
 
 static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
