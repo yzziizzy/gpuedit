@@ -77,7 +77,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
 		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
 		
-		.fg = {0, 0, 0, 0},
+		.fg = GUI_COLOR4_TO_SHADER(cc), 
 		.bg = GUI_COLOR4_TO_SHADER(cc), 
 		
 		.z = w->header.absZ + .25,
@@ -90,7 +90,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	box.max.x = tl.x + 3000;
 	box.max.y = tl.y + 30;
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + .3, w->buf, w->textlen);
+	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + .2, w->buf, w->textlen);
 // 	printf("%s %f,%f\n", w->buf, tl.x, tl.y);
 	
 // 	GUIHeader_renderChildren(&w->header, pfp);

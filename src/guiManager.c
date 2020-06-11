@@ -429,6 +429,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	GUIObject* t = GUIManager_hitTest(gm, newPos);
 	if(!t) return; // TODO handle mouse leaves;
 	
+	
 	// buttons: 
 	// 1 - left
 	// 2 - mid

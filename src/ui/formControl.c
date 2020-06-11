@@ -82,7 +82,7 @@ GUIFormControl* GUIFormControl_New(GUIManager* gm, int type, char* label) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.Click = click,
+// 		.Click = click,
 	};
 	
 	GUIFormControl* w = pcalloc(w);

@@ -42,8 +42,7 @@ static Vector2 setScrollPct(GUIObject* w_, Vector2 pct) {
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
-	
-	if(gev->originalTarget == w->bg) {
+// 	if(gev->originalTarget == w->bg) {
 		if(gev->modifiers & GUIMODKEY_ALT) {
 			w->absScrollPos.x = fmax(0, w->absScrollPos.x - 20);
 		}
@@ -52,7 +51,7 @@ static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 		}
 		
 		gev->cancelled = 1;
-	}
+// 	}
 }
 
 
@@ -62,7 +61,7 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	float mx = w->clientExtent.x - w->clientArea.size.x;
 	float my = w->clientExtent.y - w->clientArea.size.y;
 	
-	if(gev->originalTarget == w->bg) {
+// 	if(gev->originalTarget == w->bg) {
 		if(gev->modifiers & GUIMODKEY_ALT) {
 			w->absScrollPos.x = fmin(mx, w->absScrollPos.x + 20);
 		}
@@ -71,11 +70,16 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 		}
 		
 		gev->cancelled = 1;
-	}
+// 	}
 	
 }
 
-
+static void clientScrollUp(GUIObject* w_, GUIEvent* gev) {
+	scrollUp((GUIObject*)w_->header.parent, gev);
+}
+static void clientScrollDown(GUIObject* w_, GUIEvent* gev) {
+	scrollDown((GUIObject*)w_->header.parent, gev);
+}
 
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
@@ -128,6 +132,18 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 		
 		gev->cancelled = 1;
 	}
+}
+
+static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
+	
+	GUIObject* a = gui_defaultHitTest(&w->header, testPos);
+	GUIObject* b = gui_defaultHitTest(&w->clientArea, testPos);
+	
+	if(!a) return b;
+	if(!b) return a;
+	
+	return a->header.absZ > b->header.absZ ? a : b;
 }
 
 
@@ -233,7 +249,7 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 			h->absTopLeft.y + w->border.min.y + 20 - w->absScrollPos.y,
 		},
 		.size = w->clientArea.size,
-		.baseZ = h->absZ,
+		.baseZ = h->absZ + 100,
 	};
 	
 	
@@ -309,6 +325,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 		.Render = render,
 		.Delete = delete,
 		.UpdatePos = updatePos,
+		.HitTest = hitTest,
 // 		.GetClientSize = guiSimpleWindowGetClientSize,
 // 		.SetClientSize = guiSimpleWindowSetClientSize,
 // 		.RecalcClientSize = guiSimpleWindowRecalcClientSize,
@@ -330,10 +347,16 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 // 		.ParentResize = parentResize,
 	};
 	
+	static struct GUIEventHandler_vtbl client_event_vt = {
+		.ScrollUp = clientScrollUp,
+		.ScrollDown = clientScrollDown,
+	};
+	
 	GUISimpleWindow* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	gui_headerInit(&w->clientArea, gm, NULL, NULL);
+	gui_headerInit(&w->clientArea, gm, NULL, &client_event_vt);
+	w->clientArea.parent = &w->header; // for event handling
 	
 	// general options
 	w->xScrollbarThickness = 5;

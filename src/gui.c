@@ -141,7 +141,7 @@ void gui_selfUpdatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp)
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 	h->absClip = grp->clip;
-	h->absZ = grp->baseZ + h->z + 0.00001;
+	h->absZ = grp->baseZ + h->z + 100;
 }
 
 void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
@@ -170,7 +170,7 @@ void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* p
 				.x = tl.x,
 				.y = tl.y + total_h 
 			},
-			.baseZ = grp->baseZ + gh->z,
+			.baseZ = grp->baseZ + gh->z + 100,
 		};
 		
 		GUIHeader_updatePos(child, &grp2, pfp);
