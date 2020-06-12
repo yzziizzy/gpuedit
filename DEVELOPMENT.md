@@ -58,6 +58,7 @@
 * Wire all the settings updates through the app
 * Garbage collection in GUI
 * Z-index is messed up everywhere in the GUI
+* Move pushFocusedObject to a ring buffer, or revamp it entirely for tabIndex
 
 == Editor Features ==
 * Extract selection to its own function in open file space

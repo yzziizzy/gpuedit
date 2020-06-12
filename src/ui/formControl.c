@@ -33,6 +33,45 @@ void GUIFormControl_SetString(GUIFormControl* w, char* str) {
 	}
 }
 
+// returns a strduped pointer
+char* GUIFormControl_GetString(GUIFormControl* w) {
+	switch(w->type) {
+		case GUIFORMCONTROL_STRING:
+		case GUIFORMCONTROL_INT:
+		case GUIFORMCONTROL_FLOAT:
+			return strdup(GUIEdit_GetText(w->edit));
+			
+		default:
+			printf("Unsupported type in GUIFormControl_GetString: %d\n", w->type);
+	}
+}
+
+double GUIFormControl_GetDouble(GUIFormControl* w) {
+	switch(w->type) {
+		case GUIFORMCONTROL_INT:
+			return strtol(GUIEdit_GetText(w->edit), NULL, 10);
+			
+		case GUIFORMCONTROL_STRING:
+		case GUIFORMCONTROL_FLOAT:
+			return strtod(GUIEdit_GetText(w->edit), NULL);
+			
+		default:
+			printf("Unsupported type in GUIFormControl_GetDouble: %d\n", w->type);
+	}
+}
+
+int64_t GUIFormControl_GetInt(GUIFormControl* w) {
+	switch(w->type) {
+		case GUIFORMCONTROL_STRING:
+		case GUIFORMCONTROL_FLOAT:
+		case GUIFORMCONTROL_INT:
+			return strtol(GUIEdit_GetText(w->edit), NULL, 10);
+			
+		default:
+			printf("Unsupported type in GUIFormControl_GetInt: %d\n", w->type);
+	}
+}
+
 
 static void render(GUIFormControl* w, PassFrameParams* pfp) {
 	
