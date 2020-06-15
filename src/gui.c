@@ -81,7 +81,13 @@ void GUIResize(GUIHeader* gh, Vector2 newSz) {
 } 
 
 
-
+GUIHeader* GUIHeader_New(GUIManager* gm, struct gui_vtbl* vt, struct GUIEventHandler_vtbl* event_vt) {
+	GUIHeader* gh = pcalloc(gh);
+	
+	gui_headerInit(gh, gm, vt, event_vt);
+	
+	return gh;
+}
 
 
 void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt, struct GUIEventHandler_vtbl* event_vt) {
@@ -473,23 +479,64 @@ size_t drawCharacter(
 */
 
 
+void gui_drawBox(GUIManager* gm, Vector2 tl, Vector2 sz, AABB2* clip, float z, Color4* color) {
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	
+	*v++ = (GUIUnifiedVertex){
+		.pos = {tl.x, tl.y, tl.x + sz.x, tl.y + sz.y},
+		.clip = GUI_AABB2_TO_SHADER(*clip),
+		
+		.guiType = 0, // just a box
+		
+		.fg = GUI_COLOR4_TO_SHADER(*color), 
+		.bg = GUI_COLOR4_TO_SHADER(*color), 
+		.z = z,
+		.alpha = 1,
+	};
+}
+
+void gui_drawBoxBorder(
+	GUIManager* gm, 
+	Vector2 tl, 
+	Vector2 sz, 
+	AABB2* clip, 
+	float z, 
+	Color4* bgColor,
+	float borderWidth,
+	Color4* borderColor
+) {
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	
+	*v++ = (GUIUnifiedVertex){
+		.pos = {tl.x, tl.y, tl.x + sz.x, tl.y + sz.y},
+		.clip = GUI_AABB2_TO_SHADER(*clip),
+		
+		.guiType = 4, // bordered box
+		
+		.texIndex1 = borderWidth,
+		
+		.fg = GUI_COLOR4_TO_SHADER(*borderColor), 
+		.bg = GUI_COLOR4_TO_SHADER(*bgColor), 
+		.z = z,
+		.alpha = 1,
+	};
+}
+
 // stops on linebreak
-void gui_drawDefaultUITextLine(
+void gui_drawTextLine(
 	GUIManager* gm,
-	AABB2* box,
+	Vector2 tl,
+	Vector2 sz,
 	AABB2* clip,
 	struct Color4* color, 
-	float zIndex,
+	float z,
 	char* txt, 
 	size_t charCount
 ) {
 	
-	
-	
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
-	Vector2 tl = {box->min.x, box->min.y};
 	
 	int charsDrawn = 0;
 	GUIFont* f = gm->defaults.font;
@@ -498,7 +545,8 @@ void gui_drawDefaultUITextLine(
 	float adv = 0;
 	if(!color) color = &gm->defaults.textColor;
 	
-	float maxAdv = box->max.x - box->min.x;
+	// BUG: the problem is (Vector2){0,0} here
+	float maxAdv = sz.x;
 	
 	
 	float spaceadv = f->regular[' '].advance;
@@ -539,7 +587,7 @@ void gui_drawDefaultUITextLine(
 			v->clip.b = clip->max.y;
 			v->clip.r = clip->max.x;
 			v->fg = GUI_COLOR4_TO_SHADER(*color);
-			v->z = zIndex;
+			v->z = z;
 			
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
 			//v++;
@@ -590,6 +638,29 @@ float gui_getDefaultUITextWidth(
 	return adv;
 }
 
+
+
+
+void gui_drawVCenteredTextLine(
+	GUIManager* gm,
+	Vector2 tl,  
+	Vector2 sz,  
+	AABB2* clip,  
+	struct Color4* color,
+	float z,
+	char* txt, 
+	size_t charCount
+) {
+	
+	GUIFont* f = gm->defaults.font;
+	float size = gm->defaults.fontSize; // HACK
+	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+	
+	float a = sz.y - hoff;
+	float b = fmax(a / 2.0, 0);
+	
+	gui_drawTextLine(gm, (Vector2){sz.x, sz.y + b}, sz, clip, color, z, txt, charCount);
+}
 
 
 

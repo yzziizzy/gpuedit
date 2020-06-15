@@ -70,14 +70,14 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 		AABB2 box;
 		box.min.x = tl.x + tabw * i + i + 1;
 		box.min.y = tl.y + 1;
-		box.max.x = tl.x + tabw * (i + 1) + i + 1;
+		box.max.x = tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->tabHeight - 1;
 		
-		gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
+		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
 		
 		if(tab->isStarred) {
 			box.min.x = box.max.x - 10; // TODO magic number
-			gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, "*", 1);
+			gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, "*", 1);
 		}
 	}
 }

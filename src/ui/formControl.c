@@ -44,6 +44,8 @@ char* GUIFormControl_GetString(GUIFormControl* w) {
 		default:
 			printf("Unsupported type in GUIFormControl_GetString: %d\n", w->type);
 	}
+	
+	return NULL;
 }
 
 double GUIFormControl_GetDouble(GUIFormControl* w) {
@@ -58,6 +60,8 @@ double GUIFormControl_GetDouble(GUIFormControl* w) {
 		default:
 			printf("Unsupported type in GUIFormControl_GetDouble: %d\n", w->type);
 	}
+	
+	return 0;
 }
 
 int64_t GUIFormControl_GetInt(GUIFormControl* w) {
@@ -70,6 +74,8 @@ int64_t GUIFormControl_GetInt(GUIFormControl* w) {
 		default:
 			printf("Unsupported type in GUIFormControl_GetInt: %d\n", w->type);
 	}
+	
+	return 0;
 }
 
 
@@ -83,10 +89,10 @@ static void render(GUIFormControl* w, PassFrameParams* pfp) {
 	AABB2 box;
 	box.min.x = tl.x + 5;
 	box.min.y = tl.y + 1;
-	box.max.x = tl.x + w->header.size.x - 10;
+	box.max.x = w->header.size.x - 10;
 	box.max.y = tl.y + 20;
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.absClip, &w->header.gm->defaults.windowTitleTextColor, w->header.absZ+0.1, w->label, strlen(w->label));
+	gui_drawTextLine(w->header.gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, &w->header.gm->defaults.windowTitleTextColor, w->header.absZ+0.1, w->label, strlen(w->label));
 
 }
 

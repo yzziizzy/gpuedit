@@ -105,10 +105,10 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 	AABB2 box;
 	box.min.x = tl.x + ((bw - textw) / 2);
 	box.min.y = tl.y + ((bh - 16) / 2);
-	box.max.x = tl.x + w->header.size.x - ((bw - textw) / 2);
+	box.max.x = w->header.size.x - ((bw - textw) / 2);
 	box.max.y = tl.y + w->header.size.y - ((bh - 16) / 2);
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.absClip, tx, 10000000, w->label, strlen(w->label));
+	gui_drawTextLine(w->header.gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, tx, 10000000, w->label, strlen(w->label));
 }
 
 

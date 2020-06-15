@@ -52,10 +52,10 @@ static void render(GUITabBar* w, PassFrameParams* pfp) {
 		AABB2 box;
 		box.min.x = tl.x + tabw * i + i + 1;
 		box.min.y = tl.y + 1;
-		box.max.x = tl.x + tabw * (i + 1) + i + 1;
+		box.max.x = tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->header.size.y - 1;
 		
-		gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, tab->title, strlen(tab->title));
+		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, tab->title, strlen(tab->title));
 	}
 }
 

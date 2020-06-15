@@ -87,10 +87,10 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	AABB2 box;
 	box.min.x = tl.x + textOffset;
 	box.min.y = tl.y;
-	box.max.x = tl.x + 3000;
+	box.max.x = 3000;
 	box.max.y = tl.y + 30;
 	
-	gui_drawDefaultUITextLine(w->header.gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + .2, w->buf, w->textlen);
+	gui_drawTextLine(w->header.gm, (Vector2){box.min.x, box.min.y}, (Vector2){3000,0}, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + .2, w->buf, w->textlen);
 // 	printf("%s %f,%f\n", w->buf, tl.x, tl.y);
 	
 // 	GUIHeader_renderChildren(&w->header, pfp);

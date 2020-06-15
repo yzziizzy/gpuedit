@@ -51,6 +51,7 @@ gpuedit_SOURCES = main.c \
 	ui/imgButton.c \
 	ui/monitors.c \
 	ui/performanceGraph.c \
+	ui/selectBox.c \
 	ui/scrollWindow.c \
 	ui/simpleWindow.c \
 	ui/slider.c \

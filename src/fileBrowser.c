@@ -107,7 +107,7 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 		}
 		
 		// the file name
-		gui_drawDefaultUITextLine(gm, &box, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, e->name, strlen(e->name));
+		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, e->name, strlen(e->name));
 		
 		linesDrawn++;
 	}

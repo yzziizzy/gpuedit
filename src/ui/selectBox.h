@@ -16,16 +16,16 @@ typedef struct GUISelectBoxOption {
 
 
 
+struct GUISelectBoxDD;
+
 typedef struct GUISelectBox {
 	GUIHeader header;
 	
-	
-	GUIWindow* boxBg;
-	GUIWindow* boxArrow;
-	GUIWindow* dropdownBg;
-	GUIWindow* dropdownScrollbar;
+	GUIHeader* dropdownBg;
+	GUIHeader* dropdownScrollbar;
 	
 	int optionCnt;
+	int selectedIndex;
 	GUISelectBoxOption* options;
 	
 	int isOpen : 1;

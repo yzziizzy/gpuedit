@@ -13,8 +13,12 @@
 // 
 
 
+
+
+
+
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
-	GUISelectBox* w = (GUISelectBox*)w_;
+/*	GUISelectBox* w = (GUISelectBox*)w_;
 	
 // 	if(gev->originalTarget == w->bg) {
 		if(gev->modifiers & GUIMODKEY_ALT) {
@@ -25,12 +29,12 @@ static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 		}
 		
 		gev->cancelled = 1;
-// 	}
+// 	}*/
 }
 
 
 static void scrollDown(GUIObject* w_, GUIEvent* gev) {
-	GUISelectBox* w = (GUISelectBox*)w_;
+/*	GUISelectBox* w = (GUISelectBox*)w_;
 	
 	float mx = w->clientExtent.x - w->clientArea.size.x;
 	float my = w->clientExtent.y - w->clientArea.size.y;
@@ -45,7 +49,7 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 		
 		gev->cancelled = 1;
 // 	}
-	
+	*/
 }
 
 
@@ -53,14 +57,6 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUISelectBox* w = (GUISelectBox*)w_;
 	
-	// close
-	if(gev->originalTarget == w->closebutton) {
-		w->header.hidden = 1;
-		GUIObject_Delete(w);
-		
-		
-		gev->cancelled = 1;
-	}
 	
 }
 
@@ -69,13 +65,49 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 
 static void render(GUISelectBox* w, PassFrameParams* pfp) {
 	GUIHeader* h = &w->header;
+	GUIManager* gm = h->gm;
+	Vector2 tl = h->absTopLeft;
+	
+#define D(x) &(gm->defaults.x)
+	
+	// main border
+	gui_drawBoxBorder(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectBgColor), 1, D(selectBorderColor));
+	
+	// arrow button
+// 	gui_drawBorderBox(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectColor), 1, D(selectBorderColor));
+	
+	if(w->selectedIndex) {
+		GUISelectBoxOption* opt = &w->options[w->selectedIndex];
+		gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 0.3, opt->label, strlen(opt->label));
+	}
+	
 	
 	GUIHeader_renderChildren(&w->header, pfp);
+}
+
+
+static void dd_render(GUIHeader* ddh, PassFrameParams* pfp) {
+	GUISelectBox* w = (GUISelectBox*)&ddh->parent;
+	GUIHeader* wh = &w->header;
+	GUIManager* gm = ddh->gm;
+	Vector2 tl = ddh->absTopLeft;
 	
-	// title
 	
+	// main box
+	gui_drawBoxBorder(gm, tl, ddh->size, &ddh->absClip, ddh->absZ + 0.2, D(selectBgColor), 1, D(selectBorderColor));
 	
-	gui_drawDefaultUITextLine(h->gm, &box, &h->absClip, &h->gm->defaults.windowTitleTextColor, h->absZ + 0.3, w->title, strlen(w->title));
+	// arrow button
+// 	gui_drawBorderBox(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectColor), 1, D(selectBorderColor));
+	
+	for(int i = 0; i < w->optionCnt; i++) {
+		float y = tl.y + (i * 35);
+		if(i == w->selectedIndex) {
+			GUISelectBoxOption* opt = &w->options[w->selectedIndex];
+			gui_drawTextLine(gm, (Vector2){tl.x, y}, ddh->size, &ddh->absClip, D(selectTextColor), ddh->absZ + 0.3, opt->label, strlen(opt->label));
+		}
+	}
+	
+	GUIHeader_renderChildren(&w->header, pfp);
 }
 
 
@@ -83,7 +115,6 @@ static void reap(GUISelectBox* w) {
 	
 	free(w->options);
 	
-	gui_default_Reap(w);
 }
 
 
@@ -91,11 +122,10 @@ static void reap(GUISelectBox* w) {
 
 static void updatePos(GUISelectBox* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIHeader* h = &w->header;
-	GUIHeader* ch = &w->clientArea;
-	
-	w->bg->header.size = h->size;
-	w->titlebar->header.size.x = h->size.x;
-	w->titlebar->header.size.y = 20;
+// 	
+// 	w->bg->header.size = h->size;
+// 	w->titlebar->header.size.x = h->size.x;
+// 	w->titlebar->header.size.y = 20;
 	
 	gui_defaultUpdatePos(h, grp, pfp);
 	
@@ -117,12 +147,9 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 	
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
-		.Reap = reap,
-		.UpdatePos = updatePos,
-// 		.GetClientSize = guiSimpleWindowGetClientSize,
-// 		.SetClientSize = guiSimpleWindowSetClientSize,
-// 		.RecalcClientSize = guiSimpleWindowRecalcClientSize,
+		.Render = (void*)render,
+		.Reap = (void*)reap,
+		.UpdatePos = (void*)updatePos,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -131,12 +158,18 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 // 		.DoubleClick = click,
 		.ScrollUp = scrollUp,
 		.ScrollDown = scrollDown,
-// 		.ParentResize = parentResize,
 	};
 	
-	static struct GUIEventHandler_vtbl client_event_vt = {
-		.ScrollUp = clientScrollUp,
-		.ScrollDown = clientScrollDown,
+	
+	static struct gui_vtbl dd_static_vt = {
+// 		.Render = render,
+// 		.Reap = reap,
+// 		.UpdatePos = updatePos,
+	};
+	
+	static struct GUIEventHandler_vtbl dd_event_vt = {
+// 		.ScrollUp = clientScrollUp,
+// 		.ScrollDown = clientScrollDown,
 	};
 	
 	GUISelectBox* w = pcalloc(w);
@@ -148,14 +181,12 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 	
 	
 	
-	// background
-	w->boxBg = GUIWindow_New(gm);
-	w->boxBg->header.gravity = GUI_GRAV_TOP_LEFT;
-	w->boxBg->header.z = 0.1;
-	w->boxBg->color = gm->defaults.windowBgColor;
-	w->boxBg->borderColor = gm->defaults.windowBgBorderColor;
-	w->boxBg->borderWidth = gm->defaults.windowBgBorderWidth;
-	GUIRegisterObject(w, w->boxBg);
+	// dropdown
+	w->dropdownBg = GUIHeader_New(gm, &dd_static_vt, &dd_event_vt);
+	GUIRegisterObject_(&w->header, w->dropdownBg);
+	
+	w->dropdownScrollbar = GUIHeader_New(gm, NULL, NULL);
+	GUIRegisterObject_(&w->header, w->dropdownScrollbar);
 	
 	
 	

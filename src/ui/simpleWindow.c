@@ -167,10 +167,10 @@ static void render(GUISimpleWindow* w, PassFrameParams* pfp) {
 	AABB2 box;
 	box.min.x = tl.x + 5;
 	box.min.y = tl.y + 1;
-	box.max.x = tl.x + h->size.x - 10;
+	box.max.x = h->size.x - 10;
 	box.max.y = tl.y + 20;
 	
-	gui_drawDefaultUITextLine(h->gm, &box, &h->absClip, &h->gm->defaults.windowTitleTextColor, h->absZ + 0.3, w->title, strlen(w->title));
+	gui_drawTextLine(h->gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &h->absClip, &h->gm->defaults.windowTitleTextColor, h->absZ + 0.3, w->title, strlen(w->title));
 }
 
 

@@ -18,6 +18,8 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 void gui_selfUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
 void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
 
+GUIHeader* GUIHeader_New(GUIManager* gm, struct gui_vtbl* vt, struct GUIEventHandler_vtbl* event_vt);
+
 Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
 GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos);
 GUIObject* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos);
@@ -46,13 +48,27 @@ static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {
 
 
 
+void gui_drawBox(GUIManager* gm, Vector2 tl, Vector2 sz, AABB2* clip, float z, Color4* color);
+
+void gui_drawBoxBorder(
+	GUIManager* gm, 
+	Vector2 tl, 
+	Vector2 sz, 
+	AABB2* clip, 
+	float z, 
+	Color4* bgColor,
+	float borderWidth,
+	Color4* borderColor
+);
+
 // stops on linebreak
-void gui_drawDefaultUITextLine(
+void gui_drawTextLine(
 	GUIManager* gm,
-	AABB2* box,  
+	Vector2 tl,  
+	Vector2 sz,  
 	AABB2* clip,  
 	struct Color4* color,
-	float zIndex,
+	float z,
 	char* txt, 
 	size_t charCount
 );
@@ -62,6 +78,17 @@ float gui_getDefaultUITextWidth(
 	GUIManager* gm,
 	char* txt, 
 	size_t maxChars
+);
+
+void gui_drawVCenteredTextLine(
+	GUIManager* gm,
+	Vector2 tl,  
+	Vector2 sz,
+	AABB2* clip,
+	struct Color4* color,
+	float z,
+	char* txt, 
+	size_t charCount
 );
 
 #endif // __EACSMB_gui_internal_h__

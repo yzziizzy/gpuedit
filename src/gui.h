@@ -294,6 +294,7 @@ typedef struct GUIHeader {
 #include "ui/imgButton.h"
 #include "ui/tree.h"
 #include "ui/edit.h"
+#include "ui/selectBox.h"
 #include "ui/slider.h"
 #include "ui/columnLayout.h"
 #include "ui/gridLayout.h"
@@ -423,6 +424,9 @@ typedef struct GUIManager {
 		struct Color4 windowScrollbarColor;
 		struct Color4 windowScrollbarBorderColor;
 		float         windowScrollbarBorderWidth;
+		struct Color4 selectBgColor;
+		struct Color4 selectBorderColor;
+		struct Color4 selectTextColor;
 	} defaults;
 	
 	
