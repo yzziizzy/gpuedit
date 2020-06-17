@@ -125,6 +125,10 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->defaults.windowScrollbarColor = COLOR4_FROM_HEX(150, 150, 0, 255);
 	gm->defaults.windowScrollbarBorderColor = COLOR4_FROM_HEX(150, 150, 0, 255);
 	gm->defaults.windowScrollbarBorderWidth = 1;
+
+	gm->defaults.selectBgColor = COLOR4_FROM_HEX(20, 15, 3, 255);
+	gm->defaults.selectBorderColor = COLOR4_FROM_HEX(100, 150, 30, 255);
+	gm->defaults.selectTextColor = COLOR4_FROM_HEX(150, 190, 60, 255);
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
 }

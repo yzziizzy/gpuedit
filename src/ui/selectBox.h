@@ -37,6 +37,9 @@ typedef struct GUISelectBox {
 
 GUISelectBox* GUISelectBox_New(GUIManager* gm);
 
+void GUISelectBox_SetOptions(GUISelectBox* w, GUISelectBoxOption* opts, int cnt);
+
+
 
 
 #endif // __EACSMB_ui_selectBox_h__

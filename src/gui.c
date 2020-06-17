@@ -659,7 +659,7 @@ void gui_drawVCenteredTextLine(
 	float a = sz.y - hoff;
 	float b = fmax(a / 2.0, 0);
 	
-	gui_drawTextLine(gm, (Vector2){sz.x, sz.y + b}, sz, clip, color, z, txt, charCount);
+	gui_drawTextLine(gm, (Vector2){tl.x, tl.y + b}, sz, clip, color, z, txt, charCount);
 }
 
 

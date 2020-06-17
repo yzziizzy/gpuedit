@@ -76,9 +76,9 @@ static void render(GUISelectBox* w, PassFrameParams* pfp) {
 	// arrow button
 // 	gui_drawBorderBox(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectColor), 1, D(selectBorderColor));
 	
-	if(w->selectedIndex) {
+	if(w->selectedIndex > -1) {
 		GUISelectBoxOption* opt = &w->options[w->selectedIndex];
-		gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 0.3, opt->label, strlen(opt->label));
+		gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 100.3, opt->label, strlen(opt->label));
 	}
 	
 	
@@ -197,6 +197,18 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 
 
 
+void GUISelectBox_SetOptions(GUISelectBox* w, GUISelectBoxOption* opts, int cnt) {
+	
+	if(w->options) {
+		free(w->options);
+	}
+	
+	w->options = calloc(1, sizeof(w->options) * cnt);
+	w->optionCnt = cnt;
+	w->selectedIndex = 0;
+	
+	memcpy(w->options, opts, sizeof(w->options) * cnt);
+}
 
 
 
