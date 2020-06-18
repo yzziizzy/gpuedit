@@ -26,9 +26,10 @@ typedef struct GUISelectBox {
 	
 	int optionCnt;
 	int selectedIndex;
+	int hoveredIndex;
 	GUISelectBoxOption* options;
 	
-	int isOpen : 1;
+	unsigned int isOpen : 1;
 	
 } GUISelectBox;
 

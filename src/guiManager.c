@@ -637,7 +637,7 @@ void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
 			obj = obj->h.parent;
 		}
 	}
-	else if(bubble = 2) {
+	else if(bubble == 2) {
 		// trigger on all parents
 		while(obj) {
 			gev->currentTarget = obj;

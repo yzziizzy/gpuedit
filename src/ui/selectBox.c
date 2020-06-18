@@ -53,11 +53,28 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 }
 
 
+static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
+	GUIObject* a = NULL;
+	GUISelectBox* w = (GUISelectBox*)w_;
+	
+	if(w->isOpen) {
+		a = gui_defaultChildrenHitTest(&w->header, testPos);
+		if(a) return a;
+	}
+	
+	return gui_defaultHitTest(&w->header, testPos);
+}
+
+
 
 static void click(GUIObject* w_, GUIEvent* gev) {
 	GUISelectBox* w = (GUISelectBox*)w_;
-	
-	
+	w->isOpen = !w->isOpen;
+}
+
+static void dd_mouseMove(GUIObject* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+	w->hoveredIndex = -1 + (gev->pos.y - w->header.absTopLeft.y) / 35;
 }
 
 
@@ -87,11 +104,12 @@ static void render(GUISelectBox* w, PassFrameParams* pfp) {
 
 
 static void dd_render(GUIHeader* ddh, PassFrameParams* pfp) {
-	GUISelectBox* w = (GUISelectBox*)&ddh->parent;
+	GUISelectBox* w = (GUISelectBox*)ddh->parent;
 	GUIHeader* wh = &w->header;
 	GUIManager* gm = ddh->gm;
 	Vector2 tl = ddh->absTopLeft;
 	
+	if(!w->isOpen) return; 
 	
 	// main box
 	gui_drawBoxBorder(gm, tl, ddh->size, &ddh->absClip, ddh->absZ + 0.2, D(selectBgColor), 1, D(selectBorderColor));
@@ -101,13 +119,18 @@ static void dd_render(GUIHeader* ddh, PassFrameParams* pfp) {
 	
 	for(int i = 0; i < w->optionCnt; i++) {
 		float y = tl.y + (i * 35);
-		if(i == w->selectedIndex) {
-			GUISelectBoxOption* opt = &w->options[w->selectedIndex];
+		GUISelectBoxOption* opt = &w->options[i];
+		
+		if(i == w->hoveredIndex) {
+			gui_drawBox(gm, (Vector2){tl.x, y}, (Vector2){ddh->size.x, 35}, &ddh->absClip, ddh->absZ + 0.3, D(selectTextColor));
+			gui_drawTextLine(gm, (Vector2){tl.x, y}, ddh->size, &ddh->absClip, D(selectBgColor), ddh->absZ + 0.4, opt->label, strlen(opt->label));
+		}
+		else {
 			gui_drawTextLine(gm, (Vector2){tl.x, y}, ddh->size, &ddh->absClip, D(selectTextColor), ddh->absZ + 0.3, opt->label, strlen(opt->label));
 		}
 	}
 	
-	GUIHeader_renderChildren(&w->header, pfp);
+	GUIHeader_renderChildren(ddh, pfp);
 }
 
 
@@ -133,6 +156,23 @@ static void updatePos(GUISelectBox* w, GUIRenderParams* grp, PassFrameParams* pf
 
 }
 
+static void dd_updatePos(GUIHeader* ddh, GUIRenderParams* grp, PassFrameParams* pfp) {
+	GUISelectBox* w = (GUISelectBox*)ddh->parent;
+	GUIHeader* wh = &w->header;
+// 	
+// 	w->bg->header.size = h->size;
+// 	w->titlebar->header.size.x = h->size.x;
+// 	w->titlebar->header.size.y = 20;
+	
+	ddh->topleft = (Vector2){5, wh->size.y};
+	ddh->size = (Vector2){70, 170};
+	
+	gui_defaultUpdatePos(ddh, grp, pfp);
+	
+	
+
+}
+
 
 
 
@@ -150,6 +190,7 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 		.Render = (void*)render,
 		.Reap = (void*)reap,
 		.UpdatePos = (void*)updatePos,
+		.HitTest = hitTest,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -162,14 +203,15 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 	
 	
 	static struct gui_vtbl dd_static_vt = {
-// 		.Render = render,
+		.Render = dd_render,
 // 		.Reap = reap,
-// 		.UpdatePos = updatePos,
+		.UpdatePos = dd_updatePos,
 	};
 	
 	static struct GUIEventHandler_vtbl dd_event_vt = {
 // 		.ScrollUp = clientScrollUp,
 // 		.ScrollDown = clientScrollDown,
+		.MouseMove = dd_mouseMove,
 	};
 	
 	GUISelectBox* w = pcalloc(w);
@@ -203,11 +245,11 @@ void GUISelectBox_SetOptions(GUISelectBox* w, GUISelectBoxOption* opts, int cnt)
 		free(w->options);
 	}
 	
-	w->options = calloc(1, sizeof(w->options) * cnt);
+	w->options = calloc(1, sizeof(*w->options) * cnt);
 	w->optionCnt = cnt;
 	w->selectedIndex = 0;
 	
-	memcpy(w->options, opts, sizeof(w->options) * cnt);
+	memcpy(w->options, opts, sizeof(*w->options) * cnt);
 }
 
 

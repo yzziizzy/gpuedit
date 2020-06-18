@@ -331,7 +331,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		GUIRegisterObject(w->header.parent, sw);
 		
 		
-		for(int i = 0; i < 20; i++) {
+		for(int i = 0; i < 1; i++) {
 			/*GUIFormControl* ww = GUIFormControl_New(w->header.gm, (i%3) +1, "Foo");
 			ww->header.topleft.y = i * 35;
 			ww->header.size = (Vector2){370, 35};
@@ -343,12 +343,14 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 			GUIObject_AddClient(sw, ww);
 			
 			GUISelectBoxOption opts[] = {
-				{.label = "One"},
-				{.label = "Two"},
-				{.label = "Three"},
+				{.label = "> One"},
+				{.label = "> Two"},
+				{.label = "> Three"},
+				{.label = "> Four"},
+				{.label = "> Five"},
 			};
 			
-			GUISelectBox_SetOptions(ww, opts, 3);
+			GUISelectBox_SetOptions(ww, opts, 5);
 			
 		}
 		
