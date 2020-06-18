@@ -10,7 +10,12 @@
 
 
 // TODO:
-// 
+// border issues with hover selection
+// theming of dropdown items
+// "no selection" option
+// sizing of dropdown
+// clipping of dropdown
+
 
 
 
@@ -165,12 +170,22 @@ static void dd_updatePos(GUIHeader* ddh, GUIRenderParams* grp, PassFrameParams* 
 // 	w->titlebar->header.size.y = 20;
 	
 	ddh->topleft = (Vector2){5, wh->size.y};
-	ddh->size = (Vector2){70, 170};
+	// TODO calculate height 
+	ddh->size = (Vector2){wh->size.x - 5, 35*MIN(4, w->optionCnt)};
 	
-	gui_defaultUpdatePos(ddh, grp, pfp);
+	Vector2 o = grp->offset;
 	
+	GUIRenderParams grp2 = {
+		.offset = grp->offset,
+		.size = ddh->size,
+		.baseZ = grp->baseZ + 100,
+		.clip = gui_clipTo(grp->clip, (AABB2){
+			.min = { o.x + ddh->topleft.x, o.y + ddh->topleft.y },
+			.max = { o.x + ddh->topleft.x + ddh->size.x, o.y + ddh->topleft.y + ddh->size.y },
+		}),
+	};
 	
-
+	gui_defaultUpdatePos(ddh, &grp2, pfp);
 }
 
 
