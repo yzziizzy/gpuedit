@@ -79,10 +79,37 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 
 static void dd_mouseMove(GUIObject* ddh, GUIEvent* gev) {
 	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
-	w->hoveredIndex = -1 + (gev->pos.y - w->header.absTopLeft.y) / 35;
+	w->hoveredIndex = -1 + (gev->pos.y - w->header.absTopLeft.y + w->dropdownScrollPos) / 35;
 }
 
 
+static void dd_click(GUIObject* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+	
+	w->selectedIndex = -1 + (gev->pos.y - w->header.absTopLeft.y + w->dropdownScrollPos) / 35;
+	w->isOpen = 0;
+	
+	gev->cancelled = 1;
+}
+
+
+static void dd_scrollUp(GUIObject* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+	
+// 	w->dropdownScrollPos = w->dropdownScrollPos - 35;
+	w->dropdownScrollPos = MAX(w->dropdownScrollPos - 35 * 1, 0);
+	
+	gev->cancelled = 1;
+}
+
+static void dd_scrollDown(GUIObject* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+	
+	w->dropdownScrollPos = MIN((w->optionCnt - 4) * 35, w->dropdownScrollPos + 35);
+// 	w->dropdownScrollPos = MAX(w->dropdownScrollPos - 35 * 1, w->optionCnt * 35);
+	
+	gev->cancelled = 1;
+}
 
 
 static void render(GUISelectBox* w, PassFrameParams* pfp) {
@@ -122,8 +149,11 @@ static void dd_render(GUIHeader* ddh, PassFrameParams* pfp) {
 	// arrow button
 // 	gui_drawBorderBox(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectColor), 1, D(selectBorderColor));
 	
+	// TODO optimize offsets
+	// TODO unhardcode 35px option height
+	// TODO dynamic dd height adjustment in scroll events
 	for(int i = 0; i < w->optionCnt; i++) {
-		float y = tl.y + (i * 35);
+		float y = tl.y + (i * 35) - w->dropdownScrollPos;
 		GUISelectBoxOption* opt = &w->options[i];
 		
 		if(i == w->hoveredIndex) {
@@ -224,9 +254,10 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 	};
 	
 	static struct GUIEventHandler_vtbl dd_event_vt = {
-// 		.ScrollUp = clientScrollUp,
-// 		.ScrollDown = clientScrollDown,
+		.ScrollUp = dd_scrollUp,
+		.ScrollDown = dd_scrollDown,
 		.MouseMove = dd_mouseMove,
+		.Click = dd_click,
 	};
 	
 	GUISelectBox* w = pcalloc(w);
