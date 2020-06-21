@@ -28,6 +28,9 @@ void GUIFormControl_SetString(GUIFormControl* w, char* str) {
 			GUIEdit_SetDouble(w->edit, d);
 			break;
 			
+		case GUIFORMCONTROL_SELECT:
+	
+			
 		default:
 			printf("Unsupported type in GUIFormControl_SetString: %d\n", w->type);
 	}
@@ -40,6 +43,10 @@ char* GUIFormControl_GetString(GUIFormControl* w) {
 		case GUIFORMCONTROL_INT:
 		case GUIFORMCONTROL_FLOAT:
 			return strdup(GUIEdit_GetText(w->edit));
+		
+		case GUIFORMCONTROL_SELECT:
+			if(w->select->selectedOption < 0) return NULL;
+			return (char*)w->select->options[w->select->selectedOption].data;
 			
 		default:
 			printf("Unsupported type in GUIFormControl_GetString: %d\n", w->type);
@@ -56,6 +63,10 @@ double GUIFormControl_GetDouble(GUIFormControl* w) {
 		case GUIFORMCONTROL_STRING:
 		case GUIFORMCONTROL_FLOAT:
 			return strtod(GUIEdit_GetText(w->edit), NULL);
+		
+		case GUIFORMCONTROL_SELECT:
+			if(w->select->selectedOption < 0) return NULL;
+			return (double)w->select->options[w->select->selectedOption].data;
 			
 		default:
 			printf("Unsupported type in GUIFormControl_GetDouble: %d\n", w->type);
@@ -70,6 +81,10 @@ int64_t GUIFormControl_GetInt(GUIFormControl* w) {
 		case GUIFORMCONTROL_FLOAT:
 		case GUIFORMCONTROL_INT:
 			return strtol(GUIEdit_GetText(w->edit), NULL, 10);
+			
+		case GUIFORMCONTROL_SELECT:
+			if(w->select->selectedOption < 0) return NULL;
+			return (int64_t)w->select->options[w->select->selectedOption].data;
 			
 		default:
 			printf("Unsupported type in GUIFormControl_GetInt: %d\n", w->type);
@@ -147,7 +162,14 @@ GUIFormControl* GUIFormControl_New(GUIManager* gm, int type, char* label) {
 			w->edit->header.gravity = GUI_GRAV_TOP_RIGHT;
 			
 			GUIRegisterObject(w, w->edit);
+		
+		case GUIFORMCONTROL_SELECT:
+			w->select = GUISelectBox_New(gm);
+			w->select->header.topleft = (Vector2){0, 0};
+			w->select->header.size = (Vector2){100, 20};
+			w->select->header.gravity = GUI_GRAV_TOP_RIGHT;
 			
+			GUIRegisterObject(w, w->select);
 			break;
 	}
 	

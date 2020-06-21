@@ -8,9 +8,9 @@ enum {
 	GUIFORMCONTROL_STRING,
 	GUIFORMCONTROL_INT,
 	GUIFORMCONTROL_FLOAT,
+	GUIFORMCONTROL_SELECT,
 	// checkbox
 	// radio
-	// select
 	// textarea
 };
 
@@ -23,6 +23,7 @@ typedef struct GUIFormControl {
 	int type;
 	union {
 		GUIEdit* edit;
+		GUISelectBox* select;
 	};
 	
 } GUIFormControl;
@@ -39,6 +40,7 @@ void GUIFormControl_SetString(GUIFormControl* w, char* str);
 char* GUIFormControl_GetString(GUIFormControl* w);
 double GUIFormControl_GetDouble(GUIFormControl* w);
 int64_t GUIFormControl_GetInt(GUIFormControl* w);
+void* GUIFormControl_GetData(GUIFormControl* w); // mostly for select boxes
 
 
 
