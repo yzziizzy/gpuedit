@@ -734,7 +734,8 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
-	gbe->header.size = (Vector2){800, 800}; // doesn't matter
+	gbe->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+// 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
 	GUIBufferEditor_SetBuffer(gbe, buf);
 	gbe->ec->font = tdp->font;
 	gbe->ec->scrollLines = w->gs->Buffer_linesPerScrollWheel;

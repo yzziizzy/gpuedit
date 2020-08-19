@@ -24,31 +24,6 @@ extern int g_DisableSave;
  //                              //
 //////////////////////////////////
 
-/*
-static size_t GBEC_lineFromPos(GUIBufferEditor* w, Vector2 pos) {
-	return floor((pos.y - w->header.absTopLeft.y) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines;
-}
-
-static size_t GBEC_getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
-	if(bl->buf == NULL) return 0;
-	
-	// must handle tabs
-	float a = (x - w->header.absTopLeft.x - w->textAreaOffsetX) / w->bdp->tdp->charWidth;
-	ptrdiff_t screenCol = floor(a + .5) + w->scrollCols;
-	
-	int tabwidth = w->bdp->tdp->tabWidth;
-	ptrdiff_t charCol = 0;
-	
-	while(screenCol > 0) {
-		if(bl->buf[charCol] == '\t') screenCol -= tabwidth;
-		else screenCol--;
-		charCol++;
-	}
-	
-	return MAX(0, MIN(charCol, bl->length));
-}
-
-*/
 static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 // HACK
 // 	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
@@ -64,14 +39,14 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
-	/*
+	
 	
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
 		}, &needRehighlight);
 		
-		GUIBufferEditor_RefreshHighlight(w);
+		GUIBufferEditControl_RefreshHighlight(w->ec);
 	}
 	else {
 		// special commands
@@ -97,15 +72,15 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			
 			
 			if(found.flags & scrollToCursor) {
-				GUIBufferEditor_scrollToCursor(w);
+				GUIBufferEditControl_scrollToCursor(w->ec);
 			}
 			
 			if(found.flags & rehighlight) {
-				GUIBufferEditor_RefreshHighlight(w);
+				GUIBufferEditControl_RefreshHighlight(w->ec);
 			}
 			
 			if(found.flags & resetCursorBlink) {
-				w->cursorBlinkTimer = 0;
+				w->ec->cursorBlinkTimer = 0;
 			}
 			
 			if(found.flags & undoSeqBreak) {
@@ -114,7 +89,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		}
 		
 	}
-	*/
+	
 }
 
 static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
@@ -125,24 +100,21 @@ static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
 }
 
 static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams* pfp) {
+	Vector2 wsz = w->header.size; 
+	
+	float sbHeight = w->statusBarHeight;
+	if(!w->showStatusBar) {
+		sbHeight = 0;
+	}
+	
+	w->statusBar->header.hidden = !w->showStatusBar;
+	w->statusBar->header.size = (Vector2){wsz.x, w->statusBarHeight};
+	w->statusBar->header.topleft = (Vector2){0, wsz.y - w->statusBarHeight};
+	
+	w->ec->header.size = (Vector2){wsz.x, wsz.y - sbHeight};
+	w->ec->header.topleft = (Vector2){0, 0};
+	
 	gui_defaultUpdatePos(w, grp, pfp);
-	Buffer* b = w->buffer;
-	
-	// cursor blink
-// 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
-// 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
-	
-// 	w->sbMinHeight = 20;
-	// scrollbar position calculation
-	// calculate scrollbar height
-// 	float wh = w->header.size.y;
-// 	float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
-	
-	// calculate scrollbar offset
-// 	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
-	
-// 	GUIResize(w->scrollbar, (Vector2){10, sbh});
-// 	w->scrollbar->header.topleft.y = sboff;
 }
 
 
@@ -179,8 +151,10 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	
 	w->ec = GUIBufferEditControl_New(gm);
+// 	w->ec->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 	GUIRegisterObject(w, w->ec);
 
+	w->showStatusBar = 1;
 	w->statusBarHeight = 30;
 	w->statusBar = GUIStatusBar_New(gm);
 	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;

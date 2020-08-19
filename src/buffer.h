@@ -180,7 +180,7 @@ typedef struct GBEFindRange {
 
 
 
-// just the raw editor drawing control
+// drawing and mouse controls
 typedef struct GUIBufferEditControl {
 	GUIHeader header;
 
@@ -229,7 +229,7 @@ typedef struct GUIBufferEditControl {
 size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos);
 size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x);
 
-// all sorts of fancy stuff
+// all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
 	GUIHeader header;
 	
@@ -270,7 +270,6 @@ typedef struct GUIBufferEditor {
 	
 	// status bar
 	char showStatusBar;
-	float statusBarOffset;
 	float statusBarHeight;
 	GUIStatusBar* statusBar;
 	

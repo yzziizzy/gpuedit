@@ -214,7 +214,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int li
 				.guiType = 4, // bordered window (just a box)
 				.fg = {50, 50, 50, 255}, // border color
 				.bg = {0,0,0,0},
-				.z = gbe->header.absZ,
+				.z = gbe->header.absZ + 0.1,
 				.alpha = 1.0,
 			};
 		}

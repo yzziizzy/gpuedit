@@ -184,7 +184,7 @@ static void updatePos(GUISelectBox* w, GUIRenderParams* grp, PassFrameParams* pf
 // 	w->bg->header.size = h->size;
 // 	w->titlebar->header.size.x = h->size.x;
 // 	w->titlebar->header.size.y = 20;
-	
+	h->flags |= GUI_NOCLIP;
 	gui_defaultUpdatePos(h, grp, pfp);
 	
 	

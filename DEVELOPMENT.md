@@ -68,6 +68,7 @@
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
 * Duplicate selection
+* Middle-click scroll coasting
 * Language sensitive auto-complete and type/param hints (low priority)
 * Delete contents of line but leave indentation
 * Create new line after, indented, and jump to the end 

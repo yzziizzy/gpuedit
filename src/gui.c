@@ -116,10 +116,17 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 	
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
-	h->absClip = grp->clip;
 	h->absZ = grp->baseZ + h->z + 0.00001;
+	vSub2(&tl, &grp->offset, &h->relTopLeft);
 	
-	// TODO: relTopLeft, absClip
+	if(!(h->flags & GUI_NOCLIP)) {
+		h->absClip = gui_clipTo(grp->clip, (AABB2){
+			tl, {tl.x + h->size.x, tl.y + h->size.y}
+		});
+	}
+	else {
+		h->absClip = grp->clip;
+	}
 	
 	GUIRenderParams grp2 = {
 		.size = h->size,
@@ -739,6 +746,16 @@ GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 absTestPos) {
 }
 
 void GUIHeader_updatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp) {
+	
+	if(go->h.flags & GUI_MAXIMIZE_X) {
+		go->h.topleft.x = 0;
+		go->h.size.x = grp->size.x;
+	}
+	if(go->h.flags & GUI_MAXIMIZE_Y) {
+		go->h.topleft.y = 0;
+		go->h.size.y = grp->size.y;
+	}
+	
 	if(go->h.vt && go->h.vt->UpdatePos)
 		go->h.vt->UpdatePos(go, grp, pfp);
 	else

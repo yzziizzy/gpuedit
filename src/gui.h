@@ -232,8 +232,9 @@ typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 #define GUIMOUSECURSOR_TEXT  0x02
 #define GUIMOUSECURSOR_WAIT  0x03
 
-#define GUIFLAG_MAXIMIZE_X 0x0001
-#define GUIFLAG_MAXIMIZE_Y 0x0002
+#define GUI_MAXIMIZE_X 0x0001
+#define GUI_MAXIMIZE_Y 0x0002
+#define GUI_NOCLIP     0x0004
 
 typedef struct GUIHeader {
 	struct GUIManager* gm;
@@ -260,7 +261,7 @@ typedef struct GUIHeader {
 	// calculated absolute coordinates of the top left corner
 	// updated every frame before any rendering or hit testing
 	Vector2 absTopLeft; 
-	// calculated tl coords relative to the parent
+	// calculated tl coords relative to the parent, factoring in gravity and GRP parent offset
 	Vector2 relTopLeft; 
 	// calculated absolute clipping box. this element may be entirely clipped.
 	AABB2 absClip;

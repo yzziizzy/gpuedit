@@ -180,7 +180,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	int needRehighlight = 0;
 	
-	
+	/*
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
@@ -229,7 +229,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		}
 		
 	}
-	
+	*/
 }
 
 
@@ -242,7 +242,6 @@ static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
 static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	
-	gui_defaultUpdatePos(w, grp, pfp);
 	Buffer* b = w->buffer;
 	
 	// cursor blink
@@ -260,6 +259,8 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	
 	GUIResize(w->scrollbar, (Vector2){10, sbh});
 	w->scrollbar->header.topleft.y = sboff;
+
+	gui_defaultUpdatePos(w, grp, pfp);
 }
 
 
