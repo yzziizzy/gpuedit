@@ -102,7 +102,7 @@ size_t drawCharacter(
 }
 
 // draws the editor's text area and line numbers
-void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
+void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo) {
 	Buffer* b = gbe->buffer;
 	
 	if(!b) return;
@@ -117,7 +117,7 @@ void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, in
 	char lnbuf[32];
 	GUIUnifiedVertex* v;
 	
-	float edh = gbe->header.size.y - gbe->trayHeight;
+	float edh = gbe->header.size.y;
 	
 	// TODO: move to gbe->resize or somewhere appropriate
 	gbe->linesOnScreen = edh / tdp->lineHeight;

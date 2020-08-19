@@ -312,9 +312,17 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 }
 
 
+	void* args[4];
 
 void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 	GUISimpleWindow* sw;
+	GUITextF* textf;
+	
+	GUIBufferEditor* bb = VEC_ITEM(&w->editors, 0);
+	printf("eds: %d, lines: %ld\n", VEC_LEN(&w->editors), bb->buffer->numLines);
+
+	args[0] = &bb->buffer->numLines;
+
 	
 	switch(cmd->type) {
 	case Cmd_NULL:
@@ -329,6 +337,12 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		sw->title = "foobar";
 // 		sw->absScrollPos.x = 50;
 		GUIRegisterObject(w->header.parent, sw);
+		
+		
+		textf = GUITextF_new(w->header.gm);
+		textf->header.topleft = (Vector2){20, 50};
+		GUITextF_setString(textf, "----%>ld--", args);
+		GUIRegisterObject(w->header.parent, textf);
 		
 		
 		for(int i = 0; i < 1; i++) {
@@ -721,21 +735,23 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
-	gbe->buffer = buf;
-	gbe->font = tdp->font;
-	gbe->scrollLines = w->gs->Buffer_linesPerScrollWheel;
+	GUIBufferEditor_SetBuffer(gbe, buf);
+	gbe->ec->font = tdp->font;
+	gbe->ec->scrollLines = w->gs->Buffer_linesPerScrollWheel;
 	gbe->bdp = bdp;
+	gbe->ec->bdp = bdp;
 	gbe->header.name = strdup(path);
 	gbe->header.parent = w; // important for bubbling
 	gbe->sourceFile = strdup(path);
 	gbe->commands = w->commands;
 	
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
-// 	initCStyles(gbe->h);
+	gbe->ec->h = gbe->h;
+	// 	initCStyles(gbe->h);
 	Highlighter_LoadStyles(gbe->h, "config/c_colors.txt");
 	
 	Buffer_LoadFromFile(buf, path);
-	GUIBufferEditor_RefreshHighlight(gbe);
+	GUIBufferEditControl_RefreshHighlight(gbe->ec);
 	
 	VEC_PUSH(&w->editors, gbe);
 	VEC_PUSH(&w->buffers, buf);

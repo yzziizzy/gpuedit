@@ -24,12 +24,12 @@ extern int g_DisableSave;
  //                              //
 //////////////////////////////////
 
-
-static size_t lineFromPos(GUIBufferEditor* w, Vector2 pos) {
+/*
+static size_t GBEC_lineFromPos(GUIBufferEditor* w, Vector2 pos) {
 	return floor((pos.y - w->header.absTopLeft.y) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines;
 }
 
-static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
+static size_t GBEC_getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
 	if(bl->buf == NULL) return 0;
 	
 	// must handle tabs
@@ -48,10 +48,10 @@ static size_t getColForPos(GUIBufferEditor* w, BufferLine* bl, float x) {
 	return MAX(0, MIN(charCol, bl->length));
 }
 
-
+*/
 static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 // HACK
-	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
+// 	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
 	
 	if(w->lineNumTypingMode) {
 		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
@@ -60,132 +60,11 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 	GUIHeader_renderChildren(&w->header, pfp);
 }
 
-static void scrollUp(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	if(gev->originalTarget != w) return;
-	w->scrollLines = MAX(0, w->scrollLines - w->linesPerScrollWheel);
-}
-
-static void scrollDown(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	if(gev->originalTarget != w) return;
-	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
-}
-
-static void dragStart(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	Buffer* b = w->buffer;
-	
-	if(gev->originalTarget == w->scrollbar) {
-		printf("scrollbar drag start\n");
-		return;
-	}
-	
-	BufferLine* bl = Buffer_raw_GetLine(b, lineFromPos(w, gev->pos));
-	size_t col = getColForPos(w, bl, gev->pos.x);
-	
-	w->selectPivotLine = bl;
-	w->selectPivotCol = col;
-}
-
-static void dragStop(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-// 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
-}
-
-static void dragMove(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	Buffer* b = w->buffer;
-// 	w->header.gm
-	
-	if(gev->originalTarget == w->scrollbar) {
-		gev->cancelled = 1;
-		
-		float val;
-		
-		val = /*gev->dragStartPos.y -*/ gev->pos.y / w->header.size.y;
-		
-		
-		w->scrollLines = MIN(MAX(0, b->numLines * val), b->numLines);
-		
-		return;
-	}
-	
-	
-	BufferLine* bl = Buffer_raw_GetLine(b, lineFromPos(w, gev->pos));
-	size_t col = getColForPos(w, bl, gev->pos.x);
-	Buffer_SetCurrentSelection(b, bl, col, w->selectPivotLine, w->selectPivotCol);
-	
-	w->buffer->current = bl;
-	w->buffer->curCol = col;
-	/*
-	if(bl->lineNum < w->selectPivotLine->lineNum) {
-		b->sel->startLine = bl;
-		b->sel->endLine = w->selectPivotLine;
-		b->sel->startCol = col;
-		b->sel->endCol = w->selectPivotCol - 1;
-	}
-	else if(bl->lineNum > w->selectPivotLine->lineNum) {
-		b->sel->startLine = w->selectPivotLine;
-		b->sel->endLine = bl;
-		b->sel->startCol = w->selectPivotCol;
-		b->sel->endCol = col;
-	}
-	else { // same line
-		b->sel->startLine = bl;
-		b->sel->endLine = bl;
-		
-		if(col < w->selectPivotCol) {
-			b->sel->startCol = col;
-			b->sel->endCol = w->selectPivotCol - 1;
-		}
-		else {
-			b->sel->startCol = w->selectPivotCol;
-			b->sel->endCol = col;
-		}
-	}*/
-	
-}
-
-
-
-
-
-static void click(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	Buffer* b = w->buffer;
-	
-	if(!b->current) return;
-	
-	Buffer_ClearCurrentSelection(b);
-	
-	Vector2 tl = w->header.absTopLeft;
-	Vector2 sz = w->header.size;
-	
-	// TODO: reverse calculate cursor position
-	if(gev->pos.x < tl.x + 50 || gev->pos.x > tl.x + sz.x) return;   
-	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y - w->trayHeight) return;
-	
-	size_t line = lineFromPos(w, gev->pos);
-	b->current = Buffer_raw_GetLine(b, line);
-	
-	b->curCol = getColForPos(w, b->current, gev->pos.x);
-	b->curColDisp = getDisplayColFromActual(b, b->current, b->curCol);
-	b->curColWanted = b->curColDisp;
-	
-	w->cursorBlinkTimer = 0;
-	
-	// maybe nudge the screen down a tiny bit
-	GUIBufferEditor_scrollToCursor(w);
-}
-
-
-
 
 static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
-	
+	/*
 	
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
@@ -235,7 +114,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		}
 		
 	}
-	
+	*/
 }
 
 static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
@@ -250,23 +129,27 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 	Buffer* b = w->buffer;
 	
 	// cursor blink
-	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
-	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
+// 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
+// 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
 	
-	w->sbMinHeight = 20;
+// 	w->sbMinHeight = 20;
 	// scrollbar position calculation
 	// calculate scrollbar height
-	float wh = w->header.size.y;
-	float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
+// 	float wh = w->header.size.y;
+// 	float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
 	
 	// calculate scrollbar offset
-	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
+// 	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
 	
-	GUIResize(w->scrollbar, (Vector2){10, sbh});
-	w->scrollbar->header.topleft.y = sboff;
+// 	GUIResize(w->scrollbar, (Vector2){10, sbh});
+// 	w->scrollbar->header.topleft.y = sboff;
 }
 
 
+void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
+	w->buffer = b;
+	GUIBufferEditControl_SetBuffer(w->ec, b);
+}
 
 
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
@@ -278,12 +161,12 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	static struct GUIEventHandler_vtbl event_vt = {
 		.KeyDown = keyDown,
-		.Click = click,
-		.ScrollUp = scrollUp,
-		.ScrollDown = scrollDown,
-		.DragStart = dragStart,
-		.DragStop = dragStop,
-		.DragMove = dragMove,
+// 		.Click = click,
+// 		.ScrollUp = scrollUp,
+// 		.ScrollDown = scrollDown,
+// 		.DragStart = dragStart,
+// 		.DragStop = dragStop,
+// 		.DragMove = dragMove,
 		.ParentResize = parentResize,
 	};
 	
@@ -294,34 +177,23 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	w->header.cursor = GUIMOUSECURSOR_TEXT;
 	
-	w->scrollbar = GUIWindow_New(gm);
-	GUIResize(w->scrollbar, (Vector2){10, 50});
-	w->scrollbar->color = (Color4){.9,.9,.9, 1};
-	w->scrollbar->header.z = 100;
-	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
-	GUIRegisterObject(w, w->scrollbar);
-	
-	
-	
+	w->ec = GUIBufferEditControl_New(gm);
+	GUIRegisterObject(w, w->ec);
+
 	w->statusBarHeight = 30;
-	w->statusBarRoot = GUIWindow_New(gm);
-	w->statusBarRoot->header.gravity = GUI_GRAV_BOTTOM_LEFT;
-	w->statusBarRoot->header.size.y = 30; 
-	w->statusBarRoot->header.size.x = w->header.size.x;
-	w->statusBarRoot->header.z = 500;
+	w->statusBar = GUIStatusBar_New(gm);
+	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->statusBar->header.size.y = 30; 
+	w->statusBar->header.size.x = w->header.size.x;
+	w->statusBar->header.z = 500;
 	
-	w->statusBarRoot->color = (Color4){.2,.2,.2,1};
-	w->statusBarRoot->padding = (AABB2){{5,5}, {5,5}};
+	w->statusBar->bgColor = (Color4){.2,.2,.2,1};
+	w->statusBar->padding = (AABB2){{5,5}, {5,5}};
+	w->statusBar->spacing = 3;
 	
-	GUIRegisterObject(w, w->statusBarRoot);
+	GUIRegisterObject(w, w->statusBar);
 	
-	
-	
-	w->linesPerScrollWheel = gm->gs->Buffer_linesPerScrollWheel;
-	w->cursorBlinkOnTime = gm->gs->Buffer_cursorBlinkOnTime;
-	w->cursorBlinkOffTime = gm->gs->Buffer_cursorBlinkOffTime;
-	w->outlineCurLine = gm->gs->Buffer_outlineCurrentLine;
 	
 	return w;
 }
@@ -356,6 +228,8 @@ do { \
 	
 	
 	// TODO: free gui stuff
+	//
+	//TODO: free edit control
 	
 	free(w);
 }
@@ -363,52 +237,24 @@ do { \
 
 
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s) {
-	w->linesPerScrollWheel = s->Buffer_linesPerScrollWheel;
-	w->cursorBlinkOnTime = s->Buffer_cursorBlinkOnTime;
-	w->cursorBlinkOffTime = s->Buffer_cursorBlinkOffTime;
-	w->outlineCurLine = s->Buffer_outlineCurrentLine;
+	w->ec->linesPerScrollWheel = s->Buffer_linesPerScrollWheel;
+	w->ec->cursorBlinkOnTime = s->Buffer_cursorBlinkOnTime;
+	w->ec->cursorBlinkOffTime = s->Buffer_cursorBlinkOffTime;
+	w->ec->outlineCurLine = s->Buffer_outlineCurrentLine;
 	
+	GUIBufferEditControl_UpdateSettings(w->ec, s);
 }
 
 
 // makes sure the cursor is on screen, with minimal necessary movement
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
-	Buffer* b = gbe->buffer;
-	
-	if(!b || !b->current) return;
-	
-	size_t scroll_first = gbe->scrollLines;
-	size_t scroll_last = gbe->scrollLines + gbe->linesOnScreen;
-	
-	if(b->current->lineNum <= scroll_first) {
-		gbe->scrollLines = b->current->lineNum - 1;
-	}
-	else if(b->current->lineNum > scroll_last) {
-		gbe->scrollLines = scroll_first + (b->current->lineNum - scroll_last);
-	}
+	GUIBufferEditControl_scrollToCursor(gbe->ec);
 }
 
 
 
 
 
-void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe) {
-	Buffer* b = gbe->buffer;
-	if(!b->sel) {
-		pcalloc(b->sel);
-	}
-	
-	b->sel->startLine = b->current;
-	b->sel->startCol = b->curCol;
-	
-	b->sel->endLine = gbe->selectPivotLine;
-	b->sel->endCol = gbe->selectPivotCol;
-	
-// 	BufferRange* br = b->sel;
-// 	printf("sel0: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
-	
-	BufferRange_Normalize(&b->sel);
-}
 
 
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
@@ -549,8 +395,8 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 				b->sel->startCol = dist;
 				b->sel->endCol = dist + strlen(word);
 				
-				w->selectPivotLine = bl;
-				w->selectPivotCol = b->sel->endCol;
+				w->ec->selectPivotLine = bl;
+				w->ec->selectPivotCol = b->sel->endCol;
 				
 				return 0;
 			}
@@ -634,15 +480,52 @@ static void loadfile_onenter(GUIEdit* ed, void* gbe_) {
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
 	GUIEdit* e;
+	GUISimpleWindow* sw;
+	
 	
 	switch(cmd->type){
+		case BufferCmd_OpenMenu:
+			
+			sw = GUISimpleWindow_New(w->header.gm);
+			sw->header.topleft = (Vector2){20, 20};
+			sw->header.size = (Vector2){400, 400};
+			sw->title = "foobar";
+	// 		sw->absScrollPos.x = 50;
+			GUIRegisterObject(w->header.parent, sw);
+				
+			
+			for(int i = 0; i < 1; i++) {
+				/*GUIFormControl* ww = GUIFormControl_New(w->header.gm, (i%3) +1, "Foo");
+				ww->header.topleft.y = i * 35;
+				ww->header.size = (Vector2){370, 35};
+				GUIObject_AddClient(sw, ww);*/
+				
+				GUISelectBox* ww = GUISelectBox_New(w->header.gm);
+				ww->header.topleft.y = i * 45;
+				ww->header.size = (Vector2){370, 35};
+				GUIObject_AddClient(sw, ww);
+				
+				GUISelectBoxOption opts[] = {
+					{.label = "> One"},
+					{.label = "> Two"},
+					{.label = "> Three"},
+					{.label = "> Four"},
+					{.label = "> Five"},
+				};
+				
+				GUISelectBox_SetOptions(ww, opts, 5);
+				
+			}
+			
+			break;
+		
 		case BufferCmd_MovePage:
 			Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 				BufferCmd_MoveCursorV, 
-				cmd->amt * w->linesOnScreen
+				cmd->amt * w->ec->linesOnScreen
 			}, needRehighlight);
 			
-			w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->buffer->numLines - 1));
+			w->ec->scrollLines = MAX(0, MIN(w->ec->scrollLines + cmd->amt * w->ec->linesOnScreen, w->buffer->numLines - 1));
 			break;
 		
 			
@@ -650,22 +533,22 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		case BufferCmd_GrowSelectionH:
 // 			if(!w->selectPivotLine) {
 			if(!w->buffer->sel) {
-				w->selectPivotLine = w->buffer->current;
-				w->selectPivotCol = w->buffer->curCol;
+				w->ec->selectPivotLine = w->buffer->current;
+				w->ec->selectPivotCol = w->buffer->curCol;
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			Buffer_MoveCursorH(w->buffer, cmd->amt);
-			GUIBufferEditor_SetSelectionFromPivot(w);
+			GUIBufferEditControl_SetSelectionFromPivot(w);
 			break;
 		
 		case BufferCmd_GrowSelectionV:
 			if(!w->buffer->sel) {
-				w->selectPivotLine = w->buffer->current;
-				w->selectPivotCol = w->buffer->curCol;
+				w->ec->selectPivotLine = w->buffer->current;
+				w->ec->selectPivotCol = w->buffer->curCol;
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			Buffer_MoveCursorV(w->buffer, cmd->amt);
-			GUIBufferEditor_SetSelectionFromPivot(w);
+			GUIBufferEditControl_SetSelectionFromPivot(w);
 			break;
 			
 		case BufferCmd_GoToLine:
@@ -689,13 +572,13 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				GUIRegisterObject(w->trayRoot, w->lineNumEntryBox);
 				
-				w->cursorBlinkPaused = 1;
+				w->ec->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
 				w->lineNumTypingMode = 0;
-				w->cursorBlinkPaused = 0;
+				w->ec->cursorBlinkPaused = 0;
 // 				guiDelete(w->lineNumEntryBox);
 				GUIManager_popFocusedObject(w->header.gm);
 			}
@@ -719,7 +602,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				e->onEnter = find_onenter;
 				e->onEnterData = w;
 				
-				w->cursorBlinkPaused = 1;
+				w->ec->cursorBlinkPaused = 1;
 				GUIRegisterObject(w->trayRoot, e);
 				GUIManager_pushFocusedObject(w->header.gm, e);
 				
@@ -728,7 +611,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			else {
 				GUIBufferEditor_CloseTray(w);
 				w->findTypingMode = 0;
-				w->cursorBlinkPaused = 0;
+				w->ec->cursorBlinkPaused = 0;
 // 				guiDelete(w->findBox);
 				GUIManager_popFocusedObject(w->header.gm);
 			}
@@ -753,7 +636,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				e->onEnter = find_onenter;
 				e->onEnterData = w;
 				
-				w->cursorBlinkPaused = 1;
+				w->ec->cursorBlinkPaused = 1;
 				GUIRegisterObject(w->trayRoot, e);
 				GUIManager_pushFocusedObject(w->header.gm, e);
 				
@@ -762,7 +645,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			else {
 				GUIBufferEditor_CloseTray(w);
 				w->loadTypingMode = 0;
-				w->cursorBlinkPaused = 0;
+				w->ec->cursorBlinkPaused = 0;
 // 				guiDelete(w->findBox);
 				GUIManager_popFocusedObject(w->header.gm);
 			}
@@ -775,7 +658,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->lineNumTypingMode = 0;
 				w->findTypingMode = 0;
 				w->loadTypingMode = 0;
-				w->cursorBlinkPaused = 0;
+				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 			}
 			break;
@@ -795,15 +678,16 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			EditorParams* ep = w->buffer->ep;
 			
 			Buffer_Delete(w->buffer);
-			w->selectPivotLine = NULL;
-			w->selectPivotCol = 0;
+			w->ec->selectPivotLine = NULL;
+			w->ec->selectPivotCol = 0;
 			// keep the scroll lines
 			w->buffer = Buffer_New();
+			w->ec->buffer = w->buffer;
 			Buffer_LoadFromFile(w->buffer, w->sourceFile);
 			
 			w->buffer->hl = hl;
 			w->buffer->ep = ep;
-			w->scrollLines = MIN(w->scrollLines, w->buffer->numLines);
+			w->ec->scrollLines = MIN(w->ec->scrollLines, w->buffer->numLines);
 		}
 		break;
 		
@@ -815,97 +699,6 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 }
 
 
-
-
-int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
-	BufferLine* l = hl->readLine;
-	
-	if(!hl->readLine) return 1;
-	
-	// TODO: end of file
-	hl->readLine = hl->readLine->next;
-	
-	*txt = l->buf;
-	*len = l->length;
-	
-	return 0;
-}
-
-void writeSection(HLContextInternal* hl, unsigned char style, unsigned char len) {
-	if(len == 0) return;
-	
-	VEC_INC(&hl->writeLine->style);
-	VEC_TAIL(&hl->writeLine->style).length = len;
-	VEC_TAIL(&hl->writeLine->style).styleIndex = style;
-	
-	hl->writeCol += len;
-	
-	// TODO: handle overlapping style segments
-	// TODO: handle segments spanning linebreaks
-	
-	if(hl->writeCol > hl->writeLine->length) {
-		hl->writeCol = 0;
-		hl->writeLine = hl->writeLine->next;
-		hl->ctx.dirtyLines--;
-	}
-	
-}
-
-
-static void* a_malloc(Allocator* a, size_t sz) {
-	return malloc(sz);
-}
-static void* a_calloc(Allocator* a, size_t sz) {
-	return calloc(1, sz);
-}
-static void* a_realloc(Allocator* a, void* p, size_t sz) {
-	return realloc(p, sz);
-}
-static void a_free(Allocator* a, void* p) {
-	free(p);
-}
-
-
-void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe) {
-	double then = getCurrentTime();
-	
-	Buffer* b = gbe->buffer;
-	
-	if(!b->first) return;
-	Highlighter* h = gbe->h;
-	
-	static Allocator al = {
-		.malloc = a_malloc,
-		.calloc = a_calloc,
-		.realloc = a_realloc,
-		.free = a_free,
-	};
-	
-	HLContextInternal hlc = {
-		.ctx.alloc = &al,
-		.ctx.getNextLine = getNextLine,
-		.ctx.writeSection = writeSection,
-		
-		.ctx.dirtyLines = b->numLines,
-		
-		.b = b,
-		.readLine = b->first,
-		.writeLine = b->first,
-		.writeCol = 0,
-	};
-	
-	// clear existing styles
-	BufferLine* bl = b->first;
-	for(int i = 0; i < b->numLines && bl; i++) {
-		VEC_TRUNC(&bl->style);
-		
-		bl = bl->next;
-	}
-	
-	h->plugin->refreshStyle(&hlc.ctx);
-	
-// 	printf("hl time: %f\n", timeSince(then)  * 1000.0);
-}
 
 
 void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {

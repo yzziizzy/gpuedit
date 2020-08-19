@@ -10,6 +10,7 @@ gpuedit_SOURCES = main.c \
 	buffer_drawing.c \
 	buffer_raw.c \
 	bufferEditor.c \
+	bufferEditControl.c \
 	bufferLine.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
@@ -36,6 +37,7 @@ gpuedit_SOURCES = main.c \
 	renderLoop.c \
 	settings.c \
 	shader.c \
+	statusBar.c \
 	sti/sti.c \
 	texture.c \
 	textureAtlas.c \

@@ -10,6 +10,10 @@
 #include "highlight.h"
 #include "commands.h"
 
+#include "statusBar.h"
+
+
+
 #define BL_BOOKMARK_FLAG  (1<<0)
 
 struct hlinfo;
@@ -176,19 +180,13 @@ typedef struct GBEFindRange {
 
 
 
-typedef struct GUIBufferEditor {
+// just the raw editor drawing control
+typedef struct GUIBufferEditControl {
 	GUIHeader header;
-	
-	GUIWindow* scrollbar;
-	float sbMinHeight;
-	
+
 	Buffer* buffer;
 	BufferDrawParams* bdp;
 	Highlighter* h;
-	
-	char* sourceFile; // issues with undo-save
-	
-	float textAreaOffsetX; // accounts for line numbers and such
 	
 	float cursorBlinkTimer;
 	float cursorBlinkOnTime;
@@ -200,16 +198,49 @@ typedef struct GUIBufferEditor {
 	intptr_t scrollLines; // current scroll position, 0-based
 	intptr_t scrollCols; // NYI, waiting on next line draw fn iteration
 	
-	// read only
-	int linesOnScreen; // number of *full* lines that fit on screen
-	// TODO: padding lines on vscroll
+	float textAreaOffsetX; // accounts for line numbers and such
+
+	// TODO: move elsewhere
+	GUIFont* font;
+
 	
-	
-	int linesPerScrollWheel;
 	
 	// stating point of a mouse-drag selection
 	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
 	intptr_t selectPivotCol;
+	
+	
+	// read only
+	int linesOnScreen; // number of *full* lines that fit on screen
+	// TODO: padding lines on vscroll
+
+	int linesPerScrollWheel;
+	
+	
+	GUIWindow* scrollbar;
+	float sbMinHeight;
+
+	
+	Cmd* commands;
+	
+} GUIBufferEditControl;
+
+
+size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos);
+size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x);
+
+// all sorts of fancy stuff
+typedef struct GUIBufferEditor {
+	GUIHeader header;
+	
+	
+	GUIBufferEditControl* ec;
+	
+	Buffer* buffer;
+	BufferDrawParams* bdp;
+	Highlighter* h;
+	
+	char* sourceFile; // issues with undo-save
 	
 	
 	char findTypingMode; 
@@ -232,8 +263,6 @@ typedef struct GUIBufferEditor {
 	
 	VEC(GBEFindRange) findRanges;
 	
-	// TODO: move elsewhere
-	GUIFont* font;
 	
 	char trayOpen;
 	float trayHeight;
@@ -243,7 +272,7 @@ typedef struct GUIBufferEditor {
 	char showStatusBar;
 	float statusBarOffset;
 	float statusBarHeight;
-	GUIWindow* statusBarRoot;
+	GUIStatusBar* statusBar;
 	
 	
 	Cmd* commands;
@@ -367,7 +396,7 @@ void BufferRange_Normalize(BufferRange** pbr);
 
 
 // HACK: temporary junk
-void GUIBufferEditor_RefreshHighlight(GUIBufferEditor* gbe);
+void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w);
 
 
 
@@ -408,19 +437,26 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 // GUIBufferEditor
 
 
+void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s);
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s);
 
-void GUIBufferEditor_Draw(GUIBufferEditor* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
+void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
 static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl, float z, AABB2* clip);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
+GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm);
 void GUIBufferEditor_Destroy(GUIBufferEditor* w);
 
+void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b);
+void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b);
+
+
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
+void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* gbe);;
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
 
-void GUIBufferEditor_SetSelectionFromPivot(GUIBufferEditor* gbe);
-void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t col);
+void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* gbe);
+void GUIBufferEditControl_MoveCursorTo(GUIBufferEditControl* gbe, intptr_t line, intptr_t col);
 
 void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);

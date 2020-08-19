@@ -45,8 +45,8 @@ char* GUIFormControl_GetString(GUIFormControl* w) {
 			return strdup(GUIEdit_GetText(w->edit));
 		
 		case GUIFORMCONTROL_SELECT:
-			if(w->select->selectedOption < 0) return NULL;
-			return (char*)w->select->options[w->select->selectedOption].data;
+			if(w->select->selectedIndex < 0) return NULL;
+			return (char*)w->select->options[w->select->selectedIndex].data;
 			
 		default:
 			printf("Unsupported type in GUIFormControl_GetString: %d\n", w->type);
@@ -65,8 +65,9 @@ double GUIFormControl_GetDouble(GUIFormControl* w) {
 			return strtod(GUIEdit_GetText(w->edit), NULL);
 		
 		case GUIFORMCONTROL_SELECT:
-			if(w->select->selectedOption < 0) return NULL;
-			return (double)w->select->options[w->select->selectedOption].data;
+			if(w->select->selectedIndex < 0) return 0;
+			double d =  (double)(int64_t)(w->select->options[w->select->selectedIndex].data);
+			return d;
 			
 		default:
 			printf("Unsupported type in GUIFormControl_GetDouble: %d\n", w->type);
@@ -83,8 +84,8 @@ int64_t GUIFormControl_GetInt(GUIFormControl* w) {
 			return strtol(GUIEdit_GetText(w->edit), NULL, 10);
 			
 		case GUIFORMCONTROL_SELECT:
-			if(w->select->selectedOption < 0) return NULL;
-			return (int64_t)w->select->options[w->select->selectedOption].data;
+			if(w->select->selectedIndex < 0) return 0;
+			return (int64_t)w->select->options[w->select->selectedIndex].data;
 			
 		default:
 			printf("Unsupported type in GUIFormControl_GetInt: %d\n", w->type);

@@ -5,15 +5,12 @@
 * Undo selection changes
 * Mark changed tabs with "*" 
 * Choose highlighter based on file extension
-* On-demand frame rendering
 * Proper tabstops
 * Move editing state from Buffer to GBE
 * MIME type probing of some sort
 * Ability to change the highlighter
 * Open file command
 * Save Changes? close hook buffer integration
-* Don't render bg quads for chars with no bg color
-* Cache lines of prepared buffer commands
 * Split GUIManager draw calls into layers for less sorting
 * Shortcut config presets
 * Pause render loop on X window losing focus
@@ -40,7 +37,6 @@
 * Unsaved changes crash recovery
 * Drag selection to new place
 * New Buffer/file
-* Async filebrowser fs operations
 * FB: new file/folder, delete, rename
 * Re-order MC tabs
 * User-specified automatic sorting for MC tabs
@@ -59,6 +55,7 @@
 * Garbage collection in GUI
 * Z-index is messed up everywhere in the GUI
 * Move pushFocusedObject to a ring buffer, or revamp it entirely for tabIndex
+* Folder-local config file
 
 == Editor Features ==
 * Extract selection to its own function in open file space
@@ -67,6 +64,7 @@
 * Plain/escaped/regex search and replace
 * Duplicate selected lines up/down
 * Move by words
+* Comment chars located before or after tabs
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
 * Duplicate selection
@@ -86,7 +84,7 @@
 * Remap selected key codes, only for editor 
 * Jump to declaration
 * Swap current and next word
-* Collapse whitespace
+* Collapse whitespace, option for automatic real-time
 * Scroll half the distance in a direction as can be scrolled (log2 scroll)
 * Option to place comment chars before or after whitespace, and control padding ws
 * SLOC count
@@ -135,7 +133,10 @@
 * Bitmap font option
 * Save/reload workspace
 * Options to look for config in ~/./etc/...
-
+* On-demand frame rendering
+* Don't render bg quads for chars with no bg color
+* Cache lines of prepared buffer commands
+* Async filebrowser fs operations
 
 
 == Language Notes ==
