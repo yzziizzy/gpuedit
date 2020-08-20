@@ -274,7 +274,7 @@ int Buffer_UndoReplayTop(Buffer* b) {
 			break;
 			
 		case UndoAction_InsertLineAfter: // delete the line
-			bl = Buffer_raw_GetLine(b, u->lineNum);
+			bl = Buffer_raw_GetLine(b, u->lineNum + 1);
 			Buffer_raw_DeleteLine(b, bl);
 			break; 
 			

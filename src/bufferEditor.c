@@ -107,9 +107,10 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 		sbHeight = 0;
 	}
 	
+	
 	w->statusBar->header.hidden = !w->showStatusBar;
 	w->statusBar->header.size = (Vector2){wsz.x, w->statusBarHeight};
-	w->statusBar->header.topleft = (Vector2){0, wsz.y - w->statusBarHeight};
+	w->statusBar->header.topleft = (Vector2){0, 0};
 	
 	w->ec->header.size = (Vector2){wsz.x, wsz.y - sbHeight};
 	w->ec->header.topleft = (Vector2){0, 0};
@@ -157,17 +158,25 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->showStatusBar = 1;
 	w->statusBarHeight = 30;
 	w->statusBar = GUIStatusBar_New(gm);
+// 	w->statusBar->header.flags = GUI_MAXIMIZE_X;
 	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;
 	w->statusBar->header.size.y = 30; 
 	w->statusBar->header.size.x = w->header.size.x;
 	w->statusBar->header.z = 500;
 	
-	w->statusBar->bgColor = (Color4){.2,.2,.2,1};
+	w->statusBar->bgColor = (Color4){.1,.1,.1,1};
 	w->statusBar->padding = (AABB2){{5,5}, {5,5}};
 	w->statusBar->spacing = 3;
 	
 	GUIRegisterObject(w, w->statusBar);
 	
+	
+// 	GUITextF* textf;
+	
+// 	textf = GUITextF_new(w->header.gm);
+// 	textf->header.topleft = (Vector2){4, 0};
+// 	GUITextF_setString(textf, "Column %>ld", &w->ec->buffer->curCol);
+// 	GUIRegisterObject(w->header.parent, textf);
 	
 	return w;
 }
@@ -512,7 +521,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			Buffer_MoveCursorH(w->buffer, cmd->amt);
-			GUIBufferEditControl_SetSelectionFromPivot(w);
+			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionV:
@@ -522,7 +531,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			Buffer_MoveCursorV(w->buffer, cmd->amt);
-			GUIBufferEditControl_SetSelectionFromPivot(w);
+			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
 			break;
 			
 		case BufferCmd_GoToLine:

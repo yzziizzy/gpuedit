@@ -13,8 +13,8 @@
 * Save Changes? close hook buffer integration
 * Split GUIManager draw calls into layers for less sorting
 * Shortcut config presets
-* Pause render loop on X window losing focus
-* Function chain to dynamically reload settings
+* Pause render loop on X window losing focus (optional)
+* Function chain to dynamically reload settings (incomplete)
 * Console
 * Built-in terminal
 * Slide-out windows
@@ -116,7 +116,7 @@
 * GUIManager should pop focus stack if focused control is deleted
 * Check all column usage for correct 1/0 basing
 * Theme styling of selection stub on empty lines
-* Line numbers occasionally overlap the tray for a single frame when scrolling, in violation of z-index
+* Maybe fixed incidentally: Line numbers occasionally overlap the tray for a single frame when scrolling, in violation of z-index
 * Clicking on the find box/editor area should steal focus
 * Window resize is broken somewhere
 * Selection dragging freezes after scrolling while dragging

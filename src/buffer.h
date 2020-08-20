@@ -104,6 +104,8 @@ typedef struct Buffer {
 	BufferLine* first, *last, *current; 
 	
 	intptr_t numLines;
+	
+	// TODO: move to GUIBufferEditControl
 	intptr_t curCol; // characters into the line
 	intptr_t curColDisp; // the visible display column, including tabstops, etc.
 	intptr_t curColWanted; // the visible display column to use, if it existed.
@@ -116,6 +118,7 @@ typedef struct Buffer {
 	
 	BufferRange* sel; // dynamic selection
 	
+	// TODO: also goes to GUIBufferEditControl
 	struct hlinfo* hl;
 	EditorParams* ep;
 	

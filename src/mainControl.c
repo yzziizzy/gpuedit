@@ -319,7 +319,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 	GUITextF* textf;
 	
 	GUIBufferEditor* bb = VEC_ITEM(&w->editors, 0);
-	printf("eds: %d, lines: %ld\n", VEC_LEN(&w->editors), bb->buffer->numLines);
+// 	printf("eds: %d, lines: %ld\n", VEC_LEN(&w->editors), bb->buffer->numLines);
 
 	args[0] = &bb->buffer->numLines;
 
