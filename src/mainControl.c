@@ -3,6 +3,8 @@
 #include "mainControl.h"
 #include "gui.h"
 #include "gui_internal.h"
+#include "ui/configLoader.h"
+#include "c_json/json.h"
 
 #include "fileBrowser.h"
 
@@ -330,7 +332,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		break;
 		
 	case MainCmd_SimpleWindowTest:
-		
+	{
 		sw = GUISimpleWindow_New(w->header.gm);
 		sw->header.topleft = (Vector2){20, 20};
 		sw->header.size = (Vector2){400, 400};
@@ -339,6 +341,14 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		GUIRegisterObject(w->header.parent, sw);
 		
 		
+		struct json_file* jsf = json_load_path("config/buffer_menu.json");
+		GUIObject* oo = GUICL_CreateFromConfig(w->header.gm, jsf->root);
+		
+		GUIRegisterObject(sw, oo);
+	}
+		
+		
+		/*
 		textf = GUITextF_new(w->header.gm);
 		textf->header.topleft = (Vector2){20, 50};
 		GUITextF_setString(textf, "----%>ld--", args);
@@ -349,7 +359,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 			/*GUIFormControl* ww = GUIFormControl_New(w->header.gm, (i%3) +1, "Foo");
 			ww->header.topleft.y = i * 35;
 			ww->header.size = (Vector2){370, 35};
-			GUIObject_AddClient(sw, ww);*/
+			GUIObject_AddClient(sw, ww);* /
 			
 			GUISelectBox* ww = GUISelectBox_New(w->header.gm);
 			ww->header.topleft.y = i * 45;
@@ -367,6 +377,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 			GUISelectBox_SetOptions(ww, opts, 5);
 			
 		}
+		*/
 		
 		break;
 	

@@ -278,14 +278,16 @@ Vector2 guiRecalcClientSize(GUIObject* go) {
 } 
 
 
-void guiAddClient(GUIObject* parent, GUIObject* child) {
-	if(parent->h.vt && parent->h.vt->AddClient)
-		parent->h.vt->AddClient(parent, child);
+void GUIAddClient_(GUIHeader* parent, GUIHeader* child) {
+	if(parent->vt && parent->vt->AddClient)
+		parent->vt->AddClient(parent, child);
+	else
+		GUIRegisterObject_(parent, child);
 } 
 
-void guiRemoveClient(GUIObject* parent, GUIObject* child) {
-	if(parent->h.vt && parent->h.vt->RemoveClient)
-		parent->h.vt->RemoveClient(parent, child);
+void GUIRemoveClient_(GUIHeader* parent, GUIHeader* child) {
+	if(parent->vt && parent->vt->RemoveClient)
+		parent->vt->RemoveClient(parent, child);
 } 
 
 

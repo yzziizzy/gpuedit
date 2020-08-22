@@ -56,6 +56,7 @@
 * Z-index is messed up everywhere in the GUI
 * Move pushFocusedObject to a ring buffer, or revamp it entirely for tabIndex
 * Folder-local config file
+* Split windows
 
 == Editor Features ==
 * Extract selection to its own function in open file space

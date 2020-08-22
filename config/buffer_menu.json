@@ -1,0 +1,9 @@
+{
+	type: "window",
+	pos: [0, 0],
+	size: [200, 200],
+	children: [
+		{ type: "text", pos: [10, 10], value: "Highlighter" },
+		{ type: "selectbox", pos: [110, 10], name: "highlighter" },
+	],
+}

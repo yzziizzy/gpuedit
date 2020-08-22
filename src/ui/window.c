@@ -35,8 +35,6 @@ GUIWindow* GUIWindow_New(GUIManager* gm) {
 // 		.GetClientSize = guiWindowGetClientSize,
 // 		.SetClientSize = guiWindowSetClientSize,
 // 		.RecalcClientSize = guiWindowRecalcClientSize,
-		.AddClient = guiWindowAddClient,
-		.RemoveClient = guiWindowRemoveClient,
 	};
 	
 	
@@ -166,19 +164,6 @@ Vector2 guiWindowRecalcClientSize(GUIObject* go) {
 	return max;
 }
 
-void guiWindowAddClient(GUIObject* parent, GUIObject* child) {
-	GUIWindow* w = &parent->window;
-	
-// 	int i = VEC_FIND(&w->clients, child);
-// 	if(i < 0) VEC_PUSH(&w->clients, child);
-};
-
-void guiWindowRemoveClient(GUIObject* parent, GUIObject* child) {
-	GUIWindow* w = &parent->window;
-	
-// 	int i = VEC_FIND(&w->clients, child);
-// 	if(i <= 0) VEC_RM(&w->clients, i);
-};
 
 
 

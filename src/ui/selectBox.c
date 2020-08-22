@@ -127,7 +127,7 @@ static void render(GUISelectBox* w, PassFrameParams* pfp) {
 	
 	if(w->selectedIndex > -1) {
 		GUISelectBoxOption* opt = &w->options[w->selectedIndex];
-		gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 100.3, opt->label, strlen(opt->label));
+		if(opt) gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 100.3, opt->label, strlen(opt->label));
 	}
 	
 	

@@ -429,6 +429,7 @@ typedef struct GUIManager {
 		struct Color4 selectBgColor;
 		struct Color4 selectBorderColor;
 		struct Color4 selectTextColor;
+		// TODO: font name, size 
 	} defaults;
 	
 	
@@ -484,6 +485,12 @@ void guiTriggerClick(GUIEvent* e);
 
 
 
+#define GUIAddClient(p, o) GUIAddClient_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
+void GUIAddClient_(GUIHeader* parent, GUIHeader* o);
+
+#define GUIRemoveClient(p, o) GUIRemoveClient_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
+void GUIRemoveClient_(GUIHeader* parent, GUIHeader* o);
+
 #define GUIRegisterObject(p, o) GUIRegisterObject_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
 void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o);
 
@@ -527,8 +534,6 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev);
 void guiSetClientSize(GUIObject* go, Vector2 cSize);
 Vector2 guiGetClientSize(GUIObject* go);
 Vector2 guiRecalcClientSize(GUIObject* go);
-void guiAddClient(GUIObject* parent, GUIObject* child);
-void guiRemoveClient(GUIObject* parent, GUIObject* child);
 
 
 
