@@ -170,15 +170,15 @@ static void render(GUISimpleWindow* w, PassFrameParams* pfp) {
 	box.max.x = h->size.x - 10;
 	box.max.y = tl.y + 20;
 	
-	gui_drawTextLine(h->gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &h->absClip, &h->gm->defaults.windowTitleTextColor, h->absZ + 0.3, w->title, strlen(w->title));
+	if(w->title)
+		gui_drawTextLine(h->gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &h->absClip, &h->gm->defaults.windowTitleTextColor, h->absZ + 0.3, w->title, strlen(w->title));
 }
 
 
 static void delete(GUISimpleWindow* w) {
 	
-	// Delete modifies the parent's children array. A normal VEC_EACH cannot be used.
-	while(VEC_LEN(&w->clientArea.children)) {
-		GUIObject_Delete_(VEC_HEAD(&w->clientArea.children));
+	VEC_EACH(&w->clientArea.children, i, child) {
+		GUIObject_Delete_(child);
 	}
 	
 	gui_default_Delete(w);
@@ -317,7 +317,6 @@ Vector2 guiSimpleWindowRecalcClientSize(GUIObject* go) {
 
 void addClient(GUIObject* _parent, GUIObject* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
-	
 	GUIRegisterObject_(&p->clientArea, &child->header);
 };
 
@@ -368,7 +367,6 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	gui_headerInit(&w->clientArea, gm, NULL, &client_event_vt);
 	w->clientArea.parent = &w->header; // for event handling
-	
 	// general options
 	w->xScrollbarThickness = 5;
 	w->yScrollbarThickness = 5;

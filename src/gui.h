@@ -485,10 +485,10 @@ void guiTriggerClick(GUIEvent* e);
 
 
 
-#define GUIAddClient(p, o) GUIAddClient_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
+#define GUIAddClient(p, o) GUIAddClient_((p) ? &((p)->header) : NULL, &(o)->header)
 void GUIAddClient_(GUIHeader* parent, GUIHeader* o);
 
-#define GUIRemoveClient(p, o) GUIRemoveClient_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
+#define GUIRemoveClient(p, o) GUIRemoveClient_((p) ? &((p)->header) : NULL, &(o)->header)
 void GUIRemoveClient_(GUIHeader* parent, GUIHeader* o);
 
 #define GUIRegisterObject(p, o) GUIRegisterObject_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)

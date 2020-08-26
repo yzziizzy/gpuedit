@@ -333,18 +333,19 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		
 	case MainCmd_SimpleWindowTest:
 	{
-		sw = GUISimpleWindow_New(w->header.gm);
+/* 		sw = GUISimpleWindow_New(w->header.gm);
 		sw->header.topleft = (Vector2){20, 20};
 		sw->header.size = (Vector2){400, 400};
 		sw->title = "foobar";
 // 		sw->absScrollPos.x = 50;
 		GUIRegisterObject(w->header.parent, sw);
-		
+		*/
 		
 		struct json_file* jsf = json_load_path("config/buffer_menu.json");
 		GUIObject* oo = GUICL_CreateFromConfig(w->header.gm, jsf->root);
 		
-		GUIRegisterObject(sw, oo);
+		GUIRegisterObject(w->header.parent, oo);
+// 		GUIRegisterObject(sw, oo);
 	}
 		
 		

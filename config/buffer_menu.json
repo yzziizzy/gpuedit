@@ -1,9 +1,11 @@
 {
-	type: "window",
+	type: "simpleWindow",
 	pos: [0, 0],
-	size: [200, 200],
+	size: [400, 400],
+	title: "Buffer Settings",
 	children: [
 		{ type: "text", pos: [10, 10], value: "Highlighter" },
+		{ type: "window", pos: [10, 10], z: 999999999, size: [30, 50], color: "#ff000077" },
 		{ type: "selectbox", pos: [110, 10], name: "highlighter" },
 	],
 }

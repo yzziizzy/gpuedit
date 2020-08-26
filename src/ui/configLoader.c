@@ -247,6 +247,9 @@ static GUIObject* create_GUISimpleWindow(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUISimpleWindow_New(gm);
 	
+	char* s = json_obj_get_string(cfg, "value");
+	if(s) obj->title = s; // TODO broken
+	
 	return (GUIObject*)obj;
 }
 
@@ -331,8 +334,13 @@ static GUIObject* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 	GUIWindow* obj;
 	
 	// TODO: read json for values
-	
+
 	obj = GUIWindow_New(gm);
+	
+	char* s = json_obj_key_as_string(cfg, "color");
+	if(s) {
+		decodeHexColorNorm(s, (float*)&obj->color);
+	}
 	
 	return (GUIObject*)obj;
 }
@@ -393,13 +401,16 @@ GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 		}
 		
 		free(elemType);
+		
+		read_header(&obj->header, cfg);
+		
+		if(!json_obj_get_key(cfg, "children", &j_kids)) {
+			GUICL_LoadChildren(gm, obj, j_kids);
+		}
+		
 	}
 	
-	read_header(&obj->header, cfg);
 	
-	if(!json_obj_get_key(cfg, "children", &j_kids)) {
-		GUICL_LoadChildren(gm, obj, j_kids);
-	}
 	
 	return obj;
 }
@@ -435,7 +446,7 @@ void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg) {
 		}
 		
 		
-		GUIAddClient(parent, child);
+		GUIAddClient_(parent, child);
 		
 		
 		link = link->next;
