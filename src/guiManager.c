@@ -129,6 +129,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->defaults.selectBgColor = COLOR4_FROM_HEX(20, 15, 3, 255);
 	gm->defaults.selectBorderColor = COLOR4_FROM_HEX(100, 150, 30, 255);
 	gm->defaults.selectTextColor = COLOR4_FROM_HEX(150, 190, 60, 255);
+	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
 }

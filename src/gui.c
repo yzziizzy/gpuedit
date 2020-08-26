@@ -119,7 +119,7 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 	h->absZ = grp->baseZ + h->z + 0.00001;
 	vSub2(&tl, &grp->offset, &h->relTopLeft);
 	
-	if(!(h->flags & GUI_NOCLIP)) {
+	if(!(h->flags & GUI_NO_CLIP)) {
 		h->absClip = gui_clipTo(grp->clip, (AABB2){
 			tl, {tl.x + h->size.x, tl.y + h->size.y}
 		});
@@ -139,6 +139,7 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 		GUIHeader_updatePos(child, &grp2, pfp);
 	}
 	
+
 }
 
 

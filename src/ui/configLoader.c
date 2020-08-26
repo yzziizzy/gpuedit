@@ -28,12 +28,13 @@ static struct Color4 json_get_color(json_value_t* v) {
 	if(!v) return c;
 	
 	if(v->type == JSON_TYPE_STRING) {
-		// TODO: parsing/lookup table
+		// TODO: lookup table
+		decodeHexColorNorm(v->v.str, (float*)&c);
 	}
 	else if(v->type == JSON_TYPE_ARRAY) {
 		switch(v->v.arr->length) {
 			case 1:
-// 				c.r
+// 				c.r = v->v.arr->head->value; 
 			
 			case 3:
 			case 4:
@@ -94,10 +95,9 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 	if(!json_obj_get_key(cfg, "topleft", &v)) {
 		json_as_vector(v, 2, &h->topleft);
 	}
-	printf("readheader \n");
+	
 	if(!json_obj_get_key(cfg, "size", &v)) {
 		json_as_vector(v, 2, &h->size);
-		printf("sz: %f, %f\n", h->size.x, h->size.y);
 		GUIResize(h, h->size);
 	}
 	
@@ -282,9 +282,41 @@ static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
 	
 	if(!json_obj_get_key(cfg, "options", &opts_v)) {
 		if(opts_v->type == JSON_TYPE_ARRAY) {
-			printf("Array select box options NYI\n");
+			
+			
+			optCnt = json_array_length(opts_v) / 2;
+			sbOpts = calloc(1, sizeof(*sbOpts) * optCnt);
+			
 			// TODO: [{label: "foo", value: 3.5}, ...]
-			// TODO: ["foo", 3.5, ...]
+			
+			
+			// ["foo", 3.5, ...]
+			json_array_node_t* link = opts_v->v.arr->head;
+			int i = 0;
+			while(link) {
+				char* label = NULL;
+				char* value = NULL;
+				
+				// label first
+				json_as_string(link->value, &label);
+				
+				link = link->next;
+				if(!link) {
+					if(label) free(label);
+					break;
+				}
+				
+				// value second
+				json_as_string(link->value, &value);
+				
+				// add the option
+				sbOpts[i].label = strdup(label);
+				sbOpts[i].data = strdup(value);
+				i++;
+				
+				link = link->next;
+			}
+			
 		}
 		else if(opts_v->type == JSON_TYPE_OBJ) {
 			json_value_t* v;
@@ -323,8 +355,8 @@ static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUISelectBox_New(gm);
 	if(optCnt > 0) {
-		GUISelectBox_SetOptions(obj, sbOpts, 0);
-		free(sbOpts);
+		GUISelectBox_SetOptions(obj, sbOpts, optCnt);
+		if(sbOpts) free(sbOpts);
 	}
 	
 	return (GUIObject*)obj;

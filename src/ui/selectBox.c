@@ -125,9 +125,9 @@ static void render(GUISelectBox* w, PassFrameParams* pfp) {
 	// arrow button
 // 	gui_drawBorderBox(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectColor), 1, D(selectBorderColor));
 	
-	if(w->selectedIndex > -1) {
+	if(w->optionCnt > 0 && w->selectedIndex > -1) {
 		GUISelectBoxOption* opt = &w->options[w->selectedIndex];
-		if(opt) gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 100.3, opt->label, strlen(opt->label));
+		if(opt && opt->label) gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 100.3, opt->label, strlen(opt->label));
 	}
 	
 	
@@ -184,7 +184,7 @@ static void updatePos(GUISelectBox* w, GUIRenderParams* grp, PassFrameParams* pf
 // 	w->bg->header.size = h->size;
 // 	w->titlebar->header.size.x = h->size.x;
 // 	w->titlebar->header.size.y = 20;
-	h->flags |= GUI_NOCLIP;
+	h->flags |= GUI_NO_CLIP;
 	gui_defaultUpdatePos(h, grp, pfp);
 	
 	
@@ -266,7 +266,7 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 	
 	// general options
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
-	
+	w->header.size = gm->defaults.selectSize;
 	
 	
 	// dropdown

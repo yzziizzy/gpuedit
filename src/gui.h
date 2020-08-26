@@ -232,9 +232,11 @@ typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 #define GUIMOUSECURSOR_TEXT  0x02
 #define GUIMOUSECURSOR_WAIT  0x03
 
-#define GUI_MAXIMIZE_X 0x0001
-#define GUI_MAXIMIZE_Y 0x0002
-#define GUI_NOCLIP     0x0004
+#define GUI_MAXIMIZE_X      0x0001
+#define GUI_MAXIMIZE_Y      0x0002
+#define GUI_NO_CLIP         0x0004
+#define GUI_SIZE_TO_CONTENT 0x0008 // NYI: (gravity makes this very complicated) automatic, based on children
+#define GUI_AUTO_SIZE       0x0010 // manual flag, for the bottom level
 
 typedef struct GUIHeader {
 	struct GUIManager* gm;
@@ -429,6 +431,7 @@ typedef struct GUIManager {
 		struct Color4 selectBgColor;
 		struct Color4 selectBorderColor;
 		struct Color4 selectTextColor;
+		Vector2       selectSize;
 		// TODO: font name, size 
 	} defaults;
 	
@@ -484,18 +487,22 @@ void GUIResize(GUIHeader* gh, Vector2 newSz);
 void guiTriggerClick(GUIEvent* e); 
 
 
-
+// USE THIS ONE. virtual function.
 #define GUIAddClient(p, o) GUIAddClient_((p) ? &((p)->header) : NULL, &(o)->header)
 void GUIAddClient_(GUIHeader* parent, GUIHeader* o);
 
 #define GUIRemoveClient(p, o) GUIRemoveClient_((p) ? &((p)->header) : NULL, &(o)->header)
 void GUIRemoveClient_(GUIHeader* parent, GUIHeader* o);
 
+
+// NOT this one. direct child addition
 #define GUIRegisterObject(p, o) GUIRegisterObject_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
 void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o);
 
 #define GUIUnregisterObject(o) GUIUnregisterObject_(&(o)->header)
 void GUIUnregisterObject_(GUIHeader* o);
+
+
 
 // Delete marks things to be reaped later. It removes objects from the root tree.
 #define GUIObject_Delete(o) GUIObject_Delete_(&(o)->header)

@@ -35,7 +35,7 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 // 	gt->header.gm = gm;
 	gui_headerInit(&gt->header, gm, &static_vt, NULL);
 // 	gt->header.vt = &static_vt; 
-	
+	gt->font = gm->defaults.font;
 	
 // 	gt->fontSize = fontSize;
 // 	gt->font = FontManager_findFont(gm->fm, fontname);
@@ -45,26 +45,31 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	}
 
 	// TODO: x size, fix y size
-	gt->header.size = (Vector2){guiTextGetTextWidth(gt, 999999)+ 5, 14}; 
+	gt->header.size = (Vector2){guiTextGetTextWidth(gt, 999999)+ 5, gt->font->height}; 
 
 	
 	return gt;
 }
 
 
-/* standard for text
 static void updatePos(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIHeader* h = &gt->header; 
-	Vector2 tl = gui_calcPosGrav(h, grp);
-	h->absTopLeft = tl;
-	h->absClip = grp->clip;
-	h->absZ = grp->baseZ + h->z;
-}*/
+
+	if(h->flags & GUI_AUTO_SIZE) {
+		h->size = (Vector2){
+			guiTextGetTextWidth(gt, 999999)+5,
+			gt->font->height 
+		}; 
+	}
+	
+	gui_defaultUpdatePos(gt, grp, pfp);
+}
+
 
 static void render(GUIText* gt, PassFrameParams* pfp) {
 	char* txt = gt->currentStr;
 	GUIManager* gm = gt->header.gm;
-	GUIFont* f = /*gt->font ||*/ gm->defaults.font;
+	GUIFont* f = gt->font;
 	
 	Vector2 tl = gt->header.absTopLeft;
 	
