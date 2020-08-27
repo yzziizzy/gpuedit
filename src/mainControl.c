@@ -99,19 +99,21 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 	
 	GUIHeader_renderChildren(&w->header, pfp);
 	
-	/*
+	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 3);
 	spinner += .01;
 	spinner = fmod(spinner, 6.28);
 	
 	*v++ = (GUIUnifiedVertex){
-		.pos = {100, 100, 140, 140},
+		.pos = {100, 100, 140, 240},
 		.clip = {0,0, 1000, 1000},
 		
 		.guiType = 6, // triangle
 		
+		.texIndex1 = 30,
+		
 		.fg = {255, 255, 255, 255}, 
-		.bg = {255, 255, 255, 255}, 
+		.bg = {0, 255, 0, 255}, 
 		.z = 99999999,
 		.alpha = 1,
 		.rot = spinner,
@@ -132,7 +134,7 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 		.alpha = 1,
 	};
 	*v++ = (GUIUnifiedVertex){
-		.pos = {x-1, y - 1, x + 1, y + 1},
+		.pos = {x-2, y - 2, x + 2, y + 2},
 		.clip = {0,0, 1000, 1000},
 		
 		.guiType = 0, // box
@@ -142,7 +144,7 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 		.z = 9999999999,
 		.alpha = 1,
 	};
-	*/
+	
 }
 
 

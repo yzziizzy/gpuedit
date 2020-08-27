@@ -107,9 +107,9 @@ flat out float gs_opacity;
 flat out vec4 gs_clip; 
 flat out vec4 gs_fg_color; 
 flat out vec4 gs_bg_color; 
-flat out int gs_guiType;
+flat out int  gs_guiType;
 flat out vec4 gs_geom;
-
+     out vec3 gs_bary;
 
 
 void main() {
@@ -118,48 +118,52 @@ void main() {
 	// triangles
 	if(vertex[0].guiType == 6) {
 		
+		vec2 ts = vec2(targetSize);
 		float c = cos(vertex[0].rot);
 		float s = sin(vertex[0].rot);
  		mat2 rm = { vec2(c, -s), vec2(s, c)};
 		vec2 center = vertex[0].lt_rb.xy * vec2(1, -1);
 		
-		float th = ((targetSize.y - vertex[0].lt_rb_abs.w) / targetSize.y) * (2.0 / 3.0);
-		float hw = vertex[0].lt_rb_abs.z / targetSize.x;
-		vec2 base1 = vec2(-hw, -th)*rm + center;
-		vec2 base2 = vec2(hw, -th)*rm + center;
-		vec2 top = vec2(0, th*2)*rm + center;
+		float th = ((targetSize.y - vertex[0].lt_rb_abs.w)) * (2.0 / 3.0);
+		float hw = vertex[0].lt_rb_abs.z;
+		vec2 base1 = ((vec2(-hw, -th) * rm) / targetSize) + center;
+		vec2 base2 = ((vec2(hw, -th) * rm) / targetSize) + center;
+		vec2 top = ((vec2(0, th*2) * rm) / targetSize) + center;
 		
 		
 		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
 		gs_opacity = vertex[0].opacity;
 		gs_clip = vertex[0].clip;
-		gs_guiType = 0; // change to window
+		gs_guiType = 6;
 		gs_fg_color = vertex[0].fg_color;
 		gs_bg_color = vertex[0].bg_color;
 	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
+		gs_bary = vec3(hw, 0, 0);
 		gl_Position = vec4(base1.xy, 0, 1);
 		EmitVertex();
 		
 		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
 		gs_opacity = vertex[0].opacity;
 		gs_clip = vertex[0].clip;
-		gs_guiType = 0; // change to window
+		gs_guiType = 6;
 		gs_fg_color = vertex[0].fg_color;
 		gs_bg_color = vertex[0].bg_color;
 	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
+		gs_bary = vec3(0, hw, 0);
 		gl_Position = vec4(base2.xy, 0, 1);
 		EmitVertex();
 		
 		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
 		gs_opacity = vertex[0].opacity;
 		gs_clip = vertex[0].clip;
-		gs_guiType = 0; // change to window
+		gs_guiType = 6;
 		gs_fg_color = vertex[0].fg_color;
 		gs_bg_color = vertex[0].bg_color;
 	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
+		gs_bary = vec3(0, 0, th * 2.0); // BUG scaling is not quite right
 		gl_Position = vec4(top.xy, 0, 1);
 		EmitVertex();
 		
@@ -233,6 +237,7 @@ flat in vec4 gs_bg_color;
 flat in int gs_guiType; 
 flat in vec4 gs_geom; 
 
+in vec3 gs_bary;
 
 uniform sampler2DArray fontTex;
 uniform sampler2DArray atlasTex;
@@ -312,8 +317,20 @@ void main(void) {
 		
 		return;
 	}
-	// else if(gs_guiType == 6) // triangle, switched to 0 in geometry shader
-	
+	else if(gs_guiType == 6) { // triangle
+		out_Color = gs_bg_color;
+		
+		float bwidth = gs_tex.z;
+		
+		if(gs_bary.x > bwidth && gs_bary.y > bwidth && gs_bary.z > bwidth) {
+			out_Color = gs_fg_color;
+		}
+		
+		if(out_Color.w < 0.01) discard;
+		
+		return;
+		
+	}
 	out_Color = vec4(1,.1,.1, .4);
 	
 	
