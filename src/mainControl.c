@@ -85,7 +85,7 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 }
 
 
-
+float spinner = 0;
 
 static void render(GUIMainControl* w, PassFrameParams* pfp) {
 	
@@ -98,6 +98,51 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 	}
 	
 	GUIHeader_renderChildren(&w->header, pfp);
+	
+	/*
+	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 3);
+	spinner += .01;
+	spinner = fmod(spinner, 6.28);
+	
+	*v++ = (GUIUnifiedVertex){
+		.pos = {100, 100, 140, 140},
+		.clip = {0,0, 1000, 1000},
+		
+		.guiType = 6, // triangle
+		
+		.fg = {255, 255, 255, 255}, 
+		.bg = {255, 255, 255, 255}, 
+		.z = 99999999,
+		.alpha = 1,
+		.rot = spinner,
+	};
+	
+	float x = 100;
+	float y = 100;
+	
+	*v++ = (GUIUnifiedVertex){
+		.pos = {x-100, y - 100, x + 100, y + 100},
+		.clip = {0,0, 1000, 1000},
+		
+		.guiType = 0, // box
+		
+		.fg = {255, 200, 255, 255}, 
+		.bg = {255, 200, 255, 255}, 
+		.z = 9999999,
+		.alpha = 1,
+	};
+	*v++ = (GUIUnifiedVertex){
+		.pos = {x-1, y - 1, x + 1, y + 1},
+		.clip = {0,0, 1000, 1000},
+		
+		.guiType = 0, // box
+		
+		.fg = {255, 0, 255, 255}, 
+		.bg = {255, 0, 255, 255}, 
+		.z = 9999999999,
+		.alpha = 1,
+	};
+	*/
 }
 
 

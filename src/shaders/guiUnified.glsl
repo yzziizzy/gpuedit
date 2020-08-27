@@ -12,6 +12,8 @@ layout (location = 4) in vec4 tex_size_in;
 layout (location = 5) in vec4 fg_color_in;
 layout (location = 6) in vec4 bg_color_in;
 
+layout (location = 7) in vec4 z_a_rot_in;
+
 uniform ivec2 targetSize;
 
 
@@ -27,6 +29,7 @@ out Vertex {
 	vec2 texOffset1;
 	vec2 texSize1;
 	int texIndex1;
+	float rot;
 	
 } vertex;
 
@@ -65,6 +68,8 @@ void main() {
 	vertex.texOffset1 = tex_off_in.xy;
 	vertex.texSize1 = tex_size_in.xy;
 	vertex.texIndex1 = int(tex_type_in.x);
+	
+	vertex.rot = z_a_rot_in.z;
 }
 
 
@@ -79,6 +84,8 @@ void main() {
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
+uniform ivec2 targetSize;
+
 in Vertex {
 	vec4 lt_rb;
 	vec4 lt_rb_abs;
@@ -91,7 +98,7 @@ in Vertex {
 	vec2 texOffset1;
 	vec2 texSize1;
 	int texIndex1;
-	
+	float rot;
 } vertex[];
 
 
@@ -108,52 +115,103 @@ flat out vec4 gs_geom;
 void main() {
 	//if(vertex[0].opacity == 0.0) return;
 	
+	// triangles
+	if(vertex[0].guiType == 6) {
+		
+		float c = cos(vertex[0].rot);
+		float s = sin(vertex[0].rot);
+ 		mat2 rm = { vec2(c, -s), vec2(s, c)};
+		vec2 center = vertex[0].lt_rb.xy * vec2(1, -1);
+		
+		float th = ((targetSize.y - vertex[0].lt_rb_abs.w) / targetSize.y) * (2.0 / 3.0);
+		float hw = vertex[0].lt_rb_abs.z / targetSize.x;
+		vec2 base1 = vec2(-hw, -th)*rm + center;
+		vec2 base2 = vec2(hw, -th)*rm + center;
+		vec2 top = vec2(0, th*2)*rm + center;
+		
+		
+		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
+		gs_opacity = vertex[0].opacity;
+		gs_clip = vertex[0].clip;
+		gs_guiType = 0; // change to window
+		gs_fg_color = vertex[0].fg_color;
+		gs_bg_color = vertex[0].bg_color;
+	// 	gs_texHandle = vertex[0].texHandle;
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(base1.xy, 0, 1);
+		EmitVertex();
+		
+		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
+		gs_opacity = vertex[0].opacity;
+		gs_clip = vertex[0].clip;
+		gs_guiType = 0; // change to window
+		gs_fg_color = vertex[0].fg_color;
+		gs_bg_color = vertex[0].bg_color;
+	// 	gs_texHandle = vertex[0].texHandle;
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(base2.xy, 0, 1);
+		EmitVertex();
+		
+		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
+		gs_opacity = vertex[0].opacity;
+		gs_clip = vertex[0].clip;
+		gs_guiType = 0; // change to window
+		gs_fg_color = vertex[0].fg_color;
+		gs_bg_color = vertex[0].bg_color;
+	// 	gs_texHandle = vertex[0].texHandle;
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(top.xy, 0, 1);
+		EmitVertex();
+		
+		
+	}
+	else { // non-triangles
 
-	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-	gs_opacity = vertex[0].opacity;
-	gs_clip = vertex[0].clip;
-	gs_guiType = vertex[0].guiType;
-	gs_fg_color = vertex[0].fg_color;
-	gs_bg_color = vertex[0].bg_color;
-// 	gs_texHandle = vertex[0].texHandle;
-	gs_geom = vertex[0].lt_rb_abs;
-	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
-	EmitVertex();
+		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
+		gs_opacity = vertex[0].opacity;
+		gs_clip = vertex[0].clip;
+		gs_guiType = vertex[0].guiType;
+		gs_fg_color = vertex[0].fg_color;
+		gs_bg_color = vertex[0].bg_color;
+	// 	gs_texHandle = vertex[0].texHandle;
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
+		EmitVertex();
 
-	
-	gs_tex = vec3(vertex[0].texOffset1.x + vertex[0].texSize1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-	gs_opacity = vertex[0].opacity;
-	gs_clip = vertex[0].clip;
-	gs_guiType = vertex[0].guiType;
-	gs_fg_color = vertex[0].fg_color;
-	gs_bg_color = vertex[0].bg_color;
-// 	gs_texHandle = vertex[0].texHandle;
-	gs_geom = vertex[0].lt_rb_abs;
-	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.y, 0, 1);
-	EmitVertex();
-	
-	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y + vertex[0].texSize1.y, vertex[0].texIndex1);
-	gs_opacity = vertex[0].opacity;
-	gs_clip = vertex[0].clip;
-	gs_guiType = vertex[0].guiType;
-	gs_fg_color = vertex[0].fg_color;
-	gs_bg_color = vertex[0].bg_color;
-// 	gs_texHandle = vertex[0].texHandle;
-	gs_geom = vertex[0].lt_rb_abs;
-	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.w, 0, 1);
-	EmitVertex();
+		
+		gs_tex = vec3(vertex[0].texOffset1.x + vertex[0].texSize1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
+		gs_opacity = vertex[0].opacity;
+		gs_clip = vertex[0].clip;
+		gs_guiType = vertex[0].guiType;
+		gs_fg_color = vertex[0].fg_color;
+		gs_bg_color = vertex[0].bg_color;
+	// 	gs_texHandle = vertex[0].texHandle;
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.y, 0, 1);
+		EmitVertex();
+		
+		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y + vertex[0].texSize1.y, vertex[0].texIndex1);
+		gs_opacity = vertex[0].opacity;
+		gs_clip = vertex[0].clip;
+		gs_guiType = vertex[0].guiType;
+		gs_fg_color = vertex[0].fg_color;
+		gs_bg_color = vertex[0].bg_color;
+	// 	gs_texHandle = vertex[0].texHandle;
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.w, 0, 1);
+		EmitVertex();
 
-	gs_tex = vec3(vertex[0].texOffset1 + vertex[0].texSize1, vertex[0].texIndex1);
-	gs_opacity = vertex[0].opacity;
-	gs_clip = vertex[0].clip;
-	gs_guiType = vertex[0].guiType;
-	gs_fg_color = vertex[0].fg_color;
-	gs_bg_color = vertex[0].bg_color;
-// 	gs_texHandle = vertex[0].texHandle;
-	gs_geom = vertex[0].lt_rb_abs;
-	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.w, 0, 1);
-	EmitVertex();
-
+		gs_tex = vec3(vertex[0].texOffset1 + vertex[0].texSize1, vertex[0].texIndex1);
+		gs_opacity = vertex[0].opacity;
+		gs_clip = vertex[0].clip;
+		gs_guiType = vertex[0].guiType;
+		gs_fg_color = vertex[0].fg_color;
+		gs_bg_color = vertex[0].bg_color;
+	// 	gs_texHandle = vertex[0].texHandle;
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.w, 0, 1);
+		EmitVertex();
+	}
 	
 	EndPrimitive(); 
 }
@@ -254,7 +312,7 @@ void main(void) {
 		
 		return;
 	}
-	
+	// else if(gs_guiType == 6) // triangle, switched to 0 in geometry shader
 	
 	out_Color = vec4(1,.1,.1, .4);
 	

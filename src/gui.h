@@ -65,6 +65,15 @@ struct ShaderBox {
 	float l, t, r, b;
 } __attribute__ ((packed));
 
+
+/*
+For triangles (type = 6)
+	pos.tl = centroid
+	pos.b = height
+	pos.r = base
+	
+*/
+
 typedef struct GUIUnifiedVertex {
 	struct ShaderBox pos;
 	struct ShaderBox clip;
@@ -75,7 +84,7 @@ typedef struct GUIUnifiedVertex {
 	struct ShaderColor4 fg;
 	struct ShaderColor4 bg;
 	
-	float z, alpha, opt1, opt2;
+	float z, alpha, rot, opt2;
 	
 } __attribute__ ((packed)) GUIUnifiedVertex;
 
