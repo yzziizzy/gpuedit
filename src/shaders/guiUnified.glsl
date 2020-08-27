@@ -331,6 +331,57 @@ void main(void) {
 		return;
 		
 	}
+	else if(gs_guiType == 7) { // ellipse
+		
+		
+		out_Color = gs_bg_color;
+		
+		// (x2 / a2) + (y2 / b2) = 1
+		
+		float w = gs_geom.z - gs_geom.x;
+		float h = gs_geom.w - gs_geom.y;
+		
+		float a = w / 2;
+		float b = h / 2;
+		
+		float x = gl_FragCoord.x - gs_geom.x - a;
+		float y = gl_FragCoord.y - gs_geom.y - b;
+		
+		float r = ((x*x) / (a*a)) + ((y*y) / (b*b));
+		if(r > 1) {
+			discard; // TODO: antialiasing
+		}
+		
+		
+		// this algorithm is not mathematically correct but it's close enough for rendering.
+		
+		// solve for the intersection of the line (0,0),(x,y) and the ellipse: +/-(x1,y1).
+		float q = a*b / sqrt(a*a*y*y + b*b*x*x);
+		
+		float x1 = q * x;
+		float y1 = q * y;
+		
+		// there are two solutions. 
+		// get the distance from (x,y) to each
+		float d1 = distance(vec2(x1, y1), vec2(x, y));
+		float d2 = distance(vec2(-x1, -y1), vec2(x, y));
+		
+		// take the one closest to (x,y)
+		float d = min(d1, d2);
+		
+		// d is approximately the distance from (x,y) to the ellipse.
+		if(d < gs_tex.z) {
+			out_Color = gs_fg_color;
+		}
+		
+		if(out_Color.w < 0.01) discard;
+		
+		return;
+	}
+	
+	// gradients
+	
+	// error fallthrough debug value
 	out_Color = vec4(1,.1,.1, .4);
 	
 	
