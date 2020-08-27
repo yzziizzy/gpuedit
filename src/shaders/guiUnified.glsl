@@ -380,6 +380,9 @@ void main(void) {
 	}
 	
 	// gradients
+	// right triangles
+	// diamonds or general rotation
+	
 	
 	// error fallthrough debug value
 	out_Color = vec4(1,.1,.1, .4);

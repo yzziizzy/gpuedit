@@ -61,6 +61,31 @@ void gui_drawBoxBorder(
 	Color4* borderColor
 );
 
+
+void gui_drawTriangle(
+	GUIManager* gm, 
+	Vector2 centroid, 
+	float baseWidth, 
+	float height, 
+	float rotation,
+	AABB2* clip, 
+	float z, 
+	Color4* bgColor
+);
+
+void gui_drawTriangleBorder(
+	GUIManager* gm, 
+	Vector2 centroid, 
+	float baseWidth, 
+	float height, 
+	float rotation,
+	AABB2* clip, 
+	float z, 
+	Color4* bgColor,
+	float borderWidth,
+	Color4* borderColor
+);
+
 // stops on linebreak
 void gui_drawTextLine(
 	GUIManager* gm,

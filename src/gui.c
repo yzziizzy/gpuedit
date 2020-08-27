@@ -407,13 +407,6 @@ GUIObject* GUIObject_findChild(GUIObject* obj, char* childName) {
 
 /*
 
-// uses default font type and size
-draw_ui_text(pos, color, aabb, str, len) {
-
-
-}
-
-
 size_t drawCharacter(
 	GUIManager* gm, 
 	TextDrawParams* tdp, 
@@ -532,6 +525,67 @@ void gui_drawBoxBorder(
 	};
 }
 
+
+
+void gui_drawTriangle(
+	GUIManager* gm, 
+	Vector2 centroid, 
+	float baseWidth, 
+	float height, 
+	float rotation,
+	AABB2* clip, 
+	float z, 
+	Color4* bgColor
+) {
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	
+	*v++ = (GUIUnifiedVertex){
+		.pos = {centroid.x, centroid.y, baseWidth, height},
+		.clip = GUI_AABB2_TO_SHADER(*clip),
+		
+		.guiType = 6, // triangle
+		
+		.texIndex1 = 0,
+		
+		.fg = GUI_COLOR4_TO_SHADER(*bgColor), 
+		.bg = GUI_COLOR4_TO_SHADER(*bgColor), 
+		.z = z,
+		.alpha = 1,
+		.rot = rotation,
+	};
+}
+
+void gui_drawTriangleBorder(
+	GUIManager* gm, 
+	Vector2 centroid, 
+	float baseWidth, 
+	float height,
+	float rotation,
+	AABB2* clip, 
+	float z, 
+	Color4* bgColor,
+	float borderWidth,
+	Color4* borderColor
+) {
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	
+	*v++ = (GUIUnifiedVertex){
+		.pos = {centroid.x, centroid.y, baseWidth, height},
+		.clip = GUI_AABB2_TO_SHADER(*clip),
+		
+		.guiType = 6, // triangle
+		
+		.texIndex1 = borderWidth,
+		
+		.fg = GUI_COLOR4_TO_SHADER(*borderColor), 
+		.bg = GUI_COLOR4_TO_SHADER(*bgColor), 
+		.z = z,
+		.alpha = 1,
+		.rot = rotation,
+	};
+}
+
+
 // stops on linebreak
 void gui_drawTextLine(
 	GUIManager* gm,
@@ -551,7 +605,7 @@ void gui_drawTextLine(
 	int charsDrawn = 0;
 	GUIFont* f = gm->defaults.font;
 	float size = gm->defaults.fontSize; // HACK
-	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+	float hoff = size * f->ascender;
 	float adv = 0;
 	if(!color) color = &gm->defaults.textColor;
 	
@@ -664,7 +718,7 @@ void gui_drawVCenteredTextLine(
 	
 	GUIFont* f = gm->defaults.font;
 	float size = gm->defaults.fontSize; // HACK
-	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+	float hoff = size * f->height;
 	
 	float a = sz.y - hoff;
 	float b = fmax(a / 2.0, 0);

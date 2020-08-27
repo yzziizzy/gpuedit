@@ -123,6 +123,22 @@ static void render(GUISelectBox* w, PassFrameParams* pfp) {
 	gui_drawBoxBorder(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectBgColor), 1, D(selectBorderColor));
 	
 	// arrow button
+	float arsz = h->size.y * .4;
+	Vector2 centroid = {
+		tl.x + h->size.x - (h->size.y / 2),
+		tl.y + h->size.y * .4
+	};
+	
+	gui_drawTriangle(gm,
+		centroid, 
+		arsz, 
+		arsz, 
+		3.1415,
+		&h->absClip, 
+		h->absZ + 1, 
+		D(selectBorderColor)
+	);
+	
 // 	gui_drawBorderBox(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectColor), 1, D(selectBorderColor));
 	
 	if(w->optionCnt > 0 && w->selectedIndex > -1) {
