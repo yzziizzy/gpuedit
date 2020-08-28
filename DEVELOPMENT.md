@@ -111,6 +111,7 @@
 * Notify when semicolons appear to be missing
 
 == BUGS ==
+* Text in BufferEditor menu blinks when buffer is scrolled while open
 * Mouse scroll on files with fewer lines than the screen
 * Should not be able to delete the last line
 * Fix cursor position after undo

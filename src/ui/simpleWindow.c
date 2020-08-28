@@ -85,7 +85,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	// close
-	if(gev->originalTarget == w->closebutton) {
+	if(gev->originalTarget == (void*)w->closebutton) {
 		w->header.hidden = 1;
 		GUIObject_Delete(w);
 		
@@ -99,7 +99,7 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 // 	printf("dragstart %p, %p\n", gev->originalTarget, w->titlebar);
-	if(gev->originalTarget == w->titlebar) {
+	if(gev->originalTarget == (void*)w->titlebar) {
 		w->isDragging = 1;
 		
 		vSub2(&gev->dragStartPos, &w->header.topleft, &w->dragOffset);
@@ -155,7 +155,8 @@ static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
 }
 
 
-static void render(GUISimpleWindow* w, PassFrameParams* pfp) {
+static void render(GUIObject* w_, PassFrameParams* pfp) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	GUIHeader* h = &w->header;
 	
 	GUIHeader_renderChildren(&w->header, pfp);
@@ -175,19 +176,21 @@ static void render(GUISimpleWindow* w, PassFrameParams* pfp) {
 }
 
 
-static void delete(GUISimpleWindow* w) {
+static void delete(GUIObject* w_) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	VEC_EACH(&w->clientArea.children, i, child) {
-		GUIObject_Delete_(child);
+		GUIObject_Delete(child);
 	}
 	
-	gui_default_Delete(w);
+	gui_default_Delete(&w->header);
 }
 
 
 
 
-static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
+	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	GUIHeader* h = &w->header;
 	GUIHeader* ch = &w->clientArea;
 	
@@ -275,7 +278,7 @@ static void updatePos(GUISimpleWindow* w, GUIRenderParams* grp, PassFrameParams*
 	
 	
 	// TODO: hardcoded titlebar height
-	
+	 
 // 	VEC_EACH(&w->clientArea.children, ind, child) {
 // 		GUIHeader_updatePos(&child->header, &grp2, pfp);
 // 	}
@@ -314,16 +317,22 @@ Vector2 guiSimpleWindowRecalcClientSize(GUIObject* go) {
 	return csz;
 }
 */
-
-void addClient(GUIObject* _parent, GUIObject* child) {
+ 
+static void addClient(GUIObject* _parent, GUIObject* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
 	GUIRegisterObject_(&p->clientArea, &child->header);
 };
 
-void removeClient(GUIObject* _parent, GUIObject* child) {
+static void removeClient(GUIObject* _parent, GUIObject* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
 	
 	GUIUnregisterObject(child);
+};
+
+static GUIObject* findChild(GUIObject* h, char* name) {
+	GUISimpleWindow* w = (GUISimpleWindow*)h;
+	
+	return gui_defaultFindChild((GUIObject*)&w->clientArea, name);
 };
 
 
@@ -341,6 +350,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 // 		.RecalcClientSize = guiSimpleWindowRecalcClientSize,
 		.AddClient = addClient,
 		.RemoveClient = removeClient,
+		.FindChild = findChild,
 		.SetScrollPct = setScrollPct,
 		.SetScrollAbs = setScrollAbs,
 	};
@@ -366,7 +376,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	gui_headerInit(&w->clientArea, gm, NULL, &client_event_vt);
-	w->clientArea.parent = &w->header; // for event handling
+	w->clientArea.parent = (GUIObject*)w; // for event handling
 	// general options
 	w->xScrollbarThickness = 5;
 	w->yScrollbarThickness = 5;

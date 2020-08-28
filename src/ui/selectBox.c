@@ -140,9 +140,9 @@ static void render(GUISelectBox* w, PassFrameParams* pfp) {
 	);
 	
 // 	gui_drawBorderBox(gm, tl, h->size, &h->absClip, h->absZ + 0.2, D(selectColor), 1, D(selectBorderColor));
-	
 	if(w->optionCnt > 0 && w->selectedIndex > -1) {
 		GUISelectBoxOption* opt = &w->options[w->selectedIndex];
+// 		if(opt) printf("opt: %s\n", opt->label);
 		if(opt && opt->label) gui_drawVCenteredTextLine(h->gm, tl, h->size, &h->absClip, D(selectTextColor), h->absZ + 100.3, opt->label, strlen(opt->label));
 	}
 	

@@ -53,6 +53,7 @@ A  XK_Prior  = BufferCmd_GoToPrevBookmark     0 scrollToCursor
 A  XK_Home   = BufferCmd_GoToFirstBookmark    0 scrollToCursor
 A  XK_End    = BufferCmd_GoToLastBookmark     0 scrollToCursor
    XK_Escape = BufferCmd_CloseTray            0 
+C  'm'       = BufferCmd_ToggleMenu           0 
 
    
    

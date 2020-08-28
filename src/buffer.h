@@ -276,6 +276,7 @@ typedef struct GUIBufferEditor {
 	float statusBarHeight;
 	GUIStatusBar* statusBar;
 	
+	GUISimpleWindow* menu;
 	
 	Cmd* commands;
 	

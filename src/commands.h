@@ -48,7 +48,7 @@
 	X(BufferCmd, Reload) \
 	X(BufferCmd, PromptLoad) \
 	X(BufferCmd, CloseTray) \
-	X(BufferCmd, OpenMenu) \
+	X(BufferCmd, ToggleMenu) \
 	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \

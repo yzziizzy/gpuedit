@@ -95,7 +95,8 @@ typedef struct GUIUnifiedVertex {
 
 #define GUI_AABB2_TO_SHADER(c) ((struct ShaderBox){.l = (c).min.x, .t = (c).min.y, .r = (c).max.x, .b = (c).max.y})
 
-
+struct GUIHeader;
+typedef struct GUIHeader GUIHeader;
 typedef union GUIObject GUIObject;
 struct GUIManager;
 
@@ -113,6 +114,7 @@ struct gui_vtbl {
 	void    (*SetClientSize)(GUIObject* go, Vector2 cSize); // and force exterior size to match
 	Vector2 (*RecalcClientSize)(GUIObject* go); // recalc client size from the client children and call SetClientSize
 	GUIObject* (*HitTest)(GUIObject* go, Vector2 testPos);
+	GUIObject* (*FindChild)(GUIObject* h, char* name);
 	
 	void (*AddClient)(GUIObject* parent, GUIObject* child);
 	void (*RemoveClient)(GUIObject* parent, GUIObject* child);
@@ -481,7 +483,6 @@ GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
 void GUIObject_triggerClick(GUIObject* go, Vector2 testPos);
 GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos);
 
-GUIObject* GUIObject_findChild(GUIObject* obj, char* childName);
 
 // focus stack
 GUIObject* GUIManager_getFocusedObject(GUIManager* gm);
@@ -534,6 +535,8 @@ Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct);
 #define GUIObject_SetScrollAbs(o, abs) GUIObject_SetScrollAbs_(&(o)->header, abs)
 Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos);
 
+#define GUIObject_FindChild(p, n) GUIObject_FindChild_((p) ? &((p)->header) : NULL, n)
+GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name);
 
 
 void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);

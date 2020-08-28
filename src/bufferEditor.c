@@ -463,42 +463,30 @@ static void loadfile_onenter(GUIEdit* ed, void* gbe_) {
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
 	GUIEdit* e;
-	GUISimpleWindow* sw;
-	
+	struct json_file* jsf;
 	
 	switch(cmd->type){
-		case BufferCmd_OpenMenu:
+		case BufferCmd_ToggleMenu:
+				
+			jsf = json_load_path("config/buffer_menu.json");
+			w->menu = GUICL_CreateFromConfig(w->header.gm, jsf->root);
 			
-			sw = GUISimpleWindow_New(w->header.gm);
-			sw->header.topleft = (Vector2){20, 20};
-			sw->header.size = (Vector2){400, 400};
-			sw->title = "foobar";
-	// 		sw->absScrollPos.x = 50;
-			GUIRegisterObject(w->header.parent, sw);
-				
+			// TODO: free json 
 			
-			for(int i = 0; i < 1; i++) {
-				/*GUIFormControl* ww = GUIFormControl_New(w->header.gm, (i%3) +1, "Foo");
-				ww->header.topleft.y = i * 35;
-				ww->header.size = (Vector2){370, 35};
-				GUIObject_AddClient(sw, ww);*/
-				
-				GUISelectBox* ww = GUISelectBox_New(w->header.gm);
-				ww->header.topleft.y = i * 45;
-				ww->header.size = (Vector2){370, 35};
-				GUIObject_AddClient(sw, ww);
-				
-				GUISelectBoxOption opts[] = {
-					{.label = "> One"},
-					{.label = "> Two"},
-					{.label = "> Three"},
-					{.label = "> Four"},
-					{.label = "> Five"},
-				};
-				
-				GUISelectBox_SetOptions(ww, opts, 5);
-				
-			}
+			GUIRegisterObject(w, w->menu);
+			
+			
+			GUISelectBox* hlsel = GUIObject_FindChild(w->menu, "highlighter");
+			GUISelectBoxOption opts[] = {
+				{.label = "C", .data = "c"},
+				{.label = "C++", .data = "cpp"},
+				{.label = "JavaScript", .data = "javascript"},
+			};
+			
+			if(hlsel) GUISelectBox_SetOptions(hlsel, opts, 3);
+			
+			
+			
 			
 			break;
 		

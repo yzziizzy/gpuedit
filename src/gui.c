@@ -110,9 +110,7 @@ void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt, struct G
 //   position according to gravity
 //   no extra clipping
 //   add z values together
-void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp) {
-	
-	GUIHeader* h = &go->h;
+void gui_defaultUpdatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
@@ -389,15 +387,28 @@ Vector2 gui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
 
 
 
-
-
-
-GUIObject* GUIObject_findChild(GUIObject* obj, char* childName) {
+GUIObject* gui_defaultFindChild(GUIObject* obj, char* name) {
 	if(!obj) return NULL;
+	if(obj->h.name && 0 == strcmp(obj->h.name, name)) return (GUIObject*)obj;
+	
 	VEC_EACH(&obj->h.children, i, child) {
-		if(child->h.name && 0 == strcmp(child->h.name, childName)) return child;
+		GUIObject* o = GUIObject_FindChild(child, name);
+		if(o) return o;
 	}
+	
 	return NULL;
+}
+
+
+GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name) {
+	if(!obj) return NULL;
+	
+	if(obj->vt && obj->vt->FindChild)
+		return obj->vt->FindChild(obj, name);
+	else
+		return gui_defaultFindChild(obj, name);
+	
+	return NULL; // because GCC is too dump to realize the above will always return a value
 }
 
 
