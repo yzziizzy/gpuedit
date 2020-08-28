@@ -85,6 +85,9 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	as->commands = CommandList_loadFile("./config/commands.txt");
 	
+	as->lastFrameTime = getCurrentTime();
+	as->lastFrameDrawTime = 0;
+	
 // 	cc = AppState_ExecProcessPipe(NULL, "/bin/bash", args);
 	
 	// this costs 5mb of ram
@@ -158,8 +161,6 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	// for debugging
 	GUIMainControl_LoadFile(as->mc, "testfile.h");
 	GUIMainControl_LoadFile(as->mc, "testfile.c");
-// 	GUIMainControl_LoadFile(as->mc, "src/buffer.c");
-// 	GUIMainControl_LoadFile(as->mc, "src/bufferEditor.c");
 	
 	GUIMainControl_OpenFileBrowser(as->mc, "./");
 	
@@ -522,18 +523,16 @@ void preFrame(AppState* as) {
 	char frameCounterBuf[128];
 	
 	static int frameCounter = 0;
-	static double last_frame = 0;
 	static double lastPoint = 0;
 	
 	double now;
+	double last_frame = as->lastFrameTime;
 	
 	as->frameTime = now = getCurrentTime();
+		
+	as->frameSpan = (double)(now - as->lastFrameTime);
 	
-	if (last_frame == 0)
-		last_frame = now;
-	
-	as->frameSpan = (double)(now - last_frame);
-	last_frame = now;
+	as->lastFrameTime = now;
 	
 	frameCounter = (frameCounter + 1) % 60;
 	
@@ -573,8 +572,9 @@ void postFrame(AppState* as) {
 	double now;
 	
 	now = getCurrentTime();
+	as->lastFrameDrawTime = now - as->frameTime; 
 	
-	as->perfTimes.draw = now - as->frameTime;
+	as->perfTimes.draw = as->lastFrameDrawTime;
 	
 	GUIManager_Reap(as->gui);
 }
@@ -700,11 +700,19 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		postFrame(as); // finishes frame-draw timer
 // 		printf("frame time: %fms\n", timeSince(now) * 1000.0);
 		
-		if(as->frameSpan < 1.0/60.0) {
+		double framerate = 605;
+		
+		double now = getCurrentTime();
+		
+		if(as->lastFrameDrawTime < 1.0/framerate) {
 			// shitty estimation based on my machine's heuristics, needs improvement
-			float sleeptime = (((1.0/60.0) * 1000000) - (as->frameSpan * 1000000)) * 1.7;
+			double fr_us = (1.0/framerate) * 1000000;
+			double lfdt_us = as->lastFrameDrawTime * 1000000;
+			
+			double sleeptime = (fr_us - lfdt_us) * .99;
 			//printf("sleeptime: %f\n", sleeptime / 1000000);
 			//sleeptime = 1000;
+			printf(">> fs(%f) sleeping %fus\n", lfdt_us, sleeptime);
 			if(sleeptime > 0) usleep(sleeptime); // problem... something is wrong in the math
 		}
 // 		sleep(1);

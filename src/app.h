@@ -70,6 +70,8 @@ typedef struct AppState {
 	InputFocusStack ifs;
 	InputEventHandler* defaultInputHandlers;
 	
+	double lastFrameTime; // frameTime from the previous frame
+	double lastFrameDrawTime; // the cost of rendering the previous frame, minus any sleeping
 	double frameTime; // ever incrementing time of the this frame
 	double frameSpan; // the length of this frame, since last frame
 	uint64_t frameCount; // ever incrementing count of the number of frames processed

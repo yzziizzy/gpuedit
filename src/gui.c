@@ -114,7 +114,7 @@ void gui_defaultUpdatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* p
 	
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
-	h->absZ = grp->baseZ + h->z + 0.00001;
+	h->absZ = grp->baseZ + h->z;
 	vSub2(&tl, &grp->offset, &h->relTopLeft);
 	
 	if(!(h->flags & GUI_NO_CLIP)) {
@@ -416,81 +416,6 @@ GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name) {
 
 
 
-/*
-
-size_t drawCharacter(
-	GUIManager* gm, 
-	TextDrawParams* tdp, 
-	struct Color4* fgColor, 
-	struct Color4* bgColor, 
-	int c, 
-	Vector2 tl
-) {
-// 		printf("'%s'\n", bl->buf);
-	GUIFont* f = tdp->font;
-	float size = tdp->fontSize; // HACK
-	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
-		
-	struct charInfo* ci = &f->regular[c];
-	GUIUnifiedVertex* v;
-	
-	// background
-	if(bgColor->a > 0) {
-		v = GUIManager_reserveElements(gm, 1);
-		
-		*v = (GUIUnifiedVertex){
-			.pos.t = tl.y,
-			.pos.l = tl.x,
-			.pos.b = tl.y + tdp->lineHeight,
-			.pos.r = tl.x + tdp->charWidth,
-			
-			.guiType = 0, // box
-			
-			.texOffset1.x = ci->texNormOffset.x * 65535.0,
-			.texOffset1.y = ci->texNormOffset.y * 65535.0,
-			.texSize1.x = ci->texNormSize.x *  65535.0,
-			.texSize1.y = ci->texNormSize.y * 65535.0,
-			.texIndex1 = ci->texIndex,
-			
-			.bg = *bgColor,
-			
-			.z = .5,
-			
-			// disabled in the shader right now
-			.clip = {0,0, 1000000,1000000},
-		};
-	}
-	
-	// character
-	if(c != ' ' && c != '\t') { // TODO: proper printable character check
-		v = GUIManager_reserveElements(gm, 1);
-		
-		*v = (GUIUnifiedVertex){
-			.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
-			.pos.l = tl.x + ci->topLeftOffset.x * size,
-			.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
-			.pos.r = tl.x + ci->size.x * size + ci->topLeftOffset.x * size,
-			
-			.guiType = 1, // text
-			
-			.texOffset1.x = ci->texNormOffset.x * 65535.0,
-			.texOffset1.y = ci->texNormOffset.y * 65535.0,
-			.texSize1.x = ci->texNormSize.x *  65535.0,
-			.texSize1.y = ci->texNormSize.y * 65535.0,
-			.texIndex1 = ci->texIndex,
-			
-			.fg = *fgColor,
-			
-			.z = 1,
-			
-			// disabled in the shader right now
-			.clip = {0,0, 1000000,1000000},
-		};
-	}
-	
-	return 0;
-}
-*/
 
 
 void gui_drawBox(GUIManager* gm, Vector2 tl, Vector2 sz, AABB2* clip, float z, Color4* color) {
@@ -635,7 +560,7 @@ void gui_drawTextLine(
 			adv += spaceadv * 4; // hardcoded to annoy you
 		}
 		else if(c != ' ') {
-			GUIUnifiedVertex* v = GUIManager_checkElemBuffer(gm, 1);
+			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 			
 			Vector2 off = tl;
 			
@@ -666,7 +591,7 @@ void gui_drawTextLine(
 			
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
 			//v++;
-			gm->elementCount++;
+// 			gm->elementCount++;
 			charsDrawn++;
 		}
 		else {
@@ -876,3 +801,78 @@ Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos) {
 	
 	return (Vector2){0, 0};
 }
+
+
+
+static void gui_debugPrintVertex(GUIUnifiedVertex* v, FILE* of) {
+	if(v->guiType == 0) {
+		fprintf(of, "Box:  % 3.1f,% 3.1f / % 2.1f,% 2.1f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
+			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 
+			   v->clip.l, v->clip.t, v->clip.r, v->clip.b, 
+			   v->z
+		);
+	}
+	else if(v->guiType == 1) {
+		fprintf(of, "Char: % 3.1f,% 3.1f / % 2.1f,% 2.1f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
+			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 
+			   v->clip.l, v->clip.t, v->clip.r, v->clip.b, 
+			   v->z
+		);
+	}
+	else if(v->guiType == 2) {
+		fprintf(of, "Img:  % 3.1f,% 3.1f / % 2.1f,% 2.1f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
+			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 
+			   v->clip.l, v->clip.t, v->clip.r, v->clip.b, 
+			   v->z
+		);
+	}
+	else if(v->guiType == 3) {
+		fprintf(of, "Render Target: % 3.1f,% 3.1f / % 2.1f,% 2.1f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
+			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 
+			   v->clip.l, v->clip.t, v->clip.r, v->clip.b, 
+			   v->z
+		);
+	}
+	else if(v->guiType == 4) {
+		fprintf(of, "BBox: % 3.1f,% 3.1f / % 2.1f,% 2.1f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
+			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 
+			   v->clip.l, v->clip.t, v->clip.r, v->clip.b, 
+			   v->z
+		);
+	}
+	else if(v->guiType == 6) {
+		fprintf(of, "Tri:  % 3.1f,% 3.1f / % 2.1f,% 2.1f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
+			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 
+			   v->clip.l, v->clip.t, v->clip.r, v->clip.b, 
+			   v->z
+		);
+	}
+	else if(v->guiType == 7) {
+		fprintf(of, "Ellipse:  %.2f,%.2f / %.2f,%.2f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
+			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 
+			   v->clip.l, v->clip.t, v->clip.r, v->clip.b, 
+			   v->z
+		);
+	}
+}
+
+void gui_debugDumpVertexBuffer(GUIUnifiedVertex* buf, size_t cnt, FILE* of) {
+	for(size_t i = 0; i < cnt; i++) {
+		fprintf(of, "% 5ld ", i);
+		gui_debugPrintVertex(buf + i, of);
+	}
+}
+
+void gui_debugFileDumpVertexBuffer(GUIManager* gm, char* filePrefix, int fileNum) {
+	FILE* f;
+	char fname[512];
+	
+	snprintf(fname, 512, "%s-%05d.txt", filePrefix, fileNum);
+	
+	
+	f = fopen(fname, "wb");
+	gui_debugDumpVertexBuffer(gm->elemBuffer, gm->elementCount, f);
+	fclose(f);
+}
+
+

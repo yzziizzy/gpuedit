@@ -430,7 +430,7 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 			charsDrawn += tdp->charWidth * tdp->tabWidth;
 		}
 		else if(c != ' ') {
-			GUIUnifiedVertex* v = GUIManager_checkElemBuffer(gm, 1);
+			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 			
 			Vector2 off = tl;
 			
@@ -457,8 +457,7 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 			
 			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
 			v->fg = GUI_COLOR4_TO_SHADER(*textColor),
-			//v++;
-			gm->elementCount++;
+			
 			charsDrawn++;
 		}
 		else {

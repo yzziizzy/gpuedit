@@ -263,10 +263,10 @@ static void core_draw(MultiDrawIndirect* mdi) {
 	cmdOffset = PCBuffer_getOffset(&mdi->indirectCmds);
 	
 	if(mdi->isIndexed) {
-		glMultiDrawElementsIndirect(mdi->primMode, GL_UNSIGNED_SHORT, cmdOffset, VEC_LEN(&mdi->meshes), 0);
+		glMultiDrawElementsIndirect(mdi->primMode, GL_UNSIGNED_SHORT, (void*)cmdOffset, VEC_LEN(&mdi->meshes), 0);
 	}
 	else {
-		glMultiDrawArraysIndirect(mdi->primMode, cmdOffset, VEC_LEN(&mdi->meshes), 0);
+		glMultiDrawArraysIndirect(mdi->primMode, (void*)cmdOffset, VEC_LEN(&mdi->meshes), 0);
 	}
 	glexit("multidrawarraysindirect");
 }
@@ -306,9 +306,9 @@ PassDrawable* MultiDrawIndirect_CreateDrawable(MultiDrawIndirect* m, ShaderProgr
 
 	pd = Pass_allocDrawable("MDI");
 	pd->data = m;
-	pd->preFrame = preFrame;
+	pd->preFrame = (void*)preFrame;
 	pd->draw = (PassDrawFn)draw;
-	pd->postFrame = postFrame;
+	pd->postFrame = (void*)postFrame;
 	pd->prog = prog;
 	
 	return pd;

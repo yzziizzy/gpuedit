@@ -74,7 +74,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->maxInstances = gs->GUIManager_maxInstances;
 	
 	gm->elementCount = 0;
-	gm->elementAlloc = 64;
+	gm->elementAlloc = 2048;
 	gm->elemBuffer = calloc(1, sizeof(*gm->elemBuffer) * gm->elementAlloc);
 	
 	gm->fm = FontManager_alloc(gs);
@@ -741,7 +741,7 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	GUIRenderParams grp = {
 		.offset = {0,0}, 
 		.size = {800,800},
-		.clip = {(0,0),{800,800}},
+		.clip = {(0,0),{800,800}}, // BUG hardcoded clipping
 	};
 	gm->root->h.size = (Vector2){800, 800};
 	gm->root->h.absClip = (AABB2){0,0,800, 800};
@@ -750,43 +750,20 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	
 	GUIHeader_render(gm->root, pfp);
 	
+// 	static size_t framecount = 0;
 	
-	// test element 
-	/*
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-		
-	*v = (GUIUnifiedVertex){
-// 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
-// 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
-		.pos = { 250, 250, 700, 700},
-		.clip = {0, 0, 800, 800},
-		
-		.texIndex1 = 2,
-		.texIndex2 = 0,
-		.texFade = .5,
-		.guiType = 4, // bordered window (just a box)
-		
-		.texOffset1 = 0,
-		.texOffset2 = 0,
-		.texSize1 = 0,
-		.texSize2 = 0,
-		
-		.fg = {255, 255, 255, 255}, // TODO: border color
-		.bg = {128, 0, 0, 0}, // TODO: color
-		
-		.z = 99999,
-		.alpha = 1.0,
-	};
-	/* */ 
-	
-	
-	
-	double sort;
+// 	double sort;
 	
 // 	sort = getCurrentTime();
+// 	gui_debugFileDumpVertexBuffer(gm, "/tmp/gpuedit/presortdump", framecount);
 	qsort(gm->elemBuffer, gm->elementCount, sizeof(*gm->elemBuffer), (void*)gui_elem_sort_fn);
 // 	printf("qsort time: [%d elem] %f\n", gm->elementCount, timeSince(sort)  * 1000.0);
 	
+// 	gui_debugFileDumpVertexBuffer(gm, "/tmp/gpuedit/framedump", framecount);
+	
+// 	printf("Elemcount: %ld\n", gm->elementCount);
+	
+// 	framecount++;
 // 	sort = getCurrentTime();
 	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
 // printf("memcpy time: %f\n", timeSince(sort) * 1000.0);

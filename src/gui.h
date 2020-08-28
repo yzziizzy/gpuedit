@@ -555,7 +555,8 @@ Vector2 guiGetClientSize(GUIObject* go);
 Vector2 guiRecalcClientSize(GUIObject* go);
 
 
-
+// debugging
+void gui_debugFileDumpVertexBuffer(GUIManager* gm, char* filePrefix, int fileNum);
 
 
 #include "ui/configLoader.h"
