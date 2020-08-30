@@ -634,6 +634,12 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 			break;
 			
+// 		case BufferCmd_CloseBuffer:
+			
+// 			GUIManager_SpawnTemplate(w->header.gm, "save_changes");
+			
+// 			break;
+			
 // 		case BufferCmd_Save:
 // 			if(!g_DisableSave) {
 // 				Buffer_SaveToFile(w->buffer, w->sourceFile);

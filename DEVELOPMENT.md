@@ -90,6 +90,7 @@
 * Scroll half the distance in a direction as can be scrolled (log2 scroll)
 * Option to place comment chars before or after whitespace, and control padding ws
 * SLOC count
+* Sort lines, ignoring punctuation and special characters
 * Option: scroll past end of file or not.
 * Option: trim leading/trailing whitespace of file.
 * Option: disable highlighter, by default over a certain file size.
@@ -111,7 +112,6 @@
 * Notify when semicolons appear to be missing
 
 == BUGS ==
-* Text in BufferEditor menu blinks when buffer is scrolled while open
 * Mouse scroll on files with fewer lines than the screen
 * Should not be able to delete the last line
 * Fix cursor position after undo

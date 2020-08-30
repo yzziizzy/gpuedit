@@ -111,6 +111,12 @@ flat out int  gs_guiType;
 flat out vec4 gs_geom;
      out vec3 gs_bary;
 
+#define MISC_COPY_OUTPUT \
+	gs_opacity = vertex[0].opacity; \
+	gs_clip = vertex[0].clip; \
+	gs_guiType = vertex[0].guiType; \
+	gs_fg_color = vertex[0].fg_color; \
+	gs_bg_color = vertex[0].bg_color;
 
 void main() {
 	//if(vertex[0].opacity == 0.0) return;
@@ -118,7 +124,6 @@ void main() {
 	// triangles
 	if(vertex[0].guiType == 6) {
 		
-		vec2 ts = vec2(targetSize);
 		float c = cos(vertex[0].rot);
 		float s = sin(vertex[0].rot);
  		mat2 rm = { vec2(c, -s), vec2(s, c)};
@@ -131,37 +136,22 @@ void main() {
 		vec2 top = ((vec2(0, th*2) * rm) / targetSize) + center;
 		
 		
+		MISC_COPY_OUTPUT
 		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-		gs_opacity = vertex[0].opacity;
-		gs_clip = vertex[0].clip;
-		gs_guiType = 6;
-		gs_fg_color = vertex[0].fg_color;
-		gs_bg_color = vertex[0].bg_color;
-	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
 		gs_bary = vec3(hw, 0, 0);
 		gl_Position = vec4(base1.xy, 0, 1);
 		EmitVertex();
 		
+		MISC_COPY_OUTPUT
 		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-		gs_opacity = vertex[0].opacity;
-		gs_clip = vertex[0].clip;
-		gs_guiType = 6;
-		gs_fg_color = vertex[0].fg_color;
-		gs_bg_color = vertex[0].bg_color;
-	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
 		gs_bary = vec3(0, hw, 0);
 		gl_Position = vec4(base2.xy, 0, 1);
 		EmitVertex();
 		
+		MISC_COPY_OUTPUT
 		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-		gs_opacity = vertex[0].opacity;
-		gs_clip = vertex[0].clip;
-		gs_guiType = 6;
-		gs_fg_color = vertex[0].fg_color;
-		gs_bg_color = vertex[0].bg_color;
-	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
 		gs_bary = vec3(0, 0, th * 2.0); // BUG scaling is not quite right
 		gl_Position = vec4(top.xy, 0, 1);
@@ -169,49 +159,79 @@ void main() {
 		
 		
 	}
-	else { // non-triangles
+	if(vertex[0].guiType >= 10 && vertex[0].guiType < 20) { // lines
+		
+		vec2 l1 = vertex[0].lt_rb_abs.xy * vec2(1, 1);
+		vec2 l2 = vertex[0].lt_rb_abs.zw * vec2(1, 1);
 
-		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-		gs_opacity = vertex[0].opacity;
-		gs_clip = vertex[0].clip;
-		gs_guiType = vertex[0].guiType;
-		gs_fg_color = vertex[0].fg_color;
-		gs_bg_color = vertex[0].bg_color;
-	// 	gs_texHandle = vertex[0].texHandle;
+		l1 = vec2(l1.x, targetSize.y - l1.y);
+		l2 = vec2(l2.x, targetSize.y - l2.y);
+		
+		vec2 tang = l2 - l1;
+		vec2 norm = normalize(vec2(tang.y, -tang.x));
+		
+		float width = vertex[0].texIndex1;
+		
+		vec2 p1 = (l1 + (width * norm)) / targetSize;
+		vec2 p2 = (l1 + (width * -norm)) / targetSize;
+		vec2 p3 = (l2 + (width * norm)) / targetSize;
+		vec2 p4 = (l2 + (width * -norm)) / targetSize;
+		
+		vec2 off = vec2(-1, 1);
+		
+		p1 = (p1 * vec2(2, -2)) + off;
+		p2 = (p2 * vec2(2, -2)) + off;
+		p3 = (p3 * vec2(2, -2)) + off;
+		p4 = (p4 * vec2(2, -2)) + off;
+		
+		MISC_COPY_OUTPUT
+		gs_tex = vec3(0, 1, vertex[0].texIndex1);
 		gs_geom = vertex[0].lt_rb_abs;
-		gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
+		gl_Position = vec4(p1, 0, 1);
 		EmitVertex();
 
 		
+		MISC_COPY_OUTPUT
+		gs_tex = vec3(0, -1, vertex[0].texIndex1);
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(p2, 0, 1);
+		EmitVertex();
+		
+		MISC_COPY_OUTPUT
+		gs_tex = vec3(1, 1, vertex[0].texIndex1);
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(p3, 0, 1);
+		EmitVertex();
+
+		MISC_COPY_OUTPUT
+		gs_tex = vec3(1, -1, vertex[0].texIndex1);
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(p4, 0, 1);
+		EmitVertex();
+		
+	}
+	else { // boxes/everything else
+
+		MISC_COPY_OUTPUT
+		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
+		gs_geom = vertex[0].lt_rb_abs;
+		gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
+		EmitVertex();
+		
+		MISC_COPY_OUTPUT
 		gs_tex = vec3(vertex[0].texOffset1.x + vertex[0].texSize1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-		gs_opacity = vertex[0].opacity;
-		gs_clip = vertex[0].clip;
-		gs_guiType = vertex[0].guiType;
-		gs_fg_color = vertex[0].fg_color;
-		gs_bg_color = vertex[0].bg_color;
-	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
 		gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.y, 0, 1);
 		EmitVertex();
 		
+		MISC_COPY_OUTPUT
 		gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y + vertex[0].texSize1.y, vertex[0].texIndex1);
-		gs_opacity = vertex[0].opacity;
-		gs_clip = vertex[0].clip;
-		gs_guiType = vertex[0].guiType;
-		gs_fg_color = vertex[0].fg_color;
-		gs_bg_color = vertex[0].bg_color;
-	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
 		gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.w, 0, 1);
 		EmitVertex();
-
+		
+		MISC_COPY_OUTPUT
 		gs_tex = vec3(vertex[0].texOffset1 + vertex[0].texSize1, vertex[0].texIndex1);
-		gs_opacity = vertex[0].opacity;
-		gs_clip = vertex[0].clip;
-		gs_guiType = vertex[0].guiType;
-		gs_fg_color = vertex[0].fg_color;
-		gs_bg_color = vertex[0].bg_color;
-	// 	gs_texHandle = vertex[0].texHandle;
 		gs_geom = vertex[0].lt_rb_abs;
 		gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.w, 0, 1);
 		EmitVertex();
@@ -377,6 +397,33 @@ void main(void) {
 		if(out_Color.w < 0.01) discard;
 		
 		return;
+	}
+	else if(gs_guiType == 10) { // solid line
+		
+		float ty = abs(gs_tex.y); 
+		float a = smoothstep(1.0/gs_tex.z, 1.0, ty);
+		out_Color = vec4(gs_fg_color.xyz, a / gs_fg_color.a);
+		
+		return;
+	}
+	else if(gs_guiType == 11) { // faded line
+		
+		float ty = abs(gs_tex.y); 
+		float a = smoothstep(1.0, 0.0, ty);
+		out_Color = vec4(gs_fg_color.xyz, a / gs_fg_color.a);
+		
+		return;
+	}
+	else if(gs_guiType == 12) { // faded line, rounded ends
+		/*
+		need extended lines
+		
+		float ty = abs(gs_tex.y); 
+		float a = smoothstep(1.0, 0.0, ty);
+		out_Color = vec4(gs_fg_color.xyz, a / gs_fg_color.a);
+		
+		return;
+		*/
 	}
 	
 	// gradients

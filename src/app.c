@@ -712,7 +712,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 			double sleeptime = (fr_us - lfdt_us) * .99;
 			//printf("sleeptime: %f\n", sleeptime / 1000000);
 			//sleeptime = 1000;
-			printf(">> fs(%f) sleeping %fus\n", lfdt_us, sleeptime);
+// 			printf(">> fs(%f) sleeping %fus\n", lfdt_us, sleeptime);
 			if(sleeptime > 0) usleep(sleeptime); // problem... something is wrong in the math
 		}
 // 		sleep(1);

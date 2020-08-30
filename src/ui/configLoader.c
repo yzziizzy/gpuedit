@@ -393,15 +393,16 @@ static void checkInitLookup() {
 		char* name;
 		creator_fn fn;
 	} fns[] = {
-		{"text", create_GUIText},
+		{"button", create_GUIButton},
 		{"columnlayout", create_GUIColumnLayout},
-		{"window", create_GUIWindow},
-		{"image", create_GUIImage},
-		{"performancegraph", create_GUIPerformanceGraph},
-		{"imagebutton", create_GUIImageButton},
 		{"gridlayout", create_GUIGridLayout},
+		{"image", create_GUIImage},
+		{"imagebutton", create_GUIImageButton},
+		{"performancegraph", create_GUIPerformanceGraph},
 		{"selectbox", create_GUISelectBox},
 		{"simplewindow", create_GUISimpleWindow},
+		{"text", create_GUIText},
+		{"window", create_GUIWindow},
 	};
 	
 	for(int i = 0; i < sizeof(fns) / sizeof(fns[0]); i++) {

@@ -447,6 +447,8 @@ typedef struct GUIManager {
 	} defaults;
 	
 	
+	json_value_t* templates;
+	
 	// temp 
 	GLuint fontAtlasID;
 	GLuint atlasID;
@@ -547,6 +549,8 @@ void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev);
+
+GUIObject* GUIManager_SpawnTemplate(GUIManager* gm, char* name);
 
 
 

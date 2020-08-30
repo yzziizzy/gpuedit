@@ -103,22 +103,22 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 	static float spinner = 0;
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 3);
-	spinner += 1;
-	spinner = fmod(spinner, 200);
+	spinner += 0.1;
+	spinner = fmod(spinner, 500);
 	
 	*v++ = (GUIUnifiedVertex){
-		.pos = {100, 100, spinner, 240},
+		.pos = {100, 100, spinner, 200},
 		.clip = {0,0, 1000, 1000},
 		
-		.guiType = 7, // ellipse
+		.guiType = 11, // line
 		
-		.texIndex1 = 2,
+		.texIndex1 = 10,
 		
 		.fg = {255, 255, 255, 255}, 
 		.bg = {120, 50, 20, 0}, 
-		.z = 99999999,
+		.z = 9999999999999999,
 		.alpha = 1,
-		.rot = 1,
+		.rot = spinner,
 	};
 	
 	float x = 100;
@@ -142,12 +142,12 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 		
 		.guiType = 0, // box
 		
-		.fg = {255, 0, 255, 255}, 
-		.bg = {255, 0, 255, 255}, 
+		.fg = {0, 0, 255, 255}, 
+		.bg = {0, 0, 255, 255}, 
 		.z = 9999999999,
 		.alpha = 1,
 	};
-	*/
+	//*/
 }
 
 

@@ -132,6 +132,11 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
+	
+	json_file_t* jsf = json_load_path("config/templates.json");
+	// TODO: leaked file structure
+	gm->templates = jsf->root;
+	
 }
 
 
@@ -850,3 +855,20 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 	
 	return pd;;
 }
+
+
+
+void GUIManager_SpawnModal(GUIManager* gm, GUIObject* obj) {
+	
+}
+
+
+GUIObject* GUIManager_SpawnTemplate(GUIManager* gm, char* name) {
+	json_value_t* v;
+	
+	json_obj_get_key(gm->templates, name, &v);
+	if(!v) return NULL;
+	
+	return GUICL_CreateFromConfig(gm, v);
+}
+
