@@ -6,21 +6,13 @@
 * Mark changed tabs with "*" 
 * Choose highlighter based on file extension
 * Proper tabstops
-* Move editing state from Buffer to GBE
-* MIME type probing of some sort
 * Ability to change the highlighter
 * Open file command
 * Save Changes? close hook buffer integration
-* Split GUIManager draw calls into layers for less sorting
 * Shortcut config presets
-* Pause render loop on X window losing focus (optional)
-* Function chain to dynamically reload settings (incomplete)
-* Console
-* Built-in terminal
 * Slide-out windows
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
-* Persist bookmarks
 * Monitor file changes on disk
 * Scroll when dragging
 * Small shade variation on matching pairs of brackets
@@ -29,13 +21,10 @@
 * Status bar
 * Track indentation level per line
 * Settings editor
-* Polish scrollbar dragging
-* Color selector control
 * CLI, ENV options parsing
 * Wire options through gui manager
 * Hide mouse cursor when typing
 * Unsaved changes crash recovery
-* Drag selection to new place
 * New Buffer/file
 * FB: new file/folder, delete, rename
 * Re-order MC tabs
@@ -45,26 +34,37 @@
 * Save-as and save dialog
 * Breadcrumbs/path in file browser
 * Load GUIManager defaults from file
+* Wire all the settings updates through the app
+* Move pushFocusedObject to a ring buffer, or revamp it entirely for tabIndex
+* Folder-local config file
+* Split windows
+* Adjustable scroll lines in fileBrowser, get from OS if possible
+* Finish factoring editing state out of Buffer
+* MIME type probing of some sort
+* Persist bookmarks
+* Polish scrollbar dragging
+
+== GUI Improvements ==
+* Garbage collection in GUI
+* Z-index is messed up some places in the GUI
 * Make all gui font rendering by em's
 * GUIEdit right and center justify
 * GUIEdit int/float
 * GUIEdit scroll increment
 * GUIEdit clipping and internal left/right scrolling on large values
 * GUIButton enabled/disabled
-* Wire all the settings updates through the app
-* Garbage collection in GUI
-* Z-index is messed up everywhere in the GUI
-* Move pushFocusedObject to a ring buffer, or revamp it entirely for tabIndex
-* Folder-local config file
-* Split windows
+* Color selector control
+
 
 == Editor Features ==
+* Drag selection to new place
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
 * Speed scrolling with ctrl
 * Plain/escaped/regex search and replace
 * Duplicate selected lines up/down
 * Move by words
+* Double click to select whole word
 * Comment chars located before or after tabs
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
@@ -127,6 +127,9 @@
 * GUIManager hit test needs to sort hits by z
 
 == Low Priority ==
+* Built-in terminal
+* Pause render loop on X window losing focus (optional)
+* Split GUIManager draw calls into layers for less sorting
 * Optimize all buffer operations for minimal line renumbering
 * dlopen(): libpng, libalsa, libvorbis
 * Optimize Buffer_raw_GetLine starting point and direction
@@ -140,7 +143,7 @@
 * Don't render bg quads for chars with no bg color
 * Cache lines of prepared buffer commands
 * Async filebrowser fs operations
-
+* Multiple top-level windows
 
 == Language Notes ==
 "i don't care about member layout" flag for structs

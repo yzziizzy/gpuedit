@@ -248,6 +248,7 @@ typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 #define GUI_NO_CLIP         0x0004
 #define GUI_SIZE_TO_CONTENT 0x0008 // NYI: (gravity makes this very complicated) automatic, based on children
 #define GUI_AUTO_SIZE       0x0010 // manual flag, for the bottom level
+#define GUI_CHILD_TABBING   0x0020 // grab tab events and cycle focused elements
 
 typedef struct GUIHeader {
 	struct GUIManager* gm;
@@ -288,6 +289,7 @@ typedef struct GUIHeader {
 	unsigned int deleted :  1;
 	
 	int cursor;
+	int tabStop;
 	
 } GUIHeader;
 
@@ -320,6 +322,7 @@ typedef struct GUIHeader {
 #include "ui/debugAdjuster.h"
 #include "ui/structAdjuster.h"
 #include "ui/performanceGraph.h"
+#include "ui/fileBrowser.h"
 
 
 
@@ -401,7 +404,7 @@ typedef struct GUIManager {
 	int defaultCursor;
 	int currentCursor;
 	
-	VEC(GUIObject*) focusStack;
+	RING(GUIObject*) focusStack;
 	
 	struct {
 		GUIFont* font;
@@ -545,6 +548,11 @@ void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);
 #define GUIObject_TriggerEvent(o, gev) GUIObject_TriggerEvent_(&(o)->header, gev)
 void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev);
 void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
+
+#define GUIObject_FindNextTabStop(o, c) GUIObject_FindNextTabStop_(&((o)->header), c)
+GUIHeader* GUIObject_FindNextTabStop_(GUIHeader* h, int curStop);
+#define GUIObject_NextTabStop(o) GUIObject_NextTabStop_(&((o)->header))
+GUIHeader* GUIObject_NextTabStop_(GUIHeader* h);
 
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev);

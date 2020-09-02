@@ -802,9 +802,52 @@ Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos) {
 	return (Vector2){0, 0};
 }
 
+int GUIObject_CurrentTabstop(GUIHeader* h) {
+	// TODO: stub
+	return 0;
+}
+
+GUIHeader* GUIObject_FindNextTabStop_(GUIHeader* h, int curStop) {
+	int highest = -1;
+	int first = 999999;
+	GUIObject* firstC = NULL;
+	GUIObject* highestC = NULL;
+	
+	VEC_EACH(&h->children, i, child) {
+		if(child->h.tabStop > 0) {
+			if(child->h.tabStop < first || first == -1) {
+				first = child->h.tabStop;
+				firstC = child;
+			} 
+			
+			if(child->h.tabStop > curStop && (child->h.tabStop < highest || highest == -1)) {
+				highest = child->h.tabStop;
+				highestC = child;
+			}
+		}
+	}
+	
+	return (GUIHeader*)(highestC ? highestC : firstC);
+}
 
 
-static void gui_debugPrintVertex(GUIUnifiedVertex* v, FILE* of) {
+GUIHeader* GUIObject_NextTabStop_(GUIHeader* h) {
+	GUIHeader* focused = NULL;
+	
+	int cur = GUIObject_CurrentTabstop(h);
+	
+	focused = GUIObject_FindNextTabStop_(h, cur);
+	
+	if(focused) {
+		GUIManager_pushFocusedObject_(h->gm, focused);
+	}
+	
+	return focused;
+}
+
+
+
+void gui_debugPrintVertex(GUIUnifiedVertex* v, FILE* of) {
 	if(v->guiType == 0) {
 		fprintf(of, "Box:  % 3.1f,% 3.1f / % 2.1f,% 2.1f | clip [%.2f,%.2f,%.2f,%.2f] | z %.4f \n", 
 			   v->pos.l, v->pos.t, v->pos.r, v->pos.b, 

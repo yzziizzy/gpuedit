@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>w
+#include <ctype.h>
 #include <math.h>
 #include <time.h>
 #include <errno.h>

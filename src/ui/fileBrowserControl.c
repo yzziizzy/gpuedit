@@ -23,7 +23,7 @@
 
 
 
-static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
+static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 	GUIManager* gm = w->header.gm;
 	
 	Vector2 tl = w->header.absTopLeft;
@@ -136,11 +136,9 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 
 
 
-static void updatePos(GUIFileBrowser* w, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void updatePos(GUIFileBrowserControl* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	gui_defaultUpdatePos(w, grp, pfp);
 	
-	// maximize
-	w->header.size = grp->size;
 
 // 	w->sbMinHeight = 20;
 // 	// scrollbar position calculation
@@ -183,7 +181,7 @@ static char* getParentDir(char* child) {
 }
 
 // make sure the cursor never goes off-screen
-static void autoscroll(GUIFileBrowser* w) {
+static void autoscroll(GUIFileBrowserControl* w) {
 	float linesOnScreen = floor(w->header.size.y / w->lineHeight);
 	
 	if(w->cursorIndex < w->scrollOffset) {
@@ -197,8 +195,18 @@ static void autoscroll(GUIFileBrowser* w) {
 	}
 }
 
+static void scrollUp(GUIObject* w_, GUIEvent* gev) {
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
+	w->scrollOffset -= 60;
+}
+static void scrollDown(GUIObject* w_, GUIEvent* gev) {
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
+	w->scrollOffset += 60;
+}
+
+
 static void keyUp(GUIObject* w_, GUIEvent* gev) {
-	GUIFileBrowser* w = (GUIFileBrowser*)w_;
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
 	
 	if(gev->keycode == XK_Down) {
 		w->cursorIndex = (w->cursorIndex + 1) % VEC_LEN(&w->entries);
@@ -213,7 +221,7 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 		free(w->curDir);
 		w->curDir = p;
 		
-		GUIFileBrowser_Refresh(w);
+		GUIFileBrowserControl_Refresh(w);
 	}
 	else if(gev->keycode == XK_Return) {
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
@@ -223,7 +231,7 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 			free(w->curDir);
 			w->curDir = p;
 			
-			GUIFileBrowser_Refresh(w);
+			GUIFileBrowserControl_Refresh(w);
 		}
 		else { // open selected files
 			
@@ -261,7 +269,7 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 
 
 static void click(GUIObject* w_, GUIEvent* gev) {
-	GUIFileBrowser* w = (GUIFileBrowser*)w_;
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
 	
 	intptr_t line = floor((gev->pos.y - w->header.absTopLeft.y) / w->lineHeight) + w->scrollOffset;
 	
@@ -286,7 +294,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 
 
 
-GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
+GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
@@ -297,8 +305,8 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 		.KeyUp = keyUp,
 		.Click = click,
 		.DoubleClick = click,
-// 		.ScrollUp = scrollUp,
-// 		.ScrollDown = scrollDown,
+		.ScrollUp = scrollUp,
+		.ScrollDown = scrollDown,
 // 		.DragStart = dragStart,
 // 		.DragStop = dragStop,
 // 		.DragMove = dragMove,
@@ -306,7 +314,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	};
 	
 	
-	GUIFileBrowser* w = pcalloc(w);
+	GUIFileBrowserControl* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
@@ -326,12 +334,12 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	
 	w->curDir = realpath(path, NULL);
 	
-	GUIFileBrowser_Refresh(w);
+	GUIFileBrowserControl_Refresh(w);
 	
 	return w;
 }
 
-void GUIFileBrowser_Destroy(GUIFileBrowser* w) {
+void GUIFileBrowserControl_Destroy(GUIFileBrowserControl* w) {
 	VEC_FREE(&w->entries);
 	
 	// TODO:free stuff inside entries
@@ -343,7 +351,7 @@ void GUIFileBrowser_Destroy(GUIFileBrowser* w) {
 }
 
 int read_dir_cb(char* fullpath, char* filename, void* _w) {
-	GUIFileBrowser* w = (GUIFileBrowser*)_w;
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)_w;
 	
 	VEC_INC(&w->entries);
 	GUIFileBrowserEntry* e = &VEC_TAIL(&w->entries);
@@ -369,7 +377,7 @@ static int entry_cmp_fn(void* a_, void* b_) {
 }
 
 
-void GUIFileBrowser_Refresh(GUIFileBrowser* w) {
+void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 	
 	w->cursorIndex = 0;
 	w->numSelected = 0;
@@ -439,11 +447,11 @@ void GUIFileBrowser_Refresh(GUIFileBrowser* w) {
 	
 }
 
-void GUIFileBrowser_SetDir(GUIFileBrowser* w, char* dir) {
+void GUIFileBrowserControl_SetDir(GUIFileBrowserControl* w, char* dir) {
 	if(w->curDir) free(w->curDir);
 	
 	w->curDir = strdup(dir);
 	
-	GUIFileBrowser_Refresh(w);
+	GUIFileBrowserControl_Refresh(w);
 }
 

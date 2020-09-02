@@ -20,7 +20,6 @@ gpuedit_SOURCES = main.c \
 	dumpImage.c \
 	fbo.c \
 	fcfg.c \
-	fileBrowser.c \
 	font.c \
 	gui.c \
 	guiManager.c \
@@ -47,6 +46,8 @@ gpuedit_SOURCES = main.c \
 	ui/configLoader.c \
 	ui/debugAdjuster.c \
 	ui/edit.c \
+	ui/fileBrowser.c \
+	ui/fileBrowserControl.c \
 	ui/formControl.c \
 	ui/gridLayout.c \
 	ui/image.c \

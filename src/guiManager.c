@@ -68,6 +68,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	};
 	
 	VEC_INIT(&gm->reapQueue);
+	RING_INIT(&gm->focusStack, 32);
 	
 	gm->gs = gs;
 	
@@ -90,8 +91,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt, &event_vt); 
 	
-	VEC_INIT(&gm->focusStack);
-	VEC_PUSH(&gm->focusStack, gm->root);
+	RING_PUSH(&gm->focusStack, gm->root);
 	
 	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
 	gm->defaults.fontSize = .45;
@@ -272,9 +272,10 @@ void GUIManager_Reap(GUIManager* gm) {
 	check_nullfiy(dragStartTarget)
 	#undef check_nullify
 	
-	VEC_EACH(&gm->focusStack, i, fh) {
+	RING_EACH(&gm->focusStack, i, fh) {
 		if(fh->header.deleted) {
-			VEC_RM_SAFE(&gm->focusStack, i);
+			// TODO BUG Missing ring fn
+// 			RING_RM_SAFE(&gm->focusStack, i);
 		}
 	}
 	
@@ -674,7 +675,21 @@ void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev) {
 		#undef X
 	}
 	
+	// BUG: check for cancelled event?
 	if(o->event_vt && o->event_vt->Any) (*o->event_vt->Any)((GUIObject*)o, gev);
+	
+	// process tab stops
+	if((o->flags & GUI_CHILD_TABBING) && !gev->cancelled) {
+		// TODO: unhardcode
+		if(gev->type == GUIEVENT_KeyUp) {
+			// TODO: normalize the tab key code
+			if(gev->keycode == XK_Tab || gev->keycode == XK_ISO_Left_Tab) {
+				
+				GUIObject_NextTabStop_(o);
+			}
+			
+		}
+	}
 }
 
 
@@ -683,17 +698,17 @@ void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev) {
 // focus stack functions
 
 GUIObject* GUIManager_getFocusedObject(GUIManager* gm) {
-	if(VEC_LEN(&gm->focusStack) == 0) return NULL;
-	return VEC_TAIL(&gm->focusStack);
+	if(RING_LEN(&gm->focusStack) == 0) return NULL;
+	return RING_TAIL(&gm->focusStack);
 }
 
 GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
 	GUIObject* o;
 	
 	// can't pop off the root element at the bottom
-	if(VEC_LEN(&gm->focusStack) <= 1) return VEC_TAIL(&gm->focusStack);
+	if(RING_LEN(&gm->focusStack) <= 1) return RING_TAIL(&gm->focusStack);
 	
-	VEC_POP(&gm->focusStack, o);
+	RING_POP(&gm->focusStack, o);
 	
 	// TODO focus events
 	
@@ -712,7 +727,7 @@ void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
 	
 	GUIManager_BubbleEvent(gm, old, &gev);
 
-	VEC_PUSH(&gm->focusStack, (GUIObject*)h);
+	RING_PUSH(&gm->focusStack, (GUIObject*)h);
 	
 	gev.type = GUIEVENT_GainedFocus;
 	gev.originalTarget = h;

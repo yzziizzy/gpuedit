@@ -6,7 +6,6 @@
 #include "ui/configLoader.h"
 #include "c_json/json.h"
 
-#include "fileBrowser.h"
 
 #include "highlighters/c.h"
 
@@ -711,8 +710,9 @@ static void fbOnChoose(void* w_, char** files, intptr_t len) {
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	
 	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
-	fb->onChooseData = w;
-	fb->onChoose = fbOnChoose;
+	fb->header.flags |= GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+// 	fb->onChooseData = w;
+// 	fb->onChoose = fbOnChoose;
 	
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
 	tab->beforeClose = fbBeforeClose;
