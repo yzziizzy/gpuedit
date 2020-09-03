@@ -31,7 +31,34 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 
 
 
-static void updatePos(GUIFileBrowser* w, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
+	GUIFileBrowser* w = (GUIFileBrowser*)w_;
+	
+	float padding = 4;
+	
+	w->fbc->header.size.x = w->header.size.x;
+	w->fbc->header.size.y = w->header.size.y - 60;
+// 	w->fbc->header.topleft.y = 20;
+	
+	
+	w->newDirBtn->header.topleft.y = 0;
+	w->newFileBtn->header.topleft.y = 0;
+	w->newFileBtn->header.topleft.x = 120;
+	
+	w->acceptBtn->header.topleft.y = 0;
+	w->cancelBtn->header.topleft.y = 0;
+	w->cancelBtn->header.topleft.x = 120;
+	
+	w->newDirBtn->header.size = (Vector2){100, 25};
+	w->newFileBtn->header.size = (Vector2){100, 25};
+	w->acceptBtn->header.size = (Vector2){100, 25};
+	w->cancelBtn->header.size = (Vector2){100, 25};
+	
+	w->filenameBar->header.topleft.y = 30;
+	w->filenameBar->header.topleft.x = 0;
+	w->filenameBar->header.size.y = 25;
+	
+	
 	gui_defaultUpdatePos(w, grp, pfp);
 }
 
@@ -157,14 +184,32 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	GUIFileBrowser* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
+	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
 	w->fbc = GUIFileBrowserControl_New(gm, path);
-	w->fbc->header.flags |= GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+	w->fbc->header.flags |= GUI_MAXIMIZE_X;
+	
 	w->filenameBar = GUIEdit_New(gm, "");
+	w->filenameBar->header.flags |= GUI_MAXIMIZE_X;
+	w->filenameBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	
 	w->acceptBtn = GUIButton_New(gm, "Accept");
 	w->cancelBtn = GUIButton_New(gm, "Cancel");
+	w->newFileBtn = GUIButton_New(gm, "New File");
+	w->newDirBtn = GUIButton_New(gm, "New Dir");
 	
-	w->header.cursor = GUIMOUSECURSOR_ARROW;
+	w->acceptBtn->header.gravity = GUI_GRAV_BOTTOM_RIGHT;
+	w->cancelBtn->header.gravity = GUI_GRAV_BOTTOM_RIGHT;
+	w->newFileBtn->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->newDirBtn->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->fbc->header.gravity = GUI_GRAV_TOP_LEFT;
+	
+	GUIRegisterObject(w, w->fbc);
+	GUIRegisterObject(w, w->filenameBar);
+	GUIRegisterObject(w, w->acceptBtn);
+	GUIRegisterObject(w, w->cancelBtn);
+	GUIRegisterObject(w, w->newDirBtn);
+	GUIRegisterObject(w, w->newFileBtn);
 	
 	w->curDir = realpath(path, NULL);
 	

@@ -710,7 +710,7 @@ static void fbOnChoose(void* w_, char** files, intptr_t len) {
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	
 	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
-	fb->header.flags |= GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 // 	fb->onChooseData = w;
 // 	fb->onChoose = fbOnChoose;
 	

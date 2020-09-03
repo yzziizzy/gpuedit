@@ -326,17 +326,17 @@ Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
 		case GUI_GRAV_BOTTOM_LEFT:
 			return (Vector2){
 				grp->offset.x + h->topleft.x, 
-				grp->offset.y + h->topleft.y + (grp->size.y) - (h->size.y)
+				grp->offset.y - h->topleft.y + (grp->size.y) - (h->size.y)
 			};
 		case GUI_GRAV_CENTER_BOTTOM:
 			return (Vector2){
 				grp->offset.x + h->topleft.x + (grp->size.x / 2) - (h->size.x / 2), 
-				grp->offset.y + h->topleft.y + (grp->size.y) - (h->size.y)
+				grp->offset.y - h->topleft.y + (grp->size.y) - (h->size.y)
 			};
 		case GUI_GRAV_BOTTOM_RIGHT:
 			return (Vector2){
-				grp->offset.x + h->topleft.x + (grp->size.x) - (h->size.x), 
-				grp->offset.y + h->topleft.y + (grp->size.y) - (h->size.y)
+				grp->offset.x - h->topleft.x + (grp->size.x) - (h->size.x), 
+				grp->offset.y - h->topleft.y + (grp->size.y) - (h->size.y)
 			};
 		case GUI_GRAV_CENTER_RIGHT:
 			return (Vector2){
@@ -345,7 +345,7 @@ Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
 			};
 		case GUI_GRAV_TOP_RIGHT:
 			return (Vector2){
-				grp->offset.x + h->topleft.x + (grp->size.x) - (h->size.x), 
+				grp->offset.x - h->topleft.x + (grp->size.x) - (h->size.x), 
 				grp->offset.y + h->topleft.y
 			};
 		case GUI_GRAV_CENTER_TOP:
