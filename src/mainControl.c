@@ -363,7 +363,28 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-	void* args[4];
+
+static void userEvent(GUIObject* w_, GUIEvent* gev) {
+	GUIMainControl* w = (GUIMainControl*)w_;
+	
+	if(0 == strcmp(gev->userType, "accepted")) {
+		
+		GUIFileBrowserEntry* e = gev->userData;
+		while(e->name) {
+			GUIMainControl_LoadFile(w, e->fullPath);
+			e++;
+		}
+		
+		GUIFileBrowserControl_FreeEntryList(gev->userData, gev->userSize);
+		gev->cancelled = 1;
+	} 
+	
+	
+}
+
+
+
+void* args[4];
 
 void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 	GUISimpleWindow* sw;
@@ -506,6 +527,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 		.MouseMove = mouseMove,
 		.ParentResize = parentResize,
 		.GainedFocus = gainedFocus,
+		.User = userEvent,
 	};
 	
 	
@@ -694,30 +716,18 @@ static void fbEveryFrame(MainControlTab* t) {
 }
 
 
-static void fbOnChoose(void* w_, char** files, intptr_t len) {
-	GUIMainControl* w = (GUIMainControl*)w_;
-	char** ff = files;
-	
-	while(*ff) {
-// 		printf("files: %s\n", *ff);
-		GUIMainControl_LoadFile(w, *ff);
-		ff++;
-	}
-	
-}
-
-
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	
 	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
 	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-// 	fb->onChooseData = w;
-// 	fb->onChoose = fbOnChoose;
 	
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
 	tab->beforeClose = fbBeforeClose;
 	tab->afterClose = fbAfterClose;
 // 	tab->everyFrame = fbEveryFrame;
+	
+	// very important, since normal registration is not used
+	fb->header.parent = w;
 }
 
 

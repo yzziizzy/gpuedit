@@ -160,7 +160,10 @@ typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
 	X(GainedFocus, 0) \
 	X(LostFocus, 0) \
 	X(ParentResize, 0) \
-	X(Paste, 1) 
+	X(Paste, 1) \
+	\
+	X(User, 1) \
+	X(UserAll, 1)
 
 
 enum GUIEventType {
@@ -206,6 +209,7 @@ static char GUIEventBubbleBehavior[] = {
 
 typedef struct GUIEvent {
 	enum GUIEventType type;
+	char* userType;
 	
 	double eventTime;
 	Vector2 eventPos;
@@ -215,6 +219,7 @@ typedef struct GUIEvent {
 	union {
 		Vector2 pos; // for mouse events; absolute position
 		Vector2 size; // for window size
+		void* userData; // for User events
 	};
 	
 	union {
@@ -224,6 +229,7 @@ typedef struct GUIEvent {
 	union {
 		Vector2 dragStartPos;
 		int keycode;
+		ptrdiff_t userSize; // for User events
 	};
 	
 	unsigned int modifiers;
@@ -544,10 +550,15 @@ Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos);
 GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name);
 
 
+// USE THIS ONE to send an event into the system.
+// gev can be allocated on the stack.
+void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
+
+// TriggerEvent DOES NOT BUBBLE. It only calls the virtual functions on the object.
+// gev can be allocated on the stack.
 void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);
 #define GUIObject_TriggerEvent(o, gev) GUIObject_TriggerEvent_(&(o)->header, gev)
 void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev);
-void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
 
 #define GUIObject_FindNextTabStop(o, c) GUIObject_FindNextTabStop_(&((o)->header), c)
 GUIHeader* GUIObject_FindNextTabStop_(GUIHeader* h, int curStop);

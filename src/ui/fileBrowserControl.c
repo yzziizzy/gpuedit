@@ -293,6 +293,43 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 }
 
 
+void GUIFileBrowserControl_FreeEntryList(GUIFileBrowserEntry* e, intptr_t sz) {
+	GUIFileBrowserEntry* p = e;
+	
+	for(intptr_t i = 0; i < sz && e->name; i++) {
+		free(e->name);
+		if(e->fullPath) free(e->fullPath);
+		p++;
+	}
+	
+	free(e);
+}
+
+GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl* w, intptr_t* szOut) {
+	
+	
+	// collect a list of files
+	intptr_t n = 0;
+	GUIFileBrowserEntry* files = malloc(sizeof(*files) * (w->numSelected + 1));
+	
+	for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
+		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
+		
+		if(!e->isSelected) continue;
+		
+		files[n] = *e;
+		files[n].name = strdup(e->name);
+		files[n].fullPath = pathJoin(w->curDir, e->name);
+		
+		n++;
+	}
+	files[n] = (GUIFileBrowserEntry){};
+	
+	
+	if(szOut) *szOut = n;
+	return files;
+}
+
 
 GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 

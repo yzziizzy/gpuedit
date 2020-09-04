@@ -8,6 +8,7 @@
 
 typedef struct GUIFileBrowserEntry {
 	char* name;
+	char* fullPath;
 // 	int type;
 	mode_t perms;
 	
@@ -73,6 +74,7 @@ typedef struct GUIFileBrowser {
 	unsigned int onlyDirs        : 1;
 	unsigned int showNewFolder   : 1;
 	unsigned int showNewFile     : 1;
+	unsigned int noEmptyAccept   : 1;
 	
 	GUIFileBrowserControl* fbc;
 	GUIEdit* filenameBar;
@@ -96,6 +98,8 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path);
 void GUIFileBrowser_Refresh(GUIFileBrowser* w);
 void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w);
 
+void GUIFileBrowserControl_FreeEntryList(GUIFileBrowserEntry* e, intptr_t sz);
+GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl* w, intptr_t* szOut);
 
 
 #endif // __gpuedit_fileBrowser_h__

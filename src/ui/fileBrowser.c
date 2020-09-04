@@ -157,6 +157,49 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
 	
 	
+	intptr_t sz;
+	
+	GUIEvent gev2 = {};
+	gev2.type = GUIEVENT_User;
+	gev2.eventTime = gev->eventTime;
+	gev2.originalTarget = w_;
+	gev2.currentTarget = w_;
+	gev2.cancelled = 0;
+	
+	
+	int userEvent = 0;
+	if(gev->originalTarget == w->cancelBtn) {
+		gev2.userType = "cancelled";
+		userEvent = 1;
+	}
+	else if(gev->originalTarget == w->acceptBtn) {
+		
+		// handlers are responsible for cleanup
+		gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
+		gev2.userSize = sz;
+		
+		gev2.userType = "accepted";
+		userEvent = 1;
+	}
+	else if(gev->originalTarget == w->newFileBtn) {
+		gev2.userType = "new_file";
+		userEvent = 1;
+	}
+	else if(gev->originalTarget == w->newDirBtn) {
+		gev2.userType = "new_dir";
+		userEvent = 1;
+	}
+	
+	if(userEvent) {
+		GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+		
+		// clean up the entry list if nothing caught the event
+		if(gev2.userData && !gev2.cancelled) {
+			GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
+		}
+	}
+	
+	gev->cancelled = 1;
 }
 
 
