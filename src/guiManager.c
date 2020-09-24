@@ -717,7 +717,6 @@ GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
 
 
 void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
-	
 	GUIHeader* old = (GUIHeader*)GUIManager_getFocusedObject(gm);
 	
 	GUIEvent gev = {};
@@ -756,15 +755,14 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	
 	
 	gm->elementCount = 0;
-	
+	gm->root->h.size = (Vector2){pfp->dp->targetSize.x, pfp->dp->targetSize.y};
+	gm->root->h.absClip = (AABB2){0,0, pfp->dp->targetSize.x, pfp->dp->targetSize.y};
 	
 	GUIRenderParams grp = {
 		.offset = {0,0}, 
-		.size = {800,800},
-		.clip = {(0,0),{800,800}}, // BUG hardcoded clipping
+		.size = gm->root->h.size,
+		.clip = gm->root->h.absClip,
 	};
-	gm->root->h.size = (Vector2){800, 800};
-	gm->root->h.absClip = (AABB2){0,0,800, 800};
 	
 	GUIHeader_updatePos(gm->root, &grp, pfp);
 	
