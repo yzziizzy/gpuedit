@@ -74,7 +74,9 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 		box.max.x = tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->tabHeight - 1;
 		
-		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
+		AABB2 clip = gui_clipTo(w->header.absClip, box);
+		
+		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &clip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
 		
 		if(tab->isStarred) {
 			box.min.x = box.max.x - 10; // TODO magic number

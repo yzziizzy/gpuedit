@@ -286,3 +286,6 @@ void GUIFileBrowser_SetDir(GUIFileBrowser* w, char* dir) {
 	GUIFileBrowser_Refresh(w);
 }
 
+void GUIFileBrowser_UnselectAll(GUIFileBrowser* w) {
+	
+}

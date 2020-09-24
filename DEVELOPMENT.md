@@ -3,6 +3,7 @@
 == TODO ==
 * Fix undo not restoring text properly after overflow and segfault fixes 
 * Undo selection changes
+* Don't reopen files that are already open
 * Mark changed tabs with "*" 
 * Choose highlighter based on file extension
 * Proper tabstops
@@ -54,7 +55,7 @@
 * GUIEdit clipping and internal left/right scrolling on large values
 * GUIButton enabled/disabled
 * Color selector control
-
+* Notify style popups
 
 == Editor Features ==
 * Drag selection to new place
@@ -69,6 +70,7 @@
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
 * Duplicate selection
+* Select/replace/do to all other instances visible on screen
 * Middle-click scroll coasting
 * Language sensitive auto-complete and type/param hints (low priority)
 * Delete contents of line but leave indentation
@@ -79,6 +81,7 @@
 * Quick find/replace on current line only
 * Hoist declaration to top of block/fn
 * tail -f mode
+* C-A-up/dn style reordering of entire structs or functions.
 * Sort lines (ignoring leading whitespace)
 * Caps modification of words in selection
 * Expand or collapse multiline fn arg list
@@ -144,6 +147,7 @@
 * Cache lines of prepared buffer commands
 * Async filebrowser fs operations
 * Multiple top-level windows
+* Switch tabs on hover
 
 == Language Notes ==
 "i don't care about member layout" flag for structs

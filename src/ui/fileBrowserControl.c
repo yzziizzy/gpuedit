@@ -297,8 +297,10 @@ void GUIFileBrowserControl_FreeEntryList(GUIFileBrowserEntry* e, intptr_t sz) {
 	GUIFileBrowserEntry* p = e;
 	
 	for(intptr_t i = 0; i < sz && e->name; i++) {
-		free(e->name);
+		if(e->name) free(e->name);
 		if(e->fullPath) free(e->fullPath);
+		e->name = NULL;
+		e->fullPath = NULL;
 		p++;
 	}
 	

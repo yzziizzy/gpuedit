@@ -91,6 +91,7 @@ typedef struct GUIFileBrowser {
 
 GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path);
 void GUIFileBrowser_Destroy(GUIFileBrowser* w);
+void GUIFileBrowser_UnselectAll(GUIFileBrowser* w);
 
 
 GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path);
