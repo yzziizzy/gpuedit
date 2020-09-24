@@ -16,10 +16,9 @@
 
 #include "sti/sti.h"
 
-#include "fileBrowser.h"
 
-#include "gui_internal.h"
-
+#include "../gui.h"
+#include "../gui_internal.h"
 
 
 

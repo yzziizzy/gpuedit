@@ -377,6 +377,9 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 			e++;
 		}
 		
+		// this is probably a bit sketchy
+		GUIFileBrowser_UnselectAll((GUIFileBrowser*)gev->originalTarget);
+		
 		GUIFileBrowserControl_FreeEntryList(gev->userData, gev->userSize);
 		gev->cancelled = 1;
 	} 
@@ -412,7 +415,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 // 		sw->absScrollPos.x = 50;
 		GUIRegisterObject(w->header.parent, sw);
 		*/
-		
+		printf("test\n");
 		struct json_file* jsf = json_load_path("config/buffer_menu.json");
 		GUIObject* oo = GUICL_CreateFromConfig(w->header.gm, jsf->root);
 		

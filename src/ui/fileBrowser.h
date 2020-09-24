@@ -3,7 +3,6 @@
 
 #include <sys/stat.h>
 
-#include "gui.h"
 
 
 typedef struct GUIFileBrowserEntry {

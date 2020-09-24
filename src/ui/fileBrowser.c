@@ -16,9 +16,9 @@
 
 #include "sti/sti.h"
 
-#include "fileBrowser.h"
 
-#include "gui_internal.h"
+#include "../gui.h"
+#include "../gui_internal.h"
 
 
 
@@ -278,6 +278,7 @@ void GUIFileBrowser_Refresh(GUIFileBrowser* w) {
 	GUIFileBrowserControl_Refresh(w->fbc);
 }
 
+
 void GUIFileBrowser_SetDir(GUIFileBrowser* w, char* dir) {
 	if(w->curDir) free(w->curDir);
 	
@@ -286,6 +287,11 @@ void GUIFileBrowser_SetDir(GUIFileBrowser* w, char* dir) {
 	GUIFileBrowser_Refresh(w);
 }
 
+
 void GUIFileBrowser_UnselectAll(GUIFileBrowser* w) {
+	for(size_t i = 0; i < VEC_LEN(&w->fbc->entries); i++) {
+		VEC_ITEM(&w->fbc->entries, i).isSelected = 0;
+	}
 	
+	w->fbc->numSelected = 0;
 }

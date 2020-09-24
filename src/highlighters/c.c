@@ -1,8 +1,11 @@
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 
 // HACK
-#include "../buffer.h"
+#include "../common_gl.h"
+#include "../common_math.h"
+#include "../highlighterAPI.h"
 
 #define CATS \
 	X(Normal) \
