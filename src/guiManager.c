@@ -364,6 +364,16 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 			gm->lastHoveredObject = NULL;
 		}
 		
+		// still send move events 
+		if(gm->isDragging) {
+			gev.type = GUIEVENT_DragMove;
+			gev.originalTarget = gm->dragStartTarget;
+			gev.currentTarget = gm->dragStartTarget;
+			gev.dragStartPos = gm->dragStartPos;
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
+		}
+		
 		return;
 	}
 	
@@ -402,6 +412,7 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		if(dragDist >= gm->minDragDist) {
 			gm->isDragging = 1;
 			
+			gev.button = gm->dragButton;
 			gev.type = GUIEVENT_DragStart;
 			gev.originalTarget = gm->dragStartTarget;
 			gev.currentTarget = t;
@@ -478,20 +489,27 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		GUIManager_BubbleEvent(gm, t, &gev);
 		
 		gm->isMouseDown = 1;
-		gm->dragStartPos = newPos;
-		gm->dragStartTarget = t;
-		gev.dragStartPos = gm->dragStartPos;
-		
+		if(!gm->isDragging) {
+			gm->dragStartPos = newPos;
+			gm->dragStartTarget = t;
+			gm->dragButton = iev->button;
+			gev.dragStartPos = gm->dragStartPos;
+		}
 	} else if(iev->type == EVENT_MOUSEUP) {
 		char suppressClick = 0;
 		
 		// check for drag end
-		if(gm->isDragging) {
+		if(gm->isDragging && iev->button == gm->dragButton) {
 			gev.type = GUIEVENT_DragStop,
 			gev.currentTarget = t,
 			gev.cancelled = 0;
+			gev.button = gm->dragButton;
 			gev.dragStartPos = gm->dragStartPos;
 			GUIManager_BubbleEvent(gm, t, &gev);
+			
+			gev.currentTarget = gm->dragStartTarget,
+			gev.cancelled = 0;
+			GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
 			
 			// end dragging
 			gm->dragStartTarget = NULL;

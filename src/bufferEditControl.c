@@ -77,15 +77,25 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 		return;
 	}
 	
-	BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
-	size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
-	
-	w->selectPivotLine = bl;
-	w->selectPivotCol = col;
+	if(gev->button == 1) {
+		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
+		size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
+		
+		w->selectPivotLine = bl;
+		w->selectPivotCol = col;
+		
+		w->isDragSelecting = 1;
+	}
 }
 
 static void dragStop(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
+	
+	if(gev->button == 1) {
+		w->isDragSelecting = 0;
+		w->isDragScrollCoasting = 0;
+	}
+	
 // 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
 }
 
@@ -107,13 +117,35 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 		return;
 	}
 	
-	
-	BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
-	size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
-	Buffer_SetCurrentSelection(b, bl, col, w->selectPivotLine, w->selectPivotCol);
-	
-	w->buffer->current = bl;
-	w->buffer->curCol = col;
+	if(w->isDragSelecting) {
+		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
+		size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
+		Buffer_SetCurrentSelection(b, bl, col, w->selectPivotLine, w->selectPivotCol);
+		
+		w->buffer->current = bl;
+		w->buffer->curCol = col;
+		
+		if(gev->pos.y < w->header.absTopLeft.y) {
+			w->isDragScrollCoasting = 1;
+			
+			float d = w->header.absTopLeft.y - gev->pos.y;
+			
+			w->scrollCoastStrength = (fclamp(d, 0, w->scrollCoastMax) / w->scrollCoastMax);
+			w->scrollCoastDir = -1;
+		}
+		else if(gev->pos.y > w->header.absTopLeft.y + w->header.size.y) {
+			w->isDragScrollCoasting = 1;
+			
+			float d = gev->pos.y - w->header.absTopLeft.y - w->header.size.y;
+			
+			w->scrollCoastStrength = (fclamp(d, 0, w->scrollCoastMax) / w->scrollCoastMax) ;
+			w->scrollCoastDir = 1;
+		}
+		else {
+			w->isDragScrollCoasting = 0;
+		}
+		
+	}
 	/*
 	if(bl->lineNum < w->selectPivotLine->lineNum) {
 		b->sel->startLine = bl;
@@ -241,6 +273,21 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	
 	Buffer* b = w->buffer;
+	w->scrollCoastMax = 50;
+	// scroll coasting while selection dragging
+	if(w->isDragScrollCoasting) {
+		w->scrollCoastTimer += pfp->timeElapsed;
+		
+		float n = ((1.0 - w->scrollCoastStrength) * .1) + 0.001;
+		
+		if(w->scrollCoastTimer > n) {
+			
+			GUIBufferEditControl_ScrollDir(w, w->scrollCoastDir, 0);
+			w->scrollCoastTimer = fmod(w->scrollCoastTimer, n);
+		}
+		
+		// TODO: update selection endpoints too
+	}
 	
 	// cursor blink
 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
@@ -318,8 +365,13 @@ void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings
 }
 
 void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intptr_t col) {
-	w->scrollLines = line;
-	w->scrollCols = col;
+	w->scrollLines = MIN(MAX(0, line), w->buffer->numLines);
+	w->scrollCols = MAX(0, col);
+}
+
+// move the view by this delta
+void GUIBufferEditControl_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols) {
+	GUIBufferEditControl_SetScroll(w, w->scrollLines + lines, w->scrollCols + cols);
 }
 
 

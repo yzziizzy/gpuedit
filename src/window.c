@@ -610,8 +610,8 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		
 		if(xev.type == MotionNotify) {
 			
-			pixelPos.x = CLAMP(0, xev.xmotion.x, xs->winAttr.width);
-			pixelPos.y = CLAMP(0, xev.xmotion.y, xs->winAttr.height);
+			pixelPos.x = xev.xmotion.x;
+			pixelPos.y = xev.xmotion.y;
 			
 			normPos.x = (float)xev.xmotion.x / (float)xs->winAttr.width;
 			normPos.y = 1.0 - ((float)xev.xmotion.y / (float)xs->winAttr.height); // opengl is inverted to X
@@ -623,10 +623,11 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			// check if the mouse actually moved
 			if(st->lastCursorPosPixels.x == pixelPos.x && st->lastCursorPosPixels.y == pixelPos.y) {
-				// not sure if X sends events without actual movment.
-				// let's find out
-				printf("mouse didn't move in XMotionNotify event.\n");
-				continue;
+				// not sure why exactly X sends these events, but it does happen when the mouse
+				// is dragging outside the client window.
+				
+// 				printf("mouse didn't move in XMotionNotify event.\n");
+// 				continue;
 			}
 			
 			iev->type = EVENT_MOUSEMOVE;

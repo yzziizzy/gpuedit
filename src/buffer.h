@@ -211,7 +211,12 @@ typedef struct GUIBufferEditControl {
 	// stating point of a mouse-drag selection
 	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
 	intptr_t selectPivotCol;
-	
+	float scrollCoastTimer;
+	float scrollCoastStrength;
+	float scrollCoastMax;
+	char isDragSelecting;
+	char isDragScrollCoasting;
+	char scrollCoastDir;
 	
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
@@ -457,6 +462,12 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
 void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* gbe);;
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
+
+// set absolute scroll position
+void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intptr_t col);
+
+// move the view by this delta
+void GUIBufferEditControl_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
 
 void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* gbe);
 void GUIBufferEditControl_MoveCursorTo(GUIBufferEditControl* gbe, intptr_t line, intptr_t col);

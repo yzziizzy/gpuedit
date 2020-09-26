@@ -36,7 +36,6 @@
 * Breadcrumbs/path in file browser
 * Load GUIManager defaults from file
 * Wire all the settings updates through the app
-* Move pushFocusedObject to a ring buffer, or revamp it entirely for tabIndex
 * Folder-local config file
 * Split windows
 * Adjustable scroll lines in fileBrowser, get from OS if possible
@@ -70,6 +69,7 @@
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
 * Duplicate selection
+* Clear line except indentation.
 * Select/replace/do to all other instances visible on screen
 * Middle-click scroll coasting
 * Language sensitive auto-complete and type/param hints (low priority)
@@ -121,10 +121,8 @@
 * GUIManager should pop focus stack if focused control is deleted
 * Check all column usage for correct 1/0 basing
 * Theme styling of selection stub on empty lines
-* Maybe fixed incidentally: Line numbers occasionally overlap the tray for a single frame when scrolling, in violation of z-index
 * Clicking on the find box/editor area should steal focus
 * Window resize is broken somewhere
-* Selection dragging freezes after scrolling while dragging
 * Mouse drag start params need tuning 
 * Need warnings and protection against overrunning the persistent gpu vertex buffers
 * GUIManager hit test needs to sort hits by z
