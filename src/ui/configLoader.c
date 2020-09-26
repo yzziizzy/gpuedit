@@ -142,7 +142,7 @@ static GUIObject* create_GUIButton(GUIManager* gm, json_value_t* cfg) {
 	
 	char* s = json_obj_get_string(cfg, "value");
 	
-	obj = GUIButton_New(gm, s || "");
+	obj = GUIButton_New(gm, s ? s : "");
 	obj->isDisabled = json_obj_get_int(cfg, "disabled", 0);
 	
 	return (GUIObject*)obj;
@@ -174,11 +174,26 @@ static GUIObject* create_GUIDebugAdjuster(GUIManager* gm, json_value_t* cfg) {
 static GUIObject* create_GUIEdit(GUIManager* gm, json_value_t* cfg) {
 	GUIEdit* obj;
 	
-	char* value = json_obj_get_string(cfg, "value");
-	// TODO smarter conversion from json
-	// TODO fonts, etc
-	int type = 0;
-	obj = GUIEdit_New(gm, value);
+	char* s = json_obj_get_string(cfg, "value");
+	obj = GUIEdit_New(gm, s ? s : "");
+	
+	return (GUIObject*)obj;
+}
+
+static GUIObject* create_GUIFileBrowser(GUIManager* gm, json_value_t* cfg) {
+	GUIFileBrowser* obj;
+	
+// 	char* s = json_obj_get_string(cfg, "value");
+	obj = GUIFileBrowser_New(gm, ".");
+	
+	return (GUIObject*)obj;
+}
+
+static GUIObject* create_GUIFileBrowserControl(GUIManager* gm, json_value_t* cfg) {
+	GUIFileBrowserControl* obj;
+	
+// 	char* s = json_obj_get_string(cfg, "value");
+	obj = GUIFileBrowserControl_New(gm, ".");
 	
 	return (GUIObject*)obj;
 }
@@ -247,7 +262,7 @@ static GUIObject* create_GUISimpleWindow(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUISimpleWindow_New(gm);
 	
-	char* s = json_obj_get_string(cfg, "value");
+	char* s = json_obj_get_string(cfg, "title");
 	if(s) obj->title = s; // TODO broken
 	
 	return (GUIObject*)obj;
@@ -395,6 +410,9 @@ static void checkInitLookup() {
 	} fns[] = {
 		{"button", create_GUIButton},
 		{"columnlayout", create_GUIColumnLayout},
+		{"edit", create_GUIEdit},
+		{"filebrowser", create_GUIEdit},
+		{"filebrowsercontrol", create_GUIEdit},
 		{"gridlayout", create_GUIGridLayout},
 		{"image", create_GUIImage},
 		{"imagebutton", create_GUIImageButton},

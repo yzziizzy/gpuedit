@@ -68,7 +68,6 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
 }
 
-// TODO: move to gbec?
 static void dragStart(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	Buffer* b = w->buffer;
@@ -179,7 +178,6 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	int needRehighlight = 0;
-	
 	/*
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){

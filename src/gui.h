@@ -365,7 +365,7 @@ points into quads.
 
 */
 typedef struct GUIManager {
-	int maxInstances;
+	int maxInstances; // limited by vmem ring buffer settings
 	PCBuffer instVB;
 	GLuint vao;
 	
@@ -548,6 +548,24 @@ Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos);
 
 #define GUIObject_FindChild(p, n) GUIObject_FindChild_((p) ? &((p)->header) : NULL, n)
 GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name);
+
+
+
+
+
+/*
+NOTE:
+These functions are for temporal, dynamic event handlers that must be added
+and removed at run time.
+
+They are NOT for general event handling in GUI elements. Use the vtable for that.
+*/
+#define GUIObject_AddHandler(o, t, c) GUIObject_AddHandler_(&(o)->header, t, c)
+void GUIObject_AddHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb);
+
+#define GUIObject_RemoveHandler(o, t, c) GUIObject_RemoveHandler_(&(o)->header, t, c)
+void GUIObject_RemoveHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb);
+
 
 
 // USE THIS ONE to send an event into the system.

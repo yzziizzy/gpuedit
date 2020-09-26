@@ -84,18 +84,7 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 		tx = &gm->defaults.buttonHoverTextColor;
 	}
 	
-	// draw background and border
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-	*v = (GUIUnifiedVertex){
-		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->header.size.y},
-		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-		.texIndex1 = 1, // border width
-		.guiType = 4, // bordered window 
-		.fg = GUI_COLOR4_TO_SHADER(*bd), // border color
-		.bg = GUI_COLOR4_TO_SHADER(*bg),
-		.z = 1.75,
-		.alpha = 1.0,
-	};
+	gui_drawBoxBorder(gm, tl, w->header.size, &w->header.absClip, w->header.absZ, bd, 1, bg);
 	
 	// draw label
 	float textw = gui_getDefaultUITextWidth(w->header.gm, w->label, strlen(w->label));
@@ -108,7 +97,7 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 	box.max.x = w->header.size.x - ((bw - textw) / 2);
 	box.max.y = tl.y + w->header.size.y - ((bh - 16) / 2);
 	
-	gui_drawTextLine(w->header.gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, tx, 10000000, w->label, strlen(w->label));
+	gui_drawTextLine(w->header.gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, tx, w->header.absZ+0.01, w->label, strlen(w->label));
 }
 
 

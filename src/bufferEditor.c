@@ -40,7 +40,6 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
 	
-	
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
@@ -634,21 +633,22 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 			break;
 			
-// 		case BufferCmd_CloseBuffer:
+// 		case BufferCmd_CloseBuffer: {
+// 			GUIObject* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
+// 			GUIRegisterObject(NULL, oo); // register to root window
 			
-// 			GUIManager_SpawnTemplate(w->header.gm, "save_changes");
 			
 // 			break;
-			
-// 		case BufferCmd_Save:
-// 			if(!g_DisableSave) {
-// 				Buffer_SaveToFile(w->buffer, w->sourceFile);
-// 			}
-// 			else {
-// 				printf("Buffer saving disabled.\n");
-// 			}
-// 			break;
-// 			
+// 		}
+		case BufferCmd_Save: 
+			if(!g_DisableSave) {
+				Buffer_SaveToFile(w->buffer, w->sourceFile);
+			}
+			else {
+				printf("Buffer saving disabled.\n");
+			}
+			break;
+		
 		case BufferCmd_Reload:
 		{
 			struct hlinfo* hl = w->buffer->hl; // preserve the meta info

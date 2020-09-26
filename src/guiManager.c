@@ -675,10 +675,22 @@ void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev) {
 		#undef X
 	}
 	
+	if(gev->cancelled) return;
+	
 	// BUG: check for cancelled event?
 	if(o->event_vt && o->event_vt->Any) (*o->event_vt->Any)((GUIObject*)o, gev);
 	
-	// process tab stops
+	
+	VEC_EACH(&o->dynamicHandlers, i, hand) {
+		if(gev->cancelled) return;
+		if(hand.type == gev->type || hand.type == GUIEVENT_Any) {
+			if(hand.cb) hand.cb((GUIObject*)o, gev);
+		}
+	}
+	
+	
+	
+	// BUG Definitely the wrong place for this: process tab stops
 	if((o->flags & GUI_CHILD_TABBING) && !gev->cancelled) {
 		// TODO: unhardcode
 		if(gev->type == GUIEVENT_KeyUp) {
@@ -693,6 +705,27 @@ void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev) {
 }
 
 
+/*
+NOTE:
+These functions are for temporal, dynamic event handlers that must be added
+and removed at run time.
+
+They are NOT for general event handling in GUI elements. Use the vtable for that.
+*/
+void GUIHeader_AddHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb) {
+	VEC_INC(&h->dynamicHandlers);
+	VEC_TAIL(&h->dynamicHandlers).type = type;
+	VEC_TAIL(&h->dynamicHandlers).cb = cb;
+}
+
+void GUIHeader_RemoveHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb) {
+	VEC_EACH(&h->dynamicHandlers, i, hand) {
+		if(hand.type == type && hand.cb == cb) {
+			VEC_RM(&h->dynamicHandlers, i);
+			return;
+		}
+	}
+}
 
 
 // focus stack functions

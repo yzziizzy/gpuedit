@@ -399,7 +399,6 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 // 	printf("eds: %d, lines: %ld\n", VEC_LEN(&w->editors), bb->buffer->numLines);
 
 	args[0] = &bb->buffer->numLines;
-
 	
 	switch(cmd->type) {
 	case Cmd_NULL:
@@ -415,10 +414,8 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 // 		sw->absScrollPos.x = 50;
 		GUIRegisterObject(w->header.parent, sw);
 		*/
-		printf("test\n");
-		struct json_file* jsf = json_load_path("config/buffer_menu.json");
-		GUIObject* oo = GUICL_CreateFromConfig(w->header.gm, jsf->root);
 		
+		GUIObject* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
 		GUIRegisterObject(w->header.parent, oo);
 // 		GUIRegisterObject(sw, oo);
 	}

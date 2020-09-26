@@ -9,7 +9,7 @@
 * Proper tabstops
 * Ability to change the highlighter
 * Open file command
-* Save Changes? close hook buffer integration
+* Save Changes? close hook buffer integration 
 * Shortcut config presets
 * Slide-out windows
 * Outline box style of highlighting

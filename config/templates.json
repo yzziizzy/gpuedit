@@ -7,9 +7,9 @@
 		title: "Save changes?",
 		children: [
 			{ type: "text", pos: [10, 14], value: "", name: "filename" },
-			{ type: "button", pos: [10, 34], value: "Save", name: "save" },
-			{ type: "button", pos: [50, 34], value: "Discard", name: "discard" },
-			{ type: "button", pos: [90, 34], value: "Cancel", name: "cancel" },
+			{ type: "button", pos: [10, 34], size: [90, 30], value: "Save", name: "save" },
+			{ type: "button", pos: [110, 34], size: [90, 30], value: "Discard", name: "discard" },
+			{ type: "button", pos: [210, 34], size: [90, 30], value: "Cancel", name: "cancel" },
 		],
 	},
 	
