@@ -83,7 +83,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			}
 			
 			if(found.flags & undoSeqBreak) {
-				Buffer_UndoSequenceBreak(w->buffer, 0);
+				Buffer_UndoSequenceBreak(w->buffer, 0, w->ec->buffer->current->lineNum, w->ec->buffer->curCol);
 			}
 		}
 		

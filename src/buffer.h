@@ -81,8 +81,8 @@ typedef struct BufferUndo {
 	enum UndoActions action;
 	intptr_t lineNum;
 	intptr_t colNum;
-	intptr_t cursorL;
-	intptr_t cursorC;
+// 	intptr_t cursorL;
+// 	intptr_t cursorC;
 	union {
 		int character; // for single-char operations
 		
@@ -341,7 +341,8 @@ void Buffer_UndoInsertText(Buffer* b, intptr_t line, intptr_t col, char* txt, in
 void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t len);
 void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before); // safe to just pass in l->prev without checking
 void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl); // saves the text too
-void Buffer_UndoSequenceBreak(Buffer* b, int saved);
+void Buffer_UndoSetSelection(Buffer* b, intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC);
+void Buffer_UndoSequenceBreak(Buffer* b, int saved, intptr_t cursorLine, intptr_t cursorCol);
 void Buffer_UndoReplayToSeqBreak(Buffer* b);
 int Buffer_UndoReplayTop(Buffer* b);
 void Buffer_UndoTruncateStack(Buffer* b);

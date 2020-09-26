@@ -1,7 +1,6 @@
 
 
 == TODO ==
-* Fix undo not restoring text properly after overflow and segfault fixes 
 * Undo selection changes
 * Don't reopen files that are already open
 * Mark changed tabs with "*" 
@@ -115,6 +114,7 @@
 * Notify when semicolons appear to be missing
 
 == BUGS ==
+* Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
 * Mouse scroll on files with fewer lines than the screen
 * Should not be able to delete the last line
 * Fix cursor position after undo

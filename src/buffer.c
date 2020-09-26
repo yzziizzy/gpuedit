@@ -154,7 +154,17 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 }
 
 
-void Buffer_UndoSequenceBreak(Buffer* b, int saved) {
+void Buffer_UndoSetSelection(Buffer* b, intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC) {
+	BufferUndo* u = undo_inc(b);
+	
+	u->action = UndoAction_SetSelection;
+	u->lineNum = startL;
+	u->colNum = startC;
+	u->endLine = endL;
+	u->endCol = endC;
+}
+
+void Buffer_UndoSequenceBreak(Buffer* b, int saved, intptr_t cursorLine, intptr_t cursorCol) {
 	// don't add duplicates
 	if(b->undoFill > 0) {
 		if(undo_current(b)->action == UndoAction_SequenceBreak) {
@@ -168,8 +178,8 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved) {
 	BufferUndo* u = undo_inc(b);
 	
 	u->action = UndoAction_SequenceBreak;
-	u->lineNum = 0;
-	u->colNum = 0;
+	u->lineNum = cursorLine;
+	u->colNum = cursorCol;
 	u->text = NULL;
 	u->length = 0;
 	
@@ -290,6 +300,14 @@ int Buffer_UndoReplayTop(Buffer* b) {
 			}
 			break;
 			
+		case UndoAction_SetSelection:
+			Buffer_SetCurrentSelection(b, 
+				Buffer_raw_GetLine(b, u->lineNum),
+				u->colNum,
+				Buffer_raw_GetLine(b, u->endLine),
+				u->endCol);
+			break;
+			
 		case UndoAction_MoveCursorTo:
 			fprintf(stderr, "UndoAction_MoveCursorTo nyi\n");
 			break;
@@ -300,7 +318,11 @@ int Buffer_UndoReplayTop(Buffer* b) {
 // 			break;
 			
 		case UndoAction_SequenceBreak:
-			// do nothing at all for now
+			// move cursor back
+			if(u->colNum > 0 && u->lineNum > 0) {
+				Buffer_MoveCursorTo(b, Buffer_raw_GetLine(b, u->lineNum), u->colNum);
+			}
+			
 			return 0;
 			
 		default:
@@ -551,7 +573,7 @@ void Buffer_ClearAllSelections(Buffer* b) {
 void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 	if(!sel) return;
 	
-	// TODO: undo selection change 
+	Buffer_UndoSetSelection(b, sel->startLine->lineNum, sel->startCol, sel->endLine->lineNum, sel->endCol);
 	
 	if(sel->startLine == sel->endLine) {
 		// move the end down
@@ -1451,7 +1473,7 @@ int Buffer_SaveToFile(Buffer* b, char* path) {
 	free(o);
 	fclose(f);
 	printf("saved\n");
-	Buffer_UndoSequenceBreak(b, 1);
+	Buffer_UndoSequenceBreak(b, 1, -1, -1);
 	
 	return 0;
 }
