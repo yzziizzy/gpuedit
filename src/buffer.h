@@ -251,11 +251,14 @@ typedef struct GUIBufferEditor {
 	char* sourceFile; // issues with undo-save
 	
 	
-	char findTypingMode; 
+	char findMode; 
+	char replaceMode; 
 	char lineNumTypingMode; // flag for GoToLine being active
 	char loadTypingMode; 
+	
 	GUIEdit* lineNumEntryBox;
 	GUIEdit* findBox;
+	GUIEdit* replaceBox;
 	GUIEdit* loadBox;
 	
 	pcre2_code* findRE;
@@ -273,7 +276,6 @@ typedef struct GUIBufferEditor {
 	
 	
 	char trayOpen;
-	float trayHeight;
 	GUIWindow* trayRoot;
 	
 	// status bar

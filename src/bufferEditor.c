@@ -40,6 +40,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
 	
+	
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
@@ -107,12 +108,24 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 	}
 	
 	
+	if(w->trayOpen) {
+		w->trayRoot->header.size.x = w->header.size.x;
+		w->trayRoot->header.z = 500;
+		sbHeight += w->trayRoot->header.size.y;
+		w->trayRoot->header.topleft.y = wsz.y - sbHeight;
+		
+		w->trayRoot->color = (Color4){.4,.4,.4,1};
+		w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
+	}
+	
 	w->statusBar->header.hidden = !w->showStatusBar;
 	w->statusBar->header.size = (Vector2){wsz.x, w->statusBarHeight};
 	w->statusBar->header.topleft = (Vector2){0, 0};
 	
 	w->ec->header.size = (Vector2){wsz.x, wsz.y - sbHeight};
 	w->ec->header.topleft = (Vector2){0, 0};
+	
+	
 	
 	gui_defaultUpdatePos(w, grp, pfp);
 }
@@ -121,6 +134,29 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
 	w->buffer = b;
 	GUIBufferEditControl_SetBuffer(w->ec, b);
+}
+
+static void userEvent(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	
+	if(w->trayOpen && gev->originalTarget == w->findBox) {
+		if(0 == strcmp(gev->userType, "change")) {
+			// becaus userData is not null terminated from the Edit
+			char* word = strndup(gev->userData, gev->userSize);
+			
+			GUIBufferEditor_StopFind(w);
+			GUIBufferEditor_StartFind(w, word);
+			GUIBufferEditor_NextFindMatch(w);
+			
+			free(word);
+			
+		// 	GUIBufferEditor_FindWord(w, word);
+			GUIBufferEditor_scrollToCursor(w);
+		}
+		else if(0 == strcmp(gev->userType, "enter")) {
+			GUIBufferEditor_NextFindMatch(w);
+		}
+	}
 }
 
 
@@ -140,6 +176,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 // 		.DragStop = dragStop,
 // 		.DragMove = dragMove,
 		.ParentResize = parentResize,
+		.User = userEvent,
 	};
 	
 	
@@ -244,7 +281,8 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 	int errno;
 	PCRE2_SIZE erroff;
 	PCRE2_UCHAR errbuf[256];
-	printf("starting RE find: '%s'\n", pattern);
+	//printf("starting RE find: '%s'\n", pattern);
+	
 	// free previous regex 
 	if(w->findRE) {
 		pcre2_code_free(w->findRE);
@@ -257,7 +295,7 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 		pcre2_get_error_message(errno, errbuf, sizeof(errbuf));
 		w->findREError = strdup(errbuf);
 		w->findREErrorChar = erroff;
-		printf("find error: '%s' \n", errbuf);
+		printf("PCRE find error #1: '%s' \n", errbuf);
 		
 		return 1;
 	}
@@ -267,7 +305,7 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 		free(w->findREError);
 		w->findREError = 0;
 		w->findREErrorChar = -1;
-		printf("find error\n");
+		printf("PCRE find error #2\n");
 	}
 	
 	w->findMatch = pcre2_match_data_create_from_pattern(w->findRE, NULL);
@@ -298,7 +336,7 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 			char errbuf[256];
 			pcre2_get_error_message(res, errbuf, sizeof(errbuf));
 			
-			printf("real regex error: %p %p %d '%s'\n", w->findRE, bl->buf, bl->lineNum, errbuf);
+			printf("PCRE real error: %p %p %d '%s'\n", w->findRE, bl->buf, bl->lineNum, errbuf);
 			
 			return 1;
 		}
@@ -308,7 +346,7 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 		
 		if(!bl) { // end of file
 			bl = w->buffer->first;
-			printf("find wrapped\n");
+// 			printf("find wrapped\n");
 			wraps++;
 			
 			if(wraps > 1) return 1;
@@ -326,7 +364,7 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 	Buffer_MoveCursorTo(w->buffer, bl, w->findCharS);
 	Buffer_SetCurrentSelection(w->buffer, bl, w->findCharS, bl, w->findCharE); 
 	
-	printf("match found at: %d:%d\n", bl->lineNum, w->findCharS);
+// 	printf("match found at: %d:%d\n", bl->lineNum, w->findCharS);
 	
 	return 0;
 }
@@ -421,31 +459,6 @@ static void gotoline_onenter(GUIEdit* ed, void* gbe_) {
 	
 }
 
-// event callbacks for the Find edit box
-static void find_onchange(GUIEdit* ed, void* gbe_) {
-	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
-	
-	char* word = GUIEdit_GetText(ed);
-// 	printf("word: '%s'\n", word);
-	if(word == 0 || strlen(word) == 0) return; 
-	
-	GUIBufferEditor_StopFind(w);
-	GUIBufferEditor_StartFind(w, word);
-	GUIBufferEditor_NextFindMatch(w);
-	
-// 	GUIBufferEditor_FindWord(w, word);
-	GUIBufferEditor_scrollToCursor(w);
-}
-
-static void find_onenter(GUIEdit* ed, void* gbe_) {
-	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
-	
-	GUIBufferEditor_CloseTray(w);
-	w->findTypingMode = 0;
-	
-	GUIManager_popFocusedObject(w->header.gm);
-	
-}
 
 static void loadfile_onenter(GUIEdit* ed, void* gbe_) {
 	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
@@ -534,11 +547,11 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->lineNumEntryBox->header.z = 600;
 				w->lineNumEntryBox->numType = 1; // integers
 				
-				w->lineNumEntryBox->onChange = gotoline_onchange;
-				w->lineNumEntryBox->onChangeData = w;
+// 				w->lineNumEntryBox->onChange = gotoline_onchange;
+// 				w->lineNumEntryBox->onChangeData = w;
 				
-				w->lineNumEntryBox->onEnter = gotoline_onenter;
-				w->lineNumEntryBox->onEnterData = w;
+// 				w->lineNumEntryBox->onEnter = gotoline_onenter;
+// 				w->lineNumEntryBox->onEnterData = w;
 				
 				GUIRegisterObject(w->trayRoot, w->lineNumEntryBox);
 				
@@ -555,34 +568,46 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		// TODO: change hooks
 			break;
 		
-		case BufferCmd_FindStart:
-			GUIBufferEditor_ToggleTray(w, 50);
-			if(!w->findTypingMode) {
-				w->findTypingMode = 1;
+		case BufferCmd_ReplaceStart:
+			
+			if(!w->replaceMode) {
+				if(w->trayOpen) GUIBufferEditor_CloseTray(w);
 				
-				e = GUIEdit_New(w->header.gm, "");
-				GUIResize(&e->header, (Vector2){400, 20});
-				e->header.topleft = (Vector2){0,5};
-				e->header.gravity = GUI_GRAV_TOP_CENTER;
-				e->header.z = 600;
+				w->replaceMode = 1;
+				w->trayOpen = 1;
 				
-				e->onChange = find_onchange;
-				e->onChangeData = w;
-				
-				e->onEnter = find_onenter;
-				e->onEnterData = w;
+				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
+				GUIRegisterObject(w, w->trayRoot);
+				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
+				w->replaceBox = GUIObject_FindChild(w->trayRoot, "replace");
 				
 				w->ec->cursorBlinkPaused = 1;
-				GUIRegisterObject(w->trayRoot, e);
-				GUIManager_pushFocusedObject(w->header.gm, e);
-				
-				w->findBox = e;
+				GUIManager_pushFocusedObject(w->header.gm, w->findBox);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
-				w->findTypingMode = 0;
 				w->ec->cursorBlinkPaused = 0;
-// 				guiDelete(w->findBox);
+				GUIManager_popFocusedObject(w->header.gm);
+			}
+			break;
+			
+		case BufferCmd_FindStart:
+			if(!w->findMode) {
+				if(w->trayOpen) GUIBufferEditor_CloseTray(w);
+				
+				w->findMode = 1;
+				w->trayOpen = 1;
+				
+				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "find_tray");
+				GUIRegisterObject(w, w->trayRoot);
+				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
+				
+				w->ec->cursorBlinkPaused = 1;
+				GUIManager_pushFocusedObject(w->header.gm, w->findBox);
+			}
+			else {
+				GUIBufferEditor_CloseTray(w);
+				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 			}
 			
@@ -603,8 +628,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				e->header.gravity = GUI_GRAV_TOP_CENTER;
 				e->header.z = 600;
 				
-				e->onEnter = find_onenter;
-				e->onEnterData = w;
+// 				e->onEnter = find_onenter;
+// 				e->onEnterData = w;
 				
 				w->ec->cursorBlinkPaused = 1;
 				GUIRegisterObject(w->trayRoot, e);
@@ -626,7 +651,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);
 				w->lineNumTypingMode = 0;
-				w->findTypingMode = 0;
+				w->findMode = 0;
 				w->loadTypingMode = 0;
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
@@ -680,11 +705,15 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 
 void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 	if(!w->trayOpen) return;
-	
+// 	
 	w->trayOpen = 0;
-	w->trayHeight = 0;
+	w->findMode = 0;
+	w->replaceMode = 0;
+	
 	GUIObject_Delete(w->trayRoot);
 	w->trayRoot = NULL;
+	w->findBox = NULL;
+	w->replaceBox = NULL;
 }
 
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height) {
@@ -693,7 +722,7 @@ void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height) {
 }
 
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
-	if(w->trayOpen) {
+	/*if(w->trayOpen) {
 		if(w->trayHeight != height) {
 			w->trayHeight = height;
 			return;
@@ -703,13 +732,7 @@ void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
 	w->trayOpen = 1; 
 	w->trayHeight = height;
 	w->trayRoot = GUIWindow_New(w->header.gm);
-	w->trayRoot->header.gravity = GUI_GRAV_BOTTOM_LEFT;
-	w->trayRoot->header.size.y = height; 
-	w->trayRoot->header.size.x = w->header.size.x;
-	w->trayRoot->header.z = 500;
-	
-	w->trayRoot->color = (Color4){.8,.2,.3,1};
-	w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
 	
 	GUIRegisterObject(w, w->trayRoot);
+	*/
 }

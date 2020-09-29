@@ -1,7 +1,6 @@
 
 
 == TODO ==
-* Undo selection changes
 * Don't reopen files that are already open
 * Mark changed tabs with "*" 
 * Choose highlighter based on file extension
@@ -42,6 +41,7 @@
 * MIME type probing of some sort
 * Persist bookmarks
 * Polish scrollbar dragging
+* Horizontal scrollbar
 
 == GUI Improvements ==
 * Garbage collection in GUI

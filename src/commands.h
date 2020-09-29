@@ -44,6 +44,9 @@
 	X(BufferCmd, Unindent) \
 	X(BufferCmd, FindStart) \
 	X(BufferCmd, FindNext) \
+	X(BufferCmd, ReplaceStart) \
+	X(BufferCmd, ReplaceNext) \
+	X(BufferCmd, ReplaceAll) \
 	X(BufferCmd, Save) \
 	X(BufferCmd, Reload) \
 	X(BufferCmd, PromptLoad) \

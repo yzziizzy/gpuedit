@@ -3,16 +3,9 @@
 
 
 
-// onchange
-struct GUIEdit;
-typedef void (*GUIEditOnChangeFn)(struct GUIEdit*, void*);
-typedef void (*GUIEditOnEnterFn)(struct GUIEdit*, void*);
-
 
 typedef struct GUIEdit {
 	GUIHeader header;
-	InputEventHandler* inputHandlers;
-	
 	
 	char* buf;
 	int buflen;
@@ -30,13 +23,6 @@ typedef struct GUIEdit {
 	int centerJustify : 1;
 	
 	// offsets, text align
-	
-	// TODO: move to new event system
-	GUIEditOnChangeFn onChange;
-	void* onChangeData;
-	
-	GUIEditOnEnterFn onEnter;
-	void* onEnterData;
 	
 } GUIEdit;
 

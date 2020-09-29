@@ -9,6 +9,7 @@
 static void insertChar(GUIEdit* ed, char c);
 static void updateTextControl(GUIEdit* ed);
 static void fireOnchange(GUIEdit* ed);
+static void fireOnEnter(GUIEdit* ed);
 
 
 static void moveCursor(GUIEdit* w, int delta) {
@@ -150,7 +151,7 @@ static void lostFocus(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void keyUp(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	
 	// NOTE: paste will be an event type
@@ -164,29 +165,22 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 		moveCursor(w, 1);
 		gev->cancelled = 1;
 	}
+	else if(gev->keycode == XK_Return) {
+		fireOnEnter(w);
+		gev->cancelled = 1;
+	}
 	else if(gev->keycode == XK_BackSpace) {
 		removeChar(w, w->cursorpos - 1);
 		moveCursor(w, -1);
 		
-		if(w->onChange) {
-			(*w->onChange)(w, w->onChangeData);
-		}
-		
-		gev->cancelled = 1;
-	}
-	else if(gev->keycode == XK_Return) {
-		if(w->onEnter) {
-			(*w->onEnter)(w, w->onEnterData);
-		}
+		fireOnchange(w);
 		
 		gev->cancelled = 1;
 	}
 	else if(gev->keycode == XK_Delete) {
 		removeChar(w, w->cursorpos);
 		
-		if(w->onChange) {
-			(*w->onChange)(w, w->onChangeData);
-		}
+		fireOnchange(w);
 		
 		gev->cancelled = 1;
 	}
@@ -194,9 +188,7 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 		insertChar(w, gev->character);
 		w->cursorpos++;
 		
-		if(w->onChange) {
-			(*w->onChange)(w, w->onChangeData);
-		}
+		fireOnchange(w);
 		
 		gev->cancelled = 1;
 	}
@@ -219,7 +211,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyUp = keyUp,
+		.KeyDown = keyDown,
 		.Click = click,
 		.GainedFocus = gainedFocus,
 		.LostFocus = lostFocus,
@@ -324,9 +316,36 @@ static void setText(GUIEdit* ed, char* s) {
 }
 
 static void fireOnchange(GUIEdit* ed) {
-	if(ed->onChange) {
-		(*ed->onChange)(ed, ed->onChangeData);
-	}
+	
+	GUIEvent gev = {};
+	gev.type = GUIEVENT_User;
+	gev.eventTime = 0;
+	gev.originalTarget = ed;
+	gev.currentTarget = ed;
+	gev.cancelled = 0;
+	gev.userType = "change";
+	
+	gev.userData = ed->buf;
+	gev.userSize = ed->textlen;
+	
+	GUIManager_BubbleEvent(ed->header.gm, ed, &gev);
+}
+
+
+static void fireOnEnter(GUIEdit* ed) {
+	
+	GUIEvent gev = {};
+	gev.type = GUIEVENT_User;
+	gev.eventTime = 0;
+	gev.originalTarget = ed;
+	gev.currentTarget = ed;
+	gev.cancelled = 0;
+	gev.userType = "enter";
+	
+	gev.userData = ed->buf;
+	gev.userSize = ed->textlen;
+	
+	GUIManager_BubbleEvent(ed->header.gm, ed, &gev);
 }
 
 
