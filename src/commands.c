@@ -13,7 +13,7 @@
 
 static struct {
 	char* name;
-	int val;
+	uint64_t val;
 } enum_table[] = { 
 #define X(a, b) {#a "_" #b, a##_##b},
 	COMMANDTYPE_LIST
@@ -57,10 +57,10 @@ static struct {
 
 
 
-static HashTable words;
-static HashTable syms;
-static HashTable flag_lookup;
-static HashTable cmd_enums;
+static HT(unsigned int) words;
+static HT(uint64_t) syms;
+static HT(unsigned int) flag_lookup;
+static HT(uint64_t) cmd_enums;
 
 static void init_words() {
 	HT_init(&words, 16);
@@ -87,12 +87,12 @@ static void init_words() {
 
 
 static int get_word(char* w) {
-	int64_t n;
+	unsigned int n;
 	if(HT_get(&words, w, &n)) return -1;
 	return n;
 } 
 static unsigned int get_flag(char* w) {
-	int64_t n;
+	unsigned int n;
 	if(HT_get(&flag_lookup, w, &n)) return -1;
 	return n;
 } 
@@ -107,7 +107,7 @@ static void after(char** s, char* search) {
 
 Cmd* CommandList_loadFile(char* path) {
 	
-	static is_init = 0;
+	static int is_init = 0;
 	if(!is_init) {
 		is_init = 1;
 		init_words();
@@ -115,7 +115,7 @@ Cmd* CommandList_loadFile(char* path) {
 	
 	char buf[128];
 	size_t len = 0;
-	int64_t n = 0;
+	uint64_t n = 0;
 	
 	char* src = readWholeFile(path, NULL);
 	if(!src) {
@@ -129,18 +129,16 @@ Cmd* CommandList_loadFile(char* path) {
 	int cmdalloc = 32;
 	int cmdlen = 0;
 	Cmd* commands = calloc(1, sizeof(*commands) * cmdalloc);
-	
 	int lineNum = 1;
 	
 	while(*lines) {
 		char* s = *lines;
-		
+
 		unsigned int mode = 0;
 		
 		// first check for mode
 		if(*s == '@') {
 			mode = strtol(s+1, &s, 10);
-			s = strskip(s, " \t");
 		}
 		
 		
@@ -253,13 +251,13 @@ Cmd* CommandList_loadFile(char* path) {
 		s += len;
 // 		printf("b: '%s'\n", buf);
 		if(HT_get(&cmd_enums, buf, &n)) {
-			printf("unknown command enum: '%s'\n", buf);
-			
+			printf("unknown command enum: '%s', %p\n", buf, &n);
+
 			lines++;
 			lineNum++;
 			continue;
 		}
-		
+
 		// get the amount integer
 		while(*s == ' ') s++;
 		int amt = 0;
@@ -280,7 +278,7 @@ Cmd* CommandList_loadFile(char* path) {
 			}
 			
 			
-			int64_t x;
+			unsigned int x;
 			if(!HT_get(&flag_lookup, s, &x)) {
 				flags |= x;
 			}
@@ -292,7 +290,6 @@ Cmd* CommandList_loadFile(char* path) {
 		
 // 		printf("cmd_enum: %d\n", n);
 // 		printf("mods: %x\n", m);
-		
 		if(cmdlen + 1 >= cmdalloc) {
 			cmdalloc *= 2;
 			commands = realloc(commands, sizeof(*commands) * cmdalloc);
@@ -354,7 +351,7 @@ enum {
 };
 
 
-static get_index(unsigned int mods) {
+static unsigned int get_index(unsigned int mods) {
 	unsigned int o = 0;
 	if(mods & GUIMODKEY_CTRL) o |= has_ctl;
 	if(mods & GUIMODKEY_ALT) o |= has_alt;

@@ -396,13 +396,13 @@ static GUIObject* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 
 // ------------------------------------------------------------------------
 
-static HashTable(creator_fn) creator_lookup;
+static HT(creator_fn) creator_lookup;
 
 static void checkInitLookup() {
 	static initialized = 0;
 	if(initialized) return;
 	
-	HT_init(&creator_lookup, 4);
+	HT_init(&creator_lookup, 32);
 	
 	struct {
 		char* name;

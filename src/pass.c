@@ -18,7 +18,7 @@ struct pass_info {
 	char* name;
 };
 
-static HashTable(struct pass_info) prepasses;
+static HT(struct pass_info) prepasses;
 
 
 
@@ -57,7 +57,7 @@ void initRenderPipeline() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
-	HT_init(&prepasses, 2);
+	HT_init(&prepasses, 8);
 }
 
 

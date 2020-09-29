@@ -6,7 +6,7 @@
 #include "json_gl.h" 
 #include "sti/sti.h" 
 
-static HashTable* lookup;
+static HT(GLenum) lookup;
 
 struct enum_data {
 	char* k;
@@ -24,15 +24,17 @@ static struct enum_data enum_values_for_gl[] = {
 
 void json_gl_init_lookup() {
 	struct enum_data* d;
+	static already_done = 0;
 	
-	if(lookup) return;
-	lookup = HT_create(13); // 8192; there are 5671 enums
+	if(already_done) return;
+	already_done = 1;
+	HT_init(&lookup, 5671); // there are 5671 enums
 	
 	d = enum_values_for_gl;
 	
 	fprintf(stderr, "initializing GLenum lookup...");
 	while(d->k) {
-		HT_set(lookup, d->k, d->v);
+		HT_set(&lookup, d->k, d->v);
 		d++;
 	}
 	fprintf(stderr, " done.\n");
@@ -58,7 +60,7 @@ int json_as_GLenum(struct json_value* v, GLenum* out) {
 			return 0;
 			
 		case JSON_TYPE_STRING: // look up the enum
-			return HT_get(lookup, v->v.str, out);
+			return HT_get(&lookup, v->v.str, out);
 			
 			
 		case JSON_TYPE_OBJ: // all invalid

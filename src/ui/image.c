@@ -15,7 +15,7 @@
 
 
 
-HashTable(int) image_names;
+HT(int) image_names;
 TexArray* image_textures;
 
 GLuint vaoImage, vboImage;

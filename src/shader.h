@@ -10,7 +10,7 @@ struct ShaderSource;
 
 
 typedef struct {
-	HashTable(NewShaderSource*) sources;
+	HT(struct ShaderSource*) sources;
 	struct ShaderSource* shaders[6];
 	
 	char* name;

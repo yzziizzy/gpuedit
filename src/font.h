@@ -112,7 +112,7 @@ typedef struct FontGen {
 
 
 typedef struct FontManager {
-	HashTable(GUIFont*) fonts;
+	HT(GUIFont*) fonts;
 	
 	// SDF generation 
 	VEC(FontGen*) gen;

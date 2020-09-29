@@ -25,7 +25,7 @@
 // a start is a start
 
 
-static HashTable(TexEntry*) texLookup;
+static HT(TexEntry*) texLookup;
 
 static TextureManager* texman;
 
@@ -64,7 +64,7 @@ void Texture_release(Texture* tex) {
 	struct TexEntry* e;
 	
 	if(strlen(tex->name) == 0) {
-		return NULL;
+		return;
 	}
 	
 		// check the cache
@@ -81,7 +81,7 @@ void Texture_release(Texture* tex) {
 
 // global init fn
 void initTextures() {
-	HT_init(&texLookup, 5);
+	HT_init(&texLookup, 32);
 }
 
 
@@ -676,10 +676,10 @@ void TextureManager_init(TextureManager* tm) {
 int TextureManager_reservePath(TextureManager* tm, char* path) {
 	
 	int ret;
-	int64_t index;
+	int index;
 	char* pathc;
 	
-	if(!HT_getInt(&tm->texLookup, path, &index)) {
+	if(!HT_get(&tm->texLookup, path, &index)) {
 		// path already reserved, increase refs
 		TexEntry* tep = &VEC_ITEM(&tm->texEntries, index);
 		
@@ -700,7 +700,7 @@ int TextureManager_reservePath(TextureManager* tm, char* path) {
 	index = VEC_LEN(&tm->texEntries);
 	VEC_PUSH(&tm->texEntries, te);
 	
-	HT_setInt(&tm->texLookup, pathc, index);
+	HT_set(&tm->texLookup, pathc, index);
 	
 	return index;
 }

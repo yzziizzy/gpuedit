@@ -149,7 +149,7 @@ static void checkFTlib() {
 		err = _FT_Init_FreeType(&ftLib);
 		if(err) {
 			fprintf(stderr, "Could not initialize FreeType library.\n");
-			return NULL;
+			return;
 		}
 	}
 }
@@ -313,7 +313,7 @@ static FontGen* addChar(FontManager* fm, FT_Face* ff, int code, int fontSize, ch
 	if(err) {
 		fprintf(stderr, "Could not set pixel size to %dpx.\n", rawSize);
 		free(fg);
-		return;
+		return NULL;
 	}
 	
 	
@@ -470,7 +470,7 @@ void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic) {
 
 	err = _FT_New_Face(ftLib, fontPath, 0, &fontFace);
 	if(err) {
-		fprintf(stderr, "Could not access font '%s' at '%'.\n", name, fontPath);
+		fprintf(stderr, "Could not access font '%s' at '%s'.\n", name, fontPath);
 		return;
 	}
 	
@@ -519,7 +519,7 @@ void FontManager_createAtlas(FontManager* fm) {
 	int pot = nextPOT(naiveSize);
 	int pot2 = naiveSize / 2;
 	
-	printf("naive min tex size: %f -> %d (%d)\n", naiveSize, pot, totalWidth);
+	printf("naive min tex size: %d -> %d (%d)\n", naiveSize, pot, totalWidth);
 	
 	pot = MIN(pot, fm->maxAtlasSize);
 	
@@ -551,7 +551,7 @@ void FontManager_createAtlas(FontManager* fm) {
 			if(hext + prevhext > pot) { 
 				VEC_PUSH(&fm->atlas, texData);
 				
-				sprintf(buf, "sdf-comp-%d.png", VEC_LEN(&fm->atlas));
+				sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
 				writePNG(buf, 1, texData, pot, pot);
 				
 				
@@ -612,7 +612,7 @@ void FontManager_createAtlas(FontManager* fm) {
 	
 	VEC_PUSH(&fm->atlas, texData);
 	
-	sprintf(buf, "sdf-comp-%d.png", VEC_LEN(&fm->atlas));
+	sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
 	writePNG(buf, 1, texData, pot, pot);
 	
 	VEC_FREE(&fm->gen);
@@ -643,7 +643,7 @@ void FontManager_saveAtlas(FontManager* fm, char* path) {
 	// write the file version
 	fwrite(&GUIFONT_ATLAS_FILE_VERSION, 1, 2, f);
 	
-	HT_LOOP(&fm->fonts, fName, GUIFont*, font) {
+	HT_EACH(&fm->fonts, fName, GUIFont*, font) {
 		// save the font
 		// font identifier
 		fwrite("F", 1, 1, f);

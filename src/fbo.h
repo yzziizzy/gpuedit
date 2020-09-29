@@ -42,8 +42,8 @@ typedef struct Framebuffer {
 // not the best name. this struct holds various screen-related resources
 typedef struct GPUResources {
 	
-	HashTable(FramebufferTexture*) fbTextures;
-	HashTable(Framebuffer*) fbs;
+	HT(FramebufferTexture*) fbTextures;
+	HT(Framebuffer*) fbs;
 	
 } GPUResources;
 

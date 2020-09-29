@@ -91,7 +91,7 @@ typedef struct TexEntry {
 
 typedef struct TextureManager {
 	
-	HashTable(int) texLookup;
+	HT(int) texLookup;
 	VEC(TexEntry) texEntries;
 	
 	
@@ -185,7 +185,7 @@ typedef struct TextureAtlasSource {
 
 
 typedef struct TextureAtlas {
-	HashTable(TextureAtlasItem*) items;
+	HT(TextureAtlasItem*) items;
 	
 	int width;
 	VEC(uint32_t*) atlas;
