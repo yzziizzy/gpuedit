@@ -16,7 +16,7 @@
 	find_tray: {
 		type: "window",
 		size: [0, 40],
-		flags: "MAXIMIZE_X",
+		flags: "MAXIMIZE_X", // NYI
 		children: [
 			{type: "text", pos: [5, 10], value: "Find:" },
 			{type: "edit", pos: [50, 10], size: [400, 20] value: "", name: "find" },
@@ -25,7 +25,7 @@
 	replace_tray: {
 		type: "window",
 		size: [0, 60],
-		flags: "MAXIMIZE_X",
+		flags: "MAXIMIZE_X", // NYI
 		children: [
 			{type: "text", pos: [5, 5], value: "Find:" },
 			{type: "edit", pos: [65, 5], size: [400, 20] value: "", name: "find" },

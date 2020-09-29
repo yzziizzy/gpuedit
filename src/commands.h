@@ -96,6 +96,7 @@ enum CmdType {
 
 
 typedef struct Cmd {
+	unsigned int mode;
 	unsigned int mods;
 	int keysym;
 	enum CmdType cmd;
@@ -115,7 +116,7 @@ struct GUIEvent;
 typedef struct GUIEvent GUIEvent;
 
 
-int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter);
+int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, unsigned int mode, Cmd* out, unsigned int* iter);
 
 CmdList* Commands_SeparateCommands(Cmd* in);
 

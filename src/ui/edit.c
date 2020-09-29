@@ -184,7 +184,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		
 		gev->cancelled = 1;
 	}
-	else if(isprint(gev->character)) {
+	else if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		insertChar(w, gev->character);
 		w->cursorpos++;
 		

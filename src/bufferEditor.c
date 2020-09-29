@@ -64,7 +64,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		
 		Cmd found;
 		unsigned int iter = 0;
-		while(Commands_ProbeCommand(gev, w->commands, &found, &iter)) {
+		while(Commands_ProbeCommand(gev, w->commands, w->inputMode, &found, &iter)) {
 			// GUIBufferEditor will pass on commands to the buffer
 			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
 				found.cmd, found.amt 
@@ -568,6 +568,14 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		// TODO: change hooks
 			break;
 		
+		case BufferCmd_ReplaceNext:
+			printf("ReplaceNext\n");
+			break;
+			
+		case BufferCmd_ReplaceAll:
+			printf("ReplaceAll\n");
+			break;
+			
 		case BufferCmd_ReplaceStart:
 			
 			if(!w->replaceMode) {
@@ -575,6 +583,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				w->replaceMode = 1;
 				w->trayOpen = 1;
+				w->inputMode = 2;
+		
 				
 				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
 				GUIRegisterObject(w, w->trayRoot);
@@ -597,6 +607,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				w->findMode = 1;
 				w->trayOpen = 1;
+				w->inputMode = 1;
 				
 				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 				GUIRegisterObject(w, w->trayRoot);
@@ -709,6 +720,8 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 	w->trayOpen = 0;
 	w->findMode = 0;
 	w->replaceMode = 0;
+	
+	w->inputMode = 0;
 	
 	GUIObject_Delete(w->trayRoot);
 	w->trayRoot = NULL;

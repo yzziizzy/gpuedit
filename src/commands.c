@@ -135,8 +135,16 @@ Cmd* CommandList_loadFile(char* path) {
 	while(*lines) {
 		char* s = *lines;
 		
+		unsigned int mode = 0;
 		
-		// first, modifiers
+		// first check for mode
+		if(*s == '@') {
+			mode = strtol(s+1, &s, 10);
+			s = strskip(s, " \t");
+		}
+		
+		
+		// then modifiers
 		unsigned int m = 0;
 		unsigned int key = 0;
 		
@@ -293,6 +301,7 @@ Cmd* CommandList_loadFile(char* path) {
 		Cmd* c = commands + cmdlen;
 		cmdlen++;
 		
+		c->mode = mode;
 		c->mods = m;
 		c->keysym = key;
 		c->cmd = n;
@@ -311,7 +320,7 @@ Cmd* CommandList_loadFile(char* path) {
 }
 
 
-int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter) {
+int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, unsigned int mode, Cmd* out, unsigned int* iter) {
 	
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
@@ -320,6 +329,7 @@ int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, Cmd* out, unsigned int* iter
 	
 	for(; list[i].cmd != 0; i++) {
 // 			printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+		if(list[i].mode != mode) continue;
 		if(list[i].keysym != tolower(gev->keycode)) continue;
 		if((list[i].mods & ANY) != (gev->modifiers & ANY)) continue;
 		// TODO: specific mods

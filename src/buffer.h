@@ -250,6 +250,7 @@ typedef struct GUIBufferEditor {
 	
 	char* sourceFile; // issues with undo-save
 	
+	unsigned int inputMode;
 	
 	char findMode; 
 	char replaceMode; 

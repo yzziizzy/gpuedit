@@ -42,7 +42,6 @@ C  's'       = BufferCmd_Save           0
    XK_F5     = BufferCmd_Reload         0 rehighlight
 C  'f'       = BufferCmd_FindStart      0 
 C  'r'       = BufferCmd_ReplaceStart   0 
-   XK_F3     = BufferCmd_FindNext       0 
 C  'q'       = BufferCmd_Debug          0 scrollToCursor
 C  'w'       = BufferCmd_Debug          1 scrollToCursor
 CS 'r'       = BufferCmd_RehilightWhole= Buffer 0 scrollToCursor rehighlight
@@ -53,8 +52,14 @@ A  XK_Next   = BufferCmd_GoToNextBookmark     0 scrollToCursor
 A  XK_Prior  = BufferCmd_GoToPrevBookmark     0 scrollToCursor
 A  XK_Home   = BufferCmd_GoToFirstBookmark    0 scrollToCursor
 A  XK_End    = BufferCmd_GoToLastBookmark     0 scrollToCursor
-   XK_Escape = BufferCmd_CloseTray            0 
 C  'm'       = BufferCmd_ToggleMenu           0 
+
+@1    XK_F3     = BufferCmd_FindNext             0 
+@2    XK_F3     = BufferCmd_FindNext             0 
+@1    XK_Escape = BufferCmd_CloseTray            0 
+@2    XK_Escape = BufferCmd_CloseTray            0 
+@2 A  'r'       = BufferCmd_ReplaceNext          0 
+@2 A  'a'       = BufferCmd_ReplaceAll           0 
 
    
    
