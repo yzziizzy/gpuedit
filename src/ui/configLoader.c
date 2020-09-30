@@ -52,6 +52,33 @@ static struct Color4 json_get_color(json_value_t* v) {
 }
 
 
+static void read_flags(GUIHeader* h, json_value_t* cfg) {
+	char* s = json_obj_get_string(cfg, "flags"); // returns internal buffer
+	if(!s) return;
+	
+	s = strdup(s);
+	size_t len;
+	char** flist = strsplit_inplace(s, '|', &len);
+	
+	int flags = 0;
+	
+	for(int i = 0; i < len; i++) {
+		char* f = flist[i];
+		
+		     if(0 == strcasecmp(f, "MAXIMIZE_X")) flags |= GUI_MAXIMIZE_X;
+		else if(0 == strcasecmp(f, "MAXIMIZE_Y")) flags |= GUI_MAXIMIZE_Y;
+		else if(0 == strcasecmp(f, "NO_CLIP"))    flags |= GUI_NO_CLIP;
+		else if(0 == strcasecmp(f, "SIZE_TO_CONTENT")) flags |= GUI_SIZE_TO_CONTENT;
+		else if(0 == strcasecmp(f, "AUTO_SIZE"))       flags |= GUI_AUTO_SIZE;
+		else if(0 == strcasecmp(f, "CHILD_TABBING"))   flags |= GUI_CHILD_TABBING;
+	}
+	
+	h->flags = flags;
+	
+	free(flist);
+	free(s);
+}
+
 static void read_gravity(GUIHeader* h, json_value_t* cfg) {
 	char* s = json_obj_get_string(cfg, "gravity");
 	if(!s) return;
@@ -85,6 +112,7 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 	int64_t n;
 	
 	read_gravity(h, cfg);
+	read_flags(h, cfg);
 	
 	if(!json_obj_get_key(cfg, "pos", &v)) {
 		json_as_vector(v, 2, &h->topleft);
@@ -130,7 +158,11 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 		h->hidden = n;
 	}
 	
-	// TODO: flags
+	if(!json_obj_get_key(cfg, "tabStop", &v)) {
+		json_as_int(v, &n);
+		h->tabStop = n;
+	}
+	
 	
 }
 

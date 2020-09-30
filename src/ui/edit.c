@@ -185,6 +185,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		gev->cancelled = 1;
 	}
 	else if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
+		printf("char: %d\n", gev->character);
 		insertChar(w, gev->character);
 		w->cursorpos++;
 		
@@ -265,12 +266,17 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 
 static void growBuffer(GUIEdit* ed, int extra) {
 	ed->buflen = nextPOT(ed->textlen + extra + 1);
-	ed->buf = realloc(ed->buf, ed->buflen);
+	if(ed->buf) {
+		ed->buf = realloc(ed->buf, ed->buflen);
+	}
+	else {
+		ed->buf = calloc(1, ed->buflen);
+	}
 }
 
 static void checkBuffer(GUIEdit* ed, int minlen) {
 	if(ed->buflen < minlen + 1) {
-		growBuffer(ed, ed->buflen - minlen + 1);
+		growBuffer(ed, minlen - ed->buflen + 1);
 	}
 }
 

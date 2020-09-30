@@ -44,7 +44,7 @@ C  'f'       = BufferCmd_FindStart      0
 C  'r'       = BufferCmd_ReplaceStart   0 
 C  'q'       = BufferCmd_Debug          0 scrollToCursor
 C  'w'       = BufferCmd_Debug          1 scrollToCursor
-CS 'r'       = BufferCmd_RehilightWhole= Buffer 0 scrollToCursor rehighlight
+CS 'r'       = BufferCmd_RehilightWholeBuffer 0 scrollToCursor rehighlight
 CA 'b'       = BufferCmd_SetBookmark          0 scrollToCursor
 CS 'b'       = BufferCmd_RemoveBookmark       0 scrollToCursor
 C  'b'       = BufferCmd_ToggleBookmark       0 scrollToCursor
@@ -54,12 +54,14 @@ A  XK_Home   = BufferCmd_GoToFirstBookmark    0 scrollToCursor
 A  XK_End    = BufferCmd_GoToLastBookmark     0 scrollToCursor
 C  'm'       = BufferCmd_ToggleMenu           0 
 
-@1    XK_F3     = BufferCmd_FindNext             0 
-@2    XK_F3     = BufferCmd_FindNext             0 
+@1    XK_F3     = BufferCmd_FindNext             0 scrollToCursor
+@2    XK_F3     = BufferCmd_FindNext             0 scrollToCursor
 @1    XK_Escape = BufferCmd_CloseTray            0 
 @2    XK_Escape = BufferCmd_CloseTray            0 
-@2 A  'r'       = BufferCmd_ReplaceNext          0 
-@2 A  'a'       = BufferCmd_ReplaceAll           0 
+@1 C  'r'       = BufferCmd_ReplaceStart         0 scrollToCursor
+@2 C  'f'       = BufferCmd_FindStart            0 scrollToCursor
+@2 A  'r'       = BufferCmd_ReplaceNext          0 scrollToCursor rehighlight undoSeqBreak
+@2 A  'a'       = BufferCmd_ReplaceAll           0 scrollToCursor rehighlight undoSeqBreak
 
-   
+
    

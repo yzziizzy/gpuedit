@@ -295,7 +295,11 @@ typedef struct GUIHeader {
 	unsigned int deleted :  1;
 	
 	int cursor;
-	int tabStop;
+	int tabStop; // the tab stop of this element within its parent hierarchy
+	
+	// data about tabbing among children of this element
+	int currentTabStop;
+	VEC(GUIHeader*) tabStopCache;
 	
 } GUIHeader;
 
@@ -551,8 +555,6 @@ GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name);
 
 
 
-
-
 /*
 NOTE:
 These functions are for temporal, dynamic event handlers that must be added
@@ -578,10 +580,10 @@ void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);
 #define GUIObject_TriggerEvent(o, gev) GUIObject_TriggerEvent_(&(o)->header, gev)
 void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev);
 
-#define GUIObject_FindNextTabStop(o, c) GUIObject_FindNextTabStop_(&((o)->header), c)
-GUIHeader* GUIObject_FindNextTabStop_(GUIHeader* h, int curStop);
-#define GUIObject_NextTabStop(o) GUIObject_NextTabStop_(&((o)->header))
-GUIHeader* GUIObject_NextTabStop_(GUIHeader* h);
+void GUIHeader_RegenTabStopCache(GUIHeader* parent);
+
+#define GUIObject_NextTabStop(o) GUIHeader_NextTabStop(&((o)->header));
+GUIHeader* GUIHeader_NextTabStop(GUIHeader* h);
 
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev);

@@ -139,6 +139,7 @@ Cmd* CommandList_loadFile(char* path) {
 		// first check for mode
 		if(*s == '@') {
 			mode = strtol(s+1, &s, 10);
+			s++;
 		}
 		
 		
@@ -298,6 +299,7 @@ Cmd* CommandList_loadFile(char* path) {
 		Cmd* c = commands + cmdlen;
 		cmdlen++;
 		
+// 		printf("cmd: @%d, mods:%x, sym:%d, cmd:%ld\n", mode, m, key, n);
 		c->mode = mode;
 		c->mods = m;
 		c->keysym = key;

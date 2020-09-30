@@ -644,7 +644,6 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 
 // handles event bubbling and logic
 void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
-	
 	GUIObject* obj = target;
 	
 	int bubble = GUIEventBubbleBehavior[gev->type];
@@ -682,40 +681,40 @@ void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
 // does not do bubbling
 void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev) {
 	
-	if(!o || !o->event_vt) return;
-	
-	switch(gev->type) {
-		#define X(name, b) case GUIEVENT_##name: \
-				if(o->event_vt && o->event_vt->name) (*o->event_vt->name)((GUIObject*)o, gev); \
-				break;
-			
-			GUIEEVENTTYPE_LIST
-		#undef X
-	}
-	
-	if(gev->cancelled) return;
-	
-	// BUG: check for cancelled event?
-	if(o->event_vt && o->event_vt->Any) (*o->event_vt->Any)((GUIObject*)o, gev);
-	
-	
-	VEC_EACH(&o->dynamicHandlers, i, hand) {
+	if(o && o->event_vt) {
+		
+		switch(gev->type) {
+			#define X(name, b) case GUIEVENT_##name: \
+					if(o->event_vt && o->event_vt->name) (*o->event_vt->name)((GUIObject*)o, gev); \
+					break;
+				
+				GUIEEVENTTYPE_LIST
+			#undef X
+		}
+		
 		if(gev->cancelled) return;
-		if(hand.type == gev->type || hand.type == GUIEVENT_Any) {
-			if(hand.cb) hand.cb((GUIObject*)o, gev);
+		
+		// BUG: check for cancelled event?
+		if(o->event_vt && o->event_vt->Any) (*o->event_vt->Any)((GUIObject*)o, gev);
+		
+		
+		VEC_EACH(&o->dynamicHandlers, i, hand) {
+			if(gev->cancelled) return;
+			if(hand.type == gev->type || hand.type == GUIEVENT_Any) {
+				if(hand.cb) hand.cb((GUIObject*)o, gev);
+			}
 		}
 	}
-	
 	
 	
 	// BUG Definitely the wrong place for this: process tab stops
 	if((o->flags & GUI_CHILD_TABBING) && !gev->cancelled) {
 		// TODO: unhardcode
-		if(gev->type == GUIEVENT_KeyUp) {
-			// TODO: normalize the tab key code
+		if(gev->type == GUIEVENT_KeyDown) {
+			// TODO: normalize the tab key code, or read from file
 			if(gev->keycode == XK_Tab || gev->keycode == XK_ISO_Left_Tab) {
-				
-				GUIObject_NextTabStop_(o);
+				GUIHeader_NextTabStop(o);
+				gev->cancelled = 1;
 			}
 			
 		}

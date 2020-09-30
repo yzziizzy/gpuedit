@@ -687,6 +687,8 @@ void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o) {
 	if(i < 0) {
 		VEC_PUSH(&parent->children, o);
 	}
+	
+	GUIHeader_RegenTabStopCache(parent);
 }
 
 
@@ -802,47 +804,48 @@ Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos) {
 	return (Vector2){0, 0};
 }
 
-int GUIObject_CurrentTabstop(GUIHeader* h) {
-	// TODO: stub
-	return 0;
-}
 
-GUIHeader* GUIObject_FindNextTabStop_(GUIHeader* h, int curStop) {
-	int highest = -1;
-	int first = 999999;
-	GUIObject* firstC = NULL;
-	GUIObject* highestC = NULL;
-	
-	VEC_EACH(&h->children, i, child) {
-		if(child->h.tabStop > 0) {
-			if(child->h.tabStop < first || first == -1) {
-				first = child->h.tabStop;
-				firstC = child;
-			} 
-			
-			if(child->h.tabStop > curStop && (child->h.tabStop < highest || highest == -1)) {
-				highest = child->h.tabStop;
-				highestC = child;
-			}
-		}
-	}
-	
-	return (GUIHeader*)(highestC ? highestC : firstC);
-}
-
-
-GUIHeader* GUIObject_NextTabStop_(GUIHeader* h) {
+GUIHeader* GUIHeader_NextTabStop(GUIHeader* h) {
 	GUIHeader* focused = NULL;
 	
-	int cur = GUIObject_CurrentTabstop(h);
+	h->currentTabStop = (h->currentTabStop + 1) % VEC_LEN(&h->tabStopCache);
 	
-	focused = GUIObject_FindNextTabStop_(h, cur);
-	
-	if(focused) {
-		GUIManager_pushFocusedObject_(h->gm, focused);
-	}
+	focused = VEC_ITEM(&h->tabStopCache, h->currentTabStop);
+	GUIManager_pushFocusedObject_(h->gm, focused);
 	
 	return focused;
+}
+
+
+static void tab_regen(GUIHeader* trunk, GUIHeader* parent) {
+	if(parent->tabStop > 0) {
+		VEC_PUSH(&trunk->tabStopCache, parent);
+	}
+	
+	if(!(parent->flags & GUI_CHILD_TABBING)) {
+		VEC_EACH(&parent->children, i, kid) {
+			tab_regen(trunk, kid);
+		}
+	}
+}
+
+static int tab_sort_fn(void* a, void* b) {
+	GUIHeader** A = (GUIHeader**)a;
+	GUIHeader** B = (GUIHeader**)b;
+	
+	return (*B)->tabStop - (*A)->tabStop;
+}
+
+void GUIHeader_RegenTabStopCache(GUIHeader* parent) {
+	if(!(parent->flags & GUI_CHILD_TABBING)) return;
+	
+	VEC_TRUNC(&parent->tabStopCache);
+	
+	VEC_EACH(&parent->children, i, kid) {
+		tab_regen(parent, kid);
+	}
+	
+	VEC_SORT(&parent->tabStopCache, tab_sort_fn);
 }
 
 

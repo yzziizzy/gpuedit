@@ -568,18 +568,36 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		// TODO: change hooks
 			break;
 		
-		case BufferCmd_ReplaceNext:
-			printf("ReplaceNext\n");
-			break;
+		case BufferCmd_ReplaceNext: { // TODO put this all in a better spot
+			Buffer* b = w->ec->buffer;
+			if(b->sel) {
+				b->current = b->sel->startLine;
+				b->curCol = b->sel->startCol;
+				Buffer_DeleteSelectionContents(b, b->sel);
+				
+				char* rtext = GUIEdit_GetText(w->replaceBox);
+				size_t len = strlen(rtext);
+				
+				Buffer_LineInsertChars(b, b->current, rtext, b->curCol, len);
+				Buffer_MoveCursorH(b, len);
+			}
 			
+			GUIBufferEditor_NextFindMatch(w);
+			break;
+		}
 		case BufferCmd_ReplaceAll:
-			printf("ReplaceAll\n");
+			printf("ReplaceAll NYI\n");
 			break;
 			
 		case BufferCmd_ReplaceStart:
-			
 			if(!w->replaceMode) {
-				if(w->trayOpen) GUIBufferEditor_CloseTray(w);
+				char* preserved = NULL;
+				if(w->trayOpen) {
+					if(w->findMode) {
+						preserved = strdup(GUIEdit_GetText(w->findBox));
+					}
+					GUIBufferEditor_CloseTray(w);
+				}
 				
 				w->replaceMode = 1;
 				w->trayOpen = 1;
@@ -590,6 +608,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				GUIRegisterObject(w, w->trayRoot);
 				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
 				w->replaceBox = GUIObject_FindChild(w->trayRoot, "replace");
+				if(preserved) {
+					GUIEdit_SetText(w->findBox, preserved);
+					free(preserved);
+				}
 				
 				w->ec->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, w->findBox);
@@ -603,7 +625,13 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 		case BufferCmd_FindStart:
 			if(!w->findMode) {
-				if(w->trayOpen) GUIBufferEditor_CloseTray(w);
+				char* preserved = NULL;
+				if(w->trayOpen) {
+					if(w->replaceMode) {
+						preserved = strdup(GUIEdit_GetText(w->findBox));
+					}
+					GUIBufferEditor_CloseTray(w);
+				}
 				
 				w->findMode = 1;
 				w->trayOpen = 1;
@@ -612,6 +640,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 				GUIRegisterObject(w, w->trayRoot);
 				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
+				if(preserved) {
+					GUIEdit_SetText(w->findBox, preserved);
+					free(preserved);
+				}
 				
 				w->ec->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, w->findBox);

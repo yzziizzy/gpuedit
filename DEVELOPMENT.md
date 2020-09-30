@@ -7,13 +7,13 @@
 * Proper tabstops
 * Ability to change the highlighter
 * Open file command
+* Replace All
 * Save Changes? close hook buffer integration 
 * Shortcut config presets
 * Slide-out windows
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
 * Monitor file changes on disk
-* Scroll when dragging
 * Small shade variation on matching pairs of brackets
 * Visible glyph for tabs
 * Wanted column rounding on moving across tabs
@@ -46,7 +46,7 @@
 == GUI Improvements ==
 * Garbage collection in GUI
 * Z-index is messed up some places in the GUI
-* Make all gui font rendering by em's
+* Make all gui font rendering by em's - maybe not; the problem is scaling on high-res displays.
 * GUIEdit right and center justify
 * GUIEdit int/float
 * GUIEdit scroll increment
@@ -60,7 +60,7 @@
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
 * Speed scrolling with ctrl
-* Plain/escaped/regex search and replace
+* Escape sequences and regex references in search and replace
 * Duplicate selected lines up/down
 * Move by words
 * Double click to select whole word
@@ -114,18 +114,17 @@
 * Notify when semicolons appear to be missing
 
 == BUGS ==
+* Segfault when hitting escape after find-replacing some text. Probably deleted elements not getting purged from the focus ring. 
+* GUIManager should pop focus stack if focused control is deleted
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
 * Mouse scroll on files with fewer lines than the screen
 * Should not be able to delete the last line
-* Fix cursor position after undo
-* GUIManager should pop focus stack if focused control is deleted
 * Check all column usage for correct 1/0 basing
 * Theme styling of selection stub on empty lines
-* Clicking on the find box/editor area should steal focus
-* Window resize is broken somewhere
 * Mouse drag start params need tuning 
 * Need warnings and protection against overrunning the persistent gpu vertex buffers
 * GUIManager hit test needs to sort hits by z
+* Tabbing between edit boxes in the Replace tray causes the buffer to jump to the top.
 
 == Low Priority ==
 * Built-in terminal
