@@ -28,13 +28,29 @@ struct BufferLine;
 typedef struct BufferLine BufferLine;
 
 
+// different distances of syntax-aware jumping
+#define FLAG_JUMP_1 0x01
+#define FLAG_JUMP_2 0x02
+#define FLAG_JUMP_3 0x04
+#define FLAG_JUMP_4 0x08
+
+// for paren/brace matching
+#define FLAG_OPEN_GROUP  0x10
+#define FLAG_CLOSE_GROUP 0x20
+
+// for indentation
+#define FLAG_OPEN_BLOCK  0x40
+#define FLAG_CLOSE_BLOCK 0x80
+
+
 typedef struct HLContext {
 	Allocator* alloc;
 	
-// 	void (*getPrevLine)(struct hlinfo*, char** /*txt*/, size_t* /*len*/);
+	// these are callbacks provided by gpuedit to the module in order for
+	//   the module to interact with the text
 	int  (*getNextLine)(struct HLContext*, char** /*txt*/, size_t* /*len*/);
 	void (*writeSection)(struct HLContext*, unsigned char /*style*/, unsigned char/*length*/);
-// 	void (*rewindStyle)(struct hlinfo*, int /*chars*/);
+	void (*writeFlags)(struct HLContext*, uint8_t* /*flag_buffer*/, size_t /*buffer_len*/);
 	
 	// read-only
 	ptrdiff_t dirtyLines;
@@ -68,7 +84,8 @@ typedef struct StyleInfo {
 } StyleInfo;
 
 
-
+// sent to gpuedit by the module to provide information about
+//  a named set of highlighting features it has
 typedef struct HighlighterPluginInfo {
 	uint16_t majorVersion;
 	uint16_t minorVersion;

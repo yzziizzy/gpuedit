@@ -42,6 +42,8 @@
 * Persist bookmarks
 * Polish scrollbar dragging
 * Horizontal scrollbar
+* Convert C highlighter to sti generated lexer
+* Clean up C highlighter with provided allocators
 
 == GUI Improvements ==
 * Garbage collection in GUI
@@ -68,7 +70,6 @@
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
 * Duplicate selection
-* Clear line except indentation.
 * Select/replace/do to all other instances visible on screen
 * Middle-click scroll coasting
 * Language sensitive auto-complete and type/param hints (low priority)

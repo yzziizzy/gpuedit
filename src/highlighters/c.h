@@ -3,7 +3,7 @@
 
 
 
-#include "../highlight.h"
+#include "../highlighterAPI.h"
 
 
 

@@ -534,6 +534,21 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
 			break;
 			
+		case BufferCmd_GoToEOL:
+			if(w->buffer->sel) Buffer_ClearAllSelections(w->buffer);
+			w->buffer->curCol = w->buffer->current->length;
+			break;
+			
+		case BufferCmd_GoToSOL:
+			if(w->buffer->sel) Buffer_ClearAllSelections(w->buffer);
+			w->buffer->curCol = 0;
+			break;
+		
+		case BufferCmd_GoToAfterIndent:
+			if(w->buffer->sel) Buffer_ClearAllSelections(w->buffer);
+			Buffer_MoveCursorTo(w->buffer, w->buffer->current, BufferLine_GetIndentCol(w->buffer->current));
+			break;
+			
 		case BufferCmd_GoToLine:
 			GUIBufferEditor_ToggleTray(w, 50);
 		

@@ -25,6 +25,9 @@
 	X(BufferCmd, SelectToEOL) \
 	X(BufferCmd, SelectFromSOL) \
 	X(BufferCmd, GoToLine) \
+	X(BufferCmd, GoToEOL) \
+	X(BufferCmd, GoToSOL) \
+	X(BufferCmd, GoToAfterIndent) \
 	X(BufferCmd, RehilightWholeBuffer) \
 	X(BufferCmd, Cut) \
 	X(BufferCmd, Copy) \
@@ -41,6 +44,7 @@
 	X(BufferCmd, GrowSelectionH) \
 	X(BufferCmd, GrowSelectionV) \
 	X(BufferCmd, Indent) \
+	X(BufferCmd, SmartIndent) \
 	X(BufferCmd, Unindent) \
 	X(BufferCmd, FindStart) \
 	X(BufferCmd, FindNext) \

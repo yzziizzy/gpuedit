@@ -1062,7 +1062,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		case BufferCmd_Home:
 			// TODO: undo
 			b->current = b->first;
-			b->curCol = 1;
+			b->curCol = 0;
 			break;
 		
 		case BufferCmd_End:

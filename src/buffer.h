@@ -29,6 +29,9 @@ typedef struct BufferLine {
 	unsigned int flags;
 	
 	VEC(TextStyleAtom) style;
+	uint8_t* flagBuf; 
+	unsigned char indentTabs;
+	unsigned char indentSpaces;
 	
 	struct BufferLine* prev, *next;
 	
@@ -318,7 +321,7 @@ void BufferLine_TruncateAfter(BufferLine* l, intptr_t col);
 void BufferLine_SetText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendLine(BufferLine* l, BufferLine* src);
-
+intptr_t BufferLine_GetIndentCol(BufferLine* l);
 
 
 

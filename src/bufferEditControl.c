@@ -414,12 +414,12 @@ void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* w) {
 
 
 int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
-	BufferLine* l = hl->readLine;
+	BufferLine* l = hl->color.readLine;
 	
-	if(!hl->readLine) return 1;
+	if(!hl->color.readLine) return 1;
 	
 	// TODO: end of file
-	hl->readLine = hl->readLine->next;
+	hl->color.readLine = hl->color.readLine->next;
 	
 	*txt = l->buf;
 	*len = l->length;
@@ -430,18 +430,38 @@ int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
 void writeSection(HLContextInternal* hl, unsigned char style, unsigned char len) {
 	if(len == 0) return;
 	
-	VEC_INC(&hl->writeLine->style);
-	VEC_TAIL(&hl->writeLine->style).length = len;
-	VEC_TAIL(&hl->writeLine->style).styleIndex = style;
+	VEC_INC(&hl->color.writeLine->style);
+	VEC_TAIL(&hl->color.writeLine->style).length = len;
+	VEC_TAIL(&hl->color.writeLine->style).styleIndex = style;
 	
-	hl->writeCol += len;
+	hl->color.writeCol += len;
 	
 	// TODO: handle overlapping style segments
 	// TODO: handle segments spanning linebreaks
 	
-	if(hl->writeCol > hl->writeLine->length) {
-		hl->writeCol = 0;
-		hl->writeLine = hl->writeLine->next;
+	if(hl->color.writeCol > hl->color.writeLine->length) {
+		hl->color.writeCol = 0;
+		hl->color.writeLine = hl->color.writeLine->next;
+		hl->ctx.dirtyLines--;
+	}
+	
+}
+
+void writeFlags(HLContextInternal* hl, unsigned char style, unsigned char len) {
+	if(len == 0) return;
+	
+	VEC_INC(&hl->flags.writeLine->style);
+	VEC_TAIL(&hl->flags.writeLine->style).length = len;
+	VEC_TAIL(&hl->flags.writeLine->style).styleIndex = style;
+	
+	hl->flags.writeCol += len;
+	
+	// TODO: handle overlapping style segments
+	// TODO: handle segments spanning linebreaks
+	
+	if(hl->flags.writeCol > hl->flags.writeLine->length) {
+		hl->flags.writeCol = 0;
+		hl->flags.writeLine = hl->flags.writeLine->next;
 		hl->ctx.dirtyLines--;
 	}
 	
@@ -480,13 +500,17 @@ void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 		.ctx.alloc = &al,
 		.ctx.getNextLine = getNextLine,
 		.ctx.writeSection = writeSection,
+		.ctx.writeFlags = writeFlags,
 		
 		.ctx.dirtyLines = b->numLines,
 		
 		.b = b,
-		.readLine = b->first,
-		.writeLine = b->first,
-		.writeCol = 0,
+		.color.readLine = b->first,
+		.color.writeLine = b->first,
+		.color.writeCol = 0,
+		.flags.readLine = b->first,
+		.flags.writeLine = b->first,
+		.flags.writeCol = 0,
 	};
 	
 	// clear existing styles

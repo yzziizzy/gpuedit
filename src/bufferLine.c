@@ -33,11 +33,13 @@ void BufferLine_SetText(BufferLine* l, char* text, intptr_t len) {
 	if(l->buf == NULL) {
 		l->allocSz = nextPOT(len + 1);
 		l->buf = calloc(1, l->allocSz);
+		l->flagBuf = calloc(1, l->allocSz);
 // 		l->style = calloc(1, l->allocSz);
 	}
 	else if(l->allocSz < len + 1) {
 		l->allocSz = nextPOT(len + 1);
 		l->buf = realloc(l->buf, l->allocSz);
+		l->flagBuf = realloc(l->flagBuf, l->allocSz);
 // 		l->style = realloc(l->style, l->allocSz);
 		// BUG: check OOM and maybe try to crash gracefully
 	}
@@ -56,6 +58,7 @@ BufferLine* BufferLine_New() {
 
 void BufferLine_Delete(BufferLine* l) {
 	if(l->buf) free(l->buf);
+	if(l->flagBuf) free(l->flagBuf);
 	VEC_FREE(&l->style);
 }
 
@@ -70,8 +73,10 @@ BufferLine* BufferLine_Copy(BufferLine* orig) {
 	l->length = orig->length;
 	l->allocSz = orig->allocSz;
 	l->buf = calloc(1, l->allocSz);
+	l->flagBuf = calloc(1, l->allocSz);
 	l->flags = orig->flags;
 	strncpy(l->buf, orig->buf, l->length);
+	strncpy(l->flagBuf, orig->flagBuf, l->length); // better than nothing
 	VEC_COPY(&l->style, &orig->style);
 	return l;
 }
@@ -81,11 +86,13 @@ void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len) {
 	if(l->buf == NULL) {
 		l->allocSz = MAX(32, nextPOT(len + 1));
 		l->buf = calloc(1, l->allocSz);
+		l->flagBuf = calloc(1, l->allocSz);
 // 		l->style = calloc(1, l->allocSz);
 	}
 	else if(l->allocSz < len + 1) {
 		l->allocSz = nextPOT(len + 1);
 		l->buf = realloc(l->buf, l->allocSz);
+		l->flagBuf = realloc(l->flagBuf, l->allocSz);
 // 		l->style = realloc(l->style, l->allocSz);
 	}
 }
@@ -161,4 +168,17 @@ void BufferLine_DeleteRange(BufferLine* l, intptr_t startC, intptr_t endC) {
 	
 	l->length -= endC - startC + 1;
 	l->buf[l->length] = 0;
+}
+
+intptr_t BufferLine_GetIndentCol(BufferLine* l) {
+	intptr_t i = 0;
+	for(; i < l->length; i++) {
+		switch(l->buf[i]) {
+			case ' ':
+			case '\t':
+				continue;
+		}
+		break;
+	}
+	return i;
 }
