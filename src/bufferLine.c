@@ -153,23 +153,6 @@ void BufferLine_TruncateAfter(BufferLine* l, intptr_t col) {
 	l->length = col - 1;
 }
 
-void BufferLine_DeleteRange(BufferLine* l, intptr_t startC, intptr_t endC) {
-	
-	assert(startC > 0);
-	assert(endC > 0);
-	
-	startC = MIN(MIN(endC, startC), l->length + 1);
-	endC = MIN(MAX(endC, startC), l->length + 1);
-	
-	if(startC == endC) return;
-	
-	memmove(l->buf + startC - 1, l->buf + endC, l->length - endC);
-	
-	
-	l->length -= endC - startC + 1;
-	l->buf[l->length] = 0;
-}
-
 intptr_t BufferLine_GetIndentCol(BufferLine* l) {
 	intptr_t i = 0;
 	for(; i < l->length; i++) {
@@ -182,3 +165,5 @@ intptr_t BufferLine_GetIndentCol(BufferLine* l) {
 	}
 	return i;
 }
+
+

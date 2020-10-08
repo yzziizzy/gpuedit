@@ -83,7 +83,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		NULL,
 	};
 	
-	as->commands = CommandList_loadFile("./config/commands.txt");
+	as->commands = CommandList_loadJSONFile("./config/commands.json");
 	
 	as->lastFrameTime = getCurrentTime();
 	as->lastFrameDrawTime = 0;

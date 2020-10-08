@@ -56,6 +56,7 @@
 * GUIButton enabled/disabled
 * Color selector control
 * Notify style popups
+* Calculate SDF's on the gpu
 
 == Editor Features ==
 * Drag selection to new place
@@ -89,7 +90,7 @@
 * Remap selected key codes, only for editor 
 * Jump to declaration
 * Swap current and next word
-* Collapse whitespace, option for automatic real-time
+* Option for automatic real-time whitespace collapse
 * Scroll half the distance in a direction as can be scrolled (log2 scroll)
 * Option to place comment chars before or after whitespace, and control padding ws
 * SLOC count

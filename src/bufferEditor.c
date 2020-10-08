@@ -705,6 +705,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 			break;
 			
+		case BufferCmd_CollapseWhitespace:
+			Buffer_CollapseWhitespace(w->buffer, w->buffer->current, w->buffer->curCol);
+			break;
+			
 		case BufferCmd_CloseTray:
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);

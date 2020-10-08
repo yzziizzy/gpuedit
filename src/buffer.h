@@ -321,7 +321,7 @@ void BufferLine_TruncateAfter(BufferLine* l, intptr_t col);
 void BufferLine_SetText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendLine(BufferLine* l, BufferLine* src);
-intptr_t BufferLine_GetIndentCol(BufferLine* l);
+
 
 
 
@@ -407,7 +407,7 @@ void Buffer_RelPosH(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t col
 void Buffer_RelPosV(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t lines, BufferLine** outL, intptr_t* outC);
 
 void BufferRange_Normalize(BufferRange** pbr);
-
+intptr_t BufferLine_GetIndentCol(BufferLine* l);
 
 
 // HACK: temporary junk
@@ -439,7 +439,7 @@ void Buffer_FirstBookmark(Buffer* b);
 void Buffer_LastBookmark(Buffer* b);
 void Buffer_Indent(Buffer* b);
 void Buffer_Unindent(Buffer* b);
-
+void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col);
 
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);

@@ -1058,7 +1058,7 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		case BufferCmd_DeleteCurLine:
 			Buffer_DeleteLine(b, b->current);
 			break;
-		
+			
 		case BufferCmd_Home:
 			// TODO: undo
 			b->current = b->first;
@@ -1535,6 +1535,8 @@ void Buffer_CommentSelection(Buffer* b, BufferRange* sel) {
 	);
 }
 
+//{cmd: "MainCmd_NextTab",  mods: "A", key: "XK_Right", amt: 1},
+
 
 /*
 void Buffer_AddCurrentSelectionToRing(Buffer* b) {
@@ -1631,4 +1633,35 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 	printf(" Undo save index: %d\n", b->undoSaveIndex);
 	printf(" Undo curr index: %d\n", b->undoCurrent);
 	
+}
+
+
+
+void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col) {
+	intptr_t start, end;
+	
+	if(col > l->length) return;
+	
+	// find start of ws
+	for(start = col; start >= 0; start--) {
+		if(!isspace(l->buf[start])) {
+			start++;
+			break;
+		}
+	}
+	if(start == -1) start = 0;
+	
+	// find end of ws
+	for(end = col; end < l->length; end++) {
+		if(!isspace(l->buf[end])) {
+			break;
+		}
+	}
+	if(end > l->length) end = l->length;
+	
+	if(end - start > 1) { 
+		Buffer_LineDeleteChars(b, l, start, end - start);
+		Buffer_LineInsertChars(b, l, " ", start, 1);
+		Buffer_MoveCursorTo(b, l, start + 1);
+	}
 }

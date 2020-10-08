@@ -1,6 +1,7 @@
 #ifndef __gpuedit_commands_h__
 #define __gpuedit_commands_h__
 
+#include "c_json/json.h"
 
 // EOL = End of Line
 // SOL = Start of Line
@@ -46,6 +47,7 @@
 	X(BufferCmd, Indent) \
 	X(BufferCmd, SmartIndent) \
 	X(BufferCmd, Unindent) \
+	X(BufferCmd, CollapseWhitespace) \
 	X(BufferCmd, FindStart) \
 	X(BufferCmd, FindNext) \
 	X(BufferCmd, ReplaceStart) \
@@ -124,7 +126,9 @@ int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, unsigned int mode, Cmd* out,
 
 CmdList* Commands_SeparateCommands(Cmd* in);
 
-Cmd* CommandList_loadFile(char* path);
+
+Cmd* CommandList_loadJSON(json_value_t* root);
+Cmd* CommandList_loadJSONFile(char* path);
 
 
 #endif //__gpuedit_commands_h__
