@@ -44,6 +44,9 @@
 	X(BufferCmd, Redo) \
 	X(BufferCmd, GrowSelectionH) \
 	X(BufferCmd, GrowSelectionV) \
+	X(BufferCmd, SelectSequenceUnder) \
+	X(BufferCmd, MoveToNextSequence) \
+	X(BufferCmd, MoveToPrevSequence) \
 	X(BufferCmd, Indent) \
 	X(BufferCmd, SmartIndent) \
 	X(BufferCmd, Unindent) \
@@ -106,10 +109,11 @@ typedef struct Cmd {
 	unsigned int mods;
 	int keysym;
 	enum CmdType cmd;
-// 	union {
-		int amt;
-// 	};
 	unsigned int flags;
+	union {
+		long amt;
+		char* str;
+	};
 } Cmd;
 
 

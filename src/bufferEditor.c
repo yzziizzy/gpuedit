@@ -67,7 +67,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		while(Commands_ProbeCommand(gev, w->commands, w->inputMode, &found, &iter)) {
 			// GUIBufferEditor will pass on commands to the buffer
 			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
-				found.cmd, found.amt 
+				.type = found.cmd, .str = found.str 
 			}, &needRehighlight);
 			
 			
@@ -532,6 +532,18 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			Buffer_MoveCursorV(w->buffer, cmd->amt);
 			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			break;
+			
+		case BufferCmd_SelectSequenceUnder:
+			Buffer_SelectSequenceUnder(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			break;
+			
+		case BufferCmd_MoveToNextSequence:
+			Buffer_MoveToNextSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			break;
+			
+		case BufferCmd_MoveToPrevSequence:
+			Buffer_MoveToPrevSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
 			break;
 			
 		case BufferCmd_GoToEOL:

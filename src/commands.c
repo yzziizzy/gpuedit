@@ -254,8 +254,13 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 		
 		// optional amt value (default 0)
 		if(!json_obj_get_key(link->value, "amt", &v)) {
-			json_as_int(v, &n);
-			cmds[i].amt = n;
+			if(v->type == JSON_TYPE_STRING) {
+				cmds[i].str = strdup(v->v.str);
+			}
+			else {
+				json_as_int(v, &n);
+				cmds[i].amt = n;
+			}
 		}
 		
 		// optional mode value (default 0)

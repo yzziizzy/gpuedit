@@ -299,7 +299,10 @@ typedef struct GUIBufferEditor {
 
 typedef struct BufferCmd {
 	enum CmdType type;
-	int amt;
+	union {
+		long amt;
+		char* str;
+	};
 } BufferCmd;
 
 
@@ -387,6 +390,8 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, 
 void Buffer_ClearCurrentSelection(Buffer* b);
 void Buffer_ClearAllSelections(Buffer* b);
 void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel);
+void Buffer_SelectSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+
 
 void Buffer_GrowSelectionH(Buffer* b, intptr_t cols);
 void Buffer_GrowSelectionV(Buffer* b, intptr_t cols);
@@ -440,6 +445,8 @@ void Buffer_LastBookmark(Buffer* b);
 void Buffer_Indent(Buffer* b);
 void Buffer_Unindent(Buffer* b);
 void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col);
+void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+void Buffer_MoveToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
 
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);

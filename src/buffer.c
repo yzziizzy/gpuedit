@@ -1535,7 +1535,6 @@ void Buffer_CommentSelection(Buffer* b, BufferRange* sel) {
 	);
 }
 
-//{cmd: "MainCmd_NextTab",  mods: "A", key: "XK_Right", amt: 1},
 
 
 /*
@@ -1605,6 +1604,33 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, 
 }
 
 
+void Buffer_SelectSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
+	intptr_t start, end;
+	
+	for(start = col; start >= 0; start--) {
+		if(NULL == strchr(charSet, l->buf[start])) {
+			start++;
+			break;
+		}
+	}
+	if(start == -1) start = 0;
+	
+	for(end = col; end < l->length; end++) {
+		if(NULL == strchr(charSet, l->buf[end])) {
+			break;
+		}
+	}
+	if(end > l->length) end = l->length;
+	
+	Buffer_SetCurrentSelection(b, l, start, l, end);
+}
+
+void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
+	printf("Buffer_MoveToPrevSequence nyi\n");
+}
+void Buffer_MoveToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
+	printf("Buffer_MoveToNextSequence nyi\n");
+}
 
 
 void Buffer_DebugPrintUndoStack(Buffer* b) {
