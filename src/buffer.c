@@ -1625,11 +1625,217 @@ void Buffer_SelectSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* ch
 	Buffer_SetCurrentSelection(b, l, start, l, end);
 }
 
-void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
-	printf("Buffer_MoveToPrevSequence nyi\n");
+int Buffer_FindEndOfSequence(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+	intptr_t col = *colp;
+	BufferLine* l = *linep;
+	
+	if(!l) return 0;
+	
+	
+	while(1) {
+		// handle line endings
+		while(col >= l->length) {
+			if(!l->next) { // end of file
+				*linep = l;
+				*colp = l->length;
+				return 0;
+			}
+			
+			// TODO check charset for \n
+			l = l->next;
+			col = 0;
+		}
+		
+		
+		int c = l->buf[col];
+		
+		if(NULL == strchr(charSet, c)) {
+			// found the next sequence
+			*linep = l;
+			*colp = col;
+			return 0; // in a sequence
+		}
+		
+		col++;
+	}
+	
+	return 1;
 }
+
+int Buffer_FindEndOfInvSequence(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+	intptr_t col = *colp;
+	BufferLine* l = *linep;
+	
+	if(!l) return 0;
+	
+	while(1) {
+		// handle line endings
+		while(col >= l->length) {
+			if(!l->next) { // end of file
+				*linep = l;
+				*colp = l->length;
+				return 0;
+			}
+			
+			// TODO check charset for \n
+			l = l->next;
+			col = 0;
+		}
+		
+		
+		int c = l->buf[col];
+		
+		if(NULL != strchr(charSet, c)) {
+			// found the next sequence
+			*linep = l;
+			*colp = col;
+			return 0; // in a sequence
+		}
+		
+		col++;
+	}
+	
+	// shouldn't reach here
+	
+	return 1;
+}
+
+int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+	intptr_t col = *colp;
+	BufferLine* l = *linep;
+	
+	int inside = -1;
+	int c;
+	
+	if(!l) return 0;
+	
+	while(1) {
+		// handle line endings
+		while(col > l->length) {
+			if(!l->next) { // end of file
+				*linep = l;
+				*colp = l->length;
+				return 0;
+			}
+			
+			// TODO check charset for \n
+			l = l->next;
+			col = 0;
+		}
+		
+		
+		c = (col == l->length) ? '\n' : l->buf[col];
+		
+		int r = strchr(charSet, c);
+		
+		if(inside == 1) {
+			if(r == NULL) {
+				// found the transition
+				*linep = l;
+				*colp = col;
+				return 0; // in a sequence
+			}
+		}
+		else if(inside == 0) {
+			if(r != NULL) {
+				// found the transition
+				*linep = l;
+				*colp = col;
+				return 0; // in a sequence
+			}
+		}
+		else {
+			inside = r != NULL;
+		}
+		
+		col++;
+	}
+	
+	// shouldn't reach here
+	
+	return 1;
+}
+
+int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+	intptr_t col = *colp;
+	BufferLine* l = *linep;
+	
+	int inside = -1;
+	int c;
+	
+	col--;
+	
+	if(!l) return 0;
+	
+	while(1) {
+		// handle line endings
+		while(col <= 0) {
+			if(!l->prev) { // beginning of file
+				*linep = l;
+				*colp = 0;
+				return 0;
+			}
+			
+			// TODO check charset for \n
+			l = l->prev;
+			col = l->length;
+		}
+		
+		
+		c = (col == l->length) ? '\n' : l->buf[col];
+		
+		int r = strchr(charSet, c);
+		
+		if(inside == 1) {
+			if(r == NULL) {
+				// found the transition
+				*linep = l;
+				*colp = MIN(col+1, l->length);
+				return 0; // in a sequence
+			}
+		}
+		else if(inside == 0) {
+			if(r != NULL) {
+				// found the transition
+				*linep = l;
+				*colp = MIN(col+1, l->length);
+				return 0; // in a sequence
+			}
+		}
+		else {
+			inside = r != NULL;
+		}
+		
+		col--;
+	}
+	
+	// shouldn't reach here
+	
+	return 1;
+}
+
+
 void Buffer_MoveToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
-	printf("Buffer_MoveToNextSequence nyi\n");
+	if(!l || col > l->length) return;
+	
+	// TODO: handle selection size changes
+	if(!l) return;
+	
+	Buffer_FindSequenceEdgeForward(b, &l, &col, charSet);
+	Buffer_MoveCursorTo(b, l, col);
+}
+
+
+void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
+	if(!l || col > l->length) return;
+	
+	// TODO: handle selection size changes
+	if(!l) return;
+	
+	Buffer_FindSequenceEdgeBackward(b, &l, &col, charSet);
+	Buffer_MoveCursorTo(b, l, col);
+	
+	return;
 }
 
 

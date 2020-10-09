@@ -138,6 +138,9 @@ typedef struct Buffer {
 	
 	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
 	
+// 	char* dictCharSet;
+// 	HT(int) dict;
+	
 	int refs;
 } Buffer;
 
@@ -447,6 +450,8 @@ void Buffer_Unindent(Buffer* b);
 void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col);
 void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
 void Buffer_MoveToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
+int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);

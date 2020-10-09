@@ -77,6 +77,7 @@
 * Delete contents of line but leave indentation
 * Create new line after, indented, and jump to the end 
 * Bookmark categories?
+* RAT_ parsing in commands for mouse buttons
 * Fix spacing of items in tables
 * Drag selection to new spot
 * Quick find/replace on current line only
@@ -128,6 +129,7 @@
 * Need warnings and protection against overrunning the persistent gpu vertex buffers
 * GUIManager hit test needs to sort hits by z
 * Tabbing between edit boxes in the Replace tray causes the buffer to jump to the top.
+* Undo breaks with CollapseWhitespace after deleting a selected word.
 
 == Low Priority ==
 * Built-in terminal
