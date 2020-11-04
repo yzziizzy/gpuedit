@@ -136,7 +136,7 @@ GLenum nameToEnum(char* name) {
 
 
 // does not remove \n chars. gl wants them.
-void strsplit(char* source, stringlist* out) { 
+void internal_strsplit(char* source, stringlist* out) { 
 	char* s = source;
 	char* lstart = source;
 	
@@ -184,7 +184,7 @@ ShaderSource* loadShaderSource(char* path) {
 	ss = makeShaderSource();
 	
 	ss->path = path;
-	strsplit(source, &l);
+	internal_strsplit(source, &l);
 	
 	for(i = 0; i < VEC_LEN(&l); i++) {
 		LineInfo* li;

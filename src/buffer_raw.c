@@ -138,6 +138,8 @@ void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl) {
 	// TODO renumber lines 
 	Buffer_raw_RenumberLines(bl->next, bl->lineNum - 1);
 	
+	if(b->useDict) Buffer_RemoveLineFromDict(b, bl);
+	
 	BufferLine_Delete(bl);
 	
 	b->numLines--;
@@ -147,12 +149,16 @@ void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl) {
 
 
 void Buffer_raw_InsertChars(Buffer* b, BufferLine* bl, char* txt, intptr_t offset, intptr_t len) {
+	if(b->useDict) Buffer_RemoveLineFromDict(b, bl);
 	BufferLine_InsertChars(bl, txt, offset, len);
+	if(b->useDict) Buffer_AddLineToDict(b, bl);
 };
 
 
 
 void Buffer_raw_DeleteChars(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t len) {
+	if(b->useDict) Buffer_RemoveLineFromDict(b, bl);
 	BufferLine_DeleteChars(bl, offset, len);
+	if(b->useDict) Buffer_AddLineToDict(b, bl);
 };
 

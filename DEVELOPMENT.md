@@ -1,8 +1,19 @@
+== Needed before yzziizzy dogfooding ==
+* Replace All
+* Basic autocomplete
+* Fix scrollbar, make size configurable
+* Horizontal scrollbar
+* Duplicate selected lines
+* Comment/uncomment, line and selection
+* Multi-line indent and un-indent
+* RAT_ parsing in commands for mouse buttons
 
+== Needed before fractal dogfooding ==
+...
 
 == TODO ==
 * Don't reopen files that are already open
-* Mark changed tabs with "*" 
+* Mark changed tabs with "*" -- semi-working
 * Choose highlighter based on file extension
 * Proper tabstops
 * Ability to change the highlighter
@@ -44,6 +55,7 @@
 * Horizontal scrollbar
 * Convert C highlighter to sti generated lexer
 * Clean up C highlighter with provided allocators
+* Warn about duplicate key bindings
 
 == GUI Improvements ==
 * Garbage collection in GUI
@@ -60,17 +72,23 @@
 
 == Editor Features ==
 * Drag selection to new place
+* Grow selection by sequence
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
 * Speed scrolling with ctrl
 * Escape sequences and regex references in search and replace
 * Duplicate selected lines up/down
-* Move by words
+* Grammar-driven move by words
 * Double click to select whole word
 * Comment chars located before or after tabs
 * Multi-line indent and un-indent
 * Bulk comment and uncomment 
 * Duplicate selection
+* Option: Autocomplete recurse into #include 
+* Option: always use ML comments
+* Mode to surround selected text with some other text (adding html tags around a word)
+* Smart merge of overlapping ml comments
+* Color sequence for vertical indentation helper lines
 * Select/replace/do to all other instances visible on screen
 * Middle-click scroll coasting
 * Language sensitive auto-complete and type/param hints (low priority)
@@ -83,6 +101,7 @@
 * Quick find/replace on current line only
 * Hoist declaration to top of block/fn
 * tail -f mode
+* Automatic closing braces
 * C-A-up/dn style reordering of entire structs or functions.
 * Sort lines (ignoring leading whitespace)
 * Caps modification of words in selection
@@ -116,6 +135,7 @@
 * Jump to line of last edit
 * File-summoning fuzzy search interface
 * Notify when semicolons appear to be missing
+* Algorithm to detect indent width then convert all spaces to tabs
 
 == BUGS ==
 * Segfault when hitting escape after find-replacing some text. Probably deleted elements not getting purged from the focus ring. 
@@ -150,6 +170,7 @@
 * Async filebrowser fs operations
 * Multiple top-level windows
 * Switch tabs on hover
+* Filetype specific command lists and settings
 
 == Language Notes ==
 "i don't care about member layout" flag for structs

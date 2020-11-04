@@ -395,7 +395,7 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 	Buffer* b = w->buffer;
 	
-	if(!b->first) return;
+	if(!b->first) return 1;
 	
 	BufferLine* bl = b->first;
 	while(bl) {

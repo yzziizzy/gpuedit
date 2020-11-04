@@ -84,7 +84,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 			if(tab->onClick) tab->onClick(i, gev->button, tab);
 			if(tab->onActivate) tab->onActivate(i, tab);
 			
-			return NULL;
+			return;
 		}
 		
 	}

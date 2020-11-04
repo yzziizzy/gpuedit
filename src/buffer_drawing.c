@@ -397,6 +397,19 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int li
 	}
 	
 	
+	// autocomplete box
+	if(gbe->showAutocomplete) {
+		
+		
+		int popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
+		
+		float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
+		
+		
+	}
+	
+	
 	// HACK
 // 	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
 }

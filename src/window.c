@@ -35,8 +35,8 @@ glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 
 
 const int context_attr[] = {
-	GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-	GLX_CONTEXT_MINOR_VERSION_ARB, 5,
+	GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+	GLX_CONTEXT_MINOR_VERSION_ARB, 3,
 #ifdef USE_KHR_DEBUG
 	GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB,
 #endif
@@ -203,7 +203,7 @@ int initXWindow(XStuff* xs) {
 // 		| SelectionMask
 		;
 
-	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 800, 800, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
+	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 700, 700, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
 
 	XMapWindow(xs->display, xs->clientWin);
 	

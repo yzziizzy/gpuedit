@@ -138,8 +138,9 @@ typedef struct Buffer {
 	
 	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
 	
-// 	char* dictCharSet;
-// 	HT(int) dict;
+	char useDict;
+	char* dictCharSet;
+	HT(int) dict; // value is reference count
 	
 	int refs;
 } Buffer;
@@ -224,6 +225,11 @@ typedef struct GUIBufferEditControl {
 	char isDragScrollCoasting;
 	char scrollCoastDir;
 	
+	char showAutocomplete;
+	int maxAutocompleteLines; // lines to show in the popup
+	intptr_t autocompleteProvokeCol;
+	VEC(char*) autocompleteOptions;
+	
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
 	// TODO: padding lines on vscroll
@@ -235,7 +241,7 @@ typedef struct GUIBufferEditControl {
 	float sbMinHeight;
 
 	
-	Cmd* commands;
+// 	Cmd* commands;
 	
 } GUIBufferEditControl;
 
@@ -456,6 +462,10 @@ int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* col
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);
 
+int Buffer_AddDictWord(Buffer* b, char* word);
+int Buffer_RemoveDictWord(Buffer* b, char* word);
+void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l);
+void Buffer_AddLineToDict(Buffer* b, BufferLine* l);
 
 // temp
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);

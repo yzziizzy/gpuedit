@@ -33,14 +33,14 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 	void* lib = dlopen(path, flags);
 	if(!lib) {
 		printf("Failed to open highlighter library: '%s'\n", path);
-		return;
+		return NULL;
 	}
 	
 	entryFn getList = dlsym(lib, "gpuedit_list_highlighters");
 	if(!getList) {
 		printf("Invalid highlighter library: '%s'\n", path);
 		dlclose(lib);
-		return;
+		return NULL;
 	}
 	
 	Allocator al = {

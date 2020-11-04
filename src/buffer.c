@@ -27,6 +27,12 @@ Buffer* Buffer_New() {
 	b->undoMax = 4096; // TODO: settings
 	b->undoRing = calloc(1, b->undoMax * sizeof(*b->undoRing));
 	
+	HT_init(&b->dict, 128);
+	
+	// HACK should go in settings files
+	b->useDict = 1;
+	b->dictCharSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+	
 	return b;
 }
 
@@ -1895,5 +1901,75 @@ void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col) {
 		Buffer_LineDeleteChars(b, l, start, end - start);
 		Buffer_LineInsertChars(b, l, " ", start, 1);
 		Buffer_MoveCursorTo(b, l, start + 1);
+	}
+}
+
+int Buffer_AddDictWord(Buffer* b, char* word) {
+	int* refs;
+	if(HT_getp(&b->dict, word, &refs)) {
+		// not found, add it
+		int one = 1;
+		HT_set(&b->dict, word, one);
+		return 1;
+	}
+	else {
+		(*refs)++;
+		return *refs;
+	}
+	
+}
+
+int Buffer_RemoveDictWord(Buffer* b, char* word) {
+	int* refs;
+	if(HT_getp(&b->dict, word, &refs)) {
+		return 0;
+	}
+	else {
+		(*refs)--;
+		if(*refs == 0) HT_delete(&b->dict, word);
+		
+		return *refs;
+	}
+}
+
+void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
+	size_t n;
+	char* s = l->buf;
+	
+	if(!s) return;
+	
+	while(1) {
+		n = strcspn(s, b->dictCharSet);
+		s += n;
+		
+		n = strspn(s, b->dictCharSet);
+		if(n <= 0) break;
+		
+		char* w = strndup(s, n);
+		Buffer_AddDictWord(b, w);
+		free(w);
+		
+		s += n;
+	}
+}
+
+void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l) {
+	size_t n;
+	char* s = l->buf;
+	
+	if(!s) return;
+	
+	while(1) {
+		n = strcspn(s, b->dictCharSet);
+		s += n;
+		
+		n = strspn(s, b->dictCharSet);
+		if(n <= 0) break;
+		
+		char* w = strndup(s, n);
+		Buffer_RemoveDictWord(b, w);
+		free(w);
+		
+		s += n;
 	}
 }

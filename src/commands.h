@@ -61,6 +61,7 @@
 	X(BufferCmd, PromptLoad) \
 	X(BufferCmd, CloseTray) \
 	X(BufferCmd, ToggleMenu) \
+	X(BufferCmd, ShowDictComplete) \
 	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \

@@ -1,7 +1,7 @@
 #shader VERTEX
 
 
-#version 430 core
+#version 330 core
 
 layout (location = 0) in vec4 lt_rb_in;
 layout (location = 1) in vec4 clip_in;
@@ -79,7 +79,8 @@ void main() {
 
 #shader GEOMETRY
 
-#version 430 core
+#version 330 core
+#extension GL_ARB_shading_language_420pack: require
 
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
@@ -244,7 +245,7 @@ void main() {
 
 #shader FRAGMENT
 
-#version 430
+#version 330
 
 
 layout(location = 0) out vec4 out_Color;

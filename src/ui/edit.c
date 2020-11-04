@@ -196,7 +196,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	
 	updateTextControl(w);
 	
-	return 0;
+	return;
 }
 
 

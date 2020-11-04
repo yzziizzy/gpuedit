@@ -76,7 +76,7 @@ void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 
 int InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 	int ret = 99;
-	if(VEC_LEN(&stack->stack) == 0) return;
+	if(VEC_LEN(&stack->stack) == 0) return NULL;
 	
 	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
 		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
@@ -123,7 +123,7 @@ int InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev) {
 
 int InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan) {
 	int ret = 99;
-	if(VEC_LEN(&stack->stack) == 0) return;
+	if(VEC_LEN(&stack->stack) == 0) return NULL;
 	
 	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
 		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
