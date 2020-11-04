@@ -17,9 +17,11 @@
 #include "sti/sti.h"
 
 
-#include "../gui.h"
-#include "../gui_internal.h"
+#include "gui.h"
+#include "gui_internal.h"
 
+#include "fileBrowser.h"
+#include "commands.h"
 
 
 
@@ -59,7 +61,7 @@ static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	w->filenameBar->header.size.y = 25;
 	
 	
-	gui_defaultUpdatePos(w, grp, pfp);
+	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
 
 
@@ -90,66 +92,82 @@ static char* getParentDir(char* child) {
 }
 
 
-static void keyUp(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
-/*	
-	if(gev->keycode == XK_Down) {
-		w->cursorIndex = (w->cursorIndex + 1) % VEC_LEN(&w->entries);
-		autoscroll(w);
-	}
-	else if(gev->keycode == XK_Up) {
-		w->cursorIndex = (w->cursorIndex - 1 + VEC_LEN(&w->entries)) % (intptr_t)VEC_LEN(&w->entries);
-		autoscroll(w);
-	}
-	else if(gev->keycode == XK_BackSpace) { // navigate to parent dir
-		char* p = getParentDir(w->curDir);
-		free(w->curDir);
-		w->curDir = p;
+
+	Cmd found;
+	unsigned int iter = 0;
+	while(Commands_ProbeCommand(gev, w->commands, 0, &found, &iter)) {
+		// GUIBufferEditor will pass on commands to the buffer
+		GUIFileBrowser_ProcessCommand(w, &found);		
 		
-		GUIFileBrowser_Refresh(w);
 	}
-	else if(gev->keycode == XK_Return) {
-		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
-		
-		if(e->type == 2) { // enter the directory
-			char* p = pathJoin(w->curDir, e->name);
-			free(w->curDir);
-			w->curDir = p;
+
+}
+
+void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
+
+	switch(cmd->cmd) {
+		case FileBrowserCmd_CursorDown:
+			w->fbc->cursorIndex = (w->fbc->cursorIndex + 1) % VEC_LEN(&w->fbc->entries);
+			GUIFileBrowserControl_Autoscroll(w->fbc);
+			break;
+
+		case FileBrowserCmd_CursorUp:
+			w->fbc->cursorIndex = (w->fbc->cursorIndex - 1 + VEC_LEN(&w->fbc->entries)) % (intptr_t)VEC_LEN(&w->fbc->entries);
+			GUIFileBrowserControl_Autoscroll(w->fbc);
+			break;
+
+		case FileBrowserCmd_UpDir: {
+			char* p = getParentDir(w->fbc->curDir);
+			free(w->fbc->curDir);
+			w->fbc->curDir = p;
 			
 			GUIFileBrowser_Refresh(w);
+		
+			break;
 		}
-		else { // open selected files
+		case FileBrowserCmd_SmartOpen: {
+			GUIFileBrowserEntry* e = &VEC_ITEM(&w->fbc->entries, w->fbc->cursorIndex);
 			
-			// collect a list of files
-			intptr_t n = 0;
-			char** files = malloc(sizeof(*files) * (w->numSelected + 1));
-			for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
-				GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
-				if(!e->isSelected) continue;
-				files[n++] = pathJoin(w->curDir, e->name);
+			if(e->type == 2) { // enter the directory
+				char* p = pathJoin(w->fbc->curDir, e->name);
+				free(w->fbc->curDir);
+				w->fbc->curDir = p;
 				
-				e->isSelected = 0; // unselect them 
+				GUIFileBrowser_Refresh(w);
 			}
-			files[n] = 0;
+			else { // open selected files
+				size_t sz;						
+				GUIEvent gev2 = {};
+				gev2.type = GUIEVENT_User;
+				gev2.eventTime = 0;//gev->eventTime;
+				gev2.originalTarget = w;
+				gev2.currentTarget = w;
+				gev2.cancelled = 0;
+				// handlers are responsible for cleanup
+				gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
+				gev2.userSize = sz;
+				
+				gev2.userType = "accepted";
 			
-			
-			if(w->onChoose) w->onChoose(w->onChooseData, files, n);
-			
-			// clean up
-			char** ff = files;
-			while(*ff) {
-				free(*ff);
-				ff++;
-			}
-			free(files);
+				GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+		
+				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
+				if(gev2.userData && !gev2.cancelled) {
+					GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
+				}
+	
+							}
+			break;
+		}
+		case FileBrowserCmd_ToggleSelect: {
+			GUIFileBrowserEntry* e = &VEC_ITEM(&w->fbc->entries, w->fbc->cursorIndex);
+			e->isSelected = !e->isSelected;
+			w->fbc->numSelected += e->isSelected ? 1 : -1;
+			break;
 		}
 	}
-	else if(gev->keycode == XK_space) {
-		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
-		e->isSelected = !e->isSelected;
-		w->numSelected += e->isSelected ? 1 : -1;
-	}
-	*/
 }
 
 
@@ -212,7 +230,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyUp = keyUp,
+		.KeyDown = keyDown,
 		.Click = click,
 		.DoubleClick = click,
 // 		.ScrollUp = scrollUp,

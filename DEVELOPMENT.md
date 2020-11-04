@@ -7,11 +7,13 @@
 * Comment/uncomment, line and selection
 * Multi-line indent and un-indent
 * RAT_ parsing in commands for mouse buttons
+* File Browser kb integration
 
 == Needed before fractal dogfooding ==
 ...
 
 == TODO ==
+* Reduce CPU usage on shtty laptop
 * Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working
 * Choose highlighter based on file extension

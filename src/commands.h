@@ -63,6 +63,12 @@
 	X(BufferCmd, ToggleMenu) \
 	X(BufferCmd, ShowDictComplete) \
 	\
+	X(FileBrowserCmd, CursorUp) \
+	X(FileBrowserCmd, CursorDown) \
+	X(FileBrowserCmd, UpDir) \
+	X(FileBrowserCmd, SmartOpen) \
+	X(FileBrowserCmd, ToggleSelect) \
+	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \
 	X(MainCmd, SaveActiveTab) \

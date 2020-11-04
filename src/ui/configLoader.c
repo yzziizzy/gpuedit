@@ -17,7 +17,8 @@
 #include "../c_json/json.h"
 #include "../json_gl.h"
 
-
+// TEMP HACK
+#include "../fileBrowser.h"
 
 
 typedef GUIObject* (*creator_fn)(GUIManager*, json_value_t*);

@@ -204,7 +204,7 @@ typedef struct GUIBufferEditControl {
 	char cursorBlinkPaused;
 	
 	char outlineCurLine;
-	
+
 	intptr_t scrollLines; // current scroll position, 0-based
 	intptr_t scrollCols; // NYI, waiting on next line draw fn iteration
 	
@@ -240,7 +240,6 @@ typedef struct GUIBufferEditControl {
 	GUIWindow* scrollbar;
 	float sbMinHeight;
 
-	
 // 	Cmd* commands;
 	
 } GUIBufferEditControl;
@@ -299,7 +298,7 @@ typedef struct GUIBufferEditor {
 	GUISimpleWindow* menu;
 	
 	Cmd* commands;
-	
+
 } GUIBufferEditor;
 
 

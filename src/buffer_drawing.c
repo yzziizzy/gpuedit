@@ -40,8 +40,8 @@ size_t drawCharacter(
 ) {
 // 		printf("'%s'\n", bl->buf);
 	GUIFont* f = tdp->font;
-	float size = tdp->fontSize; // HACK
-	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+	float size = tdp->fontSize / f->height; 
+	float hoff = size * f->ascender;
 		
 	struct charInfo* ci = &f->regular[c];
 	GUIUnifiedVertex* v;
@@ -205,9 +205,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int li
 			*vv = (GUIUnifiedVertex){
 				.pos = {
 					tl.x - 1, 
-					tl.y, 
+					tl.y + gm->gs->Buffer_outlineCurrentLineYOffset, 
 					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
-					tl.y + tdp->lineHeight
+					tl.y + tdp->lineHeight + gm->gs->Buffer_outlineCurrentLineYOffset
 				},
 				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				.texIndex1 = 1, // order width
@@ -425,8 +425,8 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 	
 	int charsDrawn = 0;
 	GUIFont* f = tdp->font;
-	float size = tdp->fontSize; // HACK
-	float hoff = size * f->ascender;//gt->header.size.y * .75; // HACK
+	float size = tdp->fontSize / f->height; 
+	float hoff = size * f->ascender;
 	float adv = 0;
 	
 	

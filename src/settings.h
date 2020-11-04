@@ -14,6 +14,7 @@
 	SETTING(bool,  Buffer_hideScrollbar,        false, NULL, NULL) \
 	SETTING(bool,  Buffer_highlightCurrentLine, true,  NULL, NULL) \
 	SETTING(bool,  Buffer_outlineCurrentLine,   true,  NULL, NULL) \
+	SETTING(float, Buffer_outlineCurrentLineYOffset,   0,     -999, 999) \
 	SETTING(float, Buffer_lineNumExtraWidth,    10,    0,    1920*16) \
 	SETTING(bool,  Buffer_showLineNums,         true,  NULL, NULL) \
 	SETTING(float, Buffer_charWidth,            10,    1,    1920*16) \

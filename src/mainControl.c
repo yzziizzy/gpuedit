@@ -8,6 +8,7 @@
 
 
 #include "highlighters/c.h"
+#include "fileBrowser.h"
 
 // temporary, should be separated
 #include "window.h"
@@ -722,7 +723,8 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	
 	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
 	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-	
+	fb->commands = w->commands;
+
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
 	tab->beforeClose = fbBeforeClose;
 	tab->afterClose = fbAfterClose;
@@ -782,7 +784,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
 	TextDrawParams* tdp = pcalloc(tdp);
 	tdp->font = FontManager_findFont(w->header.gm->fm, "Courier New");
-	tdp->fontSize = .5;
+	tdp->fontSize = w->gs->Buffer_fontSize;
 	tdp->charWidth = w->gs->Buffer_charWidth;
 	tdp->lineHeight = w->gs->Buffer_lineHeight;
 	tdp->tabWidth = w->gs->Buffer_tabWidth;

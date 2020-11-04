@@ -180,7 +180,7 @@ static char* getParentDir(char* child) {
 }
 
 // make sure the cursor never goes off-screen
-static void autoscroll(GUIFileBrowserControl* w) {
+void GUIFileBrowserControl_Autoscroll(GUIFileBrowserControl* w) {
 	float linesOnScreen = floor(w->header.size.y / w->lineHeight);
 	
 	if(w->cursorIndex < w->scrollOffset) {
@@ -209,11 +209,11 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 	
 	if(gev->keycode == XK_Down) {
 		w->cursorIndex = (w->cursorIndex + 1) % VEC_LEN(&w->entries);
-		autoscroll(w);
+		GUIFileBrowserControl_Autoscroll(w);
 	}
 	else if(gev->keycode == XK_Up) {
 		w->cursorIndex = (w->cursorIndex - 1 + VEC_LEN(&w->entries)) % (intptr_t)VEC_LEN(&w->entries);
-		autoscroll(w);
+		GUIFileBrowserControl_Autoscroll(w);
 	}
 	else if(gev->keycode == XK_BackSpace) { // navigate to parent dir
 		char* p = getParentDir(w->curDir);
@@ -273,7 +273,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	intptr_t line = floor((gev->pos.y - w->header.absTopLeft.y) / w->lineHeight) + w->scrollOffset;
 	
 	w->cursorIndex = line;
-	autoscroll(w);
+	GUIFileBrowserControl_Autoscroll(w);
 	
 	GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
 	
