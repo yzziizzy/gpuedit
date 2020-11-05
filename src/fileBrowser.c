@@ -137,6 +137,35 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 				
 				GUIFileBrowser_Refresh(w);
 			}
+			else if(w->fbc->numSelected == 0) {
+				
+				GUIFileBrowserEntry* e = &VEC_ITEM(&w->fbc->entries, w->fbc->cursorIndex);
+				e->isSelected = 1;
+				w->fbc->numSelected++;
+
+				size_t sz;						
+				GUIEvent gev2 = {};
+				gev2.type = GUIEVENT_User;
+				gev2.eventTime = 0;//gev->eventTime;
+				gev2.originalTarget = w;
+				gev2.currentTarget = w;
+				gev2.cancelled = 0;
+				// handlers are responsible for cleanup
+				gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
+				gev2.userSize = sz;
+				
+				gev2.userType = "accepted";
+			
+				GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+		
+				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
+				if(gev2.userData && !gev2.cancelled) {
+					GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
+				}
+	
+				e->isSelected = 0;
+				w->fbc->numSelected = 0;
+			}
 			else { // open selected files
 				size_t sz;						
 				GUIEvent gev2 = {};

@@ -192,7 +192,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	GUIRegisterObject(w, w->ec);
 
 	w->showStatusBar = 1;
-	w->statusBarHeight = 30;
+	w->statusBarHeight = gm->gs->Buffer_statusBarHeight;
 	w->statusBar = GUIStatusBar_New(gm);
 // 	w->statusBar->header.flags = GUI_MAXIMIZE_X;
 	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;

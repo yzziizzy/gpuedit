@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <libgen.h>
 
 #include "mainControl.h"
 #include "gui.h"
@@ -493,7 +494,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		break;
 		
 	case MainCmd_CloseTab:
-		printf("NYI\n");
+		GUIMainControl_CloseTab(w, w->currentIndex);
 		break;
 		
 	case MainCmd_SaveAndCloseTab:
@@ -833,7 +834,9 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	VEC_PUSH(&w->editors, gbe);
 	VEC_PUSH(&w->buffers, buf);
 	
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, gbe, path);
+	char* shortname = strdup(path);
+	
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, gbe, basename(shortname));
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;
 	tab->everyFrame = gbeEveryFrame;

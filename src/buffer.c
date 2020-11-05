@@ -1478,7 +1478,7 @@ int Buffer_SaveToFile(Buffer* b, char* path) {
 	
 	free(o);
 	fclose(f);
-	printf("saved\n");
+	printf("'%s' Saved\n", path);
 	Buffer_UndoSequenceBreak(b, 1, -1, -1);
 	
 	return 0;

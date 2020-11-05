@@ -23,6 +23,7 @@
 	SETTING(charp, Buffer_font,                 "Courier New", NULL, NULL) \
 	SETTING(float, Buffer_fontSize,             12,    1,    1920*16) \
 	SETTING(int,   Buffer_maxUndo,              4096,  0,    INT_MAX) \
+	SETTING(int,   Buffer_statusBarHeight,      20,    0,    INT_MAX) \
 	SETTING(int,   MainControl_tabHeight,       20,    0,    1920*16) \
 	
 
