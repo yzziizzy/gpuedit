@@ -56,7 +56,7 @@ FontManager* FontManager_alloc(GlobalSettings* gs) {
 
 void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 	
-	if(FontManager_loadAtlas(fm, "fonts.atlas")) {
+	if(FontManager_loadAtlas(fm, "/usr/share/gpuedit/fonts.atlas")) {
 		
 		FontManager_addFont(fm, "Arial");
 // 		FontManager_addFont(fm, "Impact");
@@ -68,7 +68,7 @@ void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 		FontManager_finalize(fm);
 
 		FontManager_createAtlas(fm);
-		FontManager_saveAtlas(fm, "fonts.atlas");
+		FontManager_saveAtlas(fm, "/usr/share/gpuedit/fonts.atlas");
 	}
 	
 	HT_get(&fm->fonts, "Arial", &fm->helv);

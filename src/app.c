@@ -102,7 +102,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	as->ta = TextureAtlas_alloc(&as->globalSettings);
 	as->ta->width = 32;
-	TextureAtlas_addFolder(as->ta, "icon", "images", 0);
+	TextureAtlas_addFolder(as->ta, "icon", "/usr/share/gpuedit/images", 0);
 	TextureAtlas_finalize(as->ta);
 // 	
 	
@@ -165,8 +165,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	
 	// for debugging
-	GUIMainControl_LoadFile(as->mc, "testfile.h");
-	GUIMainControl_LoadFile(as->mc, "testfile.c");
+	// GUIMainControl_LoadFile(as->mc, "testfile.h");
+	// GUIMainControl_LoadFile(as->mc, "testfile.c");
 	
 	GUIMainControl_OpenFileBrowser(as->mc, "./");
 	

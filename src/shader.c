@@ -20,7 +20,7 @@ clean up debug file/line info
 capture compile errors and translat to actual file and line
 */
 
-const char* SHADER_BASE_PATH = "./src/shaders/";
+const char* SHADER_BASE_PATH = "/usr/lib64/gpuedit/shaders/";
 
 
 typedef VEC(char*) stringlist;

@@ -544,7 +544,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	
 	VEC_INIT(&w->hm.modules);
 	VEC_INIT(&w->hm.plugins);
-	Highlighter_LoadModule(&w->hm, "src/highlighters/c.so");
+	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/c.so");
 	
 	
 	// TODO: resize
