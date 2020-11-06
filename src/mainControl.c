@@ -397,10 +397,10 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 	GUISimpleWindow* sw;
 	GUITextF* textf;
 	
-	GUIBufferEditor* bb = VEC_ITEM(&w->editors, 0);
+	//GUIBufferEditor* bb = VEC_ITEM(&w->editors, 0);
 // 	printf("eds: %d, lines: %ld\n", VEC_LEN(&w->editors), bb->buffer->numLines);
 
-	args[0] = &bb->buffer->numLines;
+	//args[0] = &bb->buffer->numLines;
 	
 	switch(cmd->type) {
 	case Cmd_NULL:
