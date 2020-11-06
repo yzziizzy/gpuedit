@@ -83,8 +83,14 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		NULL,
 	};
 	
-	as->commands = CommandList_loadJSONFile("./config/commands.json");
-	
+	char* homedir = getenv("HOME");
+	char* tmp = pathJoin(homedir, ".gpuedit/commands.json");
+
+
+	// as->commands = CommandList_loadJSONFile("/etc/gpuedit/commands.json");
+	as->commands = CommandList_loadJSONFile(tmp);
+	free(tmp);
+
 	as->lastFrameTime = getCurrentTime();
 	as->lastFrameDrawTime = 0;
 	

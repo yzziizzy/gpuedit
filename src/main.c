@@ -48,7 +48,8 @@ int main(int argc, char* argv[]) {
 	char* wd;
 	
 	GlobalSettings_loadDefaults(&app.globalSettings);
-	GlobalSettings_loadFromFile(&app.globalSettings, "config/options.json");
+	GlobalSettings_loadFromFile(&app.globalSettings, "/etc/gpuedit/options.json");
+	GlobalSettings_loadFromFile(&app.globalSettings, "~/.gpuedit/options.json");
 	
 	// init some path info. 
 // 	wd = getcwd(NULL, 0);

@@ -480,7 +480,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 	switch(cmd->type){
 		case BufferCmd_ToggleMenu:
 				
-			jsf = json_load_path("config/buffer_menu.json");
+			jsf = json_load_path("/etc/gpuedit/buffer_menu.json");
 			w->menu = GUICL_CreateFromConfig(w->header.gm, jsf->root);
 			
 			// TODO: free json 

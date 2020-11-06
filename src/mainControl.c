@@ -826,8 +826,12 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
 	gbe->ec->h = gbe->h;
 	// 	initCStyles(gbe->h);
-	Highlighter_LoadStyles(gbe->h, "config/c_colors.txt");
-	
+	char* homedir = getenv("HOME");
+	char* tmp = pathJoin(homedir, ".gpuedit/c_colors.txt");
+
+	Highlighter_LoadStyles(gbe->h, tmp);
+	free(tmp);
+
 	Buffer_LoadFromFile(buf, path);
 	GUIBufferEditControl_RefreshHighlight(gbe->ec);
 	

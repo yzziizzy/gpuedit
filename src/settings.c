@@ -84,6 +84,7 @@ void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
 	json_value_t* obj;
 	
 	jsf = json_load_path(path);
+	if(!jsf) return;
 	obj = jsf->root;
 	
 	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, obj, #name);

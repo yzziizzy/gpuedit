@@ -133,7 +133,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
 	
-	json_file_t* jsf = json_load_path("config/templates.json");
+	json_file_t* jsf = json_load_path("/etc/gpuedit/templates.json");
 	// TODO: leaked file structure
 	gm->templates = jsf->root;
 	
