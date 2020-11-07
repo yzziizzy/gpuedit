@@ -275,6 +275,7 @@ void hlfn(HLContext* hl) {
 	ls.tokenState = LST_NULL;
 	ls.tokenFinished = 0;
 	ls.pastLeadingWS = 0;
+	ls.priorBackslash = 0;
 	
 	struct input_state is;
 	

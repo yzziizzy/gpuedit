@@ -1,0 +1,3 @@
+#!/bin/bash
+
+valgrind --suppressions=./valgrind-gl-suppress.supp $@

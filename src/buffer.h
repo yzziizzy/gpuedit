@@ -164,6 +164,9 @@ typedef struct ThemeDrawParams {
 	struct Color4 bgColor; 
 	struct Color4 textColor; 
 	struct Color4 cursorColor; 
+	struct Color4 lineNumColor; 
+	struct Color4 lineNumBookmarkColor; 
+	struct Color4 lineNumBgColor; 
 	struct Color4 hl_bgColor; 
 	struct Color4 hl_textColor; 
 } ThemeDrawParams;
@@ -232,6 +235,7 @@ typedef struct GUIBufferEditControl {
 	
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
+	int colsOnScreen; // number of *full* columns that fit on screen
 	// TODO: padding lines on vscroll
 
 	int linesPerScrollWheel;

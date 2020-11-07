@@ -140,7 +140,7 @@ void Buffer_UndoInsertText(
 	u->action = UndoAction_InsertText;
 	u->lineNum = line;
 	u->colNum = col;
-	u->text = strndup(txt, len);
+	u->text = txt ? strndup(txt, len) : NULL;
 	u->length = len;
 }
 
@@ -155,7 +155,7 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 	u->action = UndoAction_DeleteText;
 	u->lineNum = bl->lineNum;
 	u->colNum = offset;
-	u->text = strndup(bl->buf + offset, len);
+	u->text = bl->buf ? strndup(bl->buf + offset, len) : NULL;
 	u->length = len;
 }
 
@@ -522,6 +522,14 @@ void Buffer_DeleteAt(Buffer* b, BufferLine* l, intptr_t col) {
 	
 }
 
+
+
+void Buffer_DuplicateSelection(Buffer* b, BufferRange* sel, int amt) {
+	
+
+
+
+}
 
 
 void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt) {
@@ -1905,6 +1913,7 @@ void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col) {
 }
 
 int Buffer_AddDictWord(Buffer* b, char* word) {
+	return 0; // DEBUG
 	int* refs;
 	if(HT_getp(&b->dict, word, &refs)) {
 		// not found, add it
@@ -1920,6 +1929,7 @@ int Buffer_AddDictWord(Buffer* b, char* word) {
 }
 
 int Buffer_RemoveDictWord(Buffer* b, char* word) {
+	return 0; // DEBUG
 	int* refs;
 	if(HT_getp(&b->dict, word, &refs)) {
 		return 0;

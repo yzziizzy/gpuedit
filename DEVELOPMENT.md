@@ -7,6 +7,7 @@
 * Comment/uncomment, line and selection
 * Multi-line indent and un-indent
 * File Browser kb integration
+* Autoindent
 
 == Needed before fractal dogfooding ==
 ...

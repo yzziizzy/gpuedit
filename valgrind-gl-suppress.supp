@@ -1,0 +1,45 @@
+
+{
+   video drivers
+   Memcheck:Addr4
+   ...
+   obj:/usr/lib64/dri/i965_dri.so
+   ...
+}
+{
+   video drivers
+   Memcheck:Addr8    
+   ...
+   obj:/usr/lib64/dri/i965_dri.so
+   ...
+}  
+{
+   video drivers
+   Memcheck:Addr2    
+   ...
+   obj:/usr/lib64/dri/i965_dri.so
+   ...
+}  
+
+{
+   legitmate write into vram
+   Memcheck:Addr4
+   fun:memcpy@GLIBC_2.2.5
+   fun:preFrame
+   ...
+}  
+{
+   legitmate write into vram
+   Memcheck:Addr8
+   fun:memcpy@GLIBC_2.2.5
+   fun:preFrame
+   ...
+}  
+{
+   legitmate write into vram
+   Memcheck:Addr2
+   fun:memcpy@GLIBC_2.2.5
+   fun:preFrame
+   ...
+}  
+
