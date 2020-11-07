@@ -1,6 +1,18 @@
 [
 {cmd: "MainCmd_NextTab", mods: "A", key: "XK_Right", amt: 1},
 {cmd: "MainCmd_PrevTab", mods: "A", key: "XK_Left", amt: 1},
+
+{cmd: "MainCmd_GoToTab", mods: "A", key: "1", amt: 0},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "2", amt: 1},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "3", amt: 2},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "4", amt: 3},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "5", amt: 4},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "6", amt: 5},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "7", amt: 6},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "8", amt: 7},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "9", amt: 8},
+{cmd: "MainCmd_GoToTab", mods: "A", key: "0", amt: 9},
+
 {cmd: "MainCmd_QuitWithoutSave", mods: "CS", key: "q", amt: 0},
 {cmd: "MainCmd_OpenFileBrowser", mods: "", key: "XK_F2", amt: 0},
 {cmd: "MainCmd_MainMenu", mods: "A", key: "m", amt: 0},

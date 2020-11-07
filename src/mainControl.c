@@ -503,6 +503,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		
 	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;
 	case MainCmd_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n*/); break;
+	case MainCmd_GoToTab: GUIMainControl_GoToTab(w, cmd->n); break;
 	
 	}
 }
