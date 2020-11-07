@@ -69,7 +69,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		
 		char* iconame;
 		if(e->type == 1) iconame = "icon/document";
-		else if(e->type == 2) iconame = "icon/folder";
+		else /*if(e->type == 2)*/ iconame = "icon/folder"; // todo: resolve symlinks
 		
 		TextureAtlasItem* it;
 		if(HT_get(&gm->ta->items, iconame, &it)) {
@@ -411,7 +411,7 @@ static int entry_cmp_fn(void* a_, void* b_) {
 	if(a->type == 2 && b->type == 1) return -1;
 	if(a->type == 1 && b->type == 2) return 1;
 	
-	return strcmp(a->name, b->name);
+	return strcasecmp(a->name, b->name);
 }
 
 

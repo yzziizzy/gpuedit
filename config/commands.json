@@ -7,11 +7,14 @@
 {cmd: "MainCmd_SimpleWindowTest", mods: "C", key: "u", amt: 0},
 {cmd: "MainCmd_CloseTab", mods: "CS", key: "w", amt: 0},
 
-{cmd: "FileBrowserCmd_CursorUp", mods: "", key: "XK_Up", amt: 0},
-{cmd: "FileBrowserCmd_CursorDown", mods: "", key: "XK_Down", amt: 0},
+{cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Up", amt: -1},
+{cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Down", amt: 1},
+{cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "C", key: "XK_Up", amt: -5},
+{cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "C", key: "XK_Down", amt: 5},
 {cmd: "FileBrowserCmd_UpDir", mods: "", key: "XK_BackSpace", amt: 0},
 {cmd: "FileBrowserCmd_SmartOpen", mods: "", key: "XK_Return", amt: 0},
 {cmd: "FileBrowserCmd_ToggleSelect", mods: "", key: "XK_space", amt: 0},
+/*{cmd: "FileBrowserCmd_JumpToLetter", mods: "", key: "", amt: 0}, */
 
 {cmd: "BufferCmd_MoveCursorH", mods: "", key: "XK_Left", amt: -1, flags: ["scrollToCursor", "resetCursorBlink"]},
 {cmd: "BufferCmd_MoveCursorH", mods: "", key: "XK_Right", amt: 1, flags: ["scrollToCursor", "resetCursorBlink"]},

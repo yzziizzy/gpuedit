@@ -6,7 +6,6 @@
 * Duplicate selected lines
 * Comment/uncomment, line and selection
 * Multi-line indent and un-indent
-* RAT_ parsing in commands for mouse buttons
 * File Browser kb integration
 
 == Needed before fractal dogfooding ==
@@ -21,6 +20,7 @@
 * Ability to change the highlighter
 * Open file command
 * Replace All
+* RAT_ parsing in commnds.json
 * Save Changes? close hook buffer integration 
 * Shortcut config presets
 * Slide-out windows

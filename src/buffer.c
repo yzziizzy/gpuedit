@@ -551,7 +551,7 @@ void Buffer_InsertLinebreak(Buffer* b) {
 		Buffer_InsertEmptyLineBefore(b, b->current);
 	}
 	else {
-		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + b->curCol, strlen(l->buf + b->curCol - 1));
+		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + b->curCol, strlen(l->buf + b->curCol - 1) - 1);
 		Buffer_LineTruncateAfter(b, l, b->curCol);
 		
 		// TODO: undo cursor move
@@ -1315,7 +1315,7 @@ void Buffer_DebugPrint(Buffer* b) {
 
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol) {
 	size_t tmplen;
-	char* tmp;
+	char* tmp = NULL;
 	BufferLine* blc, *bl;
 		
 	// check for easy special  cases
@@ -1355,7 +1355,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 		Buffer_LineAppendText(target, t, tmp, tmplen);
 	}
 	
-	free(tmp);
+	if(tmp)	free(tmp);
 }
 
 
