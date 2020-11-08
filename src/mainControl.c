@@ -819,7 +819,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 // 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
 	GUIBufferEditor_SetBuffer(gbe, buf);
 	gbe->ec->font = tdp->font;
-	gbe->ec->scrollLines = w->gs->Buffer_linesPerScrollWheel;
+	gbe->ec->scrollLines = 0;
 	gbe->bdp = bdp;
 	gbe->ec->bdp = bdp;
 	gbe->header.name = strdup(path);

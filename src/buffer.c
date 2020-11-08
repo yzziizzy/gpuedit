@@ -1254,12 +1254,12 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	
 	// multi-line selection
 	bl = sel->startLine;
-	if(sel->startCol == 1) {
-		blc = BufferLine_Copy(src->first);
+	if(sel->startCol == 0) {
+		blc = BufferLine_Copy(sel->startLine);
 	}
 	else {
 		// copy only the end
-		char* start = sel->startLine->buf ? sel->startLine->buf + sel->startCol - 1 : "";
+		char* start = sel->startLine->buf ? sel->startLine->buf + sel->startCol : "";
 		blc = BufferLine_FromStr(start, strlen(start));
 	}
 	
@@ -1286,7 +1286,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	}
 	
 	// copy the beginning of the last line
-	blc = BufferLine_FromStr(sel->endLine->buf, sel->endCol);
+	blc = BufferLine_FromStr(sel->endLine->buf, MIN(sel->endCol, sel->endLine->length));
 	blc->prev = blc_prev;
 	blc_prev->next = blc;
 		
@@ -1335,7 +1335,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 	
 	// cutting the remainder of the first line to a temporary buffer
 	if(tline->length) {
-		tmplen = tline->length - tcol + 1;
+		tmplen = tline->length - tcol;
 		tmp = malloc(tmplen);
 		tmp[tmplen] = 0;
 		memcpy(tmp, tline->buf + tcol, tmplen);
