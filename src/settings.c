@@ -56,6 +56,7 @@ static void grab_charp(char** out, json_value_t* obj, char* prop) {
 	}
 }
 
+
 static void grab_charpp(char*** out, json_value_t* obj, char* prop) {
 	json_value_t* v;
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {

@@ -38,6 +38,7 @@ typedef struct GlobalSettings {
 	SETTING_LIST
 #undef SETTING
 #undef charp
+#undef charpp
 #undef bool
 } GlobalSettings;
 
