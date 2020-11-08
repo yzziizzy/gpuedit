@@ -9,7 +9,7 @@
 * Ctrl-delete for whole words
 
 == Needed before fractal dogfooding ==
-...
+* fuzzy file opener
 
 == TODO ==
 * Reduce CPU usage on shtty laptop
