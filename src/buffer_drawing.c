@@ -141,6 +141,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	};
 	
 	float lineNumWidth = ceil(log10(b->numLines)) * tdp->charWidth + bdp->lineNumExtraWidth;
+	float hsoff = -gbe->scrollCols * tdp->charWidth;
 	
 	Vector2 tl = gbe->header.absTopLeft;
 	if(bdp->showLineNums) tl.x += lineNumWidth;
@@ -264,9 +265,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		
 				*v = (GUIUnifiedVertex){
 					.pos.t = tl.y,
-					.pos.l = tl.x,
+					.pos.l = tl.x + hsoff,
 					.pos.b = tl.y + tdp->lineHeight,
-					.pos.r = tl.x + MAX(5, (float)tdp->charWidth / 2.0),
+					.pos.r = tl.x + hsoff + MAX(5, (float)tdp->charWidth / 2.0),
 					
 					.guiType = 0, // box
 					
@@ -308,7 +309,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				}*/
 			}
 			
-			float hsoff = -gbe->scrollCols * tdp->charWidth;
 			// main text
 			for(int i = 0; i < maxCols; i++) { 
 				if(b->sel && b->sel->startLine->lineNum == bl->lineNum && b->sel->startCol <= i + gbe->scrollCols) {
@@ -421,7 +421,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	if(gbe->cursorBlinkPaused || gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
 		tl = (Vector2){gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y};
 		v = GUIManager_reserveElements(gm, 1);
-		float cursorOff = getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;
+		float cursorOff = hsoff + getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;
 		float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		*v = (GUIUnifiedVertex){
 			.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},

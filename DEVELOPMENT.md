@@ -2,7 +2,6 @@
 * Replace All
 * Basic autocomplete
 * Fix scrollbar, make size configurable
-* Horizontal scrollbar
 * Duplicate selected lines
 * Comment/uncomment, line and selection
 * Multi-line indent and un-indent
@@ -14,6 +13,7 @@
 
 == TODO ==
 * Reduce CPU usage on shtty laptop
+* Horizontal scrollbar
 * Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working
 * Choose highlighter based on file extension
