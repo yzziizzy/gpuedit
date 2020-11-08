@@ -86,7 +86,9 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	char* homedir = getenv("HOME");
 	char* tmp = pathJoin(homedir, ".gpuedit/commands.json");
 
-
+	for(int i = 0; as->globalSettings.MainControl_searchPaths[i]; i++) {
+		printf("%d: foo: '%s'\n", i, as->globalSettings.MainControl_searchPaths[i]);
+}
 	// as->commands = CommandList_loadJSONFile("/etc/gpuedit/commands.json");
 	as->commands = CommandList_loadJSONFile(tmp);
 	free(tmp);

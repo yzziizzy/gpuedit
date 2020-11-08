@@ -551,7 +551,6 @@ void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt) {
 }
 
 
-
 void Buffer_InsertLinebreak(Buffer* b) {
 	BufferLine* l = b->current;
 	
@@ -572,7 +571,20 @@ void Buffer_InsertLinebreak(Buffer* b) {
 	// TODO: maybe shrink the alloc
 }
 
-
+intptr_t Buffer_IndentToPrevLine(Buffer* b, BufferLine* bl) {
+	intptr_t i = 0;
+	
+	BufferLine* p = bl->prev;
+	if(!p || !p->buf || p->length == 0) return 0;
+	
+	for(i = 0; i < p->length; i++) {
+		if(p->buf[i] != '\t') break;
+		
+		Buffer_LineInsertChars(b, bl, "\t", 0, 1);
+	}
+	
+	return i;
+}
 
 void Buffer_ClearAllSelections(Buffer* b) {
 	if(!b->sel) return;
@@ -1067,6 +1079,12 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		
 		case BufferCmd_SplitLine:
 			Buffer_InsertLinebreak(b);
+			break;
+
+		case BufferCmd_SplitLineIndent:
+			Buffer_InsertLinebreak(b);
+			intptr_t tabs = Buffer_IndentToPrevLine(b, b->current);
+			Buffer_MoveCursorTo(b, b->current, tabs);
 			break;
 		
 		case BufferCmd_DeleteCurLine:

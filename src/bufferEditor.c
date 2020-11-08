@@ -289,8 +289,10 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 		pcre2_match_data_free(w->findMatch);
 		w->findMatch = 0;
 	}
+
+	uint32_t options = PCRE2_CASELESS;
 	
-	w->findRE = pcre2_compile((PCRE2_SPTR)pattern, PCRE2_ZERO_TERMINATED, 0, &errno, &erroff, NULL);
+	w->findRE = pcre2_compile((PCRE2_SPTR)pattern, PCRE2_ZERO_TERMINATED, options, &errno, &erroff, NULL);
 	if(!w->findRE) {
 		pcre2_get_error_message(errno, errbuf, sizeof(errbuf));
 		w->findREError = strdup(errbuf);

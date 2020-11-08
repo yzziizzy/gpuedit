@@ -6,7 +6,7 @@
 * Comment/uncomment, line and selection
 * Multi-line indent and un-indent
 * File Browser kb integration
-* Autoindent
+* Ctrl-delete for whole words
 
 == Needed before fractal dogfooding ==
 ...

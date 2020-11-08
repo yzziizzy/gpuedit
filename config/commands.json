@@ -34,7 +34,7 @@
 {cmd: "BufferCmd_MoveCursorV", mods: "", key: "XK_Down", amt: 1, flags: ["scrollToCursor", "resetCursorBlink"]},
 {cmd: "BufferCmd_Backspace", mods: "", key: "XK_BackSpace", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
 {cmd: "BufferCmd_Delete", mods: "", key: "XK_Delete", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
-{cmd: "BufferCmd_SplitLine", mods: "", key: "XK_Return", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
+{cmd: "BufferCmd_SplitLineIndent", mods: "", key: "XK_Return", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
 {cmd: "BufferCmd_MovePage", mods: "", key: "XK_Prior", amt: -1, },
 {cmd: "BufferCmd_MovePage", mods: "", key: "XK_Next", amt: 1, },
 {cmd: "BufferCmd_Home", mods: "", key: "XK_Home", amt: 0, flags: ["scrollToCursor"]},

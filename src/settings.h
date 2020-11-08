@@ -25,13 +25,14 @@
 	SETTING(int,   Buffer_maxUndo,              4096,  0,    INT_MAX) \
 	SETTING(int,   Buffer_statusBarHeight,      20,    0,    INT_MAX) \
 	SETTING(int,   MainControl_tabHeight,       20,    0,    1920*16) \
+	SETTING(charpp,MainControl_searchPaths,     ((char*[]){"./", NULL}),  NULL, NULL) \
 	
-
 
 
 
 typedef struct GlobalSettings {
 #define charp char*
+#define charpp char**
 #define bool char
 #define SETTING(type, name, val ,min,max) type name;
 	SETTING_LIST

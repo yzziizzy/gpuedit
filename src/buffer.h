@@ -456,6 +456,7 @@ void Buffer_FirstBookmark(Buffer* b);
 void Buffer_LastBookmark(Buffer* b);
 void Buffer_Indent(Buffer* b);
 void Buffer_Unindent(Buffer* b);
+intptr_t Buffer_IndentToPrevLine(Buffer* b, BufferLine* bl);
 void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col);
 void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
 void Buffer_MoveToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);

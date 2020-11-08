@@ -6,7 +6,28 @@
 
 #include "c_json/json.h"
 
+size_t strlistlen(char** a) {
+	size_t n = 0;
+	for(; a[n]; n++);
+	return n;
+}
 
+
+char** strlistdup(char** old) {
+	size_t i;
+	char** new;
+
+	if(!old) return NULL;
+	
+	new = malloc(sizeof(*new) * (strlistlen(old) + 1));
+	
+	for(i = 0; old[i]; i++) {
+		new[i] = strdup(old[i]);
+	}
+
+	new[i] = NULL;
+	return new;
+}
 
 #define true 1
 #define false 0
@@ -16,6 +37,7 @@
 #define set_float(x) x;
 #define set_double(x) x;
 #define set_charp(x) strdup(x);
+#define set_charpp(x) strlistdup(x);
 void GlobalSettings_loadDefaults(GlobalSettings* s) {
 	#define SETTING(type, name, val ,min,max) s->name = set_##type(val);
 		SETTING_LIST
@@ -30,6 +52,27 @@ static void grab_charp(char** out, json_value_t* obj, char* prop) {
 		if(v->type == JSON_TYPE_STRING && v->v.str) {
 			if(*out) free(*out);
 			*out = strdup(v->v.str);
+		}
+	}
+}
+
+static void grab_charpp(char*** out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		if(v->type == JSON_TYPE_ARRAY) {
+			char** tmp = calloc(1, sizeof(*tmp) * (v->v.arr->length + 1));
+			
+			json_array_node_t* link = v->v.arr->head;
+			for(long i = 0; link; i++) {
+				
+				char* s;
+				json_as_string(link->value, &s);
+				tmp[i] = strdup(s);
+				
+				link = link->next;
+			}
+			
+			*out = tmp;
 		}
 	}
 }

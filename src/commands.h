@@ -13,6 +13,7 @@
 	X(BufferCmd, MoveCursorH) \
 	X(BufferCmd, InsertChar) \
 	X(BufferCmd, SplitLine) \
+	X(BufferCmd, SplitLineIndent) \
 	X(BufferCmd, Backspace) \
 	X(BufferCmd, Delete) \
 	X(BufferCmd, DeleteCurLine) \
