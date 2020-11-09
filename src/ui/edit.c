@@ -109,7 +109,7 @@ void removeChar(GUIEdit* ed, int index) {
 	if(index >= ed->textlen || index < 0) return;
 	
 	char* e = ed->buf + index;
-	while(e <= ed->buf + ed->textlen + 1) {
+	while(e <= ed->buf + ed->textlen) {
 		*e = *(e + 1);
 		e++;
 	}
@@ -285,13 +285,13 @@ static void insertChar(GUIEdit* ed, char c) {
 	checkBuffer(ed, ed->textlen + 1);
 	
 	char* e = ed->buf + ed->textlen + 1; // copy the null terminator too
-	while(e >= ed->buf + ed->cursorpos) {
+	while(e >= ed->buf + ed->cursorpos + 1) {
 		*e = *(e - 1);
 		e--;
 	}
 	
 	ed->textlen++;
-	*(e+1) = c;
+	*(e) = c;
 }
 
 static void updateTextControl(GUIEdit* ed) {

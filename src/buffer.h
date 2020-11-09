@@ -403,7 +403,9 @@ void Buffer_ClearCurrentSelection(Buffer* b);
 void Buffer_ClearAllSelections(Buffer* b);
 void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel);
 void Buffer_SelectSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet, BufferRange* out);
 
+char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen);
 
 void Buffer_GrowSelectionH(Buffer* b, intptr_t cols);
 void Buffer_GrowSelectionV(Buffer* b, intptr_t cols);
@@ -460,6 +462,8 @@ intptr_t Buffer_IndentToPrevLine(Buffer* b, BufferLine* bl);
 void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col);
 void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
 void Buffer_MoveToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+void Buffer_DeleteToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+void Buffer_DeleteToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
 int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 

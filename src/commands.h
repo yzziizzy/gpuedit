@@ -48,10 +48,13 @@
 	X(BufferCmd, SelectSequenceUnder) \
 	X(BufferCmd, MoveToNextSequence) \
 	X(BufferCmd, MoveToPrevSequence) \
+	X(BufferCmd, DeleteToNextSequence) \
+	X(BufferCmd, DeleteToPrevSequence) \
 	X(BufferCmd, Indent) \
 	X(BufferCmd, SmartIndent) \
 	X(BufferCmd, Unindent) \
 	X(BufferCmd, CollapseWhitespace) \
+	X(BufferCmd, FindStartSequenceUnderCursor) \
 	X(BufferCmd, FindStart) \
 	X(BufferCmd, FindNext) \
 	X(BufferCmd, ReplaceStart) \

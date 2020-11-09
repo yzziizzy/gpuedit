@@ -1,18 +1,17 @@
 == Needed before yzziizzy dogfooding ==
 * Replace All
 * Basic autocomplete
-* Fix scrollbar, make size configurable
-* Duplicate selected lines
 * Comment/uncomment, line and selection
 * Multi-line indent and un-indent
 * File Browser kb integration
-* Ctrl-delete for whole words
+* Search for word under cursor
 
 == Needed before fractal dogfooding ==
 ...
 
 == TODO ==
 * Reduce CPU usage on shtty laptop
+* Fix scrollbar, make size configurable
 * Horizontal scrollbar
 * Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working

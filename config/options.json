@@ -17,5 +17,5 @@
 	"Buffer_fontSize": 16,
 	"Buffer_maxUndo": 4096,
 	"Buffer_statusBarHeight": 20,
-//	"MainControl_searchPaths": ["foo", "bar"],
+	"MainControl_searchPaths": ["foo", "bar"],
 }

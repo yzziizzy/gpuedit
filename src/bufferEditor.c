@@ -548,6 +548,14 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			Buffer_MoveToPrevSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
 			break;
 			
+		case BufferCmd_DeleteToNextSequence:
+			Buffer_DeleteToNextSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			break;
+			
+		case BufferCmd_DeleteToPrevSequence:
+			Buffer_DeleteToPrevSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			break;
+			
 		case BufferCmd_GoToEOL:
 			if(w->buffer->sel) Buffer_ClearAllSelections(w->buffer);
 			w->buffer->curCol = w->buffer->current->length;
@@ -652,6 +660,48 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 			break;
 			
+		case BufferCmd_FindStartSequenceUnderCursor:
+			if(!w->findMode) {
+				char* preserved = NULL;
+				if(w->trayOpen) {
+					GUIBufferEditor_CloseTray(w);
+				}
+				
+				w->findMode = 1;
+				w->trayOpen = 1;
+				w->inputMode = 1;
+				
+				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "find_tray");
+				GUIRegisterObject(w, w->trayRoot);
+				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
+				
+				BufferRange sel;
+				Buffer* b = w->ec->buffer;
+				Buffer_GetSequenceUnder(b, b->current, b->curCol, cmd->str, &sel);
+				char* str = Buffer_StringFromSelection(b, &sel, NULL);
+				GUIEdit_SetText(w->findBox, str);
+				
+				GUIBufferEditor_StopFind(w);
+				GUIBufferEditor_StartFind(w, str);					
+				GUIBufferEditor_NextFindMatch(w);
+				
+				free(str);
+
+
+				GUIBufferEditor_scrollToCursor(w);
+				
+				w->ec->cursorBlinkPaused = 1;
+				GUIManager_pushFocusedObject(w->header.gm, w->findBox);
+			}
+			else {
+				GUIBufferEditor_CloseTray(w);
+				w->ec->cursorBlinkPaused = 0;
+				GUIManager_popFocusedObject(w->header.gm);
+			}
+			
+		
+			break;
+		
 		case BufferCmd_FindStart:
 			if(!w->findMode) {
 				char* preserved = NULL;

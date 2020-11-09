@@ -525,9 +525,45 @@ void Buffer_DeleteAt(Buffer* b, BufferLine* l, intptr_t col) {
 
 
 void Buffer_DuplicateSelection(Buffer* b, BufferRange* sel, int amt) {
+	BufferLine* src;
+	BufferLine* endline = sel->endLine;
+	if(sel->endCol == 0 && sel->endLine != sel->startLine) {
+		endline = endline->prev;
+	}
+	BufferLine* target = endline;
+	BufferLine* start_target = endline;
 	
-
-
+	if(amt < 0) {
+		amt = -amt;
+		target = sel->startLine;
+		
+		while(amt-- > 0) {
+			BufferLine* src = endline;
+			while(src && src->next != sel->startLine) {
+				target = Buffer_InsertLineBefore(b, target, src->buf, src->length);
+				
+				src = src->prev;
+			}
+		}
+	}
+	else {
+		
+		while(amt-- > 0) {
+			BufferLine* src = sel->startLine;
+			while(src && src->prev != endline) {
+				target = Buffer_InsertLineAfter(b, target, src->buf, src->length);
+				
+				src = src->next;
+			}
+		}
+		
+		// fix the selection and cursor if it turns out we inserted lines in between	
+		if(endline != sel->endLine) {
+			if(b->current == sel->endLine) b->current = endline->next;
+			sel->endLine = endline->next;
+			
+		}
+	}
 
 }
 
@@ -1107,8 +1143,13 @@ void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
 		case BufferCmd_Unindent: Buffer_Unindent(b); break;
 			
 		case BufferCmd_DuplicateLine:
-			Buffer_DuplicateLines(b, b->current, cmd->amt);
-			Buffer_MoveCursorV(b, cmd->amt);
+			if(b->sel) {
+				Buffer_DuplicateSelection(b, b->sel, cmd->amt);
+			}
+			else {
+				Buffer_DuplicateLines(b, b->current, cmd->amt);
+				Buffer_MoveCursorV(b, cmd->amt);
+			}
 			break;
 		
 		case BufferCmd_Copy:
@@ -1636,6 +1677,65 @@ void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, 
 }
 
 
+char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen) {
+	char* out;
+	size_t len = 0;
+	size_t alloc = 64;
+	
+	out = malloc(alloc * sizeof(*out));
+	out[0] = 0;
+	
+	BufferLine* bl = sel->startLine;
+	while(bl) {
+		size_t scol = bl == sel->startLine ? sel->startCol : 0;
+		size_t ecol = bl == sel->endLine ? sel->endCol : bl->length;
+		size_t cols = ecol - scol;
+		
+		if(alloc - len < cols + 1) {
+			alloc = MAX(alloc * 2, alloc + cols + 1);
+			out = realloc(out, sizeof(*out) * alloc);
+		}
+		
+		// TODO: not slow, shitty algorithm
+		strncat(out, bl->buf + scol, cols);
+		
+		len += cols;
+		
+		if(bl == sel->endLine) break;
+		
+		strncat(out, "\n", 1);
+		len++;
+	}
+	
+	if(outLen) *outLen - len;
+	return out;
+}
+
+void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet, BufferRange* out) {
+	intptr_t start, end;
+	
+	for(start = col; start >= 0; start--) {
+		if(NULL == strchr(charSet, l->buf[start])) {
+			start++;
+			break;
+		}
+	}
+	if(start == -1) start = 0;
+	
+	for(end = col; end < l->length; end++) {
+		if(NULL == strchr(charSet, l->buf[end])) {
+			break;
+		}
+	}
+	if(end > l->length) end = l->length;
+	
+	out->startLine = l;
+	out->endLine = l;
+	out->startCol = start;
+	out->endCol = end;
+}
+
+
 void Buffer_SelectSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
 	intptr_t start, end;
 	
@@ -1870,6 +1970,39 @@ void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* cha
 	return;
 }
 
+void Buffer_DeleteToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
+	if(!l || col > l->length) return;
+	
+	// TODO: handle selection size changes
+	if(!l) return;
+	
+	BufferRange sel;
+	sel.startLine = l;
+	sel.endLine = l;
+	sel.startCol = col;
+	sel.endCol = col;
+	
+	Buffer_FindSequenceEdgeForward(b, &sel.endLine, &sel.endCol, charSet);
+	Buffer_DeleteSelectionContents(b, &sel);
+}
+
+
+void Buffer_DeleteToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet) {
+	if(!l || col > l->length) return;
+	
+	// TODO: handle selection size changes
+	if(!l) return;
+	
+	BufferRange sel;
+	sel.startLine = l;
+	sel.endLine = l;
+	sel.startCol = col;
+	sel.endCol = col;
+	
+	Buffer_FindSequenceEdgeBackward(b, &sel.startLine, &sel.startCol, charSet);
+	Buffer_MoveCursorTo(b, sel.startLine, sel.startCol);
+	Buffer_DeleteSelectionContents(b, &sel);
+}
 
 void Buffer_DebugPrintUndoStack(Buffer* b) {
 	printf("Undo stack for %p (%d entries)\n", b, b->undoFill);
