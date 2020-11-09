@@ -77,27 +77,29 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	srand((unsigned int)time(NULL));
 	
 	char* args[] = {
-		"/bin/bash",
-		"-i",
-		"-l",
+		"-al",
 		NULL,
 	};
 	
 	char* homedir = getenv("HOME");
 	char* tmp = pathJoin(homedir, ".gpuedit/commands.json");
 
-	for(int i = 0; as->globalSettings.MainControl_searchPaths[i]; i++) {
-		printf("%d: foo: '%s'\n", i, as->globalSettings.MainControl_searchPaths[i]);
-}
 	// as->commands = CommandList_loadJSONFile("/etc/gpuedit/commands.json");
 	as->commands = CommandList_loadJSONFile(tmp);
 	free(tmp);
 
 	as->lastFrameTime = getCurrentTime();
 	as->lastFrameDrawTime = 0;
-	
-// 	cc = AppState_ExecProcessPipe(NULL, "/bin/bash", args);
-	
+	/*
+	struct child_process_info* cc;
+	cc = AppState_ExecProcessPipe(NULL, "ls", args);
+
+	char buf[1024];
+	while(!feof(cc->f_stdout)) {
+		size_t sz = fread(buf, 1, 1024, cc->f_stdout);
+		if(sz) printf("'%*s'\n", sz, buf);
+	}	
+	*/	
 	// this costs 5mb of ram
 // 	json_gl_init_lookup();
 	

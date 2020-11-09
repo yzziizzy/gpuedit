@@ -29,6 +29,16 @@ char** strlistdup(char** old) {
 	return new;
 }
 
+void freeptrlist(void* _p) {
+	void** p = (void**)_p;
+	void** q = p;
+	while(*q) {
+		free(*q);
+		q++;
+	}
+	free(p);
+}
+
 #define true 1
 #define false 0
 
@@ -61,6 +71,7 @@ static void grab_charpp(char*** out, json_value_t* obj, char* prop) {
 	json_value_t* v;
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
 		if(v->type == JSON_TYPE_ARRAY) {
+			if(*out) freeptrlist(*out);
 			char** tmp = calloc(1, sizeof(*tmp) * (v->v.arr->length + 1));
 			
 			json_array_node_t* link = v->v.arr->head;
