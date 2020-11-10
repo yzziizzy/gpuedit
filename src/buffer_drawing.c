@@ -190,8 +190,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	
 	
 	// for selections that cross the visible window boundary
-	if(b->sel && b->sel->startLine->lineNum < bl->lineNum) {
-		if(b->sel->endLine->lineNum >= bl->lineNum) {
+	if(gbe->sel && gbe->sel->startLine->lineNum < bl->lineNum) {
+		if(gbe->sel->endLine->lineNum >= bl->lineNum) {
 			inSelection = 1;
 			fg = &theme->hl_textColor;
 			bg = &theme->hl_bgColor;
@@ -220,7 +220,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		float adv = 0;
 		
 		// highlight current line
-		if(bl == b->current && gbe->outlineCurLine) {
+		if(bl == gbe->current && gbe->outlineCurLine) {
 			GUIUnifiedVertex* vv = GUIManager_reserveElements(gm, 1);
 			*vv = (GUIUnifiedVertex){
 				.pos = {
@@ -240,7 +240,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		}
 		
 		// handle selections ending on empty lines
-		if(b->sel && b->sel->endLine == bl && bl->length == 0) {
+		if(gbe->sel && gbe->sel->endLine == bl && bl->length == 0) {
 			inSelection = 0;
 			fg = &theme->textColor;
 			bg = &theme->bgColor;
@@ -248,12 +248,12 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		
 		
 		if(!bl->buf) { // still check selection info on empty lines 
-			if(b->sel && b->sel->startLine->lineNum == bl->lineNum) {
+			if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum) {
 				inSelection = 1;
 				fg = &theme->hl_textColor;
 				bg = &theme->hl_bgColor;
 			}
-			if(b->sel && b->sel->endLine->lineNum == bl->lineNum) {
+			if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum) {
 				inSelection = 0;
 				fg = &theme->textColor;
 				bg = &theme->bgColor;
@@ -311,12 +311,12 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			
 			// main text
 			for(int i = 0; i < maxCols; i++) { 
-				if(b->sel && b->sel->startLine->lineNum == bl->lineNum && b->sel->startCol <= i + gbe->scrollCols) {
+				if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum && gbe->sel->startCol <= i + gbe->scrollCols) {
 					inSelection = 1;
 					fg = &theme->hl_textColor;
 					bg = &theme->hl_bgColor;
 				}
-				if(b->sel && b->sel->endLine->lineNum == bl->lineNum && b->sel->endCol <= i + gbe->scrollCols) {
+				if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum && gbe->sel->endCol <= i + gbe->scrollCols) {
 					inSelection = 0;
 					fg = &theme->textColor;
 					bg = &theme->bgColor;
@@ -421,8 +421,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	if(gbe->cursorBlinkPaused || gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
 		tl = (Vector2){gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y};
 		v = GUIManager_reserveElements(gm, 1);
-		float cursorOff = hsoff + getColOffset(b->current->buf, b->curCol, tdp->tabWidth) * tdp->charWidth;
-		float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		float cursorOff = hsoff + getColOffset(gbe->current->buf, gbe->curCol, tdp->tabWidth) * tdp->charWidth;
+		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		*v = (GUIUnifiedVertex){
 			.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
 			.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
@@ -441,7 +441,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		
 		int popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
 		
-		float cursory = (b->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
 		
 		

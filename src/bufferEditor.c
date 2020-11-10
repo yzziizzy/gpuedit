@@ -40,9 +40,8 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
 	
-	
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
+		GUIBufferEditControl_ProcessCommand(w->ec, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
 		}, &needRehighlight);
 		
@@ -84,7 +83,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			}
 			
 			if(found.flags & undoSeqBreak) {
-				Buffer_UndoSequenceBreak(w->buffer, 0, w->ec->buffer->current->lineNum, w->ec->buffer->curCol);
+				Buffer_UndoSequenceBreak(w->buffer, 0, w->ec->current->lineNum, w->ec->curCol);
 			}
 		}
 		
@@ -211,7 +210,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 // 	textf = GUITextF_new(w->header.gm);
 // 	textf->header.topleft = (Vector2){4, 0};
-// 	GUITextF_setString(textf, "Column %>ld", &w->ec->buffer->curCol);
+// 	GUITextF_setString(textf, "Column %>ld", &w->ec->ec->curCol);
 // 	GUIRegisterObject(w->header.parent, textf);
 	
 	return w;
@@ -312,8 +311,8 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 	
 	w->findMatch = pcre2_match_data_create_from_pattern(w->findRE, NULL);
 	
-	w->nextFindLine = w->buffer->current;
-	w->nextFindChar = w->buffer->curCol;
+	w->nextFindLine = w->ec->current;
+	w->nextFindChar = w->ec->curCol;
 	
 	
 	return 0;
@@ -363,8 +362,8 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 	w->nextFindLine = bl;
 	w->nextFindChar = w->findCharE;
 	
-	Buffer_MoveCursorTo(w->buffer, bl, w->findCharS);
-	Buffer_SetCurrentSelection(w->buffer, bl, w->findCharS, bl, w->findCharE); 
+	GBEC_MoveCursorTo(w->ec, bl, w->findCharS);
+	GBEC_SetCurrentSelection(w->ec, bl, w->findCharS, bl, w->findCharE); 
 	
 // 	printf("match found at: %d:%d\n", bl->lineNum, w->findCharS);
 	
@@ -408,17 +407,17 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 				
 // 				printf("found: %d, %d\n", bl->lineNum, dist);
 				
-				b->current = bl;
-				b->curCol = dist;
+				w->ec->current = bl;
+				w->ec->curCol = dist;
 				
-				if(!b->sel) b->sel = calloc(1, sizeof(*b->sel));
-				b->sel->startLine = bl; 
-				b->sel->endLine = bl; 
-				b->sel->startCol = dist;
-				b->sel->endCol = dist + strlen(word);
+				if(!w->ec->sel) w->ec->sel = calloc(1, sizeof(*w->ec->sel));
+				w->ec->sel->startLine = bl; 
+				w->ec->sel->endLine = bl; 
+				w->ec->sel->startCol = dist;
+				w->ec->sel->endCol = dist + strlen(word);
 				
 				w->ec->selectPivotLine = bl;
-				w->ec->selectPivotCol = b->sel->endCol;
+				w->ec->selectPivotCol = w->ec->sel->endCol;
 				
 				return 0;
 			}
@@ -435,8 +434,8 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t col) {
 	if(line < 1) line = 1;
 	if(col < 0) col = 0;
-	gbe->buffer->current = Buffer_raw_GetLine(gbe->buffer, line);
-	gbe->buffer->curCol = MIN(col, gbe->buffer->current->length); // TODO: check for bounds
+	gbe->ec->current = Buffer_raw_GetLine(gbe->buffer, line);
+	gbe->ec->curCol = MIN(col, gbe->ec->current->length); // TODO: check for bounds
 }
 
 
@@ -517,58 +516,60 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			// TODO: init selectoin and pivots if no selection active
 		case BufferCmd_GrowSelectionH:
 // 			if(!w->selectPivotLine) {
-			if(!w->buffer->sel) {
-				w->ec->selectPivotLine = w->buffer->current;
-				w->ec->selectPivotCol = w->buffer->curCol;
+			if(!w->ec->sel) {
+				w->ec->selectPivotLine = w->ec->current;
+				w->ec->selectPivotCol = w->ec->curCol;
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
-			Buffer_MoveCursorH(w->buffer, cmd->amt);
+			GBEC_MoveCursorH(w->ec, cmd->amt);
 			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionV:
-			if(!w->buffer->sel) {
-				w->ec->selectPivotLine = w->buffer->current;
-				w->ec->selectPivotCol = w->buffer->curCol;
+			if(!w->ec->sel) {
+				w->ec->selectPivotLine = w->ec->current;
+				w->ec->selectPivotCol = w->ec->curCol;
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
-			Buffer_MoveCursorV(w->buffer, cmd->amt);
+			GBEC_MoveCursorV(w->ec, cmd->amt);
 			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
 			break;
 			
 		case BufferCmd_SelectSequenceUnder:
-			Buffer_SelectSequenceUnder(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			GBEC_SelectSequenceUnder(w->ec, w->ec->current, w->ec->curCol, cmd->str); 
+			w->ec->selectPivotLine = w->ec->sel->startLine;
+			w->ec->selectPivotCol = w->ec->sel->startCol;
 			break;
 			
 		case BufferCmd_MoveToNextSequence:
-			Buffer_MoveToNextSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			GBEC_MoveToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
 		case BufferCmd_MoveToPrevSequence:
-			Buffer_MoveToPrevSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			GBEC_MoveToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
 		case BufferCmd_DeleteToNextSequence:
-			Buffer_DeleteToNextSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			GBEC_DeleteToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
 		case BufferCmd_DeleteToPrevSequence:
-			Buffer_DeleteToPrevSequence(w->buffer, w->buffer->current, w->buffer->curCol, cmd->str);
+			GBEC_DeleteToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
 		case BufferCmd_GoToEOL:
-			if(w->buffer->sel) Buffer_ClearAllSelections(w->buffer);
-			w->buffer->curCol = w->buffer->current->length;
+			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
+			w->ec->curCol = w->ec->current->length;
 			break;
 			
 		case BufferCmd_GoToSOL:
-			if(w->buffer->sel) Buffer_ClearAllSelections(w->buffer);
-			w->buffer->curCol = 0;
+			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
+			w->ec->curCol = 0;
 			break;
 		
 		case BufferCmd_GoToAfterIndent:
-			if(w->buffer->sel) Buffer_ClearAllSelections(w->buffer);
-			Buffer_MoveCursorTo(w->buffer, w->buffer->current, BufferLine_GetIndentCol(w->buffer->current));
+			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
+			GBEC_MoveCursorTo(w->ec, w->ec->current, BufferLine_GetIndentCol(w->ec->current));
 			break;
 			
 		case BufferCmd_GoToLine:
@@ -607,16 +608,17 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		
 		case BufferCmd_ReplaceNext: { // TODO put this all in a better spot
 			Buffer* b = w->ec->buffer;
-			if(b->sel) {
-				b->current = b->sel->startLine;
-				b->curCol = b->sel->startCol;
-				Buffer_DeleteSelectionContents(b, b->sel);
+			GUIBufferEditControl* ec = w->ec;
+			if(ec->sel) {
+				ec->current = ec->sel->startLine;
+				ec->curCol = ec->sel->startCol;
+				Buffer_DeleteSelectionContents(b, ec->sel);
 				
 				char* rtext = GUIEdit_GetText(w->replaceBox);
 				size_t len = strlen(rtext);
 				
-				Buffer_LineInsertChars(b, b->current, rtext, b->curCol, len);
-				Buffer_MoveCursorH(b, len);
+				Buffer_LineInsertChars(b, ec->current, rtext, ec->curCol, len);
+				GBEC_MoveCursorH(ec, len);
 			}
 			
 			GUIBufferEditor_NextFindMatch(w);
@@ -641,10 +643,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->inputMode = 2;
 		
 				
-				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
+				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
 				GUIRegisterObject(w, w->trayRoot);
-				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
-				w->replaceBox = GUIObject_FindChild(w->trayRoot, "replace");
+				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
+				w->replaceBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "replace");
 				if(preserved) {
 					GUIEdit_SetText(w->findBox, preserved);
 					free(preserved);
@@ -671,13 +673,13 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->trayOpen = 1;
 				w->inputMode = 1;
 				
-				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "find_tray");
+				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 				GUIRegisterObject(w, w->trayRoot);
-				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
+				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
 				
 				BufferRange sel;
 				Buffer* b = w->ec->buffer;
-				Buffer_GetSequenceUnder(b, b->current, b->curCol, cmd->str, &sel);
+				Buffer_GetSequenceUnder(b, w->ec->current, w->ec->curCol, cmd->str, &sel);
 				char* str = Buffer_StringFromSelection(b, &sel, NULL);
 				GUIEdit_SetText(w->findBox, str);
 				
@@ -716,9 +718,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->trayOpen = 1;
 				w->inputMode = 1;
 				
-				w->trayRoot = GUIManager_SpawnTemplate(w->header.gm, "find_tray");
+				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 				GUIRegisterObject(w, w->trayRoot);
-				w->findBox = GUIObject_FindChild(w->trayRoot, "find");
+				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
 				if(preserved) {
 					GUIEdit_SetText(w->findBox, preserved);
 					free(preserved);
@@ -770,7 +772,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 			
 		case BufferCmd_CollapseWhitespace:
-			Buffer_CollapseWhitespace(w->buffer, w->buffer->current, w->buffer->curCol);
+			Buffer_CollapseWhitespace(w->buffer, w->ec->current, w->ec->curCol);
 			break;
 			
 		case BufferCmd_CloseTray:
@@ -820,7 +822,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		break;
 		
 		default:
-			Buffer_ProcessCommand(w->buffer, cmd, needRehighlight);
+			GUIBufferEditControl_ProcessCommand(w->ec, cmd, needRehighlight);
+			
 	}
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);

@@ -167,3 +167,17 @@ intptr_t BufferLine_GetIndentCol(BufferLine* l) {
 }
 
 
+int BufferLine_IsInRange(BufferLine* bl, BufferRange* sel) {
+	BufferLine* line = sel->startLine;
+	
+	while(line) {
+		if(line == bl) return 1;
+		
+		if(line == sel->endLine) break;
+		line = line->next;
+	}
+
+	return 0;
+}
+
+

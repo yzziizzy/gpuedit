@@ -102,24 +102,32 @@ typedef struct BufferUndo {
 	intptr_t length;
 } BufferUndo;
 
+
+
+enum BufferChangeAction {
+	BCA_NULL,
+	BCA_DeleteChars,
+	BCA_DeleteLines,
+};
+
+typedef struct BufferChangeNotification {
+	Buffer* b;
+	BufferRange sel;
+	
+	int action;
+} BufferChangeNotification;
+
+typedef void (*bufferChangeNotifyFn)(BufferChangeNotification* note, void* data);
+
+
+
 typedef struct Buffer {
 	
-	BufferLine* first, *last, *current; 
+	BufferLine* first, *last; 
 	
 	intptr_t numLines;
 	
-	// TODO: move to GUIBufferEditControl
-	intptr_t curCol; // characters into the line
-	intptr_t curColDisp; // the visible display column, including tabstops, etc.
-	intptr_t curColWanted; // the visible display column to use, if it existed.
-	
 	char* filePath;
-	
-// 	struct {
-// 		BufferRange* first, *last;
-// 	} selectionRing;
-	
-	BufferRange* sel; // dynamic selection
 	
 	// TODO: also goes to GUIBufferEditControl
 	struct hlinfo* hl;
@@ -143,6 +151,12 @@ typedef struct Buffer {
 	HT(int) dict; // value is reference count
 	
 	int refs;
+	
+	// called *before* an intended change, when all pointers are still valid
+	VEC(struct {
+		bufferChangeNotifyFn fn;
+		void* data;
+	}) changeListeners;
 } Buffer;
 
 
@@ -201,6 +215,7 @@ typedef struct GUIBufferEditControl {
 	BufferDrawParams* bdp;
 	Highlighter* h;
 	
+	
 	float cursorBlinkTimer;
 	float cursorBlinkOnTime;
 	float cursorBlinkOffTime;
@@ -217,10 +232,17 @@ typedef struct GUIBufferEditControl {
 	GUIFont* font;
 
 	
+	BufferLine* current; // line of the cursor
+	intptr_t curCol; // characters into the line
+	intptr_t curColDisp; // the visible display column, including tabstops, etc.
+	intptr_t curColWanted; // the visible display column to use, if it existed.
+
+	BufferRange* sel; // dynamic selection
 	
-	// stating point of a mouse-drag selection
+	// starting point of a mouse-drag selection
 	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
 	intptr_t selectPivotCol;
+
 	float scrollCoastTimer;
 	float scrollCoastStrength;
 	float scrollCoastMax;
@@ -325,6 +347,7 @@ typedef struct GUIManager GUIManager;
 
 
 // these are raw functions and should not be used directly by Buffer_ operations
+// they are internal functions used by Buffer_raw_ operations
 BufferLine* BufferLine_New();
 void BufferLine_Delete(BufferLine* l);
 BufferLine* BufferLine_FromStr(char* text, intptr_t len);
@@ -336,6 +359,7 @@ void BufferLine_TruncateAfter(BufferLine* l, intptr_t col);
 void BufferLine_SetText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendLine(BufferLine* l, BufferLine* src);
+int BufferLine_IsInRange(BufferLine* bl, BufferRange* sel);
 
 
 
@@ -374,9 +398,14 @@ void Buffer_FreeAllUndo(Buffer* b);
 void Buffer_RedoReplayToSeqBreak(Buffer* b);
 int Buffer_RedoReplay(Buffer* b, BufferUndo* u);
 
+
+// -----
 // functions below here will add to the undo stack
+//    and send buffer notifications
+// -----
 
 void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight);
+void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd, int* needRehighlight);
 
 
 
@@ -398,23 +427,24 @@ void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
 void Buffer_LineIndent(Buffer* b, BufferLine* bl);
 void Buffer_LineUnindent(Buffer* b, BufferLine* bl);
 
-void Buffer_SetCurrentSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC);
-void Buffer_ClearCurrentSelection(Buffer* b);
-void Buffer_ClearAllSelections(Buffer* b);
+void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC);
+void GBEC_ClearCurrentSelection(GUIBufferEditControl* w);
+void GBEC_ClearAllSelections(GUIBufferEditControl* w);
 void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel);
-void Buffer_SelectSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, intptr_t col, char* charSet);
 void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet, BufferRange* out);
 
 char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen);
 
-void Buffer_GrowSelectionH(Buffer* b, intptr_t cols);
-void Buffer_GrowSelectionV(Buffer* b, intptr_t cols);
+void GBEC_GrowSelectionH(GUIBufferEditControl* w, intptr_t cols);
+void GBEC_GrowSelectionV(GUIBufferEditControl* w, intptr_t cols);
 
 // these functions operate on absolute positions
 void Buffer_AppendRawText(Buffer* b, char* source, intptr_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, intptr_t len);
 BufferLine* Buffer_PrependLine(Buffer* b, char* text, intptr_t len);
-void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol);
+void Buffer_DuplicateSelection(Buffer* b, BufferRange* sel, int amt);
+void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol, BufferRange* outRange);
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferRange* sel);
 
@@ -442,28 +472,30 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);
+void Buffer_NotifyChanges(BufferChangeNotification* note);
+void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
 
 
 
 // These functions operate on and with the cursor
 BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
-void Buffer_InsertLinebreak(Buffer* b);
-void Buffer_MoveCursorV(Buffer* b, intptr_t lines);
-void Buffer_MoveCursorH(Buffer* b, intptr_t cols);
-void Buffer_MoveCursor(Buffer* b, intptr_t lines, intptr_t cols);
-void Buffer_MoveCursorTo(Buffer* b, BufferLine* bl, intptr_t col); // absolute move
-void Buffer_NextBookmark(Buffer* b);
-void Buffer_PrevBookmark(Buffer* b);
-void Buffer_FirstBookmark(Buffer* b);
-void Buffer_LastBookmark(Buffer* b);
+void GBEC_InsertLinebreak(GUIBufferEditControl* b);
+void GBEC_MoveCursorV(GUIBufferEditControl* w, intptr_t lines);
+void GBEC_MoveCursorH(GUIBufferEditControl* w, intptr_t cols);
+void GBEC_MoveCursor(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
+void GBEC_MoveCursorTo(GUIBufferEditControl* w, BufferLine* bl, intptr_t col); // absolute move
+void GBEC_NextBookmark(GUIBufferEditControl* w);
+void GBEC_PrevBookmark(GUIBufferEditControl* w);
+void GBEC_FirstBookmark(GUIBufferEditControl* w);
+void GBEC_LastBookmark(GUIBufferEditControl* w);
 void Buffer_Indent(Buffer* b);
 void Buffer_Unindent(Buffer* b);
 intptr_t Buffer_IndentToPrevLine(Buffer* b, BufferLine* bl);
 void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col);
-void Buffer_MoveToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
-void Buffer_MoveToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
-void Buffer_DeleteToPrevSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
-void Buffer_DeleteToNextSequence(Buffer* b, BufferLine* l, intptr_t col, char* charSet);
+void GBEC_MoveToPrevSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t col, char* charSet);
+void GBEC_MoveToNextSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t col, char* charSet);
+void GBEC_DeleteToPrevSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t col, char* charSet);
+void GBEC_DeleteToNextSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t col, char* charSet);
 int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 
@@ -517,9 +549,9 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
 int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w);
 
-intptr_t getDisplayColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
-intptr_t getActualColFromWanted(Buffer* b, BufferLine* bl, intptr_t wanted);
-intptr_t getDisplayColFromActual(Buffer* b, BufferLine* bl, intptr_t col);
+intptr_t getDisplayColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
+intptr_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
+intptr_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, intptr_t col);
 
 
 

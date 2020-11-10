@@ -811,13 +811,11 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
 	// buffer and editor creation
 	Buffer* buf = Buffer_New();
-	buf->curCol = 0;
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
 	gbe->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 // 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
-	GUIBufferEditor_SetBuffer(gbe, buf);
 	gbe->ec->font = tdp->font;
 	gbe->ec->scrollLines = 0;
 	gbe->bdp = bdp;
@@ -837,6 +835,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	free(tmp);
 
 	Buffer_LoadFromFile(buf, path);
+	GUIBufferEditor_SetBuffer(gbe, buf);
 	GUIBufferEditControl_RefreshHighlight(gbe->ec);
 	
 	VEC_PUSH(&w->editors, gbe);
