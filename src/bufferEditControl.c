@@ -336,20 +336,21 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 			}
 		}
 		
-		if(BufferLine_IsInRange(w->sel->startLine, &note->sel)) {
-			w->sel->startLine = note->sel.startLine->prev;
-			if(!w->sel->startLine) {		
-				w->sel->startLine = note->sel.endLine->next;		
+		if(w->sel) {
+			if(BufferLine_IsInRange(w->sel->startLine, &note->sel)) {
+				w->sel->startLine = note->sel.startLine->prev;
+				if(!w->sel->startLine) {		
+					w->sel->startLine = note->sel.endLine->next;		
+				}
+			}
+		
+			if(BufferLine_IsInRange(w->sel->endLine, &note->sel)) {
+				w->sel->endLine = note->sel.startLine->prev;
+				if(!w->sel->endLine) {		
+					w->sel->endLine = note->sel.endLine->next;		
+				}
 			}
 		}
-		
-		if(BufferLine_IsInRange(w->sel->endLine, &note->sel)) {
-			w->sel->endLine = note->sel.startLine->prev;
-			if(!w->sel->endLine) {		
-				w->sel->endLine = note->sel.endLine->next;		
-			}
-		}
-		
 		// TODO: check scrollLines and scrollCols
 	
 	}
@@ -584,6 +585,8 @@ void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b) {
 	w->buffer = b;
 	w->current = b->first;
 	w->curCol = 0;
+	
+	Buffer_RegisterChangeListener(b, bufferChangeNotify, w);
 }
 
 
@@ -649,7 +652,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		case BufferCmd_SplitLineIndent:
 			GBEC_InsertLinebreak(w);
 			intptr_t tabs = Buffer_IndentToPrevLine(b, w->current);
-			//GBEC_MoveCursorTo(w, w->current->next, tabs);
+			GBEC_MoveCursorTo(w, w->current, tabs);
 			break;
 		
 		case BufferCmd_DeleteCurLine:
@@ -668,7 +671,11 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			if(b->last) w->curCol = b->last->length;
 			break;
 			
-		case BufferCmd_Indent: Buffer_LineIndent(w->buffer, w->current); break;
+		case BufferCmd_Indent: 
+			Buffer_LineIndent(w->buffer, w->current);
+			GBEC_MoveCursorH(w, 1);		
+			break;
+			
 		case BufferCmd_Unindent: Buffer_LineUnindent(w->buffer, w->current); break;
 			
 		case BufferCmd_DuplicateLine:

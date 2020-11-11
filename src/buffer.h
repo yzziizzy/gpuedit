@@ -472,6 +472,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);
+void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* data);
 void Buffer_NotifyChanges(BufferChangeNotification* note);
 void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
 
