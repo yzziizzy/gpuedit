@@ -20,13 +20,14 @@ BufferLine* Buffer_raw_GetLine(Buffer* b, intptr_t line) {
 	
 	// TODO: faster algorithm
 	
-	BufferLine* bl = b->current;;
+	BufferLine* bl = b->first; /*
+	TODO performance improvement
 	if(line < b->current->lineNum) {
 		while(bl->lineNum > line && bl->prev) bl = bl->prev; 
 	}
-	else if(line > b->current->lineNum) {
+	else if(line > b->current->lineNum) { */
 		while(bl->lineNum <= line - 1 && bl->next) bl = bl->next;
-	}
+	//}
 	
 	return bl;
 }
@@ -59,7 +60,6 @@ BufferLine* Buffer_raw_InsertLineAfter(Buffer* b, BufferLine* before) {
 	if(b->first == NULL) {
 		b->first = after;
 		b->last = after;
-		b->current = after;
 		after->lineNum = 1;
 		return after;
 	}
@@ -94,7 +94,6 @@ BufferLine* Buffer_raw_InsertLineBefore(Buffer* b, BufferLine* after) {
 	if(b->first == NULL) {
 		b->first = before;
 		b->last = before;
-		b->current = before;
 		before->lineNum = 1;
 		return before;
 	}
@@ -121,15 +120,6 @@ void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl) {
 	
 	if(bl == b->first) b->first = bl->next;
 	if(bl == b->last) b->last = bl->prev;
-	
-	if(bl == b->current) {
-		if(bl->next) b->current = bl->next;
-		else if(bl->prev) b->current = bl->prev;
-		else {
-			printf("current line set to null in DeleteLine\n");
-			b->current = NULL;
-		}
-	}
 
 	if(bl->next) bl->next->prev = bl->prev;
 	if(bl->prev) bl->prev->next = bl->next;

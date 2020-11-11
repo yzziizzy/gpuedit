@@ -1,4 +1,5 @@
 == Needed before yzziizzy dogfooding ==
+* Paste does not leave cursor at the end
 * Replace All
 * Basic autocomplete
 * Comment/uncomment, line and selection
@@ -140,6 +141,7 @@
 * Algorithm to detect indent width then convert all spaces to tabs
 
 == BUGS ==
+* Paste with selection does not overwrite the selection
 * Segfault when hitting escape after find-replacing some text. Probably deleted elements not getting purged from the focus ring. 
 * GUIManager should pop focus stack if focused control is deleted
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
