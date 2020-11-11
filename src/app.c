@@ -519,6 +519,75 @@ struct child_process_info* AppState_ExecProcessPipe(AppState* as, char* execPath
 }
 
 
+void execProcessPipe_buffer(char** args, char** buffer_out, size_t* size_out/*,int* code_out*/) {
+	char** argsv[] = {args, NULL};
+
+	execProcessPipe_bufferv(argsv, buffer_out, size_out);
+}
+
+
+void execProcessPipe_charpp(char** args, char*** charpp_out, size_t* n_out/*,int* code_out*/) {
+	char** argsv[] = {args, NULL};
+
+	execProcessPipe_charppv(argsv, charpp_out, n_out);
+}
+
+
+void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*,int** code_out*/) {
+	struct child_process_info* cc;
+	int bufferLength = 1024;
+
+	size_t max_contents = 4 * bufferLength * sizeof(char);
+	char* contents = malloc(max_contents);
+	size_t offset = 0, n_read;
+	char buffer[bufferLength];
+
+	char** filepaths;
+	size_t n_filepaths = 0;
+
+	int i = 0;
+	while(args[i]) {
+		// printf("using search arg: %s\n", args[2]);
+		cc = AppState_ExecProcessPipe(
+			NULL,
+			args[i][0],
+			args[i]
+		);
+
+		while(!feof(cc->f_stdout)) {
+			size_t n_read = fread(buffer, 1, bufferLength, cc->f_stdout);
+			if(n_read && (offset + n_read) >= max_contents) {
+				max_contents *= 2;
+				contents = realloc(contents, max_contents);
+			}
+
+			// printf("copy at [%ld]: [[%s]]\n", offset, buffer);
+			memcpy((char*)((size_t)contents+offset), buffer, n_read);
+			offset += n_read;
+		}
+
+		fclose(cc->f_stdin);
+		fclose(cc->f_stdout);
+		fclose(cc->f_stderr);
+
+		i++;
+	}
+	contents[offset] = '\0';
+	*buffer_out = contents;
+}
+
+
+void execProcessPipe_charppv(char*** args, char*** charpp_out, size_t* n_out/*,int** code_out*/) {
+	char* contents;
+
+	execProcessPipe_bufferv(args, &contents,  n_out);
+
+	*charpp_out = strsplit_inplace(contents, '\n', n_out);
+}
+
+
+
+
 void AppState_UpdateSettings(AppState* as, GlobalSettings* gs) {
 	
 	as->globalSettings = *gs;

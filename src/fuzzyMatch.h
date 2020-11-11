@@ -2,7 +2,7 @@
 #define __gpuedit_fuzzy_match_h__
 
 typedef struct {
-	int index;
+	int index; // in candidates
 	int start;
 	int end;
 	int len_m;
@@ -17,6 +17,7 @@ int fuzzy_match_fmatch(
 	const char* input
 );
 
+// the strings inside matches_out point into candidates
 int fuzzy_match_charpp(
 	char** candidates,
 	const int n_candidates,

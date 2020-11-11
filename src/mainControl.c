@@ -747,55 +747,45 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 
 void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 	// printf("launching fuzzy opener\n");
-	char* args[] = {"/usr/bin/git", "-C", NULL, "ls-files", NULL};
-	struct child_process_info* cc;
-	int bufferLength = 1024;
-	size_t max_contents = 64 * bufferLength * sizeof(char);
-	char* contents = malloc(max_contents);
-	size_t offset = 0;
-	char buffer[bufferLength];
-	pid_t pid;
-	int status;
-	char** filepaths;
-	size_t n_filepaths = 0;
-
+	char* cmd = "/usr/bin/git";
+	char* base_args[] = {cmd, "-C", NULL, "ls-files", NULL};
+	size_t elem = sizeof(base_args);
+	size_t base_n = elem/sizeof(char*);
+	char*** args;
+	char** arg_lists;
+	
 	int i = 0;
 	while(w->gs->MainControl_searchPaths[i]) {
-		args[2] = w->gs->MainControl_searchPaths[i];
-		// printf("using search arg: %s\n", args[2]);
-		cc = AppState_ExecProcessPipe(
-			NULL,
-			"/usr/bin/git",
-			args
-		);
+		i++;
+	}
+	args = malloc((i+1)*sizeof(char***));
+	arg_lists = malloc(i*elem);
 
-		while(!feof(cc->f_stdout)) {
-			size_t sz = fread(buffer, 1, 1024, cc->f_stdout);
-			if(sz && (offset + sz) < max_contents) {
-				// printf("copy at [%ld]: [[%s]]\n", offset, buffer);
-				memcpy((char*)((size_t)contents+offset), buffer, sz);
-				offset += sz;
-			}
-		}
-
-		fclose(cc->f_stdin);
-		fclose(cc->f_stdout);
-		fclose(cc->f_stderr);
+	i = 0;
+	while(w->gs->MainControl_searchPaths[i]) {
+		memcpy(&(arg_lists[i*base_n]), base_args, elem);
+		args[i] = &(arg_lists[i*base_n]);
+		args[i][2] = w->gs->MainControl_searchPaths[i];
 
 		i++;
 	}
-	contents[offset] = '\0';
-	// printf("got contents: {{%s}}\n", contents);
-	filepaths = strsplit_inplace(contents, '\n', &n_filepaths);
+	args[i] = NULL;
+
+	char** filepaths;
+	size_t n_filepaths;
+	execProcessPipe_charppv(args, &filepaths, &n_filepaths);
+
 	// for(i=0;i<n_filepaths;i++) {
-	// 	printf("have path: [%s]\n", filepaths[i]);
+	// 	printf("got filepath: %s\n", filepaths[i]);
 	// }
+
+	char* input = "win";
 
 	char** matches;
 	int n_matches = 0;
 	int err = 0;
 
-	err = fuzzy_match_charpp(filepaths, n_filepaths, &matches, &n_matches, "win");
+	err = fuzzy_match_charpp(filepaths, n_filepaths, &matches, &n_matches, input);
 	// printf("fuzzy match exit code: %d\n", err);
 
 	if(!err) {
@@ -805,7 +795,6 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 	}
 
 	free(matches);
-	free(contents);
 	free(filepaths);
 }
 
