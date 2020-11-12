@@ -504,10 +504,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 		
 		case BufferCmd_MovePage:
-			Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-				BufferCmd_MoveCursorV, 
-				cmd->amt * w->ec->linesOnScreen
-			}, needRehighlight);
+			GBEC_MoveCursorV(w->ec, cmd->amt * w->ec->linesOnScreen);
 			
 			w->ec->scrollLines = MAX(0, MIN(w->ec->scrollLines + cmd->amt * w->ec->linesOnScreen, w->buffer->numLines - 1));
 			break;

@@ -1650,3 +1650,9 @@ void Buffer_NotifyChanges(BufferChangeNotification* note) {
 		if(list.fn) list.fn(note, list.data);
 	}
 }
+
+void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* data) {
+	VEC_INC(&b->changeListeners);
+	VEC_TAIL(&b->changeListeners).fn = fn;
+	VEC_TAIL(&b->changeListeners).data = data;
+}
