@@ -264,9 +264,9 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 	
 	
 	static struct gui_vtbl dd_static_vt = {
-		.Render = dd_render,
+		.Render = (void*)dd_render,
 // 		.Reap = reap,
-		.UpdatePos = dd_updatePos,
+		.UpdatePos = (void*)dd_updatePos,
 	};
 	
 	static struct GUIEventHandler_vtbl dd_event_vt = {

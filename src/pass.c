@@ -106,7 +106,7 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 	RenderPass_init(pass);
 	
 	PassDrawable* d = Pass_allocDrawable("shading");
-	d->draw = shading_pass_render;
+	d->draw = (void*)shading_pass_render;
 	d->prog = loadCombinedProgram(shaderName);
 	d->data = rpipe;
 	
@@ -166,7 +166,7 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 		destroyFBOTextures(rp->backingTextures);
 		free(rp->backingTextures);
 		
-		VEC_LOOP(&rp->fboConfig, ind) destroyFBO(&VEC_ITEM(&rp->fboConfig, ind));
+		VEC_LOOP(&rp->fboConfig, ind) destroyFBO(rp->fbos[ind]);
 	}
 	
 	
@@ -231,7 +231,7 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 	
 	// TODO: figure out where this should be
 	VEC_EACH(&bp->passes, ind, pass) {
-		RenderPass_preFrameAll(pass, &pfp);
+		RenderPass_preFrameAll(pass, pfp);
 	}
 	
 	
@@ -352,7 +352,7 @@ static void bindUniforms(PassDrawable* d, PassDrawParams* pdp) {
 	if(d->ul_timeSeconds != -1) glUniform1f(d->ul_timeSeconds, pdp->timeSeconds);
 	if(d->ul_timeFractional != -1) glUniform1f(d->ul_timeFractional, pdp->timeFractional);
 	
-	if(d->ul_targetSize != -1) glUniform2iv(d->ul_targetSize, 1, &pdp->targetSize);
+	if(d->ul_targetSize != -1) glUniform2iv(d->ul_targetSize, 1, (GLint*)&pdp->targetSize);
 	
 #undef BIND_MATRIX
 }
@@ -447,12 +447,11 @@ GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp) {
 
 void RegisterPrePass(pass_callback cb, void* data, char* name) {
 	
-	struct pass_info* pi;
+	struct pass_info pi;
 	
-	pi = calloc(1, sizeof(*pi));
-	pi->data = data;
-	pi->name = name;
-	pi->cb = cb;
+	pi.data = data;
+	pi.name = name;
+	pi.cb = cb;
 	
 	HT_set(&prepasses, name, pi);
 }
@@ -462,10 +461,10 @@ void RenderAllPrePasses(PassFrameParams* pfp) {
 	
 	void* iter = NULL;
 	char* key;
-	struct pass_info* pi;
+	struct pass_info pi;
 	
-	while(HT_next(&prepasses, &iter, &key, (void**)&pi)) {
-		pi->cb(pi->data, pfp);
+	while(HT_next(&prepasses, &iter, &key, &pi)) {
+		pi.cb(pi.data, pfp);
 	}
 }
 

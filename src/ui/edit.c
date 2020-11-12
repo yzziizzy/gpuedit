@@ -326,15 +326,15 @@ static void fireOnchange(GUIEdit* ed) {
 	GUIEvent gev = {};
 	gev.type = GUIEVENT_User;
 	gev.eventTime = 0;
-	gev.originalTarget = ed;
-	gev.currentTarget = ed;
+	gev.originalTarget = (GUIObject*)ed;
+	gev.currentTarget = (GUIObject*)ed;
 	gev.cancelled = 0;
 	gev.userType = "change";
 	
 	gev.userData = ed->buf;
 	gev.userSize = ed->textlen;
 	
-	GUIManager_BubbleEvent(ed->header.gm, ed, &gev);
+	GUIManager_BubbleEvent(ed->header.gm, (GUIObject*)ed, &gev);
 }
 
 
@@ -343,15 +343,15 @@ static void fireOnEnter(GUIEdit* ed) {
 	GUIEvent gev = {};
 	gev.type = GUIEVENT_User;
 	gev.eventTime = 0;
-	gev.originalTarget = ed;
-	gev.currentTarget = ed;
+	gev.originalTarget = (GUIObject*)ed;
+	gev.currentTarget = (GUIObject*)ed;
 	gev.cancelled = 0;
 	gev.userType = "enter";
 	
 	gev.userData = ed->buf;
 	gev.userSize = ed->textlen;
 	
-	GUIManager_BubbleEvent(ed->header.gm, ed, &gev);
+	GUIManager_BubbleEvent(ed->header.gm, (GUIObject*)ed, &gev);
 }
 
 

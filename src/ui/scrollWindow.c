@@ -31,9 +31,9 @@ GUIScrollWindow* GUIScrollWindow_new(GUIManager* gm) {
 	GUIScrollWindow* gw;
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
-		.Delete = delete,
-		.UpdatePos = updatePos,
+		.Render = (void*)render,
+		.Delete = (void*)delete,
+		.UpdatePos = (void*)updatePos,
 // 		.GetClientSize = guiWindowGetClientSize,
 // 		.SetClientSize = guiWindowSetClientSize,
 // 		.RecalcClientSize = guiWindowRecalcClientSize,

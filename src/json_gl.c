@@ -24,7 +24,7 @@ static struct enum_data enum_values_for_gl[] = {
 
 void json_gl_init_lookup() {
 	struct enum_data* d;
-	static already_done = 0;
+	static int already_done = 0;
 	
 	if(already_done) return;
 	already_done = 1;

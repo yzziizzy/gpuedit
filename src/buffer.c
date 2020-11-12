@@ -1276,7 +1276,7 @@ char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen) {
 		
 		if(bl == sel->endLine) break;
 		
-		strncat(out, "\n", 1);
+		strcat(out, "\n");
 		len++;
 	}
 	

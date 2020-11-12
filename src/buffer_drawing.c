@@ -181,7 +181,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	struct Color4* bg2 = &theme->hl_bgColor;
 	
 	struct Color4* fga[] = {fg, fg2};
-	struct Color4* bga[] = {bg, bga};
+	struct Color4* bga[] = {bg, bg2};
 	
 	struct Color4 lineColors[] = {
 		theme->lineNumColor,
@@ -203,7 +203,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		
 		// line numbers
 		if(bdp->showLineNums) {
-			sprintf(lnbuf, "%d", bl->lineNum);
+			sprintf(lnbuf, "%ld", bl->lineNum);
 			float nw = (floor(log10(bl->lineNum)) + 1) * tdp->charWidth;
 			drawTextLine(
 				gm, 

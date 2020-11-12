@@ -61,7 +61,7 @@ static void resize(GUIImageButton* w, Vector2 newSz) {
 // }
 
 static int click(GUIImageButton* w, Vector2 clickPos) {
-	GUIImageButton* w2 = w->header.parent;
+	GUIImageButton* w2 = (GUIImageButton*)w->header.parent;
 	w2->active = !w2->active;
 	return 0;
 }

@@ -69,7 +69,7 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 	
 	HighlighterModule* mod = pcalloc(mod);
 	mod->numHighlighters = cnt;
-	mod->highlighters = list;
+	mod->highlighters = (void*)list;
 	mod->path = strdup(path);
 	mod->libHandle = lib;
 	
@@ -155,7 +155,7 @@ void Highlighter_LoadStyles(Highlighter* h, char* path) {
 		
 		
 		if(value[0] == '#') { // hex code
-			decodeHexColorNorm(value, &style->fgColor);
+			decodeHexColorNorm(value, (float*)&style->fgColor);
 		}
 		
 		// TODO: rgba()

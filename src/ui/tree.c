@@ -33,7 +33,7 @@ GUITreeControl* GUITreeControl_New(GUIManager* gm) {
 	
 	
 	static struct gui_vtbl static_vt = {
-		.UpdatePos = updatePos,
+		.UpdatePos = (void*)updatePos,
 // 		.Render = ,
 	};
 	
@@ -149,5 +149,5 @@ GUITreeControlItem* GUITreeControl_AppendLabel(GUITreeControl* tc, GUITreeContro
 	
 	GUIText* gt = GUIText_new(tc->header.gm, text, "Arial", 6.0f);
 	
-	return GUITreeControl_Append(tc, parent, gt, isOpen);
+	return GUITreeControl_Append(tc, parent, (GUIObject*)gt, isOpen);
 }

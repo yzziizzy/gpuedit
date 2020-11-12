@@ -126,7 +126,7 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 	
 	
 	
-	gui_defaultUpdatePos(w, grp, pfp);
+	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
 
 
@@ -138,7 +138,7 @@ void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
 static void userEvent(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	
-	if(w->trayOpen && gev->originalTarget == w->findBox) {
+	if(w->trayOpen && (GUIEdit*)gev->originalTarget == w->findBox) {
 		if(0 == strcmp(gev->userType, "change")) {
 			// becaus userData is not null terminated from the Edit
 			char* word = strndup(gev->userData, gev->userSize);
@@ -174,7 +174,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 // 		.DragStart = dragStart,
 // 		.DragStop = dragStop,
 // 		.DragMove = dragMove,
-		.ParentResize = parentResize,
+		.ParentResize = (void*)parentResize,
 		.User = userEvent,
 	};
 	
@@ -337,7 +337,7 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 			char errbuf[256];
 			pcre2_get_error_message(res, errbuf, sizeof(errbuf));
 			
-			printf("PCRE real error: %p %p %d '%s'\n", w->findRE, bl->buf, bl->lineNum, errbuf);
+			printf("PCRE real error: %p %p %ld '%s'\n", w->findRE, bl->buf, bl->lineNum, errbuf);
 			
 			return 1;
 		}
@@ -482,14 +482,14 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		case BufferCmd_ToggleMenu:
 				
 			jsf = json_load_path("/etc/gpuedit/buffer_menu.json");
-			w->menu = GUICL_CreateFromConfig(w->header.gm, jsf->root);
+			w->menu = (GUISimpleWindow*)GUICL_CreateFromConfig(w->header.gm, jsf->root);
 			
 			// TODO: free json 
 			
 			GUIRegisterObject(w, w->menu);
 			
 			
-			GUISelectBox* hlsel = GUIObject_FindChild(w->menu, "highlighter");
+			GUISelectBox* hlsel = (GUISelectBox*)GUIObject_FindChild(w->menu, "highlighter");
 			GUISelectBoxOption opts[] = {
 				{.label = "C", .data = "c"},
 				{.label = "C++", .data = "cpp"},

@@ -398,11 +398,11 @@ do { \
 #define ipcir(a, b) if_push_char_id_ret(a, b)
 
 #define push_char_ret goto LABEL_push_char_ret;
-// do { \
+/* do { \
 // 	st->buffer[st->blen] = c; \
 // 	st->blen++; \
 // 	return 1; \
-// } while(0)
+// } while(0) */
 
 #define discard_id_ret(_state) \
 do { \

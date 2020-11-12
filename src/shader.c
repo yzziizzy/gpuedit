@@ -44,7 +44,7 @@ typedef struct ShaderSource {
 
 
 
-void printLogOnFail(id) {
+void printLogOnFail(GLuint id) {
 	
 	GLint success, logSize;
 	GLsizei len;
@@ -67,7 +67,7 @@ void printLogOnFail(id) {
 	free(log);
 }
 
-void printProgLogOnFail(id) {
+void printProgLogOnFail(GLuint id) {
 	
 	GLint success, logSize;
 	GLsizei len;
@@ -353,7 +353,7 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 		if(!ss) continue;
 		
 		s = malloc(20);
-		sprintf(s, "#version %0.3u", ss->version);
+		sprintf(s, "#version %.3u", ss->version);
 		VEC_ITEM(&ss->strings, 0) = s;
 		VEC_ITEM(&ss->lines, 0).src = s;
 		VEC_ITEM(&ss->lines, 0).file_path = NULL;

@@ -243,7 +243,7 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm, AppState* as) {
 	GUIRegisterObject(w, w->saveBtn);
 	
 	w->scrollbar = GUIWindow_New(gm);
-	GUIResize(w->scrollbar, (Vector2){10, 50});
+	GUIResize(&w->scrollbar->header, (Vector2){10, 50});
 	w->scrollbar->color = (Color4){.9,.9,.9, 1};
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
@@ -288,10 +288,10 @@ GUIMainMenuItem* GUIMainMenu_AddInt(GUIMainMenu* w, char* label, int* i) {
 	item->type = 0;
 	item->data.i = i;
 	
-	item->gControl = GUIEdit_New(w->header.gm, "0");
+	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, "0");
 	((GUIEdit*)item->gControl)->rightJustify = 1;
 	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
-	GUIEdit_SetInt(item->gControl, *i);
+	GUIEdit_SetInt((GUIEdit*)item->gControl, *i);
 	GUIRegisterObject(item->base, item->gControl);
 	
 	return item;
@@ -302,10 +302,10 @@ GUIMainMenuItem* GUIMainMenu_AddFloat(GUIMainMenu* w, char* label, float* f) {
 	item->type = 1;
 	item->data.f = f;
 	
-	item->gControl = GUIEdit_New(w->header.gm, "0");
+	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, "0");
 	((GUIEdit*)item->gControl)->rightJustify = 1;
 	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
-	GUIEdit_SetDouble(item->gControl, *f);
+	GUIEdit_SetDouble((GUIEdit*)item->gControl, *f);
 	GUIRegisterObject(item->base, item->gControl);
 	
 	return item;
@@ -316,10 +316,10 @@ GUIMainMenuItem* GUIMainMenu_AddDouble(GUIMainMenu* w, char* label, double* f) {
 	item->type = 2;
 	item->data.d = f;
 	
-	item->gControl = GUIEdit_New(w->header.gm, "0");
+	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, "0");
 	((GUIEdit*)item->gControl)->rightJustify = 1;
 	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
-	GUIEdit_SetDouble(item->gControl, *f);
+	GUIEdit_SetDouble((GUIEdit*)item->gControl, *f);
 	GUIRegisterObject(item->base, item->gControl);
 	
 	return item;
@@ -330,7 +330,7 @@ GUIMainMenuItem* GUIMainMenu_AddString(GUIMainMenu* w, char* label, char** str) 
 	item->type = 3;
 	item->data.str = str;
 	
-	item->gControl = GUIEdit_New(w->header.gm, *str);
+	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, *str);
 	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
 	GUIRegisterObject(item->base, item->gControl);
 	
@@ -356,23 +356,23 @@ int GUIMainMenu_SaveItem(GUIMainMenu* w, GUIMainMenuItem* item) {
 	switch(item->type) {
 		case 0: // integer
 			// BUG fix 
-			d = GUIEdit_GetDouble(item->gControl);
+			d = GUIEdit_GetDouble((GUIEdit*)item->gControl);
 			*item->data.i = d;
 			break;
 			
 		case 1: // float
-			d = GUIEdit_GetDouble(item->gControl);
+			d = GUIEdit_GetDouble((GUIEdit*)item->gControl);
 			*item->data.f = d;
 			break;
 			
 		case 2: // double
-			d = GUIEdit_GetDouble(item->gControl);
+			d = GUIEdit_GetDouble((GUIEdit*)item->gControl);
 			*item->data.d = d;
 			break;
 			
 		case 3: // string
 			if(*item->data.str) free(*item->data.str);
-			*item->data.str = strdup(GUIEdit_GetText(item->gControl));
+			*item->data.str = strdup(GUIEdit_GetText((GUIEdit*)item->gControl));
 			break;
 		
 		default:
