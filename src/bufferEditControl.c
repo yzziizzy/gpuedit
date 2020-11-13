@@ -704,6 +704,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 					w->current = w->sel->startLine;
 					w->curCol = w->sel->startCol;
 				}
+				
 				Buffer_DeleteSelectionContents(b, w->sel);
 				GBEC_ClearAllSelections(w);
 			}

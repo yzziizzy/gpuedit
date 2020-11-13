@@ -273,6 +273,8 @@ void GUIManager_Reap(GUIManager* gm) {
 	#undef check_nullify
 	
 	RING_EACH(&gm->focusStack, i, fh) {
+		// BUG modifying the ring causes the next element to be skipped
+		// shouldn't be a problem here, but it might be
 		if(fh->header.deleted) {
 			RING_RM(&gm->focusStack, i);
 		}
