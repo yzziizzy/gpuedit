@@ -74,6 +74,10 @@ typedef struct GUIMainControl {
 	
 	GlobalSettings* gs;
 	
+	// TEMP HACK
+	char* projectPath;
+	HT(char*) breakpoints;
+	
 } GUIMainControl;
 
 

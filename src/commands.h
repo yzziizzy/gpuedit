@@ -66,6 +66,7 @@
 	X(BufferCmd, CloseTray) \
 	X(BufferCmd, ToggleMenu) \
 	X(BufferCmd, ShowDictComplete) \
+	X(BufferCmd, ToggleGDBBreakpoint) \
 	\
 	X(FileBrowserCmd, CursorMove) \
 	X(FileBrowserCmd, CursorMoveNoWrap) \
@@ -90,6 +91,7 @@
 	X(MainCmd, PrevTab) \
 	X(MainCmd, GoToTab) \
 	X(MainCmd, MainMenu) \
+	X(MainCmd, ToggleGDBBreakpoint) \
 	
 	
 	/*

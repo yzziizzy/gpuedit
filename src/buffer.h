@@ -14,7 +14,8 @@
 
 
 
-#define BL_BOOKMARK_FLAG  (1<<0)
+#define BL_BOOKMARK_FLAG   (1<<0)
+#define BL_BREAKPOINT_FLAG (1<<1)
 
 struct hlinfo;
 
@@ -99,7 +100,10 @@ typedef struct BufferUndo {
 			intptr_t endCol;
 		};
 	};
-	intptr_t length;
+	union {
+		intptr_t length;
+		char isReverse; // for selection pivot restoration
+	};
 } BufferUndo;
 
 
@@ -108,11 +112,14 @@ enum BufferChangeAction {
 	BCA_NULL,
 	BCA_DeleteChars,
 	BCA_DeleteLines,
+	BCA_Undo_MoveCursor,
+	BCA_Undo_SetSelection,
 };
 
 typedef struct BufferChangeNotification {
 	Buffer* b;
 	BufferRange sel;
+	char isReverse;
 	
 	int action;
 } BufferChangeNotification;
@@ -136,6 +143,7 @@ typedef struct Buffer {
 	
 	int undoOldest; // the oldest undo item in the buffer; the end of undo
 	int undoCurrent; // the current state of the Buffer; goes backwards with undo, forwards with redo
+	                 // current is the next index to be ovewritten; the last action 'undone'
 	int undoNext; // the index after the newest item; the end of redo
 	int undoMax; // the size of the ring buffer
 	int undoFill; // the number of undo slots used in the ring buffer
@@ -312,6 +320,8 @@ typedef struct GUIBufferEditor {
 	
 	VEC(GBEFindRange) findRanges;
 	
+	void (*setBreakpoint)(char*, intptr_t, void*);
+	void* setBreakpointData;
 	
 	char trayOpen;
 	GUIWindow* trayRoot;
@@ -387,7 +397,9 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before); // safe to just pass in l->prev without checking
 void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl); // saves the text too
 void Buffer_UndoSetSelection(Buffer* b, intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC);
-void Buffer_UndoSequenceBreak(Buffer* b, int saved, intptr_t cursorLine, intptr_t cursorCol);
+//void Buffer_UndoSequenceBreak(Buffer* b, int saved, intptr_t cursorLine, intptr_t cursorCol);
+void Buffer_UndoSequenceBreak(Buffer* b, int saved, 
+	intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC, char isReverse);
 void Buffer_UndoReplayToSeqBreak(Buffer* b);
 int Buffer_UndoReplayTop(Buffer* b);
 void Buffer_UndoTruncateStack(Buffer* b);
@@ -475,7 +487,8 @@ int Buffer_LoadFromFile(Buffer* b, char* path);
 void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* data);
 void Buffer_NotifyChanges(BufferChangeNotification* note);
 void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
-
+void Buffer_NotifyUndoMoveCursor(Buffer* b, BufferLine* line, intptr_t col);
+void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC, char isReverse);
 
 
 // These functions operate on and with the cursor

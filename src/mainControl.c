@@ -317,7 +317,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 		MainControlTab* t = VEC_ITEM(&w->tabs, index);
 		t->isActive = 1;
 		
-		GUIManager_popFocusedObject(w->header.gm);
+		//GUIManager_popFocusedObject(w->header.gm);
 		GUIManager_pushFocusedObject(w->header.gm, t->client);
 		GUIManager_SetMainWindowTitle(w->header.gm, t->title);
 	}
@@ -543,6 +543,11 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	w->gs = gs;
 	w->tabHeight = gs->MainControl_tabHeight;
 	
+	// TEMP HACK
+	HT_init(&w->breakpoints, 64);
+	w->projectPath =  "/home/steve/projects/gpuedit";
+	// ----
+	
 	VEC_INIT(&w->hm.modules);
 	VEC_INIT(&w->hm.plugins);
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/c.so");
@@ -568,7 +573,7 @@ void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s) {
 static void switchtab(int index, int btn, GUITabBarTab* t) {
 	GUIMainControl* w = (GUIMainControl*)t->userData1;
 	GUIMainControl_GoToTab(w, index);
-	GUIManager_popFocusedObject(w->header.gm);
+	//GUIManager_popFocusedObject(w->header.gm);
 	
 	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
 	if(!a) return; 
@@ -623,7 +628,7 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;
 	
-	GUIManager_popFocusedObject(w->header.gm);
+	//GUIManager_popFocusedObject(w->header.gm);
 	GUIManager_pushFocusedObject(w->header.gm, t->client);
 	GUIManager_SetMainWindowTitle(w->header.gm, t->title);
 }
@@ -646,7 +651,7 @@ GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
-	GUIManager_popFocusedObject(w->header.gm);
+//	GUIManager_popFocusedObject(w->header.gm);
 	GUIManager_pushFocusedObject(w->header.gm, a->client);
 	return a->client;
 }
@@ -773,6 +778,39 @@ static void gbeEveryFrame(MainControlTab* t) {
 	
 }
 
+static void loadBreakpoints(GUIMainControl* w) {
+
+}
+
+static void writeBreakpoints(GUIMainControl* w) {
+	
+	FILE* f = fopen(".gdbinit", "wb");
+	
+	HT_EACH(&w->breakpoints, key, char*, val) {
+		fwrite(key, 1, strlen(key), f);
+	}
+	
+	fclose(f);
+}
+
+static void setBreakpoint(char* file, intptr_t line, GUIMainControl* w) {
+	size_t len = snprintf(NULL, 0, "b %s:%d\n", file, line);
+	char* loc = malloc(sizeof(*loc) * (len + 1));
+	snprintf(loc, len + 1, "b %s:%d\n", file, line);
+	
+	char* foo;
+	if(!HT_get(&w->breakpoints, loc, &foo)) {
+		// key exists
+		printf("deleting");
+		HT_delete(&w->breakpoints, loc);
+	}
+	else {
+		HT_set(&w->breakpoints, loc, loc);
+	}
+	
+	
+	writeBreakpoints(w);
+}
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
@@ -823,6 +861,8 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->header.parent = (GUIObject*)w; // important for bubbling
 	gbe->sourceFile = strdup(path);
 	gbe->commands = w->commands;
+	gbe->setBreakpoint = (void*)setBreakpoint;
+	gbe->setBreakpointData = w;
 	
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
 	gbe->ec->h = gbe->h;

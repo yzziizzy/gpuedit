@@ -1,5 +1,5 @@
 {
-	"GUIManager_maxInstances": 8192,
+	"GUIManager_maxInstances": 16384,
 	"Buffer_linesPerScrollWheel": 3,
 	"Buffer_cursorBlinkEnable": 1,
 	"Buffer_cursorBlinkOffTime": 0.600,

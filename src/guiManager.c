@@ -262,22 +262,56 @@ void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp) {
 
 
 void GUIManager_Reap(GUIManager* gm) {
+	if(VEC_LEN(&gm->reapQueue) == 0) return;
+	/*
+	printf("\nReap Queue:\n");
 	VEC_EACH(&gm->reapQueue, i, h) {
-		GUIObject_Reap_(h);
-		
+		printf("  %d > %p %s\n", i, h, h->deleted?"del":"BAD");
 	}
-	
+	*/
 	#define check_nullfiy(n) if(gm->n && gm->n->deleted) gm->n = NULL;
 	check_nullfiy(lastHoveredObject)
 	check_nullfiy(dragStartTarget)
 	#undef check_nullify
 	
+	GUIObject* head = GUIManager_getFocusedObject(gm);
+	
+	 
+/*	printf("\nreap Focus Stack:\n");
+	RING_EACH(&gm->focusStack, i, o) {
+		printf( "  %d > %p\n", i, o);
+	}*/
+	
+RESTART:
 	RING_EACH(&gm->focusStack, i, fh) {
+		//printf( "  .. [%d] checking FS: %p", i, fh);
 		// BUG modifying the ring causes the next element to be skipped
 		// shouldn't be a problem here, but it might be
 		if(fh->header.deleted) {
+			//printf(" -> deleting, restart search \n");
 			RING_RM(&gm->focusStack, i);
+			goto RESTART; // shitty hack for getting around modifying the array
 		}
+		//printf(" -> fine\n");
+	}
+	
+	
+	GUIObject* head2 = GUIManager_getFocusedObject(gm);
+	//if(VEC_LEN(&gm->reapQueue)) printf("head1: %p, new head: %p \n", head, head2);
+	
+	// GeinedFocus event for the new top of the stack if the old one was deleted
+	if(head != head2) {
+		GUIEvent gev = {};
+		gev.type = GUIEVENT_GainedFocus;
+		gev.originalTarget = (GUIObject*)head2;
+		gev.currentTarget = (GUIObject*)head2;
+	
+		GUIManager_BubbleEvent(gm, (GUIObject*)head2, &gev);	
+	}
+	
+	VEC_EACH(&gm->reapQueue, i, h) {
+	//	printf("Reaping %p\n", h);
+		GUIObject_Reap_(h);
 	}
 	
 	VEC_TRUNC(&gm->reapQueue);
@@ -646,6 +680,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 // handles event bubbling and logic
 void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
 	GUIObject* obj = target;
+	if(target->header.deleted) return;
 	
 	int bubble = GUIEventBubbleBehavior[gev->type];
 	
@@ -655,7 +690,10 @@ void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
 	}
 	else if(bubble == 1) {
 		// bubble until cancelled
+		//printf("\n");
 		while(obj && !gev->cancelled) {
+			if(obj->header.deleted) break;
+			//printf("bubbling %p, %s\n", obj, obj->header.name);
 			gev->currentTarget = obj;
 			GUIObject_TriggerEvent(obj, gev);
 			
@@ -754,31 +792,60 @@ GUIObject* GUIManager_getFocusedObject(GUIManager* gm) {
 }
 
 GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
-	GUIObject* o;
+	GUIObject* old, *new;
+	GUIEvent gev = {};
 	
 	// can't pop off the root element at the bottom
 	if(RING_LEN(&gm->focusStack) <= 1) return RING_TAIL(&gm->focusStack);
 	
-	RING_POP(&gm->focusStack, o);
+	RING_POP(&gm->focusStack, old);
 	
-	// TODO focus events
+	//printf("popping object %p from focus stack\n", old);
 	
-	return o;
-}
-
-
-void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
-	GUIHeader* old = (GUIHeader*)GUIManager_getFocusedObject(gm);
-	
-	GUIEvent gev = {};
 	gev.type = GUIEVENT_LostFocus;
 	gev.originalTarget = (GUIObject*)old;
 	gev.currentTarget = (GUIObject*)old;
 	
 	GUIManager_BubbleEvent(gm, (GUIObject*)old, &gev);
-
-	RING_PUSH(&gm->focusStack, (GUIObject*)h);
 	
+	new = RING_TAIL(&gm->focusStack);
+	//printf("  -> %p now head of stack\n", new);
+	
+	gev.type = GUIEVENT_GainedFocus;
+	gev.originalTarget = (GUIObject*)new;
+	gev.currentTarget = (GUIObject*)new;
+	
+	GUIManager_BubbleEvent(gm, (GUIObject*)new, &gev);
+	
+	return old;
+}
+
+
+void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
+	GUIHeader* old = (GUIHeader*)GUIManager_getFocusedObject(gm);
+	GUIEvent gev = {};
+	
+	if(old == h) {
+	//	printf("refocusing existing focused object: %p \n", h);
+		return;
+	}
+	
+	//printf("old focused obj: %p\n", old);
+	if(old) {
+		gev.type = GUIEVENT_LostFocus;
+		gev.originalTarget = (GUIObject*)old;
+		gev.currentTarget = (GUIObject*)old;
+	
+		GUIManager_BubbleEvent(gm, (GUIObject*)old, &gev);
+	}
+	
+	RING_PUSH(&gm->focusStack, (GUIObject*)h);
+	/*
+	printf("\nFocus Stack:\n");
+	RING_EACH(&gm->focusStack, i, o) {
+		printf( "  %d > %p\n", i, o);
+	}
+	*/
 	gev.type = GUIEVENT_GainedFocus;
 	gev.originalTarget = (GUIObject*)h;
 	gev.currentTarget = (GUIObject*)h;

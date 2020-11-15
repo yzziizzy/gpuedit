@@ -147,6 +147,7 @@ void Buffer_raw_InsertChars(Buffer* b, BufferLine* bl, char* txt, intptr_t offse
 
 
 void Buffer_raw_DeleteChars(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t len) {
+	if(!bl->buf) return; // at least don't crash if a null slips in
 	if(b->useDict) Buffer_RemoveLineFromDict(b, bl);
 	BufferLine_DeleteChars(bl, offset, len);
 	if(b->useDict) Buffer_AddLineToDict(b, bl);

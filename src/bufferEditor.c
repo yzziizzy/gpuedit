@@ -83,7 +83,23 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			}
 			
 			if(found.flags & undoSeqBreak) {
-				Buffer_UndoSequenceBreak(w->buffer, 0, w->ec->current->lineNum, w->ec->curCol);
+				if(!w->ec->sel) {
+					printf("seq break without selection\n");
+					Buffer_UndoSequenceBreak(
+						w->buffer, 0, 
+						w->ec->current->lineNum, w->ec->curCol,
+						0, 0, 0
+					);
+				}
+				else {
+					printf("seq break with selection\n");
+					Buffer_UndoSequenceBreak(
+						w->buffer, 0, 
+						w->ec->sel->startLine->lineNum, w->ec->sel->startCol,
+						w->ec->sel->endLine->lineNum, w->ec->sel->endCol,
+						1
+					);
+				}
 			}
 		}
 		
@@ -502,7 +518,18 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 			
 			break;
-		
+
+		case BufferCmd_ToggleGDBBreakpoint: {
+			w->ec->current->flags ^= BL_BREAKPOINT_FLAG;
+			
+			//if(w->ec->current->flags & BL_BREAKPOINT_FLAG) {
+			// actually toggles breakpoint
+				if(w->setBreakpoint) 
+					w->setBreakpoint(w->sourceFile, w->ec->current->lineNum, w->setBreakpointData);
+			//}
+			
+			break;
+		}
 		case BufferCmd_MovePage:
 			GBEC_MoveCursorV(w->ec, cmd->amt * w->ec->linesOnScreen);
 			

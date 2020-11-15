@@ -286,7 +286,7 @@ void hlfn(HLContext* hl) {
 		size_t llen;
 // 		printf("new line: -------------\n");
 		if(hl->getNextLine(hl, &line, &llen)) {
-			printf("highlighter ran out of input early \n");
+//			printf("highlighter ran out of input early \n");
 			break;
 		};
 		

@@ -95,7 +95,7 @@ static BufferUndo* undo_inc(Buffer* b) {
 }
 
 static BufferUndo* undo_current(Buffer* b) {
-	return b->undoRing +  b->undoCurrent;
+	return b->undoRing + b->undoCurrent;
 }
 
 static BufferUndo* undo_dec(Buffer* b) {
@@ -108,6 +108,19 @@ static BufferUndo* undo_dec(Buffer* b) {
 // 	b->undoNext = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
 	
 	return b->undoRing + b->undoCurrent;
+}
+
+// like dec but doesn't move current
+static BufferUndo* undo_peek(Buffer* b) {
+	if(b->undoFill <= 0) return NULL;
+	if(b->undoOldest == b->undoCurrent) return NULL;
+	
+	size_t c = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
+	
+	// next is not moved; it is the end of the redo stack
+// 	b->undoNext = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
+	
+	return b->undoRing + c;
 }
 
 // clean up all memory related to the undo system
@@ -169,7 +182,9 @@ void Buffer_UndoSetSelection(Buffer* b, intptr_t startL, intptr_t startC, intptr
 	u->endCol = endC;
 }
 
-void Buffer_UndoSequenceBreak(Buffer* b, int saved, intptr_t cursorLine, intptr_t cursorCol) {
+void Buffer_UndoSequenceBreak(Buffer* b, int saved, 
+	intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC, char isReverse) {
+	
 	// don't add duplicates
 	if(b->undoFill > 0) {
 		if(undo_current(b)->action == UndoAction_SequenceBreak) {
@@ -182,11 +197,15 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved, intptr_t cursorLine, intptr_
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
 	BufferUndo* u = undo_inc(b);
 	
+	printf("saving seq break: %ld:%ld -> %ld->%ld\n",
+		startL, startC, endL, endC);
+	
 	u->action = UndoAction_SequenceBreak;
-	u->lineNum = cursorLine;
-	u->colNum = cursorCol;
-	u->text = NULL;
-	u->length = 0;
+	u->lineNum = startL;
+	u->colNum = startC;
+	u->endLine = endL;
+	u->endCol = endC;
+	u->isReverse = isReverse;
 	
 	if(saved) b->undoSaveIndex = b->undoCurrent;
 }
@@ -237,11 +256,12 @@ void Buffer_UndoTruncateStack(Buffer* b) {
 
 // rolls back to the previous sequence break
 void Buffer_UndoReplayToSeqBreak(Buffer* b) {
-	while(Buffer_UndoReplayTop(b));
 	
-	// pop off the sequence break
-	undo_dec(b);
-// 	if(VEC_LEN(&b->undoStack) >= 0) VEC_POP1(&b->undoStack);
+	// pop off a lone sequence break if it's on top of the stack
+	BufferUndo* u = undo_peek(b);
+	if(u && u->action == UndoAction_SequenceBreak) undo_dec(b);
+	
+	while(Buffer_UndoReplayTop(b));
 }
 
 // rolls forward until a sequence break or undoNext
@@ -324,8 +344,19 @@ int Buffer_UndoReplayTop(Buffer* b) {
 			
 		case UndoAction_SequenceBreak:
 			// move cursor back
-			if(u->colNum > 0 && u->lineNum > 0) {
-				//Buffer_MoveCursorTo(b, Buffer_raw_GetLine(b, u->lineNum), u->colNum);
+			if(u->endLine > 0) {
+				printf("undo notify selection %ld:%ld -> %ld:%ld\n",
+					u->lineNum, u->colNum,
+					u->endLine, u->endCol
+				);
+				Buffer_NotifyUndoSetSelection(b, 
+					Buffer_raw_GetLine(b, u->lineNum), u->colNum,
+					Buffer_raw_GetLine(b, u->endLine), u->endCol,
+					u->isReverse
+				);
+			}
+			else if(u->lineNum > 0) {
+				Buffer_NotifyUndoMoveCursor(b, Buffer_raw_GetLine(b, u->lineNum), u->colNum);
 			}
 			
 			return 0;
@@ -1169,7 +1200,7 @@ int Buffer_SaveToFile(Buffer* b, char* path) {
 	free(o);
 	fclose(f);
 	printf("'%s' Saved\n", path);
-	Buffer_UndoSequenceBreak(b, 1, -1, -1);
+	Buffer_UndoSequenceBreak(b, 1, -1, -1, -1, -1, 0);
 	
 	return 0;
 }
@@ -1504,6 +1535,7 @@ int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* col
 
 
 void Buffer_DebugPrintUndoStack(Buffer* b) {
+	printf("\n");
 	printf("Undo stack for %p (%d entries)\n", b, b->undoFill);
 	
 	char* names[] = { 
@@ -1515,20 +1547,24 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 		"DelLine",
 		"MvCurTo",
 		"SetSel ",
-		"UnmodFl",
+//		"UnmodFl",
 		"SequBrk",
 	};
 	
 	for(int ii = 0; ii < b->undoFill; ii++) {
 		int i = (ii + b->undoOldest) % b->undoMax;
 		BufferUndo* u = b->undoRing + ii;
-		printf(" %d [%s] {%ld,%ld} %ld:'%.*s'\n", i, names[u->action], 
+		char c = ' ';
+		if(ii == b->undoSaveIndex) c  = 's';
+		if(ii == b->undoCurrent) c  = '>';
+		
+		printf("%c%d [%s] {%ld,%ld} %ld:'%.*s'\n", c, i, names[u->action], 
 			u->lineNum, u->colNum, u->length, (int)u->length, u->text);
 	}
 	
 	printf(" Undo save index: %d\n", b->undoSaveIndex);
 	printf(" Undo curr index: %d\n", b->undoCurrent);
-	
+	printf("\n");
 }
 
 
@@ -1632,6 +1668,36 @@ void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l) {
 		
 		s += n;
 	}
+}
+
+
+void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC, char isReverse) {
+	BufferChangeNotification note = {
+		.b = b,
+		.sel.startLine = startL,
+		.sel.endLine = endL,
+		.sel.startCol = startC,
+		.sel.endCol = endC,
+		
+		.action = BCA_Undo_SetSelection,
+	};
+
+	Buffer_NotifyChanges(&note);	
+}
+
+
+void Buffer_NotifyUndoMoveCursor(Buffer* b, BufferLine* line, intptr_t col) {
+	BufferChangeNotification note = {
+		.b = b,
+		.sel.startLine = line,
+		.sel.endLine = 0,
+		.sel.startCol = col,
+		.sel.endCol = 0,
+		
+		.action = BCA_Undo_MoveCursor,
+	};
+
+	Buffer_NotifyChanges(&note);	
 }
 
 
