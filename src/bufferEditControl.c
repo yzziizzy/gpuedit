@@ -289,7 +289,7 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 		
 		if(w->scrollCoastTimer > n) {
 			
-			GUIBufferEditControl_ScrollDir(w, w->scrollCoastDir, 0);
+			GBEC_ScrollDir(w, w->scrollCoastDir, 0);
 			w->scrollCoastTimer = fmod(w->scrollCoastTimer, n);
 		}
 		
@@ -446,7 +446,7 @@ void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intp
 }
 
 // move the view by this delta
-void GUIBufferEditControl_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols) {
+void GBEC_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols) {
 	GUIBufferEditControl_SetScroll(w, w->scrollLines + lines, w->scrollCols + cols);
 }
 
@@ -631,6 +631,22 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		case BufferCmd_MoveCursorH:
 			GBEC_MoveCursorH(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
+			break;
+		
+		case BufferCmd_ScrollLinesV:
+			GBEC_ScrollDir(w, cmd->amt, 0);
+			break;
+			
+		case BufferCmd_ScrollScreenPctV:
+			GBEC_ScrollDir(w, ((float)cmd->amt * 0.1) * w->linesOnScreen, 0);
+			break;
+			
+		case BufferCmd_ScrollColsH:
+			GBEC_ScrollDir(w, 0, cmd->amt);
+			break;
+			
+		case BufferCmd_ScrollScreenPctH:
+			GBEC_ScrollDir(w, 0, ((float)cmd->amt * 0.1) * w->colsOnScreen);
 			break;
 		
 		case BufferCmd_InsertChar:
@@ -935,7 +951,7 @@ intptr_t getDisplayColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr
 		charCol++;
 	}
 	
-	return MAX(0, MIN(screenCol, bl->length));
+	return MAX(0, screenCol);
 }
 
 
@@ -968,7 +984,7 @@ intptr_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, intptr
 		else screenCol++;
 	}
 	
-	return MAX(0, MIN(screenCol, bl->length));
+	return MAX(0, screenCol);
 }
 
 

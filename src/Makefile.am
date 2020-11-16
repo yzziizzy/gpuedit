@@ -106,11 +106,12 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-Wno-parentheses \
 	-Wno-comment \
 	-Werror=implicit-function-declaration \
-	-Werror=incompatible-pointer-types \
 	-Werror=uninitialized \
 	-Werror=return-type 
 	
 AM_CXXFLAGS = $(AM_CFLAGS)
+
+# 	-Werror=incompatible-pointer-types 
 
 
 

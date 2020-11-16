@@ -550,7 +550,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intptr_t col);
 
 // move the view by this delta
-void GUIBufferEditControl_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
+void GBEC_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
 
 void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* gbe);
 void GUIBufferEditControl_MoveCursorTo(GUIBufferEditControl* gbe, intptr_t line, intptr_t col);

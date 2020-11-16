@@ -1,7 +1,6 @@
 == Needed before yzziizzy dogfooding ==
-* Undo selections are broken
+* Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
-* Horizontal scroll key commands, auto-hscroll is broken with tabs
 * Replace All
 * WantedCol is broken, especially across tabs
 * Basic autocomplete
@@ -22,9 +21,13 @@
 ...
 
 == TODO ==
+* s/GUIBufferEditControl_*()/GBEC_*()/
+* Highlight all find matches, give total count
+* Center search result in the screen when finding
 * Handle and render nulls in files
 * Command: delete lines under selection/cursor
 * Reduce CPU usage on shtty laptop
+* Gutter width is wrong for 10 line files
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
 * Don't reopen files that are already open
