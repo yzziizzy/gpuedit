@@ -67,6 +67,10 @@
 	X(BufferCmd, ToggleMenu) \
 	X(BufferCmd, ShowDictComplete) \
 	X(BufferCmd, ToggleGDBBreakpoint) \
+	X(BufferCmd, ScrollLinesV) \
+	X(BufferCmd, ScrollScreenPctV) \
+	X(BufferCmd, ScrollColsH) \
+	X(BufferCmd, ScrollScreenPctH) \
 	\
 	X(FileBrowserCmd, CursorMove) \
 	X(FileBrowserCmd, CursorMoveNoWrap) \

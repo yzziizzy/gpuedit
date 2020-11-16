@@ -186,7 +186,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	struct Color4 lineColors[] = {
 		theme->lineNumColor,
 		theme->lineNumBookmarkColor,
-		{.95,.05,.05,1.0},
+		{.95,.05,.05,1.0}, // breakpoint
 	};
 	
 	
@@ -291,36 +291,18 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			size_t styleCols = 0;
 			TextStyleAtom* atom = NULL;
 			if(VEC_LEN(&bl->style)) {
-
-
 				atom = &VEC_HEAD(&bl->style);
 				styleCols = atom->length;
-
-/*				if(gbe->scrollCols > 0) {
-				
-					for(long i = 0; i < gbe->scrollCols; i++) {
-						styleCols--;
-				
-						if(atom && styleCols <= 0) {
-							styleIndex++;
-							if(styleIndex < VEC_LEN(&bl->style)) {
-								atom = &VEC_ITEM(&bl->style, styleIndex);
-								styleCols = atom->length;
-							}
-							else atom = NULL;
-						}
-					}
-				}*/
 			}
 			
 			// main text
-			for(int i = 0; i < maxCols; i++) { 
-				if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum && gbe->sel->startCol <= i + gbe->scrollCols) {
+			for(int i = 0; i < bl->length; i++) { 
+				if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum && gbe->sel->startCol <= i) {
 					inSelection = 1;
 					fg = &theme->hl_textColor;
 					bg = &theme->hl_bgColor;
 				}
-				if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum && gbe->sel->endCol <= i + gbe->scrollCols) {
+				if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum && gbe->sel->endCol <= i) {
 					inSelection = 0;
 					fg = &theme->textColor;
 					bg = &theme->bgColor;
@@ -330,7 +312,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				if(c == 0) break;
 				
 				if(c == '\t') {
-					if(inSelection) {
+					if(inSelection) { // tabs inside selection
 						v = GUIManager_reserveElements(gm, 1);
 						*v = (GUIUnifiedVertex){
 							.pos.t = tl.y,
@@ -350,8 +332,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
-				else {
-					if(!inSelection) {
+				else { // non-tab text
+					if(!inSelection) { // non-selected text
 						
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
@@ -362,12 +344,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 								si->fgColor.a,
 							};
 							
+							// highlighted text
 							drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 						}
-						else 
+						else // non-highlighted text
 							drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					}
-					else {
+					else { // selected text
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
 							struct Color4 color = {
