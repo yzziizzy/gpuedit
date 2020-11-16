@@ -1,7 +1,11 @@
 #include <ctype.h>
 #include <libgen.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "mainControl.h"
+#include "app.h"
+#include "fuzzyMatch.h"
 #include "gui.h"
 #include "gui_internal.h"
 #include "ui/configLoader.h"
@@ -459,7 +463,11 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 	case MainCmd_OpenFileBrowser:
 		GUIMainControl_OpenFileBrowser(w, "./");
 		break;
-	
+
+	case MainCmd_FuzzyOpener:
+		GUIMainControl_FuzzyOpener(w);
+		break;
+
 	case MainCmd_MainMenu:
 		GUIMainControl_OpenMainMenu(w);
 		break;
@@ -739,6 +747,60 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	
 	// very important, since normal registration is not used
 	fb->header.parent = (GUIObject*)w;
+}
+
+
+void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
+	// printf("launching fuzzy opener\n");
+	char* cmd = "/usr/bin/git";
+	char* base_args[] = {cmd, "-C", NULL, "ls-files", NULL};
+	size_t elem = sizeof(base_args);
+	size_t base_n = elem/sizeof(char*);
+	char*** args;
+	char** arg_lists;
+	
+	int i = 0;
+	while(w->gs->MainControl_searchPaths[i]) {
+		i++;
+	}
+	args = malloc((i+1)*sizeof(char***));
+	arg_lists = malloc(i*elem);
+
+	i = 0;
+	while(w->gs->MainControl_searchPaths[i]) {
+		memcpy(&(arg_lists[i*base_n]), base_args, elem);
+		args[i] = &(arg_lists[i*base_n]);
+		args[i][2] = w->gs->MainControl_searchPaths[i];
+
+		i++;
+	}
+	args[i] = NULL;
+
+	char** filepaths;
+	size_t n_filepaths;
+	execProcessPipe_charppv(args, &filepaths, &n_filepaths);
+
+	// for(i=0;i<n_filepaths;i++) {
+	// 	printf("got filepath: %s\n", filepaths[i]);
+	// }
+
+	char* input = "win";
+
+	char** matches;
+	int n_matches = 0;
+	int err = 0;
+
+	err = fuzzy_match_charpp(filepaths, n_filepaths, &matches, &n_matches, input);
+	// printf("fuzzy match exit code: %d\n", err);
+
+	if(!err) {
+		for(i=0;i<n_matches;i++) {
+			printf("ordered match [%s]\n", matches[i]);
+		}
+	}
+
+	free(matches);
+	free(filepaths);
 }
 
 

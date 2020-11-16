@@ -22,6 +22,7 @@ gpuedit_SOURCES = main.c \
 	fcfg.c \
 	fileBrowser.c \
 	font.c \
+	fuzzyMatch.c \
 	gui.c \
 	guiManager.c \
 	highlight.c \

@@ -66,6 +66,7 @@ static void grab_charp(char** out, json_value_t* obj, char* prop) {
 	}
 }
 
+
 static void grab_charpp(char*** out, json_value_t* obj, char* prop) {
 	json_value_t* v;
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
@@ -120,6 +121,7 @@ static void grab_float(float* out, json_value_t* obj, char* prop) {
 		}
 	}
 }
+
 static void grab_double(double* out, json_value_t* obj, char* prop) {
 	json_value_t* v;
 	double i;
@@ -130,7 +132,6 @@ static void grab_double(double* out, json_value_t* obj, char* prop) {
 		}
 	}
 }
-
 
 
 void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
@@ -146,50 +147,4 @@ void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
 	#undef SETTING
 	
 	json_file_free(jsf);
-}
-
-
-void GlobalSettings_loadFromSimpleFile(GlobalSettings* s, char* path) {
-	size_t len;
-	
-	char* src = readWholeFile(path, &len);
-	
-	
-	char** lines = strsplit_inplace(src, '\n', NULL);
-	
-	char** lines2 = lines;
-	for(int ln = 1; *lines2; lines2++, ln++) {
-		char name[128];
-		char value[128];
-// 		StyleInfo* style;
-		
-		if(2 != sscanf(*lines2, " %127[_a-zA-Z0-9] = %127s", name, value)) {
-			printf("Invalid config line %s:%d: '%s'\n", path, ln, *lines2);
-			continue;
-		}
-		
-// 		printf("line: '%s' = '%s'\n", name, value);
-		/*
-		style = get_style(h, name);
-		if(!style) {
-			fprintf(stderr, "Unknown style name '%s' in %s:%d\n", name, path, ln);
-			continue;
-		}*/
-		
-		/*
-		if(value[0] == '#') { // hex code
-			decodeHexColorNorm(value, &style->fgColor);
-		}*/
-		
-		// TODO: rgba()
-		// TODO: backgrounds, formats, fonts, etc
-		
-	}
-	
-	
-	free(lines);
-	free(src);
-	
-	
-	
 }

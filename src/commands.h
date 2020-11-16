@@ -81,6 +81,7 @@
 	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \
+	X(MainCmd, FuzzyOpener) \
 	X(MainCmd, SaveActiveTab) \
 	X(MainCmd, SaveAll) \
 	X(MainCmd, Quit) \

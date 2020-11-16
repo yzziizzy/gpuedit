@@ -17,7 +17,7 @@
 * NULL-inserting bug related to line splitting after movign from long line to short
 
 == Needed before fractal dogfooding ==
-...
+* fuzzy file opener
 
 == TODO ==
 * s/GUIBufferEditControl_*()/GBEC_*()/
