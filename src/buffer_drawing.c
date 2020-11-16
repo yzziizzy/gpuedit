@@ -186,6 +186,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	struct Color4 lineColors[] = {
 		theme->lineNumColor,
 		theme->lineNumBookmarkColor,
+		{.95,.05,.05,1.0},
 	};
 	
 	
@@ -205,10 +206,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		if(bdp->showLineNums) {
 			sprintf(lnbuf, "%ld", bl->lineNum);
 			float nw = (floor(log10(bl->lineNum)) + 1) * tdp->charWidth;
+			Color4* lnc = &lineColors[0];
+			if(bl->flags & BL_BOOKMARK_FLAG) lnc = &lnc[1];
+			if(bl->flags & BL_BREAKPOINT_FLAG) lnc = &lnc[2];
 			drawTextLine(
 				gm, 
 				tdp, 
-				&lineColors[!!(bl->flags & BL_BOOKMARK_FLAG)], 
+				lnc, 
 				lnbuf, 
 				100, 
 				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y},

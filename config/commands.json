@@ -20,6 +20,8 @@
 {cmd: "MainCmd_SimpleWindowTest", mods: "C", key: "u", amt: 0},
 {cmd: "MainCmd_CloseTab", mods: "CS", key: "w", amt: 0},
 
+{cmd: "BufferCmd_ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
+
 {cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Up", amt: -1},
 {cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Down", amt: 1},
 {cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "C", key: "XK_Up", amt: -5},

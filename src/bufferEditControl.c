@@ -255,7 +255,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 			}
 			
 			if(found.flags & undoSeqBreak) {
-				Buffer_UndoSequenceBreak(w->buffer, 0);
+				Buffer_UndoBak(w->buffer, 0);
 			}
 		}
 		
@@ -321,7 +321,33 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)_w;
 	
-	if(note->action == BCA_DeleteLines) {
+	if(note->action == BCA_Undo_MoveCursor) {
+		printf("move notify\n");
+		GBEC_MoveCursorTo(w, note->sel.startLine, note->sel.startCol);
+	}
+	else if(note->action == BCA_Undo_SetSelection) {
+		printf("selection notify %ld:%ld -> %ld:%ld\n",
+			note->sel.startLine->lineNum, note->sel.startCol,
+			note->sel.endLine->lineNum, note->sel.endCol
+		);
+		if(note->isReverse) {
+			w->selectPivotLine = note->sel.endLine;
+			w->selectPivotCol = note->sel.endCol;
+			GBEC_MoveCursorTo(w, note->sel.startLine, note->sel.startCol);
+			GBEC_SetCurrentSelection(w, 
+				note->sel.endLine, note->sel.endCol,
+				note->sel.startLine, note->sel.startCol);
+		}
+		else {
+			w->selectPivotLine = note->sel.startLine;
+			w->selectPivotCol = note->sel.startCol;
+			GBEC_MoveCursorTo(w, note->sel.endLine, note->sel.endCol);
+			GBEC_SetCurrentSelection(w, 
+				note->sel.startLine, note->sel.startCol,
+				note->sel.endLine, note->sel.endCol);
+		}
+	}
+	else if(note->action == BCA_DeleteLines) {
 		if(BufferLine_IsInRange(w->current, &note->sel)) {
 			w->current = note->sel.startLine->prev;
 			if(!w->current) {		
@@ -622,8 +648,12 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			if(w->sel) {
 				w->current = w->sel->startLine;
 				w->curCol = w->sel->startCol;
+				Buffer_UndoSequenceBreak(b, 0, w->sel->startLine->lineNum, w->sel->startCol, 
+				 w->sel->endLine->lineNum, w->sel->endCol, 0);
 				Buffer_DeleteSelectionContents(b, w->sel);
+				
 				GBEC_ClearAllSelections(w);
+				
 			}
 			else {
 				BufferLine* bl = w->current;
@@ -655,10 +685,17 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			GBEC_MoveCursorTo(w, w->current, tabs);
 			break;
 		
-		case BufferCmd_DeleteCurLine:
-			Buffer_DeleteLine(b, w->current);
-			break;
+		case BufferCmd_DeleteCurLine: {
+			// preserve proper cursor position
+			BufferLine* cur = w->current->next;
+			if(!cur) cur = w->current->prev;
+			intptr_t col = w->curCol;
 			
+			Buffer_DeleteLine(b, w->current);
+			
+			if(cur) GBEC_MoveCursorTo(w, cur, col);
+			break;
+		}
 		case BufferCmd_Home:
 			// TODO: undo
 			w->current = b->first;

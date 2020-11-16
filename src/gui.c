@@ -50,7 +50,7 @@ void gui_default_ParentResize(GUIObject* root, GUIEvent* gev) {
 
 
 void gui_default_Delete(GUIHeader* h) {
-	
+//	printf("Deleting %p\n", h);
 	// delete the children
 	VEC_EACH(&h->children, i, ch) {
 		GUIObject_Delete_((GUIHeader*)ch);
@@ -709,7 +709,7 @@ void GUIUnregisterObject_(GUIHeader* o) {
 
 void GUIObject_Delete_(GUIHeader* h) {
 	h->deleted = 1;
-	
+	//printf("Delete vfn call %p\n");
 	VEC_PUSH(&h->gm->reapQueue, h);	
 
 	if(h->vt && h->vt->Delete)
@@ -720,6 +720,7 @@ void GUIObject_Delete_(GUIHeader* h) {
 
 
 void GUIObject_Reap_(GUIHeader* h) {
+	//printf("Reap vfn call %p\n", h);
 	if(!h->deleted) {
 		printf("Attempting to reap non-deleted GUIObject\n");
 // 		Log("Attempting to reap non-deleted GUI Object");

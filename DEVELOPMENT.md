@@ -1,21 +1,35 @@
 == Needed before yzziizzy dogfooding ==
-* Paste does not leave cursor at the end
+* Undo selections are broken
+* Selection deletion still wipes out rest of file sometimes
+* Horizontal scroll key commands, auto-hscroll is broken with tabs
 * Replace All
+* WantedCol is broken, especially across tabs
 * Basic autocomplete
 * Comment/uncomment, line and selection
 * Multi-line indent and un-indent
 * File Browser kb integration
 * Search for word under cursor
+* Selection rendering is wrong when hscrolled
+* Pasting with selection does not overwrite it
+* Typing with selection does not overwrite it
+* Copy/paste misses a line sometimes, with small selections
+* Save find text across finds
+* F3 resumes search
+* Able to refocus on the editor while finding
+* NULL-inserting bug related to line splitting after movign from long line to short
 
 == Needed before fractal dogfooding ==
 * fuzzy file opener
 
 == TODO ==
+* Handle and render nulls in files
+* Command: delete lines under selection/cursor
 * Reduce CPU usage on shtty laptop
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
 * Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working
+* Clipboard ring
 * Choose highlighter based on file extension
 * Proper tabstops
 * Ability to change the highlighter
