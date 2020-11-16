@@ -18,7 +18,7 @@ typedef struct GUIButton {
 
 
 
-GUIText* GUIButton_New(GUIManager* gm, char* str);
+GUIButton* GUIButton_New(GUIManager* gm, char* str);
 
 
 

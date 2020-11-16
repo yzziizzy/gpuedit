@@ -121,7 +121,7 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	if(w->isDragSelecting) {
 		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
 		size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
-		GBEC_SetCurrentSelection(b, bl, col, w->selectPivotLine, w->selectPivotCol);
+		GBEC_SetCurrentSelection(w, bl, col, w->selectPivotLine, w->selectPivotCol);
 		
 		w->current = bl;
 		w->curCol = col;
@@ -309,10 +309,10 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	// calculate scrollbar offset
 	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
 	
-	GUIResize(w->scrollbar, (Vector2){10, sbh});
+	GUIResize(&w->scrollbar->header, (Vector2){10, sbh});
 	w->scrollbar->header.topleft.y = sboff;
 
-	gui_defaultUpdatePos(w, grp, pfp);
+	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
 
 
@@ -370,14 +370,14 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyDown = keyDown,
-		.Click = click,
-		.ScrollUp = scrollUp,
-		.ScrollDown = scrollDown,
-		.DragStart = dragStart,
-		.DragStop = dragStop,
-		.DragMove = dragMove,
-		.ParentResize = parentResize,
+		.KeyDown = (void*)keyDown,
+		.Click = (void*)click,
+		.ScrollUp = (void*)scrollUp,
+		.ScrollDown = (void*)scrollDown,
+		.DragStart = (void*)dragStart,
+		.DragStop = (void*)dragStop,
+		.DragMove = (void*)dragMove,
+		.ParentResize = (void*)parentResize,
 	};
 	
 	
@@ -394,7 +394,7 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	
 	
 	w->scrollbar = GUIWindow_New(gm);
-	GUIResize(w->scrollbar, (Vector2){10, 50});
+	GUIResize(&w->scrollbar->header, (Vector2){10, 50});
 	w->scrollbar->color = (Color4){.9,.9,.9, 1};
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
@@ -553,9 +553,9 @@ void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 	
 	HLContextInternal hlc = {
 		.ctx.alloc = &al,
-		.ctx.getNextLine = getNextLine,
-		.ctx.writeSection = writeSection,
-		.ctx.writeFlags = writeFlags,
+		.ctx.getNextLine = (void*)getNextLine,
+		.ctx.writeSection = (void*)writeSection,
+		.ctx.writeFlags = (void*)writeFlags,
 		
 		.ctx.dirtyLines = b->numLines,
 		
@@ -704,6 +704,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 					w->current = w->sel->startLine;
 					w->curCol = w->sel->startCol;
 				}
+				
 				Buffer_DeleteSelectionContents(b, w->sel);
 				GBEC_ClearAllSelections(w);
 			}
@@ -856,7 +857,9 @@ void GBEC_InsertLinebreak(GUIBufferEditControl* w) {
 		Buffer_InsertEmptyLineBefore(b, w->current);
 	}
 	else {
-		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + w->curCol, strlen(l->buf + w->curCol - 1) - 1);
+		// BUG length is fucked up
+		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + w->curCol, 
+			MAX(strlen(l->buf + w->curCol - 1) - 1, 0));
 		Buffer_LineTruncateAfter(b, l, w->curCol);
 		
 		w->current = w->current->next;

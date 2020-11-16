@@ -28,12 +28,12 @@ GUIDebugAdjuster* GUIDebugAdjuster_new(GUIManager* gm, char* format, void* targe
 	GUIDebugAdjuster* da;
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
+		.Render = (void*)render,
 		.Delete = delete,
 	};
 	
 	static InputEventHandler input_vt = {
-		.keyUp = keyUp,
+		.keyUp = (void*)keyUp,
 	};
 	
 	

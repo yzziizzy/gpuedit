@@ -28,11 +28,11 @@ static void mLeave(GUIObject* w_, GUIEvent* gev) {
 	((GUIButton*)w_)->isHovered = 0;
 }
 
-GUIText* GUIButton_New(GUIManager* gm, char* str) {
+GUIButton* GUIButton_New(GUIManager* gm, char* str) {
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
-		.Delete = delete,
+		.Render = (void*)render,
+		.Delete = (void*)delete,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {

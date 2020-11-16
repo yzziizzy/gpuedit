@@ -21,7 +21,7 @@ GUIValueMonitor* GUIValueMonitor_new(GUIManager* gm, char* format, void* target,
 	GUIValueMonitor* gfm;
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
+		.Render = (void*)render,
 	};
 	
 	

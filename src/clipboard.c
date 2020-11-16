@@ -124,7 +124,7 @@ void Clipboard_SetFromOS(unsigned int which, char* text, size_t len, int encodin
 		b->allocSize = nextPOT(len + 1);
 		b->buf = realloc(b->buf, b->allocSize);
 	}
-	printf("> %d '%.*s'\n", which, len, text);
+	printf("> %d '%.*s'\n", which, (int)len, text);
 	memcpy(b->buf, text, len);
 	b->buf[len] = 0;
 	
@@ -144,7 +144,7 @@ void Clipboard_GetFromOS(unsigned int which, char** text, size_t* len, int* enco
 }
 
 void Clipboard_RegisterOnChange(void (*fn)(int,void*), void* data) {
-	VEC_PUSH(&clipboard->onChange, ((struct ClipCallback){fn, data}));
+	VEC_PUSH(&clipboard->onChange, ((struct ClipCallback){(void*)fn, data}));
 }
 
 

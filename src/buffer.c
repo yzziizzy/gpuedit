@@ -607,30 +607,34 @@ intptr_t Buffer_IndentToPrevLine(Buffer* b, BufferLine* bl) {
 void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 	if(!sel) return;
 	
-	Buffer_UndoSetSelection(b, sel->startLine->lineNum, sel->startCol, sel->endLine->lineNum, sel->endCol);
+	// the selection might point to something modified during line
+	//   delete notifications; cache it.
+	BufferRange s = *sel;
 	
-	if(sel->startLine == sel->endLine) {
+	Buffer_UndoSetSelection(b, s.startLine->lineNum, s.startCol, s.endLine->lineNum, s.endCol);
+	
+	if(s.startLine == s.endLine) {
 		// move the end down
-		Buffer_LineDeleteChars(b, sel->startLine, sel->startCol, sel->endCol - sel->startCol);
+		Buffer_LineDeleteChars(b, s.startLine, s.startCol, s.endCol - s.startCol);
 	}
 	else {
 		// truncate start line after selection start
-		Buffer_LineTruncateAfter(b, sel->startLine, sel->startCol);
-		// append end line after selection ends to first line
+		Buffer_LineTruncateAfter(b, s.startLine, s.startCol);
 		
-		char* elb = sel->endLine->buf ? sel->endLine->buf + sel->endCol : "";
-		Buffer_LineAppendText(b, sel->startLine, elb, strlen(elb));
+		// append end line after selection ends to first line
+		char* elb = s.endLine->buf ? s.endLine->buf + s.endCol : "";
+		Buffer_LineAppendText(b, s.startLine, elb, strlen(elb));
 		
 		
 		// delete lines 1-n
-		BufferLine* bl = sel->startLine->next;
+		BufferLine* bl = s.startLine->next;
 		BufferLine* next;
 		while(bl) {
 			next = bl->next; 
-			Buffer_NotifyLineDeletion(b, bl, bl);
+			//Buffer_NotifyLineDeletion(b, bl, bl);
 			Buffer_DeleteLine(b, bl);
 			
-			if(bl == sel->endLine) break;
+			if(bl == s.endLine) break;
 			bl = next;
 		}
 	}
@@ -1276,7 +1280,7 @@ char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen) {
 		
 		if(bl == sel->endLine) break;
 		
-		strncat(out, "\n", 1);
+		strcat(out, "\n");
 		len++;
 	}
 	

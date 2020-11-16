@@ -116,17 +116,17 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 	read_flags(h, cfg);
 	
 	if(!json_obj_get_key(cfg, "pos", &v)) {
-		json_as_vector(v, 2, &h->topleft);
+		json_as_vector(v, 2, (float*)&h->topleft);
 	}
 	if(!json_obj_get_key(cfg, "position", &v)) {
-		json_as_vector(v, 2, &h->topleft);
+		json_as_vector(v, 2, (float*)&h->topleft);
 	}
 	if(!json_obj_get_key(cfg, "topleft", &v)) {
-		json_as_vector(v, 2, &h->topleft);
+		json_as_vector(v, 2, (float*)&h->topleft);
 	}
 	
 	if(!json_obj_get_key(cfg, "size", &v)) {
-		json_as_vector(v, 2, &h->size);
+		json_as_vector(v, 2, (float*)&h->size);
 		GUIResize(h, h->size);
 	}
 	
@@ -238,7 +238,7 @@ static GUIObject* create_GUIGridLayout(GUIManager* gm, json_value_t* cfg) {
 	float f;
 	
 	if(!json_obj_get_key(cfg, "cellSize", &v)) {
-		json_as_vector(v, 2, &defaultSpacing);
+		json_as_vector(v, 2, (float*)&defaultSpacing);
 	}
 	
 	obj = GUIGridLayout_new(gm, (Vector2){0,0}, defaultSpacing);
@@ -323,7 +323,7 @@ static GUIObject* create_GUIText(GUIManager* gm, json_value_t* cfg) {
 }
 
 static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
-	GUIGridLayout* obj;
+	GUISelectBox* obj;
 	json_value_t* opts_v;
 	int optCnt = 0;
 	GUISelectBoxOption* sbOpts;
@@ -432,7 +432,7 @@ static GUIObject* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 static HT(creator_fn) creator_lookup;
 
 static void checkInitLookup() {
-	static initialized = 0;
+	static int initialized = 0;
 	if(initialized) return;
 	
 	HT_init(&creator_lookup, 32);
@@ -489,7 +489,7 @@ GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 		read_header(&obj->header, cfg);
 		
 		if(!json_obj_get_key(cfg, "children", &j_kids)) {
-			GUICL_LoadChildren(gm, obj, j_kids);
+			GUICL_LoadChildren(gm, (GUIHeader*)obj, j_kids);
 		}
 		
 	}
@@ -530,7 +530,7 @@ void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg) {
 		}
 		
 		
-		GUIAddClient_(parent, child);
+		GUIAddClient_(parent, (GUIHeader*)child);
 		
 		
 		link = link->next;

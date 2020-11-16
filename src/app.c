@@ -127,10 +127,10 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->defaults.tabBgColor = COLOR4_FROM_HEX(10,10,10,255);
 	as->gui->defaults.tabTextColor = COLOR4_FROM_HEX(200,200,200,255);
 	
-	as->gui->windowTitleSetFn = XStuff_SetWindowTitle;
+	as->gui->windowTitleSetFn = (void*)XStuff_SetWindowTitle;
 	as->gui->windowTitleSetData = xs;
 	
-	as->gui->mouseCursorSetFn = XStuff_SetMouseCursor;
+	as->gui->mouseCursorSetFn = (void*)XStuff_SetMouseCursor;
 	as->gui->mouseCursorSetData = xs;
 	
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
@@ -154,7 +154,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		// look for files to load in arguments
 		// -f works too
 		if(a[0] == '-') {
-			if(a[1] == 'f' && a[2] == NULL) {
+			if(a[1] == 'f' && a[2] == 0) {
 				i++;
 				if(i < argc) {
 					GUIMainControl_LoadFile(as->mc, argv[i]);

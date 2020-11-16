@@ -23,8 +23,8 @@ GUIGridLayout* GUIGridLayout_new(GUIManager* gm, Vector2 pos, Vector2 spacing) {
 	GUIGridLayout* w;
 	
 	static struct gui_vtbl static_vt = {
-		.UpdatePos = updatePos,
-		.HitTest = hitTest,
+		.UpdatePos = (void*)updatePos,
+		.HitTest = (void*)hitTest,
 	};
 	
 	

@@ -27,7 +27,7 @@ GUIAnimPulse* GUIAnimPulse_new(GUIHeader* target, float speed, float magnitude) 
 	GUIAnimPulse* ga;
 	
 	static struct gui_anim_vtbl static_vt = {
-		.UpdatePos = updatePos,
+		.UpdatePos = (void*)updatePos,
 	};
 	
 	pcalloc(ga);

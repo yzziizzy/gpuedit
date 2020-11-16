@@ -224,7 +224,7 @@ int initXWindow(XStuff* xs) {
 	xs->textID = XInternAtom(xs->display, "TEXT", False);
 	xs->targetsID = XInternAtom(xs->display, "TARGETS", False);
 	
-	Clipboard_RegisterOnChange(clipNotify, xs);
+	Clipboard_RegisterOnChange((void*)clipNotify, xs);
 	
 	XFixesQueryExtension(xs->display, &xs->XFixes_eventBase, &xs->XFixes_errorBase);
 	XFixesSelectSelectionInput(xs->display, xs->clientWin, xs->clipboardID, XFixesSetSelectionOwnerNotifyMask);
@@ -278,7 +278,7 @@ int initXWindow(XStuff* xs) {
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, NULL, GL_FALSE);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 	
-	glDebugMessageCallback(_khr_debug_callback , NULL);
+	glDebugMessageCallback((void*)_khr_debug_callback , NULL);
 #endif
 	
 	
@@ -529,7 +529,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			st->keyState[xev.xkey.keycode] |= IS_KEYPRESSED | IS_KEYDOWN;
 			
-			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
+			int slen = XLookupString(&xev.xkey, &c, 1, &sym, NULL);
 			
 			iev->type = EVENT_KEYDOWN;
 			iev->time = gt;
@@ -548,7 +548,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 // 			int keysym = XKeycodeToKeysym(xs->display, xev.xkey.keycode, 0);
 // 			printf("sym: %d '%c'\n", keysym, keysym);
 			
-			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
+			int slen = XLookupString(&xev.xkey, &c, 1, &sym, NULL);
 			
 			iev->type = EVENT_KEYUP;
 			iev->time = gt;

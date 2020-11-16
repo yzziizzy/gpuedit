@@ -23,8 +23,8 @@ static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, Vector2
 GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) {
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
-		.Delete = guiTextDelete,
+		.Render = (void*)render,
+		.Delete = (void*)guiTextDelete,
 	//	.HitTest = hitTest,
 	};
 	
@@ -62,7 +62,7 @@ static void updatePos(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 		}; 
 	}
 	
-	gui_defaultUpdatePos(gt, grp, pfp);
+	gui_defaultUpdatePos(&gt->header, grp, pfp);
 }
 
 

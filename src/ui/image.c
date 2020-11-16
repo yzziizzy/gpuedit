@@ -236,7 +236,7 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 	float tbh = .03; // titleBarHeight
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
+		.Render = (void*)render,
 	};
 	
 	
@@ -253,7 +253,7 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 	if(name) {
 		TextureAtlasItem* it;
 		if(HT_get(&gm->ta->items, name, &it)) {
-			printf("could not find gui image '%s' %p \n", name);
+			printf("could not find gui image '%s'\n", name);
 		}
 		else {
 			im->offsetNorm = it->offsetNorm;
@@ -354,9 +354,9 @@ GUIRenderTarget* GUIRenderTarget_new(GUIManager* gm, Vector2 pos, Vector2 size, 
 	float tbh = .03; // titleBarHeight
 	
 	static struct gui_vtbl static_vt = {
-		.Render = rt_render,
-		.Delete = guiRenderTargetDelete,
-		.Resize = guiRenderTargetResize
+		.Render = (void*)rt_render,
+		.Delete = (void*)guiRenderTargetDelete,
+		.Resize = (void*)guiRenderTargetResize
 	};
 	
 	

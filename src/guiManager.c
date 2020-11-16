@@ -58,8 +58,8 @@ static void renderRoot(GUIHeader* gh, PassFrameParams* pfp) {
 void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	static struct gui_vtbl root_vt = {
-		.UpdatePos = updatePosRoot,
-		.Render = renderRoot,
+		.UpdatePos = (void*)updatePosRoot,
+		.Render = (void*)renderRoot,
 // 		.HitTest = hitTestRoot,
 	};
 		
@@ -89,7 +89,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->doubleClickTime = 0.300;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
-	gui_headerInit(gm->root, NULL, &root_vt, &event_vt); 
+	gui_headerInit(&gm->root->header, NULL, &root_vt, &event_vt); 
 	
 	RING_PUSH(&gm->focusStack, gm->root);
 	
@@ -273,9 +273,10 @@ void GUIManager_Reap(GUIManager* gm) {
 	#undef check_nullify
 	
 	RING_EACH(&gm->focusStack, i, fh) {
+		// BUG modifying the ring causes the next element to be skipped
+		// shouldn't be a problem here, but it might be
 		if(fh->header.deleted) {
-			// TODO BUG Missing ring fn
-// 			RING_RM_SAFE(&gm->focusStack, i);
+			RING_RM(&gm->focusStack, i);
 		}
 	}
 	
@@ -356,10 +357,10 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	if(!t) { // mouse left the window
 		if(gm->lastHoveredObject) {
 			gev.type = GUIEVENT_MouseLeave;
-			gev.originalTarget = gm->lastHoveredObject;
-			gev.currentTarget = gm->lastHoveredObject;
+			gev.originalTarget = (GUIObject*)gm->lastHoveredObject;
+			gev.currentTarget = (GUIObject*)gm->lastHoveredObject;
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, gm->lastHoveredObject, &gev);
+			GUIManager_BubbleEvent(gm, (GUIObject*)gm->lastHoveredObject, &gev);
 			
 			gm->lastHoveredObject = NULL;
 		}
@@ -367,11 +368,11 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		// still send move events 
 		if(gm->isDragging) {
 			gev.type = GUIEVENT_DragMove;
-			gev.originalTarget = gm->dragStartTarget;
-			gev.currentTarget = gm->dragStartTarget;
+			gev.originalTarget = (GUIObject*)gm->dragStartTarget;
+			gev.currentTarget = (GUIObject*)gm->dragStartTarget;
 			gev.dragStartPos = gm->dragStartPos;
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
+			GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
 		}
 		
 		return;
@@ -390,12 +391,12 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		gev.cancelled = 0;
 		GUIManager_BubbleEvent(gm, t, &gev);
 	}
-	else if(gm->lastHoveredObject != t) {
+	else if((GUIObject*)gm->lastHoveredObject != t) {
 		gev.type = GUIEVENT_MouseLeave;
-		gev.originalTarget = gm->lastHoveredObject;
-		gev.currentTarget = gm->lastHoveredObject;
+		gev.originalTarget = (GUIObject*)gm->lastHoveredObject;
+		gev.currentTarget = (GUIObject*)gm->lastHoveredObject;
 		gev.cancelled = 0;
-		GUIManager_BubbleEvent(gm, gm->lastHoveredObject, &gev);
+		GUIManager_BubbleEvent(gm, (GUIObject*)gm->lastHoveredObject, &gev);
 		
 		gev.type = GUIEVENT_MouseEnter;
 		gev.originalTarget = t;
@@ -404,7 +405,7 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		GUIManager_BubbleEvent(gm, t, &gev);
 	}
 	
-	gm->lastHoveredObject = t;
+	gm->lastHoveredObject = (GUIHeader*)t;
 	
 	// check for dragging
 	if(gm->isMouseDown && !gm->isDragging && gm->dragStartTarget) {
@@ -414,22 +415,22 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 			
 			gev.button = gm->dragButton;
 			gev.type = GUIEVENT_DragStart;
-			gev.originalTarget = gm->dragStartTarget;
+			gev.originalTarget = (GUIObject*)gm->dragStartTarget;
 			gev.currentTarget = t;
 			gev.dragStartPos = gm->dragStartPos;
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
+			GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
 		};
 	}
 	
 	// DragMove event
 	if(gm->isDragging) {
 		gev.type = GUIEVENT_DragMove;
-		gev.originalTarget = gm->dragStartTarget;
+		gev.originalTarget = (GUIObject*)gm->dragStartTarget;
 		gev.currentTarget = t;
 		gev.dragStartPos = gm->dragStartPos;
 		gev.cancelled = 0;
-		GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
+		GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
 	}
 	
 	gev.type = GUIEVENT_MouseMove;
@@ -491,7 +492,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 		gm->isMouseDown = 1;
 		if(!gm->isDragging) {
 			gm->dragStartPos = newPos;
-			gm->dragStartTarget = t;
+			gm->dragStartTarget = (GUIHeader*)t;
 			gm->dragButton = iev->button;
 			gev.dragStartPos = gm->dragStartPos;
 		}
@@ -507,9 +508,9 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 			gev.dragStartPos = gm->dragStartPos;
 			GUIManager_BubbleEvent(gm, t, &gev);
 			
-			gev.currentTarget = gm->dragStartTarget,
+			gev.currentTarget = (GUIObject*)gm->dragStartTarget,
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, gm->dragStartTarget, &gev);
+			GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
 			
 			// end dragging
 			gm->dragStartTarget = NULL;
@@ -771,18 +772,18 @@ void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
 	
 	GUIEvent gev = {};
 	gev.type = GUIEVENT_LostFocus;
-	gev.originalTarget = old;
-	gev.currentTarget = old;
+	gev.originalTarget = (GUIObject*)old;
+	gev.currentTarget = (GUIObject*)old;
 	
-	GUIManager_BubbleEvent(gm, old, &gev);
+	GUIManager_BubbleEvent(gm, (GUIObject*)old, &gev);
 
 	RING_PUSH(&gm->focusStack, (GUIObject*)h);
 	
 	gev.type = GUIEVENT_GainedFocus;
-	gev.originalTarget = h;
-	gev.currentTarget = h;
+	gev.originalTarget = (GUIObject*)h;
+	gev.currentTarget = (GUIObject*)h;
 	
-	GUIManager_BubbleEvent(gm, h, &gev);
+	GUIManager_BubbleEvent(gm, (GUIObject*)h, &gev);
 }
 
 
@@ -816,7 +817,7 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	
 	GUIHeader_updatePos(gm->root, &grp, pfp);
 	
-	GUIHeader_render(gm->root, pfp);
+	GUIHeader_render(&gm->root->header, pfp);
 	
 // 	static size_t framecount = 0;
 	
@@ -911,9 +912,9 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 	
 	pd = Pass_allocDrawable("GUIManager");
 	pd->data = gm;
-	pd->preFrame = preFrame;
+	pd->preFrame = (void*)preFrame;
 	pd->draw = (PassDrawFn)draw;
-	pd->postFrame = postFrame;
+	pd->postFrame = (void*)postFrame;
 	pd->prog = prog;
 	
 	return pd;;

@@ -100,7 +100,7 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 	// only render the active tab
 	if(w->currentIndex > -1) {
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a) GUIHeader_render(a->client, pfp);
+		if(a) GUIHeader_render((GUIHeader*)a->client, pfp);
 	}
 	
 	GUIHeader_renderChildren(&w->header, pfp);
@@ -220,7 +220,7 @@ static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 	
 	if(w->currentIndex > -1) {
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a) o = gui_defaultHitTest(a->client, absTestPos);
+		if(a) o = gui_defaultHitTest(&a->client->header, absTestPos);
 		if(o) return o;
 	}
 	
@@ -246,7 +246,7 @@ static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 	}
 	*/
 	
-	return gui_defaultHitTest(w, absTestPos);
+	return gui_defaultHitTest(&w->header, absTestPos);
 }
 
 
@@ -735,13 +735,13 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 	fb->commands = w->commands;
 
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fb->header, path);
 	tab->beforeClose = fbBeforeClose;
 	tab->afterClose = fbAfterClose;
 // 	tab->everyFrame = fbEveryFrame;
 	
 	// very important, since normal registration is not used
-	fb->header.parent = w;
+	fb->header.parent = (GUIObject*)w;
 }
 
 
@@ -808,7 +808,7 @@ void GUIMainControl_OpenMainMenu(GUIMainControl* w) {
 	
 	w->menu = GUIMainMenu_New(w->header.gm, w->as);
 	
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, w->menu, "Main Menu");
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &w->menu->header, "Main Menu");
 	tab->beforeClose = mmBeforeClose;
 	tab->afterClose = mmAfterClose;
 }
@@ -820,11 +820,11 @@ static int gbeBeforeClose(MainControlTab* t) {
 	return 0;
 }
 
-static void gbeAfterClose(MainControlTab* t) {
+static int gbeAfterClose(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
 	GUIBufferEditor_Destroy(gbe);
-	
+	return 0;
 }
 
 
@@ -832,7 +832,6 @@ static void gbeEveryFrame(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
 	t->isStarred = gbe->buffer->undoSaveIndex != gbe->buffer->undoCurrent;
-	
 	
 }
 
@@ -883,7 +882,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->bdp = bdp;
 	gbe->ec->bdp = bdp;
 	gbe->header.name = strdup(path);
-	gbe->header.parent = w; // important for bubbling
+	gbe->header.parent = (GUIObject*)w; // important for bubbling
 	gbe->sourceFile = strdup(path);
 	gbe->commands = w->commands;
 	
@@ -905,7 +904,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	
 	char* shortname = strdup(path);
 	
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, gbe, basename(shortname));
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &gbe->header, basename(shortname));
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;
 	tab->everyFrame = gbeEveryFrame;

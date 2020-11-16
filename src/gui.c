@@ -50,13 +50,10 @@ void gui_default_ParentResize(GUIObject* root, GUIEvent* gev) {
 
 
 void gui_default_Delete(GUIHeader* h) {
-	h->deleted = 1;
-	
-	VEC_PUSH(&h->gm->reapQueue, h);
 	
 	// delete the children
 	VEC_EACH(&h->children, i, ch) {
-		GUIObject_Delete_(ch);
+		GUIObject_Delete_((GUIHeader*)ch);
 	}
 	
 	
@@ -279,14 +276,14 @@ Vector2 guiRecalcClientSize(GUIObject* go) {
 
 void GUIAddClient_(GUIHeader* parent, GUIHeader* child) {
 	if(parent->vt && parent->vt->AddClient)
-		parent->vt->AddClient(parent, child);
+		parent->vt->AddClient((GUIObject*)parent, (GUIObject*)child);
 	else
 		GUIRegisterObject_(parent, child);
 } 
 
 void GUIRemoveClient_(GUIHeader* parent, GUIHeader* child) {
 	if(parent->vt && parent->vt->RemoveClient)
-		parent->vt->RemoveClient(parent, child);
+		parent->vt->RemoveClient((GUIObject*)parent, (GUIObject*)child);
 } 
 
 
@@ -404,9 +401,9 @@ GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name) {
 	if(!obj) return NULL;
 	
 	if(obj->vt && obj->vt->FindChild)
-		return obj->vt->FindChild(obj, name);
+		return obj->vt->FindChild((GUIObject*)obj, name);
 	else
-		return gui_defaultFindChild(obj, name);
+		return gui_defaultFindChild((GUIObject*)obj, name);
 	
 	return NULL; // because GCC is too dump to realize the above will always return a value
 }
@@ -680,12 +677,12 @@ void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o) {
 	int i;
 	
 	if(!parent) {
-		parent = o->gm->root;
+		parent = (GUIHeader*)o->gm->root;
 	}
-	o->parent = parent;
+	o->parent = (GUIObject*)parent;
 	i = VEC_FIND(&parent->children, &o);
 	if(i < 0) {
-		VEC_PUSH(&parent->children, o);
+		VEC_PUSH(&parent->children, (GUIObject*)o);
 	}
 	
 	GUIHeader_RegenTabStopCache(parent);
@@ -693,7 +690,7 @@ void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o) {
 
 
 void GUIUnregisterObject_(GUIHeader* o) {
-	GUIHeader* parent = o->parent;
+	GUIHeader* parent = (GUIHeader*)o->parent;
 	
 	if(!parent) {
 		return;
@@ -711,8 +708,12 @@ void GUIUnregisterObject_(GUIHeader* o) {
 
 
 void GUIObject_Delete_(GUIHeader* h) {
+	h->deleted = 1;
+	
+	VEC_PUSH(&h->gm->reapQueue, h);	
+
 	if(h->vt && h->vt->Delete)
-		h->vt->Delete(h);
+		h->vt->Delete((GUIObject*)h);
 	else 
 		gui_default_Delete(h);
 }
@@ -726,7 +727,7 @@ void GUIObject_Reap_(GUIHeader* h) {
 	}
 	
 	if(h->vt && h->vt->Reap)
-		h->vt->Reap(h);
+		h->vt->Reap((GUIObject*)h);
 	else {
 		free(h);
 	}
@@ -771,7 +772,7 @@ void GUIHeader_render(GUIHeader* gh, PassFrameParams* pfp) {
 
 void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client) {
 	if(parent->vt && parent->vt->AddClient)
-		parent->vt->AddClient(parent, client);
+		parent->vt->AddClient((GUIObject*)parent, (GUIObject*)client);
 	else
 		printf("Object does not have an AddClient function.");
 }
@@ -779,7 +780,7 @@ void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client) {
 
 void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client) {
 	if(parent->vt && parent->vt->RemoveClient)
-		parent->vt->RemoveClient(parent, client);
+		parent->vt->RemoveClient((GUIObject*)parent, (GUIObject*)client);
 	else
 		printf("Object does not have a RemoveClient function.");
 }
@@ -787,7 +788,7 @@ void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client) {
 
 Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct) {
 	if(go->vt && go->vt->SetScrollPct)
-		return go->vt->SetScrollPct(go, pct);
+		return go->vt->SetScrollPct((GUIObject*)go, pct);
 	else
 		printf("Object does not have a SetScrollPct function.");
 	
@@ -797,7 +798,7 @@ Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct) {
 
 Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos) {
 	if(go->vt && go->vt->SetScrollAbs)
-		return go->vt->SetScrollAbs(go, absPos);
+		return go->vt->SetScrollAbs((GUIObject*)go, absPos);
 	else
 		printf("Object does not have a SetScrollAbs function.");
 	
@@ -824,7 +825,7 @@ static void tab_regen(GUIHeader* trunk, GUIHeader* parent) {
 	
 	if(!(parent->flags & GUI_CHILD_TABBING)) {
 		VEC_EACH(&parent->children, i, kid) {
-			tab_regen(trunk, kid);
+			tab_regen(trunk, &kid->header);
 		}
 	}
 }
@@ -842,7 +843,7 @@ void GUIHeader_RegenTabStopCache(GUIHeader* parent) {
 	VEC_TRUNC(&parent->tabStopCache);
 	
 	VEC_EACH(&parent->children, i, kid) {
-		tab_regen(parent, kid);
+		tab_regen(parent, &kid->header);
 	}
 	
 	VEC_SORT(&parent->tabStopCache, tab_sort_fn);

@@ -98,9 +98,9 @@ GUIPerformanceGraph* guiPerformanceGraphNew(GUIManager* gm, Vector2 size, float 
 	GUIPerformanceGraph* sw;
 
 	static struct gui_vtbl static_vt = {
-		.Render = guiPerformanceGraphRender,
-		.Delete = guiPerformanceGraphDelete,
-		.GetClientSize = guiPerformanceGraphGetClientSize,
+		.Render = (void*)guiPerformanceGraphRender,
+		.Delete = (void*)guiPerformanceGraphDelete,
+		.GetClientSize = (void*)guiPerformanceGraphGetClientSize,
 // 		.SetClientSize = guiPerformanceGraphSetClientSize,
 	};
 	

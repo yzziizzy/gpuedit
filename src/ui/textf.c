@@ -23,9 +23,9 @@ static void updatePos(GUITextF* w, GUIRenderParams* grp, PassFrameParams* pfp);
 GUITextF* GUITextF_new(GUIManager* gm) {
 	
 	static struct gui_vtbl static_vt = {
-		.UpdatePos = updatePos,
-		.Render = render,
-		.Reap = reap,
+		.UpdatePos = (void*)updatePos,
+		.Render = (void*)render,
+		.Reap = (void*)reap,
 	};
 	
 	

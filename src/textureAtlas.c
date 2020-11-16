@@ -64,7 +64,7 @@ void TextureAtlas_addPNG(TextureAtlas* ta, char* name, char* path) {
 	src->size.x = bmp.width;
 	src->size.y = bmp.height;
 	src->aspectRatio = src->size.x / src->size.y;
-	src->data = bmp.data;
+	src->data = (uint8_t*)bmp.data;
 	
 	VEC_PUSH(&ta->sources, src);
 }
@@ -199,7 +199,7 @@ void TextureAtlas_finalize(TextureAtlas* ta) {
 			rowWidth, hext, // dst offset
 			src->size.x, src->size.y, // width and height
 			src->size.x, width, // src and dst row widths
-			src->data, // source
+			(uint32_t*)src->data, // source
 			texData); // destination
 		
 		

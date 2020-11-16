@@ -73,7 +73,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		
 		TextureAtlasItem* it;
 		if(HT_get(&gm->ta->items, iconame, &it)) {
-			printf("could not find gui image '%s' %p \n", "icon_document");
+			printf("could not find gui image '%s' \n", iconame);
 		}
 		else {
 			// icon
@@ -136,7 +136,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 
 
 static void updatePos(GUIFileBrowserControl* w, GUIRenderParams* grp, PassFrameParams* pfp) {
-	gui_defaultUpdatePos(w, grp, pfp);
+	gui_defaultUpdatePos(&w->header, grp, pfp);
 	
 
 // 	w->sbMinHeight = 20;
@@ -363,7 +363,7 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	
 	w->scrollbar = GUIWindow_New(gm);
-	GUIResize(w->scrollbar, (Vector2){10, 50});
+	GUIResize(&w->scrollbar->header, (Vector2){10, 50});
 	w->scrollbar->color = (Color4){.9,.9,.9, 1};
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;

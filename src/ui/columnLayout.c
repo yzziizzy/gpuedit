@@ -23,8 +23,8 @@ GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing,
 	GUIColumnLayout* w;
 	
 	static struct gui_vtbl static_vt = {
-		.UpdatePos = updatePos,
-		.HitTest = hitTest,
+		.UpdatePos = (void*)updatePos,
+		.HitTest = (void*)hitTest,
 	};
 	
 	
