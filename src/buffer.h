@@ -438,6 +438,9 @@ void Buffer_DeleteAt(Buffer* b, BufferLine* l, intptr_t col);
 void Buffer_DuplicateLines(Buffer* b, BufferLine* src, int amt);
 void Buffer_LineIndent(Buffer* b, BufferLine* bl);
 void Buffer_LineUnindent(Buffer* b, BufferLine* bl);
+void Buffer_IndentSelection(Buffer* b, BufferRange* sel);
+void Buffer_UnindentSelection(Buffer* b, BufferRange* sel);
+
 
 void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC);
 void GBEC_ClearCurrentSelection(GUIBufferEditControl* w);

@@ -724,12 +724,24 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			if(b->last) w->curCol = b->last->length;
 			break;
 			
-		case BufferCmd_Indent: 
-			Buffer_LineIndent(w->buffer, w->current);
-			GBEC_MoveCursorH(w, 1);		
+		case BufferCmd_Indent:
+			if(w->sel) {
+				Buffer_IndentSelection(w->buffer, w->sel);
+			}
+			else {
+				Buffer_LineIndent(w->buffer, w->current);
+				GBEC_MoveCursorH(w, 1);
+			}		
 			break;
 			
-		case BufferCmd_Unindent: Buffer_LineUnindent(w->buffer, w->current); break;
+		case BufferCmd_Unindent: 
+			if(w->sel) {
+				Buffer_UnindentSelection(w->buffer, w->sel);
+			}
+			else {
+				Buffer_LineUnindent(w->buffer, w->current); 
+			}
+			break;
 			
 		case BufferCmd_DuplicateLine:
 			if(w->sel) {

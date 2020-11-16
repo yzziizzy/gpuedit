@@ -97,7 +97,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 						w->buffer, 0, 
 						w->ec->sel->startLine->lineNum, w->ec->sel->startCol,
 						w->ec->sel->endLine->lineNum, w->ec->sel->endCol,
-						1
+						1 // TODO check pivot locations
 					);
 				}
 			}

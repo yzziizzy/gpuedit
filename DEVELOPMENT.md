@@ -8,7 +8,6 @@
 * Multi-line indent and un-indent
 * File Browser kb integration
 * Search for word under cursor
-* Selection rendering is wrong when hscrolled
 * Pasting with selection does not overwrite it
 * Typing with selection does not overwrite it
 * Copy/paste misses a line sometimes, with small selections
