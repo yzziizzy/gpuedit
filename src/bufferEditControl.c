@@ -924,7 +924,7 @@ void GBEC_InsertLinebreak(GUIBufferEditControl* w) {
 	else {
 		// BUG length is fucked up
 		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + w->curCol, 
-			MAX(strlen(l->buf + w->curCol - 1) - 1, 0));
+			MAX( ((intptr_t)strlen(l->buf + w->curCol - 1)) - 1, 0));
 		Buffer_LineTruncateAfter(b, l, w->curCol);
 		
 		w->current = w->current->next;

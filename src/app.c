@@ -577,12 +577,14 @@ void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*
 }
 
 
-void execProcessPipe_charppv(char*** args, char*** charpp_out, size_t* n_out/*,int** code_out*/) {
+char* execProcessPipe_charppv(char*** args, char*** charpp_out, size_t* n_out/*,int** code_out*/) {
 	char* contents;
 
 	execProcessPipe_bufferv(args, &contents,  n_out);
 
 	*charpp_out = strsplit_inplace(contents, '\n', n_out);
+	
+	return contents;
 }
 
 

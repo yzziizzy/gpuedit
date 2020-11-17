@@ -14,6 +14,7 @@
 
 #include "highlighters/c.h"
 #include "fileBrowser.h"
+#include "fuzzyMatchControl.h"
 
 // temporary, should be separated
 #include "window.h"
@@ -389,7 +390,9 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 		GUIFileBrowserControl_FreeEntryList(gev->userData, gev->userSize);
 		gev->cancelled = 1;
 	} 
-	
+	else if(0 == strcmp(gev->userType, "openFile")) {
+		GUIMainControl_LoadFile(w, gev->userData);
+	}
 	
 }
 
@@ -751,56 +754,15 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 
 
 void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
-	// printf("launching fuzzy opener\n");
-	char* cmd = "/usr/bin/git";
-	char* base_args[] = {cmd, "-C", NULL, "ls-files", NULL};
-	size_t elem = sizeof(base_args);
-	size_t base_n = elem/sizeof(char*);
-	char*** args;
-	char** arg_lists;
+
+	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->header.gm, "./");
+	fmc->commands = w->commands;
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fmc->header, "fuzzy matcher");
+	//tab->beforeClose = gbeBeforeClose;
+	//tab->beforeClose = gbeAfterClose;
+	//tab->everyFrame = gbeEveryFrame;
 	
-	int i = 0;
-	while(w->gs->MainControl_searchPaths[i]) {
-		i++;
-	}
-	args = malloc((i+1)*sizeof(char***));
-	arg_lists = malloc(i*elem);
-
-	i = 0;
-	while(w->gs->MainControl_searchPaths[i]) {
-		memcpy(&(arg_lists[i*base_n]), base_args, elem);
-		args[i] = &(arg_lists[i*base_n]);
-		args[i][2] = w->gs->MainControl_searchPaths[i];
-
-		i++;
-	}
-	args[i] = NULL;
-
-	char** filepaths;
-	size_t n_filepaths;
-	execProcessPipe_charppv(args, &filepaths, &n_filepaths);
-
-	// for(i=0;i<n_filepaths;i++) {
-	// 	printf("got filepath: %s\n", filepaths[i]);
-	// }
-
-	char* input = "win";
-
-	char** matches;
-	int n_matches = 0;
-	int err = 0;
-
-	err = fuzzy_match_charpp(filepaths, n_filepaths, &matches, &n_matches, input);
-	// printf("fuzzy match exit code: %d\n", err);
-
-	if(!err) {
-		for(i=0;i<n_matches;i++) {
-			printf("ordered match [%s]\n", matches[i]);
-		}
-	}
-
-	free(matches);
-	free(filepaths);
+	fmc->header.parent = (GUIObject*)w;
 }
 
 
@@ -856,14 +818,14 @@ static void writeBreakpoints(GUIMainControl* w) {
 }
 
 static void setBreakpoint(char* file, intptr_t line, GUIMainControl* w) {
-	size_t len = snprintf(NULL, 0, "b %s:%d\n", file, line);
+	size_t len = snprintf(NULL, 0, "b %s:%ld\n", file, line);
 	char* loc = malloc(sizeof(*loc) * (len + 1));
-	snprintf(loc, len + 1, "b %s:%d\n", file, line);
+	snprintf(loc, len + 1, "b %s:%ld\n", file, line);
 	
 	char* foo;
 	if(!HT_get(&w->breakpoints, loc, &foo)) {
 		// key exists
-		printf("deleting");
+		//printf("deleting");
 		HT_delete(&w->breakpoints, loc);
 	}
 	else {

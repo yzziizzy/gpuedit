@@ -79,6 +79,9 @@
 	X(FileBrowserCmd, ToggleSelect) \
 	X(FileBrowserCmd, JumpToLetter) \
 	\
+	X(FuzzyMatcherCmd, CursorMove) \
+	X(FuzzyMatcherCmd, Open) \
+	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \
 	X(MainCmd, FuzzyOpener) \

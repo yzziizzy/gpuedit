@@ -40,7 +40,7 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 	if(w->hasFocus && fmod(pfp->wallTime, 1.0) > .5) {
 		cursorOff = textOffset + tl.x + (w->cursorOffset /** w->textControl->fontSize * .01*/);
-		cursorAlpha = 255;
+		cursorAlpha = 1;
 	}
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 2);
@@ -68,22 +68,25 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	struct Color4 cc = gm->defaults.cursorColor;
 	cc.a = 1.0; //cursorAlpha;
 	
+	
 	// cursor
-	*v = (GUIUnifiedVertex){
-		.pos = {cursorOff, tl.y, cursorOff + 2, tl.y + w->header.size.y},
-		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-		
-		.guiType = 0, // window 
-		
-		.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
-		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
-		
-		.fg = GUI_COLOR4_TO_SHADER(cc), 
-		.bg = GUI_COLOR4_TO_SHADER(cc), 
-		
-		.z = w->header.absZ + .25,
-		.alpha = w->header.alpha,
-	};
+	if(cursorAlpha > 0) {
+		*v = (GUIUnifiedVertex){
+			.pos = {cursorOff, tl.y, cursorOff + 2, tl.y + w->header.size.y},
+			.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
+			
+			.guiType = 0, // window 
+			
+			.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
+			.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
+			
+			.fg = GUI_COLOR4_TO_SHADER(cc), 
+			.bg = GUI_COLOR4_TO_SHADER(cc), 
+			
+			.z = w->header.absZ + .25,
+			.alpha = cursorAlpha,
+		};
+	}
 	
 	AABB2 box;
 	box.min.x = tl.x + textOffset;
@@ -155,7 +158,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	
 	// NOTE: paste will be an event type
-	
+	if(gev->modifiers != 0) return;
 	
 	if(gev->keycode == XK_Left) {
 		moveCursor(w, -1);

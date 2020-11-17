@@ -15,12 +15,15 @@
 
 {cmd: "MainCmd_QuitWithoutSave", mods: "CS", key: "q", amt: 0},
 {cmd: "MainCmd_OpenFileBrowser", mods: "", key: "XK_F2", amt: 0},
-{cmd: "MainCmd_FuzzyOpener", mods: "C", key: "p", amt: 0},
+{cmd: "MainCmd_FuzzyOpener", mods: "", key: "XK_F4", amt: 0},
 {cmd: "MainCmd_MainMenu", mods: "A", key: "m", amt: 0},
 {cmd: "MainCmd_SimpleWindowTest", mods: "C", key: "u", amt: 0},
 {cmd: "MainCmd_CloseTab", mods: "CS", key: "w", amt: 0},
 
 {cmd: "BufferCmd_ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
+
+{cmd: "FuzzyMatcherCmd_CursorMove", mods: "", key: "XK_Up", amt: -1},
+{cmd: "FuzzyMatcherCmd_CursorMove", mods: "", key: "XK_Down", amt: 1},
 
 {cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Up", amt: -1},
 {cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Down", amt: 1},
