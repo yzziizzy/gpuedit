@@ -1236,32 +1236,97 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 
 
 
-// TODO: undo
-void Buffer_CommentLine(Buffer* b, BufferLine* bl) {
-	if(!b->ep->lineCommentPrefix) return;
+void Buffer_LinePrependText(Buffer* b, BufferLine* bl, char* text) {
+	if(!text) return;
+	size_t len = strlen(text);
+	if(!len) return;
 	
-	BufferLine_InsertChars(bl, b->ep->lineCommentPrefix, strlen(b->ep->lineCommentPrefix), 0);
+	Buffer_LineInsertChars(b, bl, text, 0, len);
 }
 
-// TODO: undo
-void Buffer_CommentSelection(Buffer* b, BufferRange* sel) {
+void Buffer_LinePrependTextSelection(Buffer* b, BufferRange* sel, char* text) {
+	if(!text) return;
+	size_t len = strlen(text);
+	if(!len) return;
+
+	BufferLine* bl = sel->startLine;
+	while(bl) {
+		Buffer_LinePrependText(b, bl, text);
+		
+		if(bl == sel->endLine) break;
+		bl = bl->next;
+	}
+}
+	
+
+void Buffer_LineUnprependText(Buffer* b, BufferLine* bl, char* text) {
+	if(!text || !bl->buf) return;
+	size_t len = strlen(text);
+	if(!len) return;
+	
+	if(0 != strncmp(bl->buf, text, len)) return;
+	
+	Buffer_LineDeleteChars(b, bl, 0, len);
+}
+
+void Buffer_LineUnprependTextSelection(Buffer* b, BufferRange* sel, char* text) {
+	if(!text) return;
+	size_t len = strlen(text);
+	if(!len) return;
+
+	BufferLine* bl = sel->startLine;
+	while(bl) {
+		Buffer_LineUnprependText(b, bl, text);
+		
+		if(bl == sel->endLine) break;
+		bl = bl->next;
+	}
+}
+
+
+void Buffer_SurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* end) {
 	if(!sel) return;
 	
-	BufferLine_InsertChars(
-		sel->startLine, 
-		b->ep->selectionCommentPrefix, 
-		strlen(b->ep->selectionCommentPrefix), 
-		sel->startCol
-	);
-	
-	BufferLine_InsertChars(
-		sel->endLine, 
-		b->ep->selectionCommentPostfix, 
-		strlen(b->ep->selectionCommentPostfix), 
-		sel->endCol
-	);
+	// end must be first
+	if(end) {
+		BufferLine_InsertChars(
+			sel->endLine,
+			end, 
+			sel->endCol,
+			strlen(end)
+		);
+	}
+
+	if(begin) {
+		BufferLine_InsertChars(
+			sel->startLine, 
+			begin,  
+			sel->startCol,
+			strlen(begin)
+		);
+	}
 }
 
+int Buffer_UnsurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* end) {
+	int out = 0;
+	
+	if(!sel) return 0;
+
+	// end must be first
+	size_t elen = strlen(end);
+	if(0 == strncmp(sel->endLine->buf + sel->endCol - elen, end, elen)) {
+		Buffer_LineDeleteChars(b, sel->endLine, sel->endCol - elen, elen);
+		out |= (1 << 1);
+	}
+	
+	size_t slen = strlen(begin);
+	if(0 == strncmp(sel->startLine->buf + sel->startCol, begin, slen)) {
+		Buffer_LineDeleteChars(b, sel->startLine, sel->startCol, slen);
+		out |= (1 << 0);
+	}
+	
+	return out;
+}
 
 
 /*
@@ -1726,3 +1791,14 @@ void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* dat
 	VEC_TAIL(&b->changeListeners).fn = fn;
 	VEC_TAIL(&b->changeListeners).data = data;
 }
+
+
+int BufferRange_CompleteLinesOnly(BufferRange* sel) {
+	if(!sel) return 0;
+	
+	if(sel->startCol != 0 && sel->startCol != sel->startLine->length) return 0;
+	if(sel->endCol != 0 && sel->endCol != sel->endLine->length) return 0;
+	
+	return 1;
+}
+

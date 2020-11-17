@@ -1,15 +1,11 @@
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
+* Selection moving selects whole rest of the file sometimes
+*    dragging line from tabbed text onto line with only tab
 * Replace All
 * WantedCol is broken, especially across tabs
 * Basic autocomplete
-* Comment/uncomment, line and selection
-* Multi-line indent and un-indent
-* File Browser kb integration
-* Search for word under cursor
-* Pasting with selection does not overwrite it
-* Typing with selection does not overwrite it
 * Copy/paste misses a line sometimes, with small selections
 * Save find text across finds
 * F3 resumes search
@@ -17,7 +13,7 @@
 * NULL-inserting bug related to line splitting after movign from long line to short
 
 == Needed before fractal dogfooding ==
-* fuzzy file opener
+...
 
 == TODO ==
 * s/GUIBufferEditControl_*()/GBEC_*()/
@@ -29,6 +25,10 @@
 * Gutter width is wrong for 10 line files
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
+* Multiple MC tab rows
+* Tab long name scrolling
+* Tab Bar scrolling
+* Smart uncomment
 * Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working
 * Clipboard ring
@@ -91,16 +91,15 @@
 
 == Editor Features ==
 * Drag selection to new place
+* Move selection up/down n lines, shifting existing lines below/above
 * Grow selection by sequence
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
 * Speed scrolling with ctrl
 * Escape sequences and regex references in search and replace
-* Duplicate selected lines up/down
 * Grammar-driven move by words
 * Double click to select whole word
 * Comment chars located before or after tabs
-* Multi-line indent and un-indent
 * Bulk comment and uncomment 
 * Duplicate selection
 * Option: Autocomplete recurse into #include 
@@ -173,6 +172,7 @@
 
 == Low Priority ==
 * Built-in terminal
+* Cursor position on reverse selections after line duplicate is wrong
 * Pause render loop on X window losing focus (optional)
 * Split GUIManager draw calls into layers for less sorting
 * Optimize all buffer operations for minimal line renumbering

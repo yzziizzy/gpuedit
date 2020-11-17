@@ -257,6 +257,21 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 			if(v->type == JSON_TYPE_STRING) {
 				cmds[i].str = strdup(v->v.str);
 			}
+			if(v->type == JSON_TYPE_ARRAY) {
+				// ONLY supports array of strings
+				char** z = malloc(sizeof(*z) * (v->v.arr->length + 1));
+				
+				int j = 0;
+				json_array_node_t* link = v->v.arr->head;
+				while(link) {
+					z[j++] = strdup(link->value->v.str);
+					
+					link = link->next;
+				}
+				z[j] = NULL;
+				
+				cmds[i].pstr = z;
+			}
 			else {
 				json_as_int(v, &n);
 				cmds[i].amt = n;

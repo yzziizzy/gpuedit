@@ -346,6 +346,7 @@ typedef struct BufferCmd {
 	union {
 		long amt;
 		char* str;
+		char** pstr;
 	};
 } BufferCmd;
 
@@ -440,7 +441,13 @@ void Buffer_LineIndent(Buffer* b, BufferLine* bl);
 void Buffer_LineUnindent(Buffer* b, BufferLine* bl);
 void Buffer_IndentSelection(Buffer* b, BufferRange* sel);
 void Buffer_UnindentSelection(Buffer* b, BufferRange* sel);
-
+void Buffer_LinePrependText(Buffer* b, BufferLine* bl, char* text);
+void Buffer_LineUnprependText(Buffer* b, BufferLine* bl, char* text);
+void Buffer_LinePrependTextSelection(Buffer* b, BufferRange* sel, char* text);
+void Buffer_LineUnprependTextSelection(Buffer* b, BufferRange* sel, char* text);
+void Buffer_SurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* end);
+int Buffer_UnsurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* end);
+int BufferRange_CompleteLinesOnly(BufferRange* sel);
 
 void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC);
 void GBEC_ClearCurrentSelection(GUIBufferEditControl* w);
@@ -515,6 +522,8 @@ void GBEC_DeleteToPrevSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t 
 void GBEC_DeleteToNextSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t col, char* charSet);
 int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
+void GBEC_SurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
+void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
 
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);

@@ -655,6 +655,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 				w->current = w->sel->startLine; // TODO: undo cursor
 				w->curCol = w->sel->startCol;
 				Buffer_DeleteSelectionContents(b, w->sel);
+				GBEC_ClearAllSelections(w);
 			}
 			Buffer_LineInsertChars(b, w->current, cc, w->curCol, 1);
 			GBEC_MoveCursorH(w, 1);
@@ -712,6 +713,65 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			if(cur) GBEC_MoveCursorTo(w, cur, col);
 			break;
 		}
+		
+		case BufferCmd_LinePrependText:
+			if(w->sel) {
+				Buffer_LinePrependTextSelection(b, w->sel, cmd->str);
+			}
+			else {
+				Buffer_LinePrependText(b, w->current, cmd->str);
+			}
+			break;
+			
+		case BufferCmd_SurroundSelection:
+			if(w->sel)
+				GBEC_SurroundCurrentSelection(w, cmd->pstr[0], cmd->pstr[1]);
+			break;
+		
+		case BufferCmd_SmartComment:
+			if(!cmd->pstr[0] || !cmd->pstr[1] || !cmd->pstr[2]) break;
+			if(!w->sel) { // simple case
+				Buffer_LinePrependText(b, w->current, cmd->pstr[0]);
+				break;
+			}
+			
+			if(BufferRange_CompleteLinesOnly(w->sel)) {
+				Buffer_LinePrependTextSelection(b, w->sel, cmd->pstr[0]);
+			}
+			else {
+				GBEC_SurroundCurrentSelection(w, cmd->pstr[1], cmd->pstr[2]);
+			}
+			break;
+		
+		case BufferCmd_LineUnprependText:
+			if(w->sel) {
+				Buffer_LineUnprependTextSelection(b, w->sel, cmd->str);
+			}
+			else {
+				Buffer_LineUnprependText(b, w->current, cmd->str);
+			}
+			break;
+			
+		case BufferCmd_UnsurroundSelection:
+			if(w->sel)
+				GBEC_UnsurroundCurrentSelection(w, cmd->pstr[0], cmd->pstr[1]);
+			break;
+		
+		case BufferCmd_StrictUncomment:
+			if(!cmd->pstr[0] || !cmd->pstr[1] || !cmd->pstr[2]) break;
+			if(!w->sel) { // simple case
+				Buffer_LineUnprependText(b, w->current, cmd->pstr[0]);
+				break;
+			}
+			
+			if(BufferRange_CompleteLinesOnly(w->sel)) {
+				Buffer_LineUnprependTextSelection(b, w->sel, cmd->pstr[0]);
+			}
+			else {
+				GBEC_UnsurroundCurrentSelection(w, cmd->pstr[1], cmd->pstr[2]);
+			}
+			break;
+		
 		case BufferCmd_Home:
 			// TODO: undo
 			w->current = b->first;
@@ -746,6 +806,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		case BufferCmd_DuplicateLine:
 			if(w->sel) {
 				Buffer_DuplicateSelection(b, w->sel, cmd->amt);
+				GBEC_MoveCursorTo(w, w->sel->endLine, w->sel->endCol);
 			}
 			else {
 				Buffer_DuplicateLines(b, w->current, cmd->amt);
@@ -778,6 +839,12 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		case BufferCmd_Paste:
 			b2 = Clipboard_PopBuffer();
 			if(b2) {
+				if(w->sel) {
+					GBEC_MoveCursorTo(w, w->sel->startLine, w->sel->startCol);
+					Buffer_DeleteSelectionContents(b, w->sel);
+					GBEC_ClearAllSelections(w);
+				}
+				
 				// TODO: undo
 				BufferRange pasteRange;
 				Buffer_InsertBufferAt(b, b2, w->current, w->curCol, &pasteRange);
@@ -948,6 +1015,56 @@ void GBEC_ClearAllSelections(GUIBufferEditControl* w) {
 }
 
 
+// also fixes cursor and selection
+void GBEC_SurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end) {
+	Buffer* b = w->buffer;
+
+	if(!w->sel || !begin) return;
+	 
+	Buffer_SurroundSelection(b, w->sel, begin, end);
+		
+	// fix the selection to include the new text
+	size_t len1 = strlen(begin);
+	size_t len2 = strlen(end);
+	if(len1 || len2) {
+		if(w->sel->endLine == w->current && w->sel->endCol == w->curCol) {
+			// forward selection
+			GBEC_MoveCursorH(w, len2 + (w->sel->startLine == w->current ? len1 : 0));
+			GUIBufferEditControl_SetSelectionFromPivot(w);
+		}
+		else {
+			// reverse selection
+			w->selectPivotCol += len2 + (w->sel->startLine == w->selectPivotLine ? len1 : 0);
+			GUIBufferEditControl_SetSelectionFromPivot(w);
+		}
+	}
+}
+
+// also fixes cursor and selection
+void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end) {
+	Buffer* b = w->buffer;
+
+	int res = Buffer_UnsurroundSelection(b, w->sel, begin, end);
+	if(res == 0) return;
+			
+	// fix the selection to include the new text
+	size_t len1 = strlen(begin);
+	size_t len2 = strlen(end);
+	
+	if(!len1 && !len2) return;
+	
+	if(w->sel->endLine == w->current && w->sel->endCol == w->curCol) {
+		// forward selection
+		GBEC_MoveCursorH(w, -len2 - (w->sel->startLine == w->current ? len1 : 0));
+		GUIBufferEditControl_SetSelectionFromPivot(w);
+	}
+	else {
+		// reverse selection
+		w->selectPivotCol -= len2 + (w->sel->startLine == w->selectPivotLine ? len1 : 0);
+		GUIBufferEditControl_SetSelectionFromPivot(w);
+	}
+
+}
 
 
 intptr_t getDisplayColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted) {

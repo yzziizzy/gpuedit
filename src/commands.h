@@ -53,6 +53,13 @@
 	X(BufferCmd, Indent) \
 	X(BufferCmd, SmartIndent) \
 	X(BufferCmd, Unindent) \
+	X(BufferCmd, LinePrependText) \
+	X(BufferCmd, LineUnprependText) \
+	X(BufferCmd, SurroundSelection) \
+	X(BufferCmd, UnsurroundSelection) \
+	X(BufferCmd, SmartComment) \
+	X(BufferCmd, StrictUncomment) \
+	X(BufferCmd, SmartUncomment) \
 	X(BufferCmd, CollapseWhitespace) \
 	X(BufferCmd, FindStartSequenceUnderCursor) \
 	X(BufferCmd, FindStart) \
@@ -136,6 +143,7 @@ typedef struct Cmd {
 	union {
 		long amt;
 		char* str;
+		char** pstr;
 	};
 } Cmd;
 
