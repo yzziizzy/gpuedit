@@ -16,6 +16,8 @@
 ...
 
 == TODO ==
+* grep matcher
+* GUIListControl
 * s/GUIBufferEditControl_*()/GBEC_*()/
 * Highlight all find matches, give total count
 * Center search result in the screen when finding

@@ -158,7 +158,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	
 	// NOTE: paste will be an event type
-	if(gev->modifiers != 0) return;
+	if(gev->modifiers & (GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX)) return;
 	
 	if(gev->keycode == XK_Left) {
 		moveCursor(w, -1);
@@ -306,7 +306,7 @@ static void updateTextControl(GUIEdit* ed) {
 	
 	//printf("cursorpos %f\n", ed->cursorOffset); 
 	
-	fireOnchange(ed);
+//	fireOnchange(ed);
 }
 
 // just changes the text value. triggers nothing.

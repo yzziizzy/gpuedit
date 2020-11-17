@@ -257,7 +257,7 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 			if(v->type == JSON_TYPE_STRING) {
 				cmds[i].str = strdup(v->v.str);
 			}
-			if(v->type == JSON_TYPE_ARRAY) {
+			else if(v->type == JSON_TYPE_ARRAY) {
 				// ONLY supports array of strings
 				char** z = malloc(sizeof(*z) * (v->v.arr->length + 1));
 				

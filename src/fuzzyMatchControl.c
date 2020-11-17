@@ -95,7 +95,8 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 	
 	if((GUIEdit*)gev->originalTarget == w->searchBox) {
 		if(0 == strcmp(gev->userType, "change")) {
-			
+			w->cursorIndex = 0;
+						
 			if(w->searchTerm) free(w->searchTerm);
 			w->searchTerm = strndup(gev->userData, gev->userSize);
 			
@@ -252,7 +253,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	int n_matches = 0;
 	int err = 0;
 
-	err = fuzzy_match_charpp(filepaths, n_filepaths, &matches, &n_matches, input);
+	err = fuzzy_match_charpp(filepaths, n_filepaths, &matches, &n_matches, input, 0);
 	// printf("fuzzy match exit code: %d\n", err);
 
 	if(w->files) free(w->files);	

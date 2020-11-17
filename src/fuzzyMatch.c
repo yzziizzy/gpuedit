@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "fuzzyMatch.h"
 
@@ -28,7 +29,8 @@ int fuzzy_match_fmatch(
 	const int n_candidates,
 	fmatch** matches_out,
 	int* n_out,
-	const char* input
+	const char* input,
+	char case_sensitive
 ) {
 	fmatch matches[n_candidates];
 	int n_matches = 0;
@@ -61,7 +63,7 @@ int fuzzy_match_fmatch(
 		j_i = len_i - 1;
 		while(j_c >= 0 && j_i >= 0) {
 			DEBUG("while %d, %d\n", j_c, j_i);
-			if(candidates[i][j_c] == input[j_i]) {
+			if(case_sensitive ? candidates[i][j_c] == input[j_i] : tolower(candidates[i][j_c]) == tolower(input[j_i])) {
 				if(matches[i].end == -1) {
 					matches[i].end = j_c;
 				}
@@ -130,14 +132,15 @@ int fuzzy_match_charpp(
 	const int n_candidates,
 	char*** matches_out,
 	int* n_out,
-	const char* input
+	const char* input,
+	char case_sensitive
 ) {
 	fmatch* matches;
 	char** out;
 
 	int err = 0;
 
-	err = fuzzy_match_fmatch(candidates, n_candidates, &matches, n_out, input);
+	err = fuzzy_match_fmatch(candidates, n_candidates, &matches, n_out, input, case_sensitive);
 	DEBUG("fuzzy_match_fmatch exit code: %d\n", err);
 
 	if(err) {

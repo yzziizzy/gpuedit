@@ -14,7 +14,8 @@ int fuzzy_match_fmatch(
 	const int n_candidates,
 	fmatch** matches_out,
 	int* n_out,
-	const char* input
+	const char* input,
+	char case_sensitive
 );
 
 // the strings inside matches_out point into candidates
@@ -23,7 +24,8 @@ int fuzzy_match_charpp(
 	const int n_candidates,
 	char*** matches_out,
 	int* n_out,
-	const char* input
+	const char* input,
+	char case_sensitive
 );
 
 #endif //__gpuedit_fuzzy_match_h__
