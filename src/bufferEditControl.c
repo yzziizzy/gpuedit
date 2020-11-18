@@ -486,8 +486,8 @@ void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* w) {
 	w->sel->endLine = w->selectPivotLine;
 	w->sel->endCol = w->selectPivotCol;
 	
-// 	BufferRange* br = b->sel;
-// 	printf("sel0: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
+ //	BufferRange* br = w->sel;
+ //	printf("sel0: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
 	
 	BufferRange_Normalize(&w->sel);
 }

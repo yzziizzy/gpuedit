@@ -307,6 +307,7 @@ typedef struct GUIBufferEditor {
 	GUIEdit* replaceBox;
 	GUIEdit* loadBox;
 	
+	char* findQuery;
 	pcre2_code* findRE;
 	pcre2_match_data* findMatch;
 	BufferLine* findLine;

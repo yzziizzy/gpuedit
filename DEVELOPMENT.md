@@ -1,14 +1,12 @@
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
-* Selection moving selects whole rest of the file sometimes
-*    dragging line from tabbed text onto line with only tab
 * Replace All
 * WantedCol is broken, especially across tabs
 * Basic autocomplete
-* Copy/paste misses a line sometimes, with small selections
-* Save find text across finds
-* F3 resumes search
+* Reorder tabs
+* Autosort tabs
+* Go to previous search match (refactor search to find all in a list)
 * Able to refocus on the editor while finding
 * NULL-inserting bug related to line splitting after movign from long line to short
 
@@ -27,6 +25,7 @@
 * Gutter width is wrong for 10 line files
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
+* Open file to some certain line
 * Multiple MC tab rows
 * Tab long name scrolling
 * Tab Bar scrolling

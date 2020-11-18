@@ -388,6 +388,19 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					else atom = NULL;
 				}
 			}
+			
+			// selections ending at the end of a line
+			if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum && gbe->sel->startCol == bl->length) {
+				inSelection = 1;
+				fg = &theme->hl_textColor;
+				bg = &theme->hl_bgColor;
+			}
+			if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum && gbe->sel->endCol == bl->length) {
+				inSelection = 0;
+				fg = &theme->textColor;
+				bg = &theme->bgColor;
+			} 
+			
 		}
 
 		if(tl.y > edh) break; // end of buffer control

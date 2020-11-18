@@ -1062,11 +1062,12 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 		gbl = gbl->next;
 	}
 	
+	t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
+	// prepend the last line to the temp buffer
 	if(tline->length) {
-		// prepend the last line to the temp buffer
-		t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
 		Buffer_LineAppendText(target, t, tmp, tmplen);
 	}
+	
 	
 	if(outRange) {
 		outRange->endLine = t;

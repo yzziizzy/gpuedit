@@ -172,7 +172,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	GUIMainControl_LoadFile(as->mc, "testfile.h");
 	GUIMainControl_LoadFile(as->mc, "testfile.c");
 	
-	GUIMainControl_OpenFileBrowser(as->mc, "./");
+//	GUIMainControl_OpenFileBrowser(as->mc, "./");
+	GUIMainControl_FuzzyOpener(as->mc);
 	
 	GUIManager_pushFocusedObject(as->gui, as->mc);
 	

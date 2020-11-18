@@ -157,13 +157,12 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 	if(w->trayOpen && (GUIEdit*)gev->originalTarget == w->findBox) {
 		if(0 == strcmp(gev->userType, "change")) {
 			// becaus userData is not null terminated from the Edit
-			char* word = strndup(gev->userData, gev->userSize);
+			if(w->findQuery) free(w->findQuery);
+			w->findQuery = strndup(gev->userData, gev->userSize);
 			
 			GUIBufferEditor_StopFind(w);
-			GUIBufferEditor_StartFind(w, word);
+			GUIBufferEditor_StartFind(w, w->findQuery);
 			GUIBufferEditor_NextFindMatch(w);
-			
-			free(word);
 			
 		// 	GUIBufferEditor_FindWord(w, word);
 			GUIBufferEditor_scrollToCursor(w);
@@ -171,6 +170,14 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 		else if(0 == strcmp(gev->userType, "enter")) {
 			GUIBufferEditor_NextFindMatch(w);
 		}
+	}
+}
+
+static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	
+	if(w->findMode == 1 || w->replaceMode == 1) {
+		GUIManager_pushFocusedObject(w->header.gm, w->findBox);
 	}
 }
 
@@ -192,6 +199,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 // 		.DragMove = dragMove,
 		.ParentResize = (void*)parentResize,
 		.User = userEvent,
+		.GainedFocus = gainedFocus,
 	};
 	
 	
@@ -656,9 +664,6 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			if(!w->replaceMode) {
 				char* preserved = NULL;
 				if(w->trayOpen) {
-					if(w->findMode) {
-						preserved = strdup(GUIEdit_GetText(w->findBox));
-					}
 					GUIBufferEditor_CloseTray(w);
 				}
 				
@@ -671,9 +676,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				GUIRegisterObject(w, w->trayRoot);
 				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
 				w->replaceBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "replace");
-				if(preserved) {
-					GUIEdit_SetText(w->findBox, preserved);
-					free(preserved);
+				if(w->findQuery) {
+					GUIEdit_SetText(w->findBox, w->findQuery);
 				}
 				
 				w->ec->cursorBlinkPaused = 1;
@@ -711,8 +715,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				GUIBufferEditor_StartFind(w, str);					
 				GUIBufferEditor_NextFindMatch(w);
 				
-				free(str);
-
+				if(w->findQuery) free(w->findQuery);
+				w->findQuery = str;
 
 				GUIBufferEditor_scrollToCursor(w);
 				
@@ -729,12 +733,16 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 		
 		case BufferCmd_FindStart:
+			if(w->findQuery) {
+				free(w->findQuery);
+				w->findQuery = NULL;
+			}
+			// inetnational fallthrough
+			
+		case BufferCmd_FindResume:
 			if(!w->findMode) {
 				char* preserved = NULL;
 				if(w->trayOpen) {
-					if(w->replaceMode) {
-						preserved = strdup(GUIEdit_GetText(w->findBox));
-					}
 					GUIBufferEditor_CloseTray(w);
 				}
 				
@@ -745,9 +753,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 				GUIRegisterObject(w, w->trayRoot);
 				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
-				if(preserved) {
-					GUIEdit_SetText(w->findBox, preserved);
-					free(preserved);
+				if(w->findQuery) {
+					GUIEdit_SetText(w->findBox, w->findQuery);
 				}
 				
 				w->ec->cursorBlinkPaused = 1;

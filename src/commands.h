@@ -63,6 +63,7 @@
 	X(BufferCmd, CollapseWhitespace) \
 	X(BufferCmd, FindStartSequenceUnderCursor) \
 	X(BufferCmd, FindStart) \
+	X(BufferCmd, FindResume) \
 	X(BufferCmd, FindNext) \
 	X(BufferCmd, ReplaceStart) \
 	X(BufferCmd, ReplaceNext) \
