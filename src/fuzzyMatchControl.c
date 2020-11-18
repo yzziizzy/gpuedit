@@ -141,6 +141,8 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			break;
 			
 		case FuzzyMatcherCmd_Open: {
+			char* path = resolve_path(w->files[w->cursorIndex]);
+		
 			GUIEvent gev2 = {};
 			gev2.type = GUIEVENT_User;
 			gev2.eventTime = 0;//gev->eventTime;
@@ -148,12 +150,14 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			gev2.currentTarget = w;
 			gev2.cancelled = 0;
 			// handlers are responsible for cleanup
-			gev2.userData = w->files[w->cursorIndex];
-			gev2.userSize = strlen(w->files[w->cursorIndex]);
+			gev2.userData = path;
+			gev2.userSize = strlen(path);
 			
 			gev2.userType = "openFile";
 		
 			GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+			
+			free(path);
 			break;
 		}
 		
