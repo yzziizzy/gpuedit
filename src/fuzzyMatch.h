@@ -2,6 +2,11 @@
 #define __gpuedit_fuzzy_match_h__
 
 typedef struct {
+	char* basepath;
+	char* filepath;
+} fcandidate;
+
+typedef struct {
 	int index; // in candidates
 	int start;
 	int end;
@@ -10,7 +15,7 @@ typedef struct {
 } fmatch;
 
 int fuzzy_match_fmatch(
-	char** candidates,
+	fcandidate* candidates,
 	const int n_candidates,
 	fmatch** matches_out,
 	int* n_out,
@@ -19,10 +24,10 @@ int fuzzy_match_fmatch(
 );
 
 // the strings inside matches_out point into candidates
-int fuzzy_match_charpp(
-	char** candidates,
+int fuzzy_match_fcandidate(
+	fcandidate* candidates,
 	const int n_candidates,
-	char*** matches_out,
+	fcandidate** matches_out,
 	int* n_out,
 	const char* input,
 	char case_sensitive

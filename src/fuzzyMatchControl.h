@@ -3,6 +3,7 @@
 
 #include "gui.h"
 #include "commands.h"
+#include "fuzzyMatch.h"
 
 
 typedef struct GUIFuzzyMatchControl {
@@ -10,10 +11,11 @@ typedef struct GUIFuzzyMatchControl {
 	
 	GUIEdit* searchBox;
 	char* searchTerm;
-	char** files;
-	size_t fileCnt;
+	fcandidate* matches;
+	size_t matchCnt;
 	int cursorIndex;
-	char* stringBuffer;
+	fcandidate* candidates;
+	char*** stringBuffers;
 	
 	float lineHeight;
 	float leftMargin;
