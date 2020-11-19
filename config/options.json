@@ -51,6 +51,12 @@
 
 	"Theme_cursorColor": "#f0f0f0ff",
 
+	"Theme_tabBorderColor": "#787878ff",
+	"Theme_tabActiveBgColor": "#505050ff",
+	"Theme_tabHoverBgColor": "#282828ff",
+	"Theme_tabBgColor": "#0a0a0aff",
+	"Theme_tabTextColor": "#c8c8c8ff",
+
 	"Theme_windowBgBorderColor": "#b4b400ff",
 
 	"Theme_windowBgColor": "#141414ff",

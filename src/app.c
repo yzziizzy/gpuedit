@@ -527,10 +527,10 @@ void execProcessPipe_buffer(char** args, char** buffer_out, size_t* size_out/*,i
 }
 
 
-void execProcessPipe_charpp(char** args, char*** charpp_out, size_t* n_out/*,int* code_out*/) {
+char* execProcessPipe_charpp(char** args, char*** charpp_out, size_t* n_out/*,int* code_out*/) {
 	char** argsv[] = {args, NULL};
 
-	execProcessPipe_charppv(argsv, charpp_out, n_out);
+	return execProcessPipe_charppv(argsv, charpp_out, n_out);
 }
 
 

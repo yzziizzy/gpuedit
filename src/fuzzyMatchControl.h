@@ -15,6 +15,7 @@ typedef struct GUIFuzzyMatchControl {
 	size_t matchCnt;
 	int cursorIndex;
 	fcandidate* candidates;
+	char** contents;
 	char*** stringBuffers;
 	
 	float lineHeight;

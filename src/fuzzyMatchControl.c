@@ -229,18 +229,20 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	while(w->header.gm->gs->MainControl_searchPaths[i]) {
 		i++;
 	}
+	if(i == 0) return;
 
 	size_t max_candidates = 1024;
 	fcandidate* candidates = malloc(max_candidates*sizeof(fcandidate));
 	size_t n_candidates = 0;
 
 	size_t n_filepaths;
+	char** contents = malloc(sizeof(*contents)*i);
 	char*** stringBuffers = malloc(sizeof(*stringBuffers)*i);
 	
 	i = 0;
 	while(w->header.gm->gs->MainControl_searchPaths[i]) {
 		args[2] = w->header.gm->gs->MainControl_searchPaths[i];
-		execProcessPipe_charpp(args, &(stringBuffers[i]), &n_filepaths);
+		contents[i] = execProcessPipe_charpp(args, &stringBuffers[i], &n_filepaths);
 		DEBUG("result: %ld filepaths\n", n_filepaths);
 
 		if(n_candidates+n_filepaths >= max_candidates) {
@@ -256,10 +258,11 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 		i++;
 		n_candidates += n_filepaths;
 	}
+	contents[i] = NULL;
 	stringBuffers[i] = NULL;
 
 	if(w->stringBuffers) {
-		i=0;
+		i = 0;
 		while(w->stringBuffers[i]) {
 			free(w->stringBuffers[i]);
 			i++;
@@ -267,6 +270,16 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 		free(w->stringBuffers);
 	}
 	w->stringBuffers = stringBuffers;
+
+	if(w->contents) {
+		i = 0;
+		while(w->contents[i]) {
+			free(w->contents[i]);
+			i++;
+		}
+		free(w->contents);
+	}
+	w->contents = contents;
 
 	if(w->candidates) {
 		free(w->candidates);
