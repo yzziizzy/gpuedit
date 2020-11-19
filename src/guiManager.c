@@ -95,40 +95,48 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
 	gm->defaults.fontSize = .45;
-	gm->defaults.textColor = COLOR4_FROM_HEX(200,200,200,255);
-	gm->defaults.windowBgColor = COLOR4_FROM_HEX(10,10,10,255);
-	gm->defaults.buttonTextColor = COLOR4_FROM_HEX(200,200,225,255);
-	gm->defaults.buttonHoverTextColor = COLOR4_FROM_HEX(200,2,2,255);
-	gm->defaults.buttonDisTextColor = COLOR4_FROM_HEX(20,20,20,255);
-	gm->defaults.buttonBgColor = COLOR4_FROM_HEX(2,2,225,255);
-	gm->defaults.buttonHoverBgColor = COLOR4_FROM_HEX(200,200,2,255);
-	gm->defaults.buttonDisBgColor = COLOR4_FROM_HEX(100,100,100,255);
-	gm->defaults.buttonBorderColor = COLOR4_FROM_HEX(200,2,225,255);
-	gm->defaults.buttonHoverBorderColor = COLOR4_FROM_HEX(2,200,225,255);
-	gm->defaults.buttonDisBorderColor = COLOR4_FROM_HEX(20,20,125,255);
-	gm->defaults.editBorderColor = COLOR4_FROM_HEX(25,245,25,255);
-	gm->defaults.editBgColor = COLOR4_FROM_HEX(20,50,25,255);
+	decodeHexColorNorm(gs->Theme_textColor, (float*)&(gm->defaults.textColor));
+
+	decodeHexColorNorm(gs->Theme_buttonTextColor, (float*)&(gm->defaults.buttonTextColor));
+	decodeHexColorNorm(gs->Theme_buttonHoverTextColor, (float*)&(gm->defaults.buttonHoverTextColor));
+	decodeHexColorNorm(gs->Theme_buttonDisTextColor, (float*)&(gm->defaults.buttonDisTextColor));
+	decodeHexColorNorm(gs->Theme_buttonBgColor, (float*)&(gm->defaults.buttonBgColor));
+	decodeHexColorNorm(gs->Theme_buttonHoverBgColor, (float*)&(gm->defaults.buttonHoverBgColor));
+	decodeHexColorNorm(gs->Theme_buttonDisBgColor, (float*)&(gm->defaults.buttonDisBgColor));
+	decodeHexColorNorm(gs->Theme_buttonBorderColor, (float*)&(gm->defaults.buttonBorderColor));
+	decodeHexColorNorm(gs->Theme_buttonHoverBorderColor, (float*)&(gm->defaults.buttonHoverBorderColor));
+	decodeHexColorNorm(gs->Theme_buttonDisBorderColor, (float*)&(gm->defaults.buttonDisBorderColor));
+
+	decodeHexColorNorm(gs->Theme_editBorderColor, (float*)&(gm->defaults.editBorderColor));
+	decodeHexColorNorm(gs->Theme_editBgColor, (float*)&(gm->defaults.editBgColor));
 	gm->defaults.editWidth = 150;
 	gm->defaults.editHeight = 18;
-	gm->defaults.cursorColor = COLOR4_FROM_HEX(240,240,240,255);
-	
-	gm->defaults.windowBgBorderColor = COLOR4_FROM_HEX(180, 180, 0, 255);
+
+	decodeHexColorNorm(gs->Theme_cursorColor, (float*)&(gm->defaults.cursorColor));
+
+	decodeHexColorNorm(gs->Theme_tabTextColor, (float*)&(gm->defaults.tabTextColor));
+	decodeHexColorNorm(gs->Theme_tabBorderColor, (float*)&(gm->defaults.tabBorderColor));
+	decodeHexColorNorm(gs->Theme_tabActiveBgColor, (float*)&(gm->defaults.tabActiveBgColor));
+	decodeHexColorNorm(gs->Theme_tabHoverBgColor, (float*)&(gm->defaults.tabHoverBgColor));
+	decodeHexColorNorm(gs->Theme_tabBgColor, (float*)&(gm->defaults.tabBgColor));
+
+	decodeHexColorNorm(gs->Theme_windowBgBorderColor, (float*)&(gm->defaults.windowBgBorderColor));
 	gm->defaults.windowBgBorderWidth = 1;
-	gm->defaults.windowBgColor = COLOR4_FROM_HEX(20, 20, 20, 255);
-	gm->defaults.windowTitleBorderColor = COLOR4_FROM_HEX(180, 180, 0, 255);
+	decodeHexColorNorm(gs->Theme_windowBgColor, (float*)&(gm->defaults.windowBgColor));
+	decodeHexColorNorm(gs->Theme_windowTitleBorderColor, (float*)&(gm->defaults.windowTitleBorderColor));
 	gm->defaults.windowTitleBorderWidth = 1;
-	gm->defaults.windowTitleColor = COLOR4_FROM_HEX(40, 40, 40, 255);
-	gm->defaults.windowTitleTextColor = COLOR4_FROM_HEX(210, 210, 0, 255);
-	gm->defaults.windowCloseBtnBorderColor = COLOR4_FROM_HEX(210, 40, 0, 255);
+	decodeHexColorNorm(gs->Theme_windowTitleColor, (float*)&(gm->defaults.windowTitleColor));
+	decodeHexColorNorm(gs->Theme_windowTitleTextColor, (float*)&(gm->defaults.windowTitleTextColor));
+	decodeHexColorNorm(gs->Theme_windowCloseBtnBorderColor, (float*)&(gm->defaults.windowCloseBtnBorderColor));
 	gm->defaults.windowCloseBtnBorderWidth = 1;
-	gm->defaults.windowCloseBtnColor = COLOR4_FROM_HEX(180, 60, 0, 255);
-	gm->defaults.windowScrollbarColor = COLOR4_FROM_HEX(150, 150, 0, 255);
-	gm->defaults.windowScrollbarBorderColor = COLOR4_FROM_HEX(150, 150, 0, 255);
+	decodeHexColorNorm(gs->Theme_windowCloseBtnColor, (float*)&(gm->defaults.windowCloseBtnColor));
+	decodeHexColorNorm(gs->Theme_windowScrollbarColor, (float*)&(gm->defaults.windowScrollbarColor));
+	decodeHexColorNorm(gs->Theme_windowScrollbarBorderColor, (float*)&(gm->defaults.windowScrollbarBorderColor));
 	gm->defaults.windowScrollbarBorderWidth = 1;
 
-	gm->defaults.selectBgColor = COLOR4_FROM_HEX(20, 15, 3, 255);
-	gm->defaults.selectBorderColor = COLOR4_FROM_HEX(100, 150, 30, 255);
-	gm->defaults.selectTextColor = COLOR4_FROM_HEX(150, 190, 60, 255);
+	decodeHexColorNorm(gs->Theme_selectBgColor, (float*)&(gm->defaults.selectBgColor));
+	decodeHexColorNorm(gs->Theme_selectBorderColor, (float*)&(gm->defaults.selectBorderColor));
+	decodeHexColorNorm(gs->Theme_selectTextColor, (float*)&(gm->defaults.selectTextColor));
 	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;

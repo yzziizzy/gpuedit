@@ -853,14 +853,14 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	tdp->tabWidth = w->gs->Buffer_tabWidth;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
-	theme->bgColor =      COLOR4_FROM_HEX( 15,  15,  15, 255);
-	theme->textColor =    COLOR4_FROM_HEX(240, 240, 240, 255);
-	theme->cursorColor =  COLOR4_FROM_HEX(255,   0, 255, 180);
-	theme->lineNumColor = COLOR4_FROM_HEX(255, 255, 255, 255);
-	theme->lineNumBgColor =       COLOR4_FROM_HEX(20,  20, 20, 255);
-	theme->lineNumBookmarkColor = COLOR4_FROM_HEX(50, 255, 50, 255);
-	theme->hl_bgColor =   COLOR4_FROM_HEX(  0, 200, 200, 255);
-	theme->hl_textColor = COLOR4_FROM_HEX(250,   0,  50, 255);
+	decodeHexColorNorm(w->gs->Theme_bgColor, (float*)&(theme->bgColor));
+	decodeHexColorNorm(w->gs->Theme_textColor, (float*)&(theme->textColor));
+	decodeHexColorNorm(w->gs->Theme_cursorColor, (float*)&(theme->cursorColor));
+	decodeHexColorNorm(w->gs->Theme_lineNumColor, (float*)&(theme->lineNumColor));
+	decodeHexColorNorm(w->gs->Theme_lineNumBgColor, (float*)&(theme->lineNumBgColor));
+	decodeHexColorNorm(w->gs->Theme_lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
+	decodeHexColorNorm(w->gs->Theme_hl_bgColor, (float*)&(theme->hl_bgColor));
+	decodeHexColorNorm(w->gs->Theme_hl_textColor, (float*)&(theme->hl_textColor));
 	
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;

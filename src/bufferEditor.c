@@ -169,6 +169,7 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 		}
 		else if(0 == strcmp(gev->userType, "enter")) {
 			GUIBufferEditor_NextFindMatch(w);
+			GUIBufferEditor_scrollToCursor(w);
 		}
 	}
 }

@@ -25,7 +25,7 @@ int match_cmp(const void* a_in, const void* b_in) {
 
 
 int fuzzy_match_fmatch(
-	char** candidates,
+	fcandidate* candidates,
 	const int n_candidates,
 	fmatch** matches_out,
 	int* n_out,
@@ -52,10 +52,10 @@ int fuzzy_match_fmatch(
 		matches[i].start = -1;
 		matches[i].end = -1;
 		matches[i].len_m = 0;
-		matches[i].len_c = strlen(candidates[i]);
+		matches[i].len_c = strlen(candidates[i].filepath);
 
 		if(len_i > matches[i].len_c) {
-			DEBUG("input longer than candidate, no match [%s,%s]\n", candidates[i], input);
+			DEBUG("input longer than candidate, no match [%s,%s]\n", candidates[i].filepath, input);
 			continue;
 		}
 
@@ -63,7 +63,7 @@ int fuzzy_match_fmatch(
 		j_i = len_i - 1;
 		while(j_c >= 0 && j_i >= 0) {
 			DEBUG("while %d, %d\n", j_c, j_i);
-			if(case_sensitive ? candidates[i][j_c] == input[j_i] : tolower(candidates[i][j_c]) == tolower(input[j_i])) {
+			if(case_sensitive ? candidates[i].filepath[j_c] == input[j_i] : tolower(candidates[i].filepath[j_c]) == tolower(input[j_i])) {
 				if(matches[i].end == -1) {
 					matches[i].end = j_c;
 				}
@@ -83,7 +83,7 @@ int fuzzy_match_fmatch(
 				matches[i].end,
 				matches[i].end - matches[i].start + 1,
 				matches[i].index,
-				candidates[i],
+				candidates[i].filepath,
 				input
 			);
 		}
@@ -119,7 +119,7 @@ int fuzzy_match_fmatch(
 			out[i].start,
 			out[i].end,
 			out[i].end - out[i].start + 1,
-			candidates[out[i].index]
+			candidates[out[i].index].filepath
 		);
 	}
 
@@ -127,16 +127,16 @@ int fuzzy_match_fmatch(
 }
 
 
-int fuzzy_match_charpp(
-	char** candidates,
+int fuzzy_match_fcandidate(
+	fcandidate* candidates,
 	const int n_candidates,
-	char*** matches_out,
+	fcandidate** matches_out,
 	int* n_out,
 	const char* input,
 	char case_sensitive
 ) {
 	fmatch* matches;
-	char** out;
+	fcandidate* out;
 
 	int err = 0;
 
@@ -147,7 +147,7 @@ int fuzzy_match_charpp(
 		return err;
 	}
 
-	out = malloc(sizeof(char*) * (*n_out));
+	out = malloc(sizeof(*out) * (*n_out));
 	
 
 	int i;
@@ -157,7 +157,7 @@ int fuzzy_match_charpp(
 			matches[i].start,
 			matches[i].end,
 			matches[i].end - matches[i].start + 1,
-			candidates[matches[i].index]
+			candidates[matches[i].index].filepath
 		);
 		out[i] = candidates[matches[i].index];
 	}

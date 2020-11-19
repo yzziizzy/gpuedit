@@ -3,23 +3,23 @@
    video drivers
    Memcheck:Addr4
    ...
-   obj:/usr/lib64/dri/i965_dri.so
+   obj:/usr/lib*/dri/i965_dri.so
    ...
 }
 {
    video drivers
    Memcheck:Addr8    
    ...
-   obj:/usr/lib64/dri/i965_dri.so
+   obj:/usr/lib*/dri/i965_dri.so
    ...
 }  
 {
    video drivers
    Memcheck:Addr2    
    ...
-   obj:/usr/lib64/dri/i965_dri.so
+   obj:/usr/lib*/dri/i965_dri.so
    ...
-}  
+}
 
 {
    legitmate write into vram

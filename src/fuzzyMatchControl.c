@@ -20,6 +20,9 @@
 #include "app.h" // for execProcess*
 
 
+// #define DEBUG printf
+#define DEBUG(...)
+
 
 static void render(GUIObject* w_, PassFrameParams* pfp) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
@@ -34,7 +37,7 @@ static void render(GUIObject* w_, PassFrameParams* pfp) {
 	
 	int linesDrawn = 0;
 	
-	for(intptr_t i = 0; w->files && i < w->fileCnt; i++) {
+	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
 		if(lh * linesDrawn > w->header.size.y) break; // stop at the bottom of the window
 
 		AABB2 box;
@@ -65,7 +68,7 @@ static void render(GUIObject* w_, PassFrameParams* pfp) {
 
 
 		// the file name
-		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, w->files[i], strlen(w->files[i]));
+		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, w->matches[i].filepath, strlen(w->matches[i].filepath));
 		
 		linesDrawn++;
 	}
@@ -137,11 +140,13 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 
 	switch(cmd->cmd) {
 		case FuzzyMatcherCmd_CursorMove:
-			w->cursorIndex = (cmd->amt + w->cursorIndex + w->fileCnt) % w->fileCnt;
+			if(w->matchCnt == 0) break;
+			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
 			break;
 			
 		case FuzzyMatcherCmd_Open: {
-			char* path = resolve_path(w->files[w->cursorIndex]);
+			char* path_raw = pathJoin(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
+			char* path = resolve_path(path_raw);
 		
 			GUIEvent gev2 = {};
 			gev2.type = GUIEVENT_User;
@@ -157,6 +162,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 		
 			GUIManager_BubbleEvent(w->header.gm, w, &gev2);
 			
+			free(path_raw);
 			free(path);
 			break;
 		}
@@ -216,67 +222,97 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	
 	// printf("launching fuzzy opener\n");
 	char* cmd = "/usr/bin/git";
-	char* base_args[] = {cmd, "-C", NULL, "ls-files", NULL};
-	size_t elem = sizeof(base_args);
-	size_t base_n = elem/sizeof(char*);
-	char*** args;
-	char** arg_lists;
+	char* args[] = {cmd, "-C", NULL, "ls-files", "-co", "--exclude-standard", NULL};
 	
 	int i = 0;
+	int j = 0;
 	while(w->header.gm->gs->MainControl_searchPaths[i]) {
-		 i++;
-	}
-	args = malloc((i+1)*sizeof(*args));
-	arg_lists = malloc(i*elem);
-
-	i = 0;
-	while(w->header.gm->gs->MainControl_searchPaths[i]) {
-		memcpy(&(arg_lists[i*base_n]), base_args, elem);
-		args[i] = &(arg_lists[i*base_n]);
-		args[i][2] = w->header.gm->gs->MainControl_searchPaths[i];
-
 		i++;
 	}
-	args[i] = NULL;
+	if(i == 0) return;
 
-	char** filepaths;
+	size_t max_candidates = 1024;
+	fcandidate* candidates = malloc(max_candidates*sizeof(fcandidate));
+	size_t n_candidates = 0;
+
 	size_t n_filepaths;
-	if(w->stringBuffer) free(w->stringBuffer);
-	w->stringBuffer = execProcessPipe_charppv(args, &filepaths, &n_filepaths);
-
-	free(args);
-	free(arg_lists);
+	char** contents = malloc(sizeof(*contents)*i);
+	char*** stringBuffers = malloc(sizeof(*stringBuffers)*i);
 	
-	// for(i=0;i<n_filepaths;i++) {
-	// 	printf("got filepath: %s\n", filepaths[i]);
-	// }
+	i = 0;
+	while(w->header.gm->gs->MainControl_searchPaths[i]) {
+		args[2] = w->header.gm->gs->MainControl_searchPaths[i];
+		contents[i] = execProcessPipe_charpp(args, &stringBuffers[i], &n_filepaths);
+		DEBUG("result: %ld filepaths\n", n_filepaths);
+
+		if(n_candidates+n_filepaths >= max_candidates) {
+			max_candidates *= 2;
+			candidates = realloc(candidates, max_candidates);
+		}
+		for(j=0;j<n_filepaths;j++) {
+			DEBUG("got filepath: %s\n", stringBuffers[i][j]);
+			candidates[n_candidates+j].basepath = w->header.gm->gs->MainControl_searchPaths[i];
+			candidates[n_candidates+j].filepath = stringBuffers[i][j];
+		}
+
+		i++;
+		n_candidates += n_filepaths;
+	}
+	contents[i] = NULL;
+	stringBuffers[i] = NULL;
+
+	if(w->stringBuffers) {
+		i = 0;
+		while(w->stringBuffers[i]) {
+			free(w->stringBuffers[i]);
+			i++;
+		}
+		free(w->stringBuffers);
+	}
+	w->stringBuffers = stringBuffers;
+
+	if(w->contents) {
+		i = 0;
+		while(w->contents[i]) {
+			free(w->contents[i]);
+			i++;
+		}
+		free(w->contents);
+	}
+	w->contents = contents;
+
+	if(w->candidates) {
+		free(w->candidates);
+	}
+	w->candidates = candidates;
 
 	char* input = w->searchTerm;
 
-	char** matches;
+	fcandidate* matches;
 	int n_matches = 0;
 	int err = 0;
 
-	err = fuzzy_match_charpp(filepaths, n_filepaths, &matches, &n_matches, input, 0);
+	err = fuzzy_match_fcandidate(candidates, n_candidates, &matches, &n_matches, input, 0);
 	// printf("fuzzy match exit code: %d\n", err);
 
-	if(w->files) free(w->files);	
+	if(w->matches) free(w->matches);
 	if(!err) {
-		w->files = matches;
-		w->fileCnt = n_matches;
+		w->matches = matches;
+		w->matchCnt = n_matches;
 		
 	//	for(i=0;i<n_matches;i++) {
 	//		printf("ordered match [%s]\n", matches[i]);
 	//	}
 	}
 	else {
-		w->files = NULL;
-		w->fileCnt = 0;
+		w->matches = NULL;
+		w->matchCnt = 0;
 	}
 	
 	
 	//free(matches);
-	free(filepaths);
+	// free(filepaths);
 
 }
 
+#undef DEBUG
