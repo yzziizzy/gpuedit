@@ -12,7 +12,13 @@
 * NULL-inserting bug related to line splitting after movign from long line to short
 
 == Needed before fractal dogfooding ==
-...
+* full Pascal string conversion
+* ctrl+l/r jumps across tabs
+* copy cannot paste to pgadmin3
+* home: start of text <-> start of line
+* end: end of line
+* ctrl+shift+l/r/u/d/home/end create/expand selection
+* undo breaks if selection reaches end of file
 
 == TODO ==
 * grep matcher
