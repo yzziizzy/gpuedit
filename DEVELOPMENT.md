@@ -6,6 +6,7 @@
 * Basic autocomplete
 * Reorder tabs
 * Autosort tabs
+* Get rid of null-buf in empty lines
 * Go to previous search match (refactor search to find all in a list)
 * Able to refocus on the editor while finding
 * NULL-inserting bug related to line splitting after movign from long line to short
@@ -157,6 +158,7 @@
 * Algorithm to detect indent width then convert all spaces to tabs
 
 == BUGS ==
+* Sequence cursor moves don't clear the current selection or change it
 * Paste with selection does not overwrite the selection
 * Segfault when hitting escape after find-replacing some text. Probably deleted elements not getting purged from the focus ring. 
 * GUIManager should pop focus stack if focused control is deleted
