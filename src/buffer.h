@@ -525,6 +525,9 @@ int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 void GBEC_SurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
 void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
+void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
+void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
+
 
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);

@@ -18,8 +18,10 @@
 	X(BufferCmd, Delete) \
 	X(BufferCmd, DeleteCurLine) \
 	X(BufferCmd, MovePage) \
-	X(BufferCmd, Home) \
-	X(BufferCmd, End) \
+	X(BufferCmd, GoToFirstColOfFile) \
+	X(BufferCmd, GoToLastColOfFile) \
+	X(BufferCmd, GoToFirstCharOfLine) \
+	X(BufferCmd, GoToLastCharOfLine) \
 	X(BufferCmd, DuplicateLine) \
 	X(BufferCmd, SelectNone) \
 	X(BufferCmd, SelectAll) \

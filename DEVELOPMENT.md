@@ -14,13 +14,12 @@
 == Needed before fractal dogfooding ==
 * full Pascal string conversion
 * ctrl+l/r jumps across tabs
-* copy cannot paste to pgadmin3
-* home: start of text <-> start of line
-* end: end of line
+* copy cannot paste to pgadmin3 (INCR? mime type?)
 * ctrl+shift+l/r/u/d/home/end create/expand selection
 * undo breaks if selection reaches end of file
 
 == TODO ==
+* Glowing squares for null chars
 * grep matcher
 * GUIListControl
 * s/GUIBufferEditControl_*()/GBEC_*()/
@@ -37,6 +36,7 @@
 * Tab long name scrolling
 * Tab Bar scrolling
 * Smart uncomment
+* home: start of text <-> start of line
 * Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working
 * Clipboard ring

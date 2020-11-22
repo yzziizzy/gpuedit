@@ -772,13 +772,21 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			}
 			break;
 		
-		case BufferCmd_Home:
+		case BufferCmd_GoToFirstCharOfLine: 
+			GBEC_MoveToFirstCharOfLine(w, w->current);
+			break;
+			
+		case BufferCmd_GoToLastCharOfLine:
+			GBEC_MoveToLastCharOfLine(w, w->current);
+			break;
+		
+		case BufferCmd_GoToFirstColOfFile:
 			// TODO: undo
 			w->current = b->first;
 			w->curCol = 0;
 			break;
 		
-		case BufferCmd_End:
+		case BufferCmd_GoToLastColOfFile:
 			// TODO: undo
 			w->current = b->last;
 			if(b->last) w->curCol = b->last->length;
@@ -932,6 +940,31 @@ void GBEC_MoveToPrevSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t co
 	return;
 }
 
+void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl) {
+	w->current = bl;
+	
+	for(intptr_t i = 0; i < bl->length; i++) {
+		if(!isspace(bl->buf[i])) {
+			w->curCol = i;
+			return;
+		}
+	}
+	
+	w->curCol = 0;
+}
+
+void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl) {
+	w->current = bl;
+	
+	for(intptr_t i = bl->length - 1; i >= 0; i--) {
+		if(!isspace(bl->buf[i])) {
+			w->curCol = i + 1;
+			return;
+		}
+	}
+	
+	w->curCol = bl->length;
+}
 
 
 // TODO: undo
