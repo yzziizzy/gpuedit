@@ -547,7 +547,7 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s);
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s);
 
-void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo);
+void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp);
 static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl, float z, AABB2* clip);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm);

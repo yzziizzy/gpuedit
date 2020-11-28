@@ -45,7 +45,7 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 static void render(GUIBufferEditControl* w, PassFrameParams* pfp) {
 // HACK
 	GUIBufferEditControl_Draw(w, w->header.gm, w->scrollLines
-		, + w->scrollLines + w->linesOnScreen + 2, 0, 900);
+		, + w->scrollLines + w->linesOnScreen + 2, 0, 900, pfp);
 	
 // 	if(w->lineNumTypingMode) {
 // 		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 

@@ -30,10 +30,10 @@ static struct Color4 json_get_color(json_value_t* v) {
 	
 	if(v->type == JSON_TYPE_STRING) {
 		// TODO: lookup table
-		decodeHexColorNorm(v->v.str, (float*)&c);
+		decodeHexColorNorm(v->s, (float*)&c);
 	}
 	else if(v->type == JSON_TYPE_ARRAY) {
-		switch(v->v.arr->length) {
+		switch(v->len) {
 			case 1:
 // 				c.r = v->v.arr->head->value; 
 			
@@ -54,7 +54,7 @@ static struct Color4 json_get_color(json_value_t* v) {
 
 
 static void read_flags(GUIHeader* h, json_value_t* cfg) {
-	char* s = json_obj_get_string(cfg, "flags"); // returns internal buffer
+	char* s = json_obj_get_str(cfg, "flags"); // returns internal buffer
 	if(!s) return;
 	
 	s = strdup(s);
@@ -81,7 +81,7 @@ static void read_flags(GUIHeader* h, json_value_t* cfg) {
 }
 
 static void read_gravity(GUIHeader* h, json_value_t* cfg) {
-	char* s = json_obj_get_string(cfg, "gravity");
+	char* s = json_obj_get_str(cfg, "gravity");
 	if(!s) return;
 	
 	int grav = GUI_GRAV_TOP_LEFT;
@@ -109,8 +109,6 @@ static void read_gravity(GUIHeader* h, json_value_t* cfg) {
 
 static void read_header(GUIHeader* h, json_value_t* cfg) {
 	json_value_t* v;
-	double d;
-	int64_t n;
 	
 	read_gravity(h, cfg);
 	read_flags(h, cfg);
@@ -131,37 +129,31 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 	}
 	
 	if(!json_obj_get_key(cfg, "scale", &v)) {
-		json_as_double(v, &d);
-		h->scale = d;
+		h->scale = json_as_double(v);
 	}
 	
 	if(!json_obj_get_key(cfg, "alpha", &v)) {
-		json_as_double(v, &d);
-		h->alpha = d;
+		h->alpha = json_as_double(v);
 	}
 	
 	if(!json_obj_get_key(cfg, "z", &v)
 		|| !json_obj_get_key(cfg, "z-index", &v)
 		|| !json_obj_get_key(cfg, "zIndex", &v)
 	) {
-		json_as_double(v, &d);
-		h->z = d;
+		h->z = json_as_double(v);
 	}
 	
 	if(!json_obj_get_key(cfg, "hidden", &v)) {
-		json_as_int(v, &n);
-		h->hidden = n;
+		h->hidden = json_as_int(v);
 	}
 	
 	// TODO: convert from strings
 	if(!json_obj_get_key(cfg, "cursor", &v)) {
-		json_as_int(v, &n);
-		h->hidden = n;
+		h->cursor = json_as_int(v);
 	}
 	
 	if(!json_obj_get_key(cfg, "tabStop", &v)) {
-		json_as_int(v, &n);
-		h->tabStop = n;
+		h->tabStop = json_as_int(v);
 	}
 	
 	
@@ -173,7 +165,7 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 static GUIObject* create_GUIButton(GUIManager* gm, json_value_t* cfg) {
 	GUIButton* obj;
 	
-	char* s = json_obj_get_string(cfg, "value");
+	char* s = json_obj_get_str(cfg, "value");
 	
 	obj = GUIButton_New(gm, s ? s : "");
 	obj->isDisabled = json_obj_get_int(cfg, "disabled", 0);
@@ -196,7 +188,7 @@ static GUIObject* create_GUIDebugAdjuster(GUIManager* gm, json_value_t* cfg) {
 	GUIDebugAdjuster* obj;
 	
 	// TODO: read json for values
-	char* fmt = json_obj_get_string(cfg, "format");
+	char* fmt = json_obj_get_str(cfg, "format");
 	// TODO string type conversion
 	int type = 0;
 	obj = GUIDebugAdjuster_new(gm, fmt, NULL, type);
@@ -207,7 +199,7 @@ static GUIObject* create_GUIDebugAdjuster(GUIManager* gm, json_value_t* cfg) {
 static GUIObject* create_GUIEdit(GUIManager* gm, json_value_t* cfg) {
 	GUIEdit* obj;
 	
-	char* s = json_obj_get_string(cfg, "value");
+	char* s = json_obj_get_str(cfg, "value");
 	obj = GUIEdit_New(gm, s ? s : "");
 	
 	return (GUIObject*)obj;
@@ -253,7 +245,7 @@ static GUIObject* create_GUIImage(GUIManager* gm, json_value_t* cfg) {
 	GUIImage* obj;
 	char* defaultImgName = "pre/denied";
 	
-	char* value = json_obj_get_string(cfg, "imgName");
+	char* value = json_obj_get_str(cfg, "imgName");
 	// TODO smarter conversion from json
 	
 	obj = GUIImage_new(gm, value || defaultImgName);
@@ -267,7 +259,7 @@ static GUIObject* create_GUIImageButton(GUIManager* gm, json_value_t* cfg) {
 	char* defaultImgName = "pre/denied";
 	
 	border = json_obj_get_double(cfg, "border", 2);
-	char* s = json_obj_get_string(cfg, "image");
+	char* s = json_obj_get_str(cfg, "image");
 	if(!s) s = defaultImgName;
 	
 	obj = GUIImageButton_New(gm, border, s);
@@ -295,7 +287,7 @@ static GUIObject* create_GUISimpleWindow(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUISimpleWindow_New(gm);
 	
-	char* s = json_obj_get_string(cfg, "title");
+	char* s = json_obj_get_strdup(cfg, "title");
 	if(s) obj->title = s; // TODO broken
 	
 	return (GUIObject*)obj;
@@ -309,10 +301,10 @@ static GUIObject* create_GUIText(GUIManager* gm, json_value_t* cfg) {
 	float defaultSize = 3.0f;
 	
 	// TODO: read json for values
-	char* s = json_obj_get_string(cfg, "value");
+	char* s = json_obj_get_str(cfg, "value");
 	if(s) defaultText = s;
 	
-	s = json_obj_get_string(cfg, "font");
+	s = json_obj_get_str(cfg, "font");
 	if(s) defaultFont = s;
 	
 	defaultSize = json_obj_get_double(cfg, "size", defaultSize);
@@ -332,21 +324,21 @@ static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
 		if(opts_v->type == JSON_TYPE_ARRAY) {
 			
 			
-			optCnt = json_array_length(opts_v) / 2;
+			optCnt = opts_v->len / 2;
 			sbOpts = calloc(1, sizeof(*sbOpts) * optCnt);
 			
 			// TODO: [{label: "foo", value: 3.5}, ...]
 			
 			
 			// ["foo", 3.5, ...]
-			json_array_node_t* link = opts_v->v.arr->head;
+			json_link_t* link = opts_v->arr.head;
 			int i = 0;
 			while(link) {
 				char* label = NULL;
 				char* value = NULL;
 				
 				// label first
-				json_as_string(link->value, &label);
+				label = link->v->s;
 				
 				link = link->next;
 				if(!link) {
@@ -355,7 +347,7 @@ static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
 				}
 				
 				// value second
-				json_as_string(link->value, &value);
+				value = link->v->s;
 				
 				// add the option
 				sbOpts[i].label = strdup(label);
@@ -372,19 +364,19 @@ static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
 			char* key;
 			int i = 0;
 			
-			optCnt = json_obj_length(opts_v);
+			optCnt = opts_v->len;
 			sbOpts = calloc(1, sizeof(*sbOpts) * optCnt);
 			
 			while(json_obj_next(opts_v, &iter, &key, &v)) {
 				sbOpts[i].label = strdup(key);
 				if(v->type == JSON_TYPE_DOUBLE) {
-					json_as_double(v, (double*)&sbOpts[i].data);
+					*(double*)(&sbOpts[i].data) = json_as_double(v);
 				}
 				else if(v->type == JSON_TYPE_INT) {
-					json_as_int(v, (int64_t*)&sbOpts[i].data);
+					*(int64_t*)(&sbOpts[i].data) = json_as_int(v);
 				}
 				else if(v->type == JSON_TYPE_STRING) {
-					sbOpts[i].data = strdup(v->v.str);
+					sbOpts[i].data = strdup(v->s);
 				}
 				else {
 					printf("Invalid SelectBox value type in GUI config loader.\n");
@@ -417,7 +409,7 @@ static GUIObject* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 
 	obj = GUIWindow_New(gm);
 	
-	char* s = json_obj_key_as_string(cfg, "color");
+	char* s = json_obj_get_str(cfg, "color");
 	if(s) {
 		decodeHexColorNorm(s, (float*)&obj->color);
 	}
@@ -472,7 +464,7 @@ GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 	
 	checkInitLookup();
 	
-	elemType = json_obj_key_as_string(cfg, "type");
+	elemType = json_obj_get_str(cfg, "type");
 	if(!elemType) {
 		printf("Missing element type in config loader\n");
 	}
@@ -481,7 +473,7 @@ GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 		
 		if(!HT_get(&creator_lookup, elemType, &fn) && fn) {
 			obj = (*fn)(gm, cfg);
-			obj->h.name = json_obj_key_as_string(cfg, "name");
+			obj->h.name = json_obj_get_str(cfg, "name");
 		}
 		
 		free(elemType);
@@ -502,23 +494,23 @@ GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 
 
 void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg) {
-	struct json_array_node* link;
+	struct json_link* link;
 	
 	checkInitLookup();
 	
-	link = cfg->v.arr->head;
+	link = cfg->arr.head;
 	while(link) {
 		json_value_t* j_child;
 		GUIObject* child;
 		json_value_t* j_kids;
 		
-		if(link->value->type != JSON_TYPE_OBJ) {
+		if(link->v->type != JSON_TYPE_OBJ) {
 			printf("invalid gui element format\n");
 			
 			link = link->next;
 			continue;
 		}
-		j_child = link->value;
+		j_child = link->v;
 		
 		
 		child = GUICL_CreateFromConfig(gm, j_child);

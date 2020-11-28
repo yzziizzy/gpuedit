@@ -653,7 +653,7 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 		Buffer_LineTruncateAfter(b, s.startLine, s.startCol);
 		
 		// append end line after selection ends to first line
-		char* elb = s.endLine->buf ? s.endLine->buf + s.endCol : "";
+		char* elb = s.endLine->buf + s.endCol;
 		Buffer_LineAppendText(b, s.startLine, elb, strlen(elb));
 		
 		

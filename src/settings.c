@@ -59,9 +59,9 @@ void GlobalSettings_loadDefaults(GlobalSettings* s) {
 static void grab_charp(char** out, json_value_t* obj, char* prop) {
 	json_value_t* v;
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
-		if(v->type == JSON_TYPE_STRING && v->v.str) {
+		if(v->type == JSON_TYPE_STRING && v->s) {
 			if(*out) free(*out);
-			*out = strdup(v->v.str);
+			*out = strdup(v->s);
 		}
 	}
 }
@@ -72,14 +72,12 @@ static void grab_charpp(char*** out, json_value_t* obj, char* prop) {
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
 		if(v->type == JSON_TYPE_ARRAY) {
 			if(*out) freeptrlist(*out);
-			char** tmp = calloc(1, sizeof(*tmp) * (v->v.arr->length + 1));
+			char** tmp = calloc(1, sizeof(*tmp) * (v->len + 1));
 			
-			json_array_node_t* link = v->v.arr->head;
+			json_link_t* link = v->arr.head;
 			for(long i = 0; link; i++) {
 				
-				char* s;
-				json_as_string(link->value, &s);
-				tmp[i] = strdup(s);
+				tmp[i] = json_as_strdup(link->v);
 				
 				link = link->next;
 			}
@@ -94,42 +92,31 @@ static void grab_bool(char* out, json_value_t* obj, char* prop) {
 	int64_t i;
 	
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
-		if(!json_as_int(v, &i)) {
-			*out = i;
-		}
+		*out = json_as_int(v);
 	}
 }
 
 static void grab_int(int* out, json_value_t* obj, char* prop) {
 	json_value_t* v;
-	int64_t i;
 	
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
-		if(!json_as_int(v, &i)) {
-			*out = i;
-		}
+		*out = json_as_int(v);
 	}
 }
 
 static void grab_float(float* out, json_value_t* obj, char* prop) {
 	json_value_t* v;
-	float i;
 	
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
-		if(!json_as_float(v, &i)) {
-			*out = i;
-		}
+		*out = json_as_float(v);
 	}
 }
 
 static void grab_double(double* out, json_value_t* obj, char* prop) {
 	json_value_t* v;
-	double i;
 	
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
-		if(!json_as_double(v, &i)) {
-			*out = i;
-		}
+		*out = json_as_double(v);
 	}
 }
 

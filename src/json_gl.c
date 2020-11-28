@@ -52,15 +52,15 @@ int json_as_GLenum(struct json_value* v, GLenum* out) {
 			return 1;
 			
 		case JSON_TYPE_INT: // treat it as a literal value
-			*out = v->v.integer;
+			*out = v->n;
 			return 0;
 			
 		case JSON_TYPE_DOUBLE:
-			*out = v->v.dbl;  // treat it as a literal value, converted to int
+			*out = v->d;  // treat it as a literal value, converted to int
 			return 0;
 			
 		case JSON_TYPE_STRING: // look up the enum
-			return HT_get(&lookup, v->v.str, out);
+			return HT_get(&lookup, v->s, out);
 			
 			
 		case JSON_TYPE_OBJ: // all invalid
@@ -74,38 +74,21 @@ int json_as_GLenum(struct json_value* v, GLenum* out) {
 }
 
 
-static float index_as_float(json_value_t* obj, int index, float def) {
-	float f;
-	int ret;
-	
-	if(!json_as_float(obj, &f)) {
-		return def;
-	}
-	
-	return f;
-}
-
 static float key_as_float(json_value_t* obj, char* key, float def) {
 	json_value_t* v;
-	float f;
-	int ret;
 	
 	if(!json_obj_get_key(obj, key, &v)) {
 		return def;
 	}
 	
-	if(!json_as_float(v, &f)) {
-		return def;
-	}
-	
-	return f;
+	return json_as_float(v);
 }
 
 // probably broken
 int json_as_vector(struct json_value* v, int max_len, float* out) {
 	int i;
 	float f;
-	struct json_array_node* an;
+	struct json_link* an;
 	
 	if(v->type == JSON_TYPE_OBJ) {
 		out[0] = key_as_float(v, "x", 0.0);
@@ -117,10 +100,10 @@ int json_as_vector(struct json_value* v, int max_len, float* out) {
 	}
 	else if(v->type == JSON_TYPE_ARRAY) {
 		// [1,2,3,4]
-		an = v->v.arr->head;
+		an = v->arr.head;
 		i = 0;
 		while(an) {
-			json_as_float(an->value, &f);
+			f = json_as_float(an->v);
 			out[i++] = f;
 			an = an->next;
 		}
@@ -130,7 +113,7 @@ int json_as_vector(struct json_value* v, int max_len, float* out) {
 	}
 	else if(v->type == JSON_TYPE_DOUBLE) {
 	// duplicate numbers to every field 
-		json_as_float(v, &f);
+		f = json_as_float(v);
 		for(i = 0; i < max_len; i++) out[i] = f;
 	}
 	
@@ -149,12 +132,12 @@ static int get_minmax(struct json_value* v, struct json_value** min, struct json
 		if(json_obj_get_key(v, "max", max)) return 2;
 	}
 	else if(v->type == JSON_TYPE_ARRAY) {
-		if(v->v.arr->length < 2) {
+		if(v->len < 2) {
 			fprintf(stderr, "json_get_minmax: array input with less than 2 children\n");
 			return 3;
 		}
-		*min = v->v.arr->head->value;
-		*max = v->v.arr->head->next->value;
+		*min = v->arr.head->v;
+		*max = v->arr.head->next->v;
 	}
 	
 	return 0;
@@ -181,8 +164,8 @@ int json_double_minmax(struct json_value* v, double* min, double* max) {
 	if(ret = get_minmax(v, &j_min, &j_max)) return ret;
 		
 	// grab the values
-	json_as_double(j_min, min);
-	json_as_double(j_max, max);
+	*min = json_as_double(j_min);
+	*max = json_as_double(j_max);
 	
 	return 0;
 }

@@ -167,18 +167,18 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 	}
 	
 	
-	int cmd_count = json_array_length(root);
+	int cmd_count = root->len;
 	Cmd* cmds = calloc(1, sizeof(*cmds) * (cmd_count + 1));
 	
 	
 	int i = 0;
 	uint64_t n;
-	json_array_node_t* link = root->v.arr->head;
+	json_link_t* link = root->arr.head;
 	json_value_t* v;
 	for(;link; link = link->next) {
 		
 		// command enum
-		char* s = json_obj_get_string(link->value, "cmd");
+		char* s = json_obj_get_str(link->v, "cmd");
 		if(s == NULL) {
 			fprintf(stderr, "Command List entry missing cmd name\n");
 			continue;
@@ -191,7 +191,7 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 		cmds[i].cmd = n;
 		
 		// key
-		s = json_obj_get_string(link->value, "key");
+		s = json_obj_get_str(link->v, "key");
 		if(s == NULL) {
 			fprintf(stderr, "Command List entry missing key\n");
 			continue;
@@ -213,7 +213,7 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 		
 		
 		// optional modifiers
-		s = json_obj_get_string(link->value, "mods");
+		s = json_obj_get_str(link->v, "mods");
 		if(s) {
 			unsigned int m = 0;
 			
@@ -253,18 +253,18 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 		}
 		
 		// optional amt value (default 0)
-		if(!json_obj_get_key(link->value, "amt", &v)) {
+		if(!json_obj_get_key(link->v, "amt", &v)) {
 			if(v->type == JSON_TYPE_STRING) {
-				cmds[i].str = strdup(v->v.str);
+				cmds[i].str = strdup(v->s);
 			}
 			else if(v->type == JSON_TYPE_ARRAY) {
 				// ONLY supports array of strings
-				char** z = malloc(sizeof(*z) * (v->v.arr->length + 1));
+				char** z = malloc(sizeof(*z) * (v->len + 1));
 				
 				int j = 0;
-				json_array_node_t* link = v->v.arr->head;
+				json_link_t* link = v->arr.head;
 				while(link) {
-					z[j++] = strdup(link->value->v.str);
+					z[j++] = strdup(link->v->s);
 					
 					link = link->next;
 				}
@@ -273,29 +273,27 @@ Cmd* CommandList_loadJSON(json_value_t* root) {
 				cmds[i].pstr = z;
 			}
 			else {
-				json_as_int(v, &n);
-				cmds[i].amt = n;
+				cmds[i].amt = json_as_int(v);
 			}
 		}
 		
 		// optional mode value (default 0)
-		if(!json_obj_get_key(link->value, "mode", &v)) {
-			json_as_int(v, &n);
-			cmds[i].mode = n;
+		if(!json_obj_get_key(link->v, "mode", &v)) {
+			cmds[i].mode = json_as_int(v);
 		}
 		
 		// optional flag list
-		if(!json_obj_get_key(link->value, "flags", &v)) {
+		if(!json_obj_get_key(link->v, "flags", &v)) {
 			unsigned int flags = 0;
 			
 			if(v->type == JSON_TYPE_ARRAY) {
 			
-				json_array_node_t* l2 = v->v.arr->head;
+				json_link_t* l2 = v->arr.head;
 				for(;l2; l2 = l2->next) {
 					
-					if(l2->value->type == JSON_TYPE_STRING) {
+					if(l2->v->type == JSON_TYPE_STRING) {
 						uint64_t x;
-						if(!HT_get(&flag_lookup, l2->value->v.str, &x)) {
+						if(!HT_get(&flag_lookup, l2->v->s, &x)) {
 							flags |= x;
 						}
 					}

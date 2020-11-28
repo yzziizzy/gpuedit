@@ -151,13 +151,13 @@ void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {
 	
 	json_obj_get_key(p, key, &o);
 	
-	json_obj_get_key(o, "internalType", &v1); a = v1->v.str;
+	json_obj_get_key(o, "internalType", &v1); a = v1->s;
 	json_as_GLenum(v1, &cfg->internalType);
 	
-	json_obj_get_key(o, "format", &v2); b = v2->v.str;
+	json_obj_get_key(o, "format", &v2); b = v2->s;
 	json_as_GLenum(v2, &cfg->format);
 	
-	json_obj_get_key(o, "size", &v3); c = v3->v.str;
+	json_obj_get_key(o, "size", &v3); c = v3->s;
 	json_as_GLenum(v3, &cfg->size);
 	
 	//printf("fbo cfg from json: %s: %x, %s: %x, %s: %x\n", a, cfg->internalType, b, cfg->format, c, cfg->size);

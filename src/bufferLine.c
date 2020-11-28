@@ -31,6 +31,7 @@ void BufferLine_SetText(BufferLine* l, char* text, intptr_t len) {
 	};
 	
 	if(l->buf == NULL) {
+		printf("null line buffer\n"); exit(1);
 		l->allocSz = nextPOT(len + 1);
 		l->buf = calloc(1, l->allocSz);
 		l->flagBuf = calloc(1, l->allocSz);
@@ -52,6 +53,10 @@ void BufferLine_SetText(BufferLine* l, char* text, intptr_t len) {
 
 BufferLine* BufferLine_New() {
 	BufferLine* l = pcalloc(l);
+	l->allocSz = 32;
+	l->buf = malloc(sizeof(*l->buf) * l->allocSz);
+	l->flagBuf = malloc(sizeof(*l->flagBuf) * l->allocSz);
+	l->buf[0] = 0;
 	return l;
 }
 
@@ -84,6 +89,7 @@ BufferLine* BufferLine_Copy(BufferLine* orig) {
 
 void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len) {
 	if(l->buf == NULL) {
+		printf("null line buffer\n"); exit(1);
 		l->allocSz = MAX(32, nextPOT(len + 1));
 		l->buf = calloc(1, l->allocSz);
 		l->flagBuf = calloc(1, l->allocSz);

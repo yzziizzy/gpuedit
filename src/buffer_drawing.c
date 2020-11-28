@@ -103,7 +103,7 @@ size_t drawCharacter(
 
 // draws the editor's text area and line numbers
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
-	 int lineFrom, int lineTo, int colFrom, int colTo) {
+	 int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp) {
 	Buffer* b = gbe->buffer;
 	
 	if(!b) return;
@@ -252,6 +252,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		
 		
 		if(!bl->buf) { // still check selection info on empty lines 
+			printf("null line buffer in draw\n");
 			if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum) {
 				inSelection = 1;
 				fg = &theme->hl_textColor;
@@ -309,9 +310,28 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				} 
 				
 				int c = bl->buf[i]; 
-				if(c == 0) break;
+//				if(c == 0) break;
 				
-				if(c == '\t') {
+				if(c == 0) {
+					Color4 pulseColor = {
+						sin(fmod(pfp->appTime*.5, 6.28)) * .5 + .5,
+						cos(fmod(pfp->appTime*.5, 6.28)) * .5 + .5,
+						0,
+						1
+					};
+					Color4 pulseColorBg = {
+						cos(fmod(pfp->appTime* 2, 6.28)) * .5 + .5,
+						sin(fmod(pfp->appTime*2, 6.28)) * .5 + .5,
+						0,
+						1
+					};
+					
+					drawCharacter(gm, tdp, &pulseColor, &pulseColorBg, '0', 
+					(Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+					
+					adv += tdp->charWidth;	
+				}
+				else if(c == '\t') {
 					if(inSelection) { // tabs inside selection
 						v = GUIManager_reserveElements(gm, 1);
 						*v = (GUIUnifiedVertex){

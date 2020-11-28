@@ -49,6 +49,7 @@
 {cmd: "BufferCmd_ScrollLinesV", mods: "CS", key: "XK_Down", amt: 5, },
 {cmd: "BufferCmd_ScrollColsH", mods: "CS", key: "XK_Left", amt: -5, },
 {cmd: "BufferCmd_ScrollColsH", mods: "CS", key: "XK_Right", amt: 5, },
+{cmd: "BufferCmd_InsertChar", mods: "A", key: "n", amt: 0, },
 {cmd: "BufferCmd_GoToFirstCharOfLine", mods: "", key: "XK_Home", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 {cmd: "BufferCmd_GoToLastCharOfLine", mods: "", key: "XK_End", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 {cmd: "BufferCmd_GrowSelectionH", mods: "S", key: "XK_Left", amt: -1, flags: ["scrollToCursor", "resetCursorBlink"]},
