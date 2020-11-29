@@ -169,7 +169,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	
 	// for debugging
-	GUIMainControl_LoadFile(as->mc, "testfile.h");
+	GUIMainControl_LoadFile(as->mc, "test.js");
 	GUIMainControl_LoadFile(as->mc, "testfile.c");
 	
 //	GUIMainControl_OpenFileBrowser(as->mc, "./");

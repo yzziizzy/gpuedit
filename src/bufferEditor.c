@@ -899,3 +899,18 @@ void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
 	GUIRegisterObject(w, w->trayRoot);
 	*/
 }
+
+
+void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w) {
+	Highlighter* h;
+	
+	h = HighlighterManager_ProbeExt(w->hm, w->sourceFile);
+	
+	if(h) {
+		w->ec->h = h;
+		
+		GUIBufferEditControl_RefreshHighlight(w->ec);
+	}
+
+}
+

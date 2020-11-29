@@ -332,6 +332,8 @@ typedef struct GUIBufferEditor {
 	float statusBarHeight;
 	GUIStatusBar* statusBar;
 	
+	HighlighterManager* hm;
+	
 	GUISimpleWindow* menu;
 	
 	Cmd* commands;
@@ -484,6 +486,7 @@ intptr_t BufferLine_GetIndentCol(BufferLine* l);
 
 // HACK: temporary junk
 void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w);
+void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w);
 
 
 

@@ -81,6 +81,7 @@
 	X(BufferCmd, ScrollScreenPctV) \
 	X(BufferCmd, ScrollColsH) \
 	X(BufferCmd, ScrollScreenPctH) \
+	X(BufferCmd, NextHighlighter) \
 	\
 	X(FileBrowserCmd, CursorMove) \
 	X(FileBrowserCmd, CursorMoveNoWrap) \

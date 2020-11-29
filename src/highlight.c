@@ -9,6 +9,29 @@
 #include "common_gl.h"
 
 
+
+
+
+void HighlighterManager_Init(HighlighterManager* hm) {
+	VEC_INIT(&hm->modules);
+	VEC_INIT(&hm->plugins);
+	
+	HT_init(&hm->extLookup, 16);
+}
+
+void HighlighterManager_Destroy(HighlighterManager* hm) {
+	VEC_FREE(&hm->modules);
+	VEC_FREE(&hm->plugins);
+	
+	HT_destroy(&hm->extLookup);
+}
+
+
+
+
+
+
+
 static void* a_malloc(Allocator* a, size_t sz) {
 	return malloc(sz);
 }
@@ -64,6 +87,33 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 		
 		hpi->getStyleDefaults(h->styles, h->numStyles);
 		
+		char* homedir = getenv("HOME");
+		char* tmp;
+		size_t n = snprintf(NULL, 0, "%s/.gpuedit/%s_colors.txt", homedir, hpi->name);
+		tmp = malloc(n + 1);
+		snprintf(tmp, n+1, "%s/.gpuedit/%s_colors.txt", homedir, hpi->name);
+
+		Highlighter_LoadStyles(h, tmp);
+		free(tmp);
+
+		
+		
+		// parse and cache the supported file extensions
+		char* s = hpi->extensions;
+		while(s && *s) {
+			char* e = strchr(s, ';');
+			if(!e && *s != 0) {
+				e = s + strlen(s);
+			}
+			char* ext = strndup(s, e - s);
+			
+			HT_set(&hm->extLookup, ext, h);
+			
+			s = e;
+			while(*s == ';') s++;
+		}
+		
+		
 		VEC_PUSH(&hm->plugins, h);
 	}
 	
@@ -80,6 +130,23 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 
 
 
+
+Highlighter* HighlighterManager_ProbeExt(HighlighterManager* hm, char* filename) {
+	Highlighter* h;
+	
+	char* ext = pathExt(filename);
+	if(!ext || !*ext) {
+		printf("File '%s' does not have an extension\n", filename);
+		return NULL;
+	}
+	
+	if(HT_get(&hm->extLookup, ext, &h)) {
+		printf("No highlighter registered for extension '%s'\n", ext);
+		return NULL;
+	}
+
+	return h;
+}
 
 
 
@@ -130,7 +197,7 @@ void Highlighter_LoadStyles(Highlighter* h, char* path) {
 	size_t len;
 	
 	char* src = readWholeFile(path, &len);
-	
+	if(!src) return;
 	
 	char** lines = strsplit_inplace(src, '\n', NULL);
 	

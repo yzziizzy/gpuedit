@@ -511,21 +511,25 @@ int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
 void writeSection(HLContextInternal* hl, unsigned char style, unsigned char len) {
 	if(len == 0) return;
 	
-	VEC_INC(&hl->color.writeLine->style);
-	VEC_TAIL(&hl->color.writeLine->style).length = len;
-	VEC_TAIL(&hl->color.writeLine->style).styleIndex = style;
+	while(len > 0 && hl->color.writeLine) {
+		size_t maxl = MIN(len, hl->color.writeLine->length);
+		
+		VEC_INC(&hl->color.writeLine->style);
+		VEC_TAIL(&hl->color.writeLine->style).length = maxl;
+		VEC_TAIL(&hl->color.writeLine->style).styleIndex = style;
 	
-	hl->color.writeCol += len;
-	
-	// TODO: handle overlapping style segments
-	// TODO: handle segments spanning linebreaks
-	
-	if(hl->color.writeCol > hl->color.writeLine->length) {
-		hl->color.writeCol = 0;
-		hl->color.writeLine = hl->color.writeLine->next;
-		hl->ctx.dirtyLines--;
+		hl->color.writeCol += maxl;
+		len -= maxl;
+		
+		if(hl->color.writeCol >= hl->color.writeLine->length || hl->color.writeLine->length == 0) {
+			hl->color.writeCol = 0;
+			hl->color.writeLine = hl->color.writeLine->next;
+			hl->ctx.dirtyLines--;
+		}
+		
 	}
 	
+	// TODO: handle overlapping style segments
 }
 
 void writeFlags(HLContextInternal* hl, unsigned char style, unsigned char len) {
@@ -606,6 +610,35 @@ void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 	
 // 	printf("hl time: %f\n", timeSince(then)  * 1000.0);
 }
+
+static char* sprintfdup(char* fmt, ...) {
+	va_list va;
+	va_start(va, fmt);
+	size_t n = vsnprintf(NULL, 0, fmt, va);
+	char* buf = malloc(n + 1);
+	va_end(va);
+	va_start(va, fmt);
+	vsnprintf(buf, n + 1, fmt, va);
+	va_end(va);
+	
+	return buf;
+}
+
+
+void GBEC_SetHighlighter(GUIBufferEditControl* w, Highlighter* h) {
+
+	w->h = h;
+	
+	char* ext = h->plugin->name;
+	char* homedir = getenv("HOME");
+	
+	char* tmp = sprintfdup("%s/.gpuedit/%s_colors.txt", homedir, ext);
+	
+	Highlighter_LoadStyles(w->h, tmp);
+	free(tmp);
+
+}
+
 
 void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b) {
 	w->buffer = b;

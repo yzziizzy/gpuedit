@@ -559,8 +559,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	w->projectPath =  "/home/steve/projects/gpuedit";
 	// ----
 	
-	VEC_INIT(&w->hm.modules);
-	VEC_INIT(&w->hm.plugins);
+	HighlighterManager_Init(&w->hm);
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/c.so");
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/js.so");
 	
@@ -882,6 +881,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->ec->scrollLines = 0;
 	gbe->bdp = bdp;
 	gbe->ec->bdp = bdp;
+	gbe->hm = &w->hm;
 	gbe->header.name = strdup(path);
 	gbe->header.parent = (GUIObject*)w; // important for bubbling
 	gbe->sourceFile = strdup(path);
@@ -889,18 +889,20 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
 	
+	// highlighter
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
 	gbe->ec->h = gbe->h;
 	// 	initCStyles(gbe->h);
-	char* homedir = getenv("HOME");
-	char* tmp = pathJoin(homedir, ".gpuedit/c_colors.txt");
-
-	Highlighter_LoadStyles(gbe->h, tmp);
-	free(tmp);
+//	char* homedir = getenv("HOME");
+//	char* tmp = pathJoin(homedir, ".gpuedit/c_colors.txt");
+//
+//	Highlighter_LoadStyles(gbe->h, tmp);
+//	free(tmp);
 
 	Buffer_LoadFromFile(buf, path);
 	GUIBufferEditor_SetBuffer(gbe, buf);
-	GUIBufferEditControl_RefreshHighlight(gbe->ec);
+//	GUIBufferEditControl_RefreshHighlight(gbe->ec);
+	GUIBufferEditor_ProbeHighlighter(gbe);
 	
 	VEC_PUSH(&w->editors, gbe);
 	VEC_PUSH(&w->buffers, buf);

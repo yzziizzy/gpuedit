@@ -356,7 +356,7 @@ void hlfn(HLContext* hl) {
 				span++;
 			}
 		}*/
-		hl->writeSection(hl, 0, span + 1); // the +1 is to eat the implicit linebreak
+		//hl->writeSection(hl, 0, span + 1); // the +1 is to eat the implicit linebreak
 		
 		q++;
 	}

@@ -55,18 +55,19 @@ typedef struct HighlighterManager {
 	VEC(HighlighterModule*) modules;
 	VEC(Highlighter*) plugins;
 	
-	
+	HT(Highlighter*) extLookup;
 } HighlighterManager;
 
 
+void HighlighterManager_Init(HighlighterManager* hm);
+void HighlighterManager_Destroy(HighlighterManager* hm);
+
 HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path);
-
-
-
-
-
 void Highlighter_LoadStyles(Highlighter* h, char* path);
 void Highlighter_PrintStyles(Highlighter* h);
+
+Highlighter* HighlighterManager_ProbeExt(HighlighterManager* hm, char* filename);
+
 
 
 #pragma magic [random] baz()
