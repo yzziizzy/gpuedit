@@ -508,12 +508,15 @@ int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
 	return 0;
 }
 
-void writeSection(HLContextInternal* hl, unsigned char style, unsigned char len) {
+void writeSection(HLContextInternal* hl, unsigned char style, size_t len) {
 	if(len == 0) return;
 	
+//	printf("writeSection, %d\n", style);
 	while(len > 0 && hl->color.writeLine) {
-		size_t maxl = MIN(len, hl->color.writeLine->length);
+		size_t maxl = MIN(255, MIN(len, hl->color.writeLine->length));
 		
+//	printf(" maxl: %d\n", maxl, len);
+				
 		VEC_INC(&hl->color.writeLine->style);
 		VEC_TAIL(&hl->color.writeLine->style).length = maxl;
 		VEC_TAIL(&hl->color.writeLine->style).styleIndex = style;
@@ -522,6 +525,7 @@ void writeSection(HLContextInternal* hl, unsigned char style, unsigned char len)
 		len -= maxl;
 		
 		if(hl->color.writeCol >= hl->color.writeLine->length || hl->color.writeLine->length == 0) {
+//			printf(" nextline\n");
 			hl->color.writeCol = 0;
 			hl->color.writeLine = hl->color.writeLine->next;
 			hl->ctx.dirtyLines--;
@@ -605,7 +609,7 @@ void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 		
 		bl = bl->next;
 	}
-	
+//	printf("\n");
 	h->plugin->refreshStyle(&hlc.ctx);
 	
 // 	printf("hl time: %f\n", timeSince(then)  * 1000.0);

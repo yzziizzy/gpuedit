@@ -14,106 +14,107 @@
 [slash \\
 [star *
 
+
 # keywords
-{await :cat=keyword |identifier_chars>LST_identifier
-{break :cat=keyword |identifier_chars>LST_identifier
-{case :cat=keyword |identifier_chars>LST_identifier
-{catch :cat=keyword |identifier_chars>LST_identifier
-{class :cat=keyword |identifier_chars>LST_identifier
-{const :cat=keyword |identifier_chars>LST_identifier
-{continue :cat=keyword |identifier_chars>LST_identifier
-{debugger :cat=keyword |identifier_chars>LST_identifier
-{default :cat=keyword |identifier_chars>LST_identifier
-{delete :cat=keyword |identifier_chars>LST_identifier
-{do :cat=keyword |identifier_chars>LST_identifier
-{else :cat=keyword |identifier_chars>LST_identifier
-{export :cat=keyword |identifier_chars>LST_identifier
-{extends :cat=keyword |identifier_chars>LST_identifier
-{false :cat=keyword |identifier_chars>LST_identifier
-{finally :cat=keyword |identifier_chars>LST_identifier
-{for :cat=keyword |identifier_chars>LST_identifier
-{function :cat=keyword |identifier_chars>LST_identifier
-{if :cat=keyword |identifier_chars>LST_identifier
-{import :cat=keyword |identifier_chars>LST_identifier
-{in :cat=keyword |identifier_chars>LST_identifier
-{instanceof :cat=keyword |identifier_chars>LST_identifier
-{let :cat=keyword |identifier_chars>LST_identifier
-{new :cat=keyword |identifier_chars>LST_identifier
-{null :cat=keyword |identifier_chars>LST_identifier
-{return :cat=keyword |identifier_chars>LST_identifier
-{of :cat=keyword |identifier_chars>LST_identifier
-{super :cat=keyword |identifier_chars>LST_identifier
-{switch :cat=keyword |identifier_chars>LST_identifier
-{this :cat=keyword |identifier_chars>LST_identifier
-{throw :cat=keyword |identifier_chars>LST_identifier
-{true :cat=keyword |identifier_chars>LST_identifier
-{try :cat=keyword |identifier_chars>LST_identifier
-{typeof :cat=keyword |identifier_chars>LST_identifier
-{var :cat=keyword |identifier_chars>LST_identifier
-{void :cat=keyword |identifier_chars>LST_identifier
-{while :cat=keyword |identifier_chars>LST_identifier
-{with :cat=keyword |identifier_chars>LST_identifier
-{yield :cat=keyword |identifier_chars>LST_identifier
+{await :cat=Keyword |identifier_chars>LST_identifier
+{break :cat=Keyword |identifier_chars>LST_identifier
+{case :cat=Keyword |identifier_chars>LST_identifier
+{catch :cat=Keyword |identifier_chars>LST_identifier
+{class :cat=Keyword |identifier_chars>LST_identifier
+{const :cat=Keyword |identifier_chars>LST_identifier
+{continue :cat=Keyword |identifier_chars>LST_identifier
+{debugger :cat=Keyword |identifier_chars>LST_identifier
+{default :cat=Keyword |identifier_chars>LST_identifier
+{delete :cat=Keyword |identifier_chars>LST_identifier
+{do :cat=Keyword |identifier_chars>LST_identifier
+{else :cat=Keyword |identifier_chars>LST_identifier
+{export :cat=Keyword |identifier_chars>LST_identifier
+{extends :cat=Keyword |identifier_chars>LST_identifier
+{false :cat=Keyword |identifier_chars>LST_identifier
+{finally :cat=Keyword |identifier_chars>LST_identifier
+{for :cat=Keyword |identifier_chars>LST_identifier
+{function :cat=Keyword |identifier_chars>LST_identifier
+{if :cat=Keyword |identifier_chars>LST_identifier
+{import :cat=Keyword |identifier_chars>LST_identifier
+{in :cat=Keyword |identifier_chars>LST_identifier
+{instanceof :cat=Keyword |identifier_chars>LST_identifier
+{let :cat=Keyword |identifier_chars>LST_identifier
+{new :cat=Keyword |identifier_chars>LST_identifier
+{null :cat=Keyword |identifier_chars>LST_identifier
+{return :cat=Keyword |identifier_chars>LST_identifier
+{of :cat=Keyword |identifier_chars>LST_identifier
+{super :cat=Keyword |identifier_chars>LST_identifier
+{switch :cat=Keyword |identifier_chars>LST_identifier
+{this :cat=Keyword |identifier_chars>LST_identifier
+{throw :cat=Keyword |identifier_chars>LST_identifier
+{true :cat=Keyword |identifier_chars>LST_identifier
+{try :cat=Keyword |identifier_chars>LST_identifier
+{typeof :cat=Keyword |identifier_chars>LST_identifier
+{var :cat=Keyword |identifier_chars>LST_identifier
+{void :cat=Keyword |identifier_chars>LST_identifier
+{while :cat=Keyword |identifier_chars>LST_identifier
+{with :cat=Keyword |identifier_chars>LST_identifier
+{yield :cat=Keyword |identifier_chars>LST_identifier
 
 
 # operators and punctuation
-{+ :cat=operator
-{& :cat=operator
-{+= :cat=operator
-{&= :cat=operator
-{&& :cat=operator
-{== :cat=operator
-{=== :cat=operator
-{!= :cat=operator
-{!== :cat=operator
-{?? :cat=operator
+{+ :cat=Operator
+{& :cat=Operator
+{+= :cat=Operator
+{&= :cat=Operator
+{&& :cat=Operator
+{== :cat=Operator
+{=== :cat=Operator
+{!= :cat=Operator
+{!== :cat=Operator
+{?? :cat=Operator
 {( :cat=punct
 {) :cat=punct
-{- :cat=operator
-{| :cat=operator
-{-= :cat=operator
-{|= :cat=operator
-{|| :cat=operator
-{< :cat=operator
-{<= :cat=operator
+{- :cat=Operator
+{| :cat=Operator
+{-= :cat=Operator
+{|= :cat=Operator
+{|| :cat=Operator
+{< :cat=Operator
+{<= :cat=Operator
 {[ :cat=punct
 {] :cat=punct
-{* :cat=operator
-{** :cat=operator
-{**- :cat=operator
-{^ :cat=operator
-{*= :cat=operator
-{^= :cat=operator
-{<- :cat=operator
-{> :cat=operator
-{>= :cat=operator
+{* :cat=Operator
+{** :cat=Operator
+{**- :cat=Operator
+{^ :cat=Operator
+{*= :cat=Operator
+{^= :cat=Operator
+{<- :cat=Operator
+{> :cat=Operator
+{>= :cat=Operator
 {{ :cat=punct
 {} :cat=punct
-{/ :cat=operator
+{/ :cat=Operator
 :LST_NULL___slash @/>LST_sl_comment
 :LST_NULL___slash @*>LST_ml_comment
-{<< :cat=operator
-{<<< :cat=operator
-{/= :cat=operator
-{<<= :cat=operator
-{<<<= :cat=operator
-{++ :cat=operator
-{= :cat=operator
-{, :cat=operator
+{<< :cat=Operator
+{<<< :cat=Operator
+{/= :cat=Operator
+{<<= :cat=Operator
+{<<<= :cat=Operator
+{++ :cat=Operator
+{= :cat=Operator
+{, :cat=Operator
 {; :cat=punct
-{% :cat=operator
-{>> :cat=operator
-{>>> :cat=operator
-{%= :cat=operator
-{>>= :cat=operator
-{>>>= :cat=operator
-{-- :cat=operator
-{! :cat=operator
-{? :cat=operator
-{... :cat=operator
-{. :cat=operator +num_chars>LST_float
-{: :cat=operator
-{:: :cat=operator
+{% :cat=Operator
+{>> :cat=Operator
+{>>> :cat=Operator
+{%= :cat=Operator
+{>>= :cat=Operator
+{>>>= :cat=Operator
+{-- :cat=Operator
+{! :cat=Operator
+{? :cat=Operator
+{... :cat=Operator
+{. :cat=Operator +num_chars>LST_float
+{: :cat=Operator
+{:: :cat=Operator
 
 
 
@@ -133,26 +134,37 @@
 :LST_NULL +identifier_schars>LST_identifier
 
 # ignore whitespace
-# ^ discards the char while moving to the next state
-:LST_NULL +ws^LST_NULL
+:LST_NULL +ws>LST_ws
+:LST_ws +ws>LST_ws
+:LST_ws @\r=LST_ws
+:LST_ws @\n=LST_ws
+:LST_ws !+ws~LST_ws
+&LST_ws :cat=Whitespace
 
 # double-quote strings
 # @ is a single-char transition
-:LST_string @"=LST_string_end
+:LST_string @">LST_string_end
 :LST_NULL @">LST_string
+#:LST_string_end @:=LST_obj_key
 &LST_string_end :cat=String
 :LST_string @\\>LST_string_esc
 :LST_string !+slash>LST_string
 :LST_string_esc >LST_string
+:LST_string @\r~LST_string_line_error
+:LST_string @\n~LST_string_line_error
+:LST_string_esc @\r~LST_string_line_error
+:LST_string_esc @\n~LST_string_line_error
 
+&LST_obj_key :cat=Label
 
 # single-quote strings
-:LST_sq_string @'=LST_sq_string_end
+:LST_sq_string @'>LST_sq_string_end
+#:LST_sq_string_end @:=LST_obj_key
 :LST_NULL @'>LST_sq_string
 &LST_sq_string_end :cat=String
 :LST_sq_string @\\>LST_sq_string_esc
 :LST_sq_string !+slash>LST_sq_string
-#:LST_sq_string_esc >LST_sq_string
+:LST_sq_string_esc >LST_sq_string
 :LST_sq_string @\r~LST_string_line_error
 :LST_sq_string @\n~LST_string_line_error
 :LST_sq_string_esc @\r~LST_string_line_error
@@ -192,14 +204,19 @@
 :LST_probenum @.>LST_float
 :LST_probenum @x>LST_hexnum
 :LST_probenum @X>LST_hexnum
+:LST_probenum @:=LST_obj_key
 :LST_probefixed @x>LST_hexnum
 :LST_probefixed @X>LST_hexnum
+:LST_probefixed @:=LST_obj_key
 :LST_probenum +num_chars>LST_octalnum
 :LST_probefixed +num_chars>LST_octalnum
 :LST_intnum @.>LST_float
 :LST_intnum +num_chars>LST_intnum
+:LST_intnum @:=LST_obj_key
 :LST_octalnum +octal_chars>LST_octalnum
+:LST_octalnum @:=LST_obj_key
 :LST_hexnum +hex_chars>LST_hexnum
+:LST_hexnum @:=LST_obj_key
 
 :LST_float @.>LST_INVALID
 :LST_float +num_chars>LST_float
@@ -218,11 +235,11 @@
 # ! inverts a character set
 # = finishes a token, including the character tested
 # ~ finishes a token but does not consume the character tested
-&LST_sl_comment :cat=Comment
+&LST_sl_comment :cat=Comment :type=CommentSingle
 :LST_sl_comment >LST_sl_comment
 :LST_sl_comment @\r~LST_sl_comment
 :LST_sl_comment @\n~LST_sl_comment
-&LST_ml_comment :cat=Comment
+&LST_ml_comment :cat=Comment :type=CommentMulti
 :LST_ml_comment @*>LST_ml_comment_star
 :LST_ml_comment !+star>LST_ml_comment
 :LST_ml_comment_star @/=LST_ml_comment

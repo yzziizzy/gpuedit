@@ -1,0 +1,15 @@
+Error = #FF0000
+Comma = #888888
+Semicolon = #888888
+Identifier = #22aabb
+ControlFlow = #55ff00
+Label = #eeee22
+Operator = #ff0000
+Number = #ff8811
+String = #bbbbdd
+CommentSingle = #bb0000
+CommentMulti = #bb0000
+Keyword = #33FF11
+Brackets = #ffffff
+Braces = #ffffff
+Parenthesis = #ffffff

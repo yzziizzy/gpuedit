@@ -31,6 +31,7 @@ char** state_data[] = {
 };
 
 enum terminal_cats {
+	#define TDX_type(k, v)
 	#define TDX_cat(k, v) CAT_##v,
 	#define TDX(k, v) TDX_##k(k, v)
 	#define PARSER_INCLUDE_UNIQUE_TERMINAL_PAIRS
@@ -38,10 +39,12 @@ enum terminal_cats {
 	#undef PARSER_INCLUDE_UNIQUE_TERMINAL_PAIRS
 	#undef TDX
 	#undef TDX_cat
+	#undef TDX_type
 	CAT_MAX_VALUE,
 };
 
 char* cat_names[] = {
+	#define TDX_type(k, v)
 	#define TDX_cat(k, v) [CAT_##v] = #v,
 	#define TDX(k, v) TDX_##k(k, v)
 	#define PARSER_INCLUDE_UNIQUE_TERMINAL_PAIRS
@@ -49,10 +52,11 @@ char* cat_names[] = {
 	#undef PARSER_INCLUDE_UNIQUE_TERMINAL_PAIRS
 	#undef TDX
 	#undef TDX_cat
-	
+	#undef TDX_type
 };
 
 int terminal_lookup[] = {
+	#define TDX_type(s, k, v)
 	#define TDX_cat(s, k, v) [s] = CAT_##v,
 	#define TDX(s, k, v) TDX_##k(s, k, v)
 	#define PARSER_INCLUDE_TERMINAL_TRIPLETS
@@ -60,6 +64,7 @@ int terminal_lookup[] = {
 	#undef PARSER_INCLUDE_TERMINAL_TRIPLETS
 	#undef TDX
 	#undef TDF_cat
+	#undef TDF_type
 };
 
 
@@ -156,6 +161,10 @@ TOKEN_DONE:
 	
 PUSH_CHAR_RET: 
 	if(!suppress) {
+		if(st->blen >= st->balloc) {
+			st->balloc *= 2;
+			st->buffer = realloc(st->buffer, sizeof(*st->buffer) * st->balloc);
+		}
 		st->buffer[st->blen] = c; 
 		st->blen++;
 	}
@@ -163,6 +172,10 @@ PUSH_CHAR_RET:
 	
 PUSH_CHAR_DONE: 
 	if(!suppress) {
+		if(st->blen >= st->balloc) {
+			st->balloc *= 2;
+			st->buffer = realloc(st->buffer, sizeof(*st->buffer) * st->balloc);
+		}
 		st->buffer[st->blen] = c; 
 		st->blen++;
 	}
@@ -197,7 +210,8 @@ void hlfn(HLContext* hl) {
 
 	struct input_state is;
 	
-		
+	int span = 0; // ls.blen does not track ingored characters, like whitespace
+	              // span does
 
 	int q = 0;
 	while(hl->dirtyLines > 0) {
@@ -221,32 +235,45 @@ void hlfn(HLContext* hl) {
 			// the 3rd param to eatchar() suppresses output
 			if(i == llen) {
 				ret = eatchar(&ls, '\n', 1);
+//				printf("  i: %d, char: \\n, span: %d (ret=%d) state: %s\n", i, span, ret, state_names[ls.state]);
+			
 			}
 			else {
 				ret = eatchar(&ls, line[i], 0);
+				if(ret) span++;
+//				printf("  i: %d, char: %d, span: %d (ret=%d) state: %s\n",
+//					 i, line[i], span, ret, state_names[ls.state]);
+			
 			}
+			
 			
 			if(ls.tokenFinished) { 
 				// token is ready
  				
 				int hlo = terminal_lookup[ls.tokenState];
 				
-//				printf(" token: %d %d, '%.*s'\n", hlo, span, ls.blen, ls.buffer);
+//				printf(" token: %d %d, '%.*s' (ret=%d)\n", 
+//					hlo, span, ls.blen, ls.buffer, ret);
 				
 				
-				hl->writeSection(hl, hlo, ls.blen);
+				hl->writeSection(hl, hlo, span);
 				
 				// reset the lex state when done reading
 				ls.tokenFinished = 0;
 				ls.state = LST_NULL;
 				ls.blen = 0;
+				
+				span = 0;
 			}
 			
-			if(ret) {
+			
+			if(ret || i == llen) {
 				i++; // advance on ret == 1
 			}
 		}
 		//printf("line ending\n");
+		
+		
 		
 		//hl->writeSection(hl, 0, span); // the +1 is to eat the implicit linebreak
 		
@@ -254,7 +281,7 @@ void hlfn(HLContext* hl) {
 	}
 	
 	// finish off the last token
-	hl->writeSection(hl, terminal_lookup[ls.tokenState], ls.blen);
+	hl->writeSection(hl, terminal_lookup[ls.tokenState], span);
 	
 	free(ls.buffer);
 }

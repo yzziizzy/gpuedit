@@ -284,7 +284,7 @@ void GUIManager_Reap(GUIManager* gm) {
 	
 	GUIObject* head = GUIManager_getFocusedObject(gm);
 	
-	 
+	
 /*	printf("\nreap Focus Stack:\n");
 	RING_EACH(&gm->focusStack, i, o) {
 		printf( "  %d > %p\n", i, o);

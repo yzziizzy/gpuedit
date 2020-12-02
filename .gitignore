@@ -51,6 +51,9 @@ Makefile
 
 .deps
 
+.gdb_history
+.gdbinit
+
 /config.*
 /settings.ini
 /src/gpuedit
@@ -81,3 +84,5 @@ Makefile
 
 testfile.c
 testfile.h
+
+parser_generated.h

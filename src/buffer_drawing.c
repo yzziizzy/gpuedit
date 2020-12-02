@@ -307,7 +307,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					inSelection = 0;
 					fg = &theme->textColor;
 					bg = &theme->bgColor;
-				} 
+				}
 				
 				int c = bl->buf[i]; 
 //				if(c == 0) break;
