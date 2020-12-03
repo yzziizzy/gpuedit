@@ -48,7 +48,7 @@
 {static :cat=Keyword |identifier_chars>LST_identifier
 {struct :cat=Keyword |identifier_chars>LST_identifier
 {switch :cat=Keyword |identifier_chars>LST_identifier
-{cat=DataTypedef :cat=Keyword |identifier_chars>LST_identifier
+{typedef :cat=Keyword |identifier_chars>LST_identifier
 {union :cat=Keyword |identifier_chars>LST_identifier
 {while :cat=Keyword |identifier_chars>LST_identifier
 
