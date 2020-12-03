@@ -366,7 +366,7 @@ void get_style_defaults(StyleInfo* styles, uint64_t maxStyles) {
 
 
 
-void gpuedit_list_highlighters(Allocator* al, HighlighterPluginInfo** hllist, uint64_t* count) {
+void __attribute__((used)) gpuedit_list_highlighters(Allocator* al, HighlighterPluginInfo** hllist, uint64_t* count) {
 	
 	HighlighterPluginInfo* list = al->malloc(al, sizeof(*list));
 	

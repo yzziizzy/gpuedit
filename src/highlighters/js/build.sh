@@ -4,13 +4,21 @@
 ../../sti/parser/parser_gen -gecndufsv js_tokens.txt 1> parser_generated.h
 
 
-gcc  -shared -fPIC -o ../js.so \
-	lexer.c ../../sti/sti.c \
-	-lm -Wall -Werror -O0 -ggdb -DLINUX -std=gnu11 \
+OPTS="-fdata-sections -ffunction-sections -fPIC \
+	-lm -Wall -Werror -O3 -ggdb -DLINUX -std=gnu11 \
 	-Wno-discarded-qualifiers \
 	-Wno-unused-variable \
 	-Wno-unused-but-set-variable \
-	-Wno-unused-label
+	-Wno-unused-label \
+	-Wno-strict-aliasing"
+
+
+gcc $OPTS -c lexer.c -o lexer.o
+gcc $OPTS -c ../../sti/vec.c -o vec.o
+
+ar rcs js.a *.o
+
+gcc -shared -Wl,--gc-sections,-u,gpuedit_list_highlighters js.a -o ../js.so
 
 
 
