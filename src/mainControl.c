@@ -12,7 +12,6 @@
 #include "c_json/json.h"
 
 
-#include "highlighters/c.h"
 #include "fileBrowser.h"
 #include "fuzzyMatchControl.h"
 

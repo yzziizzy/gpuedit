@@ -10,7 +10,6 @@
 #include "gui_internal.h"
 #include "clipboard.h"
 
-#include "highlighters/c.h"
 
 
 

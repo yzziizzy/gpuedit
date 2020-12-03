@@ -73,6 +73,7 @@
 {] :cat=Brackets :block=close
 {* :cat=Operator
 {^ :cat=Operator
+{~ :cat=Operator
 {*= :cat=Operator
 {^= :cat=Operator
 {<- :cat=Operator

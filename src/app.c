@@ -37,8 +37,6 @@
 #include "app.h"
 #include "gui.h"
 
-// temp
-#include "highlighters/c.h"
 
 
 GLuint proj_ul, view_ul, model_ul;

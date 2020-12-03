@@ -132,14 +132,14 @@ do { \
 
 #define charset_has(cs, c) (c <= cs##_len && !!cs[c])
 
-	// hopefully this works
 	st->charnum++;
 	if(c == '\n') {
 		st->linenum++;
 		st->charnum = 0;
 	}
 	
-
+	
+	
 RETRY:
 	switch(st->state) {
 		#define PARSER_INCLUDE_SWITCH
@@ -236,20 +236,27 @@ void hlfn(HLContext* hl) {
 		
 		for(int i = 0; i <= llen;) {
 			int ret;
+			
+			// line continuations 
+			if(i == llen - 1) {
+				if(line[i] == '\\') {
+					span++;
+					break;
+				};
+			}
 						
 			// newlines are not given, nor written back
 			// the 3rd param to eatchar() suppresses output
 			if(i == llen) {
+				
 				ret = eatchar(&ls, '\n', 1);
 //				printf("  i: %d, char: \\n, span: %d (ret=%d) state: %s\n", i, span, ret, state_names[ls.state]);
-			
 			}
 			else {
 				ret = eatchar(&ls, line[i], 0);
 				if(ret) span++;
 //				printf("  i: %d, char: %d, span: %d (ret=%d) state: %s\n",
 //					 i, line[i], span, ret, state_names[ls.state]);
-			
 			}
 			
 			
