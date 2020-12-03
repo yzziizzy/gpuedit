@@ -19,7 +19,6 @@
 * undo breaks if selection reaches end of file
 
 == TODO ==
-* Glowing squares for null chars
 * grep matcher
 * GUIListControl
 * s/GUIBufferEditControl_*()/GBEC_*()/
@@ -80,7 +79,6 @@
 * Persist bookmarks
 * Polish scrollbar dragging
 * Horizontal scrollbar
-* Convert C highlighter to sti generated lexer
 * Clean up C highlighter with provided allocators
 * Warn about duplicate key bindings
 
@@ -165,8 +163,6 @@
 
 == BUGS ==
 * Sequence cursor moves don't clear the current selection or change it
-* Paste with selection does not overwrite the selection
-* Segfault when hitting escape after find-replacing some text. Probably deleted elements not getting purged from the focus ring. 
 * GUIManager should pop focus stack if focused control is deleted
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
 * Mouse scroll on files with fewer lines than the screen

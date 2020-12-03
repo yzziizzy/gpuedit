@@ -475,8 +475,10 @@ GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 			obj = (*fn)(gm, cfg);
 			obj->h.name = json_obj_get_str(cfg, "name");
 		}
-		
-		free(elemType);
+		else {
+			printf("unknown gui type: '%s'\n", elemType);
+			return NULL;
+		}
 		
 		read_header(&obj->header, cfg);
 		

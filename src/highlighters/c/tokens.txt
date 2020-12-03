@@ -28,7 +28,6 @@
 {case :cat=Keyword |identifier_chars>LST_identifier
 {catch :cat=Keyword |identifier_chars>LST_identifier
 {continue :cat=Keyword |identifier_chars>LST_identifier
-{const :cat=Keyword |identifier_chars>LST_identifier
 {default :cat=Keyword |identifier_chars>LST_identifier
 {do :cat=Keyword |identifier_chars>LST_identifier
 {else :cat=Keyword |identifier_chars>LST_identifier
@@ -39,7 +38,6 @@
 {goto :cat=Keyword |identifier_chars>LST_identifier
 {if :cat=Keyword |identifier_chars>LST_identifier
 {inline :cat=Keyword |identifier_chars>LST_identifier
-{new :cat=Keyword |identifier_chars>LST_identifier
 {restrict :cat=Keyword |identifier_chars>LST_identifier
 {return :cat=Keyword |identifier_chars>LST_identifier
 {_Noreturn :cat=Keyword |identifier_chars>LST_identifier
