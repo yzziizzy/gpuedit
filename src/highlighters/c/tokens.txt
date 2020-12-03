@@ -1,0 +1,272 @@
+# character sets
+[identifier_schars a-zA-Z_
+[identifier_chars a-zA-Z0-9_
+[num_chars_start 0-9
+[num_chars 0-9
+[octal_chars 0-7
+[hex_chars 0-9a-fA-F
+[float_chars_start 0-9.\-\+
+[float_chars 0-9.eE
+[float_chars_start 0-9.\-\+
+[ws \ \t\r\n
+[endl \r\n
+# single-character transitions can't be inverted yet, but csets can 
+[slash \\
+[star *
+
+
+
+# keywords
+# : is extra user data to be carried through
+# | is a failover on a character set on discontinuity in the word 
+{alignas :cat=Keyword |identifier_chars>LST_identifier
+{alignof :cat=Keyword |identifier_chars>LST_identifier
+{_Alignas :cat=Keyword |identifier_chars>LST_identifier
+{_Alignof :cat=Keyword |identifier_chars>LST_identifier
+{_Atomic :cat=Keyword |identifier_chars>LST_identifier
+{break :cat=Keyword |identifier_chars>LST_identifier
+{case :cat=Keyword |identifier_chars>LST_identifier
+{catch :cat=Keyword |identifier_chars>LST_identifier
+{continue :cat=Keyword |identifier_chars>LST_identifier
+{const :cat=Keyword |identifier_chars>LST_identifier
+{default :cat=Keyword |identifier_chars>LST_identifier
+{do :cat=Keyword |identifier_chars>LST_identifier
+{else :cat=Keyword |identifier_chars>LST_identifier
+{enum :cat=Keyword |identifier_chars>LST_identifier
+{extern :cat=Keyword |identifier_chars>LST_identifier
+{for :cat=Keyword |identifier_chars>LST_identifier
+{_Generic :cat=Keyword |identifier_chars>LST_identifier
+{goto :cat=Keyword |identifier_chars>LST_identifier
+{if :cat=Keyword |identifier_chars>LST_identifier
+{inline :cat=Keyword |identifier_chars>LST_identifier
+{new :cat=Keyword |identifier_chars>LST_identifier
+{restrict :cat=Keyword |identifier_chars>LST_identifier
+{return :cat=Keyword |identifier_chars>LST_identifier
+{_Noreturn :cat=Keyword |identifier_chars>LST_identifier
+{sizeof :cat=Keyword |identifier_chars>LST_identifier
+{_Static_assert :cat=Keyword |identifier_chars>LST_identifier
+{static :cat=Keyword |identifier_chars>LST_identifier
+{struct :cat=Keyword |identifier_chars>LST_identifier
+{switch :cat=Keyword |identifier_chars>LST_identifier
+{cat=DataTypedef :cat=Keyword |identifier_chars>LST_identifier
+{union :cat=Keyword |identifier_chars>LST_identifier
+{while :cat=Keyword |identifier_chars>LST_identifier
+
+# operators and punctuation
+{+ :cat=Operator
+{& :cat=Operator
+{+= :cat=Operator
+{&= :cat=Operator
+{&& :cat=Operator
+{== :cat=Operator
+{!= :cat=Operator
+{( :cat=Parenthesis :block=open
+{) :cat=Parenthesis :block=close
+{- :cat=Operator
+{| :cat=Operator
+{-= :cat=Operator
+{|= :cat=Operator
+{|| :cat=Operator
+{< :cat=Operator
+{<= :cat=Operator
+{[ :cat=Brackets :block=open
+{] :cat=Brackets :block=close
+{* :cat=Operator
+{^ :cat=Operator
+{*= :cat=Operator
+{^= :cat=Operator
+{<- :cat=Operator
+{> :cat=Operator
+{>= :cat=Operator
+{{ :cat=Braces :block=open
+{} :cat=Braces :block=close
+{/ :cat=Operator
+:LST_NULL___slash @/>LST_sl_comment
+:LST_NULL___slash @*>LST_ml_comment
+{<< :cat=Operator
+{/= :cat=Operator
+{<<= :cat=Operator
+{++ :cat=Operator
+{= :cat=Operator
+{, :cat=Comma
+{; :cat=Semicolon
+{% :cat=Operator
+{>> :cat=Operator
+{%= :cat=Operator
+{>>= :cat=Operator
+{-- :cat=Operator
+{! :cat=Operator
+{? :cat=Operator
+{... :cat=Operator
+{. :cat=Operator +num_chars>LST_float
+{: :cat=Operator
+
+# types
+{_Bool :cat=DataType |identifier_chars>LST_identifier
+{_Imaginary :cat=DataType |identifier_chars>LST_identifier
+{_Thread_local :cat=DataType |identifier_chars>LST_identifier
+{_Complex :cat=DataType |identifier_chars>LST_identifier
+{register :cat=DataType |identifier_chars>LST_identifier
+{thread_local :cat=DataType |identifier_chars>LST_identifier
+{volatile :cat=DataType |identifier_chars>LST_identifier
+{const :cat=DataType |identifier_chars>LST_identifier
+{mutable :cat=DataType |identifier_chars>LST_identifier
+{signed :cat=DataType |identifier_chars>LST_identifier
+{unsigned :cat=DataType |identifier_chars>LST_identifier
+{auto :cat=DataType |identifier_chars>LST_identifier
+{bool :cat=DataType |identifier_chars>LST_identifier
+{uint8_t :cat=DataType |identifier_chars>LST_identifier
+{uint16_t :cat=DataType |identifier_chars>LST_identifier
+{uint32_t :cat=DataType |identifier_chars>LST_identifier
+{uint64_t :cat=DataType |identifier_chars>LST_identifier
+{int8_t :cat=DataType |identifier_chars>LST_identifier
+{int16_t :cat=DataType |identifier_chars>LST_identifier
+{int32_t :cat=DataType |identifier_chars>LST_identifier
+{int64_t :cat=DataType |identifier_chars>LST_identifier
+{char16_t :cat=DataType |identifier_chars>LST_identifier
+{char32_t :cat=DataType |identifier_chars>LST_identifier
+{float :cat=DataType |identifier_chars>LST_identifier
+{double :cat=DataType |identifier_chars>LST_identifier
+{char :cat=DataType |identifier_chars>LST_identifier
+{short :cat=DataType |identifier_chars>LST_identifier
+{int :cat=DataType |identifier_chars>LST_identifier
+{long :cat=DataType |identifier_chars>LST_identifier
+# no support for spaces yet {"long double" :cat=DataType |identifier_chars>LST_identifier
+# no support for spaces yet {"long long" :cat=DataType |identifier_chars>LST_identifier
+{intptr_t :cat=DataType |identifier_chars>LST_identifier
+{ptrdiff_t :cat=DataType |identifier_chars>LST_identifier
+{size_t :cat=DataType |identifier_chars>LST_identifier
+{void :cat=DataType |identifier_chars>LST_identifier
+{wchar_t :cat=DataType |identifier_chars>LST_identifier
+{__int64 :cat=DataType |identifier_chars>LST_identifier
+{__m64 :cat=DataType |identifier_chars>LST_identifier
+{__m128 :cat=DataType |identifier_chars>LST_identifier
+{__m128i :cat=DataType |identifier_chars>LST_identifier
+{__m128d :cat=DataType |identifier_chars>LST_identifier
+{__m256 :cat=DataType |identifier_chars>LST_identifier
+{__m256i :cat=DataType |identifier_chars>LST_identifier
+{__m256d :cat=DataType |identifier_chars>LST_identifier
+{__m512 :cat=DataType |identifier_chars>LST_identifier
+{__m512i :cat=DataType |identifier_chars>LST_identifier
+{__m512d :cat=DataType |identifier_chars>LST_identifier
+{__mmask8 :cat=DataType |identifier_chars>LST_identifier
+{__mmask16 :cat=DataType |identifier_chars>LST_identifier
+{__mmask32 :cat=DataType |identifier_chars>LST_identifier
+{__mmask64 :cat=DataType |identifier_chars>LST_identifier
+
+
+# mark some terminal states
+&LST_float :cat=Number
+&LST_probenum :cat=Number
+&LST_intnum :cat=Number
+&LST_octalnum :cat=Number
+&LST_hexnum :cat=Number
+&LST_identifier :cat=Identifier
+&LST_float_exp :cat=Number
+
+# all other identifiers
+# + is transition on a character set
+:LST_identifier +identifier_chars>LST_identifier
+:LST_NULL +identifier_schars>LST_identifier
+
+# ignore whitespace
+:LST_NULL +ws>LST_ws
+:LST_ws +ws>LST_ws
+:LST_ws @\r=LST_ws
+:LST_ws @\n=LST_ws
+:LST_ws !+ws~LST_ws
+&LST_ws :cat=Whitespace
+
+# double-quote strings
+# @ is a single-char transition
+:LST_string @">LST_string_end
+:LST_NULL @">LST_string
+&LST_string_end :cat=String
+:LST_string @\\>LST_string_esc
+:LST_string !+slash>LST_string
+:LST_string_esc >LST_string
+:LST_string @\r~LST_string_line_error
+:LST_string @\n~LST_string_line_error
+:LST_string_esc @\r~LST_string_line_error
+:LST_string_esc @\n~LST_string_line_error
+
+
+# character literals
+:LST_charlit @'>LST_charlit_end
+:LST_NULL @'>LST_charlit
+&LST_charlit_end :cat=String
+:LST_charlit @\\>LST_charlit_esc
+:LST_charlit !+slash>LST_charlit
+:LST_charlit_esc >LST_charlit
+:LST_charlit @\r~LST_string_line_error
+:LST_charlit @\n~LST_string_line_error
+:LST_charlit_esc @\r~LST_string_line_error
+:LST_charlit_esc @\n~LST_string_line_error
+
+&LST_string_line_error :cat=Error
+
+
+# numbers
+:LST_NULL @0>LST_probenum
+:LST_NULL @1>LST_intnum
+:LST_NULL @2>LST_intnum
+:LST_NULL @3>LST_intnum
+:LST_NULL @4>LST_intnum
+:LST_NULL @5>LST_intnum
+:LST_NULL @6>LST_intnum
+:LST_NULL @7>LST_intnum
+:LST_NULL @8>LST_intnum
+:LST_NULL @9>LST_intnum
+
+:LST_probenum @.>LST_float
+:LST_probenum @x>LST_hexnum
+:LST_probenum @X>LST_hexnum
+:LST_probefixed @x>LST_hexnum
+:LST_probefixed @X>LST_hexnum
+:LST_probenum +num_chars>LST_octalnum
+:LST_probefixed +num_chars>LST_octalnum
+:LST_intnum @.>LST_float
+:LST_intnum +num_chars>LST_intnum
+:LST_octalnum +octal_chars>LST_octalnum
+:LST_hexnum +hex_chars>LST_hexnum
+
+:LST_float @.>LST_INVALID
+:LST_float +num_chars>LST_float
+:LST_float @e>LST_float_exp_start
+:LST_float @E>LST_float_exp_start
+:LST_float @d=LST_float
+:LST_float @f=LST_float
+:LST_float_exp_start +num_chars>LST_float_exp
+:LST_float_exp_start @->LST_float_exp
+:LST_float_exp_start @+>LST_float_exp
+:LST_float_exp +num_chars>LST_float_exp
+:LST_float_exp @d=LST_float
+:LST_float_exp @f=LST_float
+
+# comments
+# ! inverts a character set
+# = finishes a token, including the character tested
+# ~ finishes a token but does not consume the character tested
+&LST_sl_comment :cat=CommentSingle :type=CommentSingle
+:LST_sl_comment >LST_sl_comment
+:LST_sl_comment @\r~LST_sl_comment
+:LST_sl_comment @\n~LST_sl_comment
+
+&LST_ml_comment :cat=CommentMulti :type=CommentMulti
+:LST_ml_comment @*>LST_ml_comment_star
+:LST_ml_comment >LST_ml_comment
+:LST_ml_comment_star @/=LST_ml_comment
+:LST_ml_comment_star >LST_ml_comment
+
+
+&LST_preproc :cat=Preprocessor
+:LST_NULL @#>LST_preproc
+:LST_preproc !+endl>LST_preproc
+:LST_preproc @\r~LST_preproc
+:LST_preproc @\n~LST_preproc
+
+
+
+
+
+

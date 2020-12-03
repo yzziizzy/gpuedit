@@ -513,7 +513,7 @@ void writeSection(HLContextInternal* hl, unsigned char style, size_t len) {
 	
 //	printf("writeSection, %d\n", style);
 	while(len > 0 && hl->color.writeLine) {
-		size_t maxl = MIN(255, MIN(len, hl->color.writeLine->length));
+		size_t maxl = MIN(255, MIN(len, hl->color.writeLine->length - hl->color.writeCol));
 		
 //	printf(" maxl: %d\n", maxl, len);
 				
@@ -525,7 +525,7 @@ void writeSection(HLContextInternal* hl, unsigned char style, size_t len) {
 		len -= maxl;
 		
 		if(hl->color.writeCol >= hl->color.writeLine->length || hl->color.writeLine->length == 0) {
-//			printf(" nextline\n");
+//			printf(" nextline: writecol: %ld, llen: %ld\n", hl->color.writeCol, hl->color.writeLine->length);
 			hl->color.writeCol = 0;
 			hl->color.writeLine = hl->color.writeLine->next;
 			hl->ctx.dirtyLines--;
