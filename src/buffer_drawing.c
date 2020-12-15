@@ -198,7 +198,15 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		}
 	}
 	
-	// draw
+	
+	
+	
+	
+	
+	
+	
+	
+	// draw lines
 	while(bl) {
 		
 		// line numbers
@@ -242,27 +250,26 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			};
 		}
 		
-		// handle selections ending on empty lines
-		if(gbe->sel && gbe->sel->endLine == bl && bl->length == 0) {
-			inSelection = 0;
-			fg = &theme->textColor;
-			bg = &theme->bgColor;
-		}
 		
 		
-		if(!bl->buf) { // still check selection info on empty lines 
-			printf("null line buffer in draw\n");
-			if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum) {
+		
+		
+		
+		
+		if(bl->length == 0) { // still check things on empty lines 
+					
+			// check selections
+			if(gbe->sel && gbe->sel->startLine == bl) {
 				inSelection = 1;
 				fg = &theme->hl_textColor;
 				bg = &theme->hl_bgColor;
 			}
-			if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum) {
+			if(gbe->sel && gbe->sel->endLine == bl) {
 				inSelection = 0;
 				fg = &theme->textColor;
 				bg = &theme->bgColor;
-			} 
-			
+			}
+		
 			// draw a little half-char of selection on empty lines 
 			if(inSelection) {
 				v = GUIManager_reserveElements(gm, 1);
@@ -285,7 +292,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			}
 			
 		}
-		else {// only draw lines with text
+		else {// draw lines with text
 			
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
@@ -295,14 +302,16 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				styleCols = atom->length;
 			}
 			
-			// main text
+			// draw characters
 			for(int i = 0; i < bl->length; i++) { 
-				if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum && gbe->sel->startCol <= i) {
+				
+				// check selection
+				if(gbe->sel && gbe->sel->startLine == bl && gbe->sel->startCol <= i) {
 					inSelection = 1;
 					fg = &theme->hl_textColor;
 					bg = &theme->hl_bgColor;
 				}
-				if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum && gbe->sel->endCol <= i) {
+				if(gbe->sel && gbe->sel->endLine == bl && gbe->sel->endCol <= i) {
 					inSelection = 0;
 					fg = &theme->textColor;
 					bg = &theme->bgColor;
@@ -311,6 +320,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				int c = bl->buf[i]; 
 //				if(c == 0) break;
 				
+				
+				// special drawing for null characters
 				if(c == 0) {
 					Color4 pulseColor = {
 						sin(fmod(pfp->appTime*.5, 6.28)) * .5 + .5,
