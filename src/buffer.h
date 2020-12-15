@@ -195,7 +195,8 @@ typedef struct ThemeDrawParams {
 	struct Color4 lineNumBookmarkColor; 
 	struct Color4 lineNumBgColor; 
 	struct Color4 hl_bgColor; 
-	struct Color4 hl_textColor; 
+	struct Color4 hl_textColor;
+	struct Color4 outlineCurrentLineBorderColor;
 } ThemeDrawParams;
 
 

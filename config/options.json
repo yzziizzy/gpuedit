@@ -7,12 +7,16 @@
 	"Buffer_hideScrollbar": 0,
 	"Buffer_highlightCurrentLine": 1,
 	"Buffer_outlineCurrentLine": 1,
-	"Buffer_outlineCurrentLineYOffset": 1,
+	"Buffer_outlineCurrentLineYOffset": 0,
 	"Buffer_lineNumExtraWidth": 10,
 	"Buffer_showLineNums": 1,
 	"Buffer_charWidth": 8,
 	"Buffer_lineHeight": 17,
 	"Buffer_tabWidth": 4,
+	"Buffer_fontList": [
+		"Arial",
+		"Courier New"
+	],
 	"Buffer_font": "Courier New",
 	"Buffer_fontSize": 16,
 	"Buffer_maxUndo": 4096,
@@ -30,8 +34,9 @@
 	"Theme_lineNumColor": "#ffffffff",
 	"Theme_lineNumBgColor": "#141414ff",
 	"Theme_lineNumBookmarkColor": "#32ff32ff",
-	"Theme_hl_bgColor": "#00c8c8ff",
+	"Theme_hl_bgColor": "#264f78ff",
 	"Theme_hl_textColor": "#fa0032ff",
+	"Theme_outlineCurrentLineBorderColor": "#323232ff",
 
 	// gui manager defaults
 	"Theme_textColor": "#c8c8c8ff",

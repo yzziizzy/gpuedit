@@ -20,6 +20,7 @@
 	SETTING(float, Buffer_charWidth,            10,    1,    1920*16) \
 	SETTING(float, Buffer_lineHeight,           20,    1,    1920*16) \
 	SETTING(int,   Buffer_tabWidth,             4,     0,    INT_MAX) \
+	SETTING(charpp,Buffer_fontList,             ((char*[]){"Arial","Courier New", NULL}), NULL, NULL) \
 	SETTING(charp, Buffer_font,                 "Courier New", NULL, NULL) \
 	SETTING(float, Buffer_fontSize,             12,    1,    1920*16) \
 	SETTING(int,   Buffer_maxUndo,              4096,  0,    INT_MAX) \
@@ -35,6 +36,7 @@
 	SETTING(charp, Theme_lineNumBookmarkColor,  "#32ff32ff", NULL, NULL) \
 	SETTING(charp, Theme_hl_bgColor,            "#00c8c8ff", NULL, NULL) \
 	SETTING(charp, Theme_hl_textColor,          "#fa0032ff", NULL, NULL) \
+	SETTING(charp, Theme_outlineCurrentLineBorderColor, "#323232ff", NULL, NULL) \
 	\
 	SETTING(charp, Theme_textColor,             "#c8c8c8ff", NULL, NULL) \
 	SETTING(charp, Theme_buttonTextColor,       "#c8c8e1ff", NULL, NULL) \

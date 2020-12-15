@@ -231,7 +231,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		float adv = 0;
 		
 		// highlight current line
-		if(bl == gbe->current && gbe->outlineCurLine) {
+		if(bl == gbe->current && gbe->outlineCurLine && !gbe->sel) {
 			GUIUnifiedVertex* vv = GUIManager_reserveElements(gm, 1);
 			*vv = (GUIUnifiedVertex){
 				.pos = {
@@ -243,7 +243,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				.texIndex1 = 1, // order width
 				.guiType = 4, // bordered window (just a box)
-				.fg = {50, 50, 50, 255}, // border color
+				.fg = GUI_COLOR4_TO_SHADER(theme->outlineCurrentLineBorderColor), // border color 
 				.bg = {0,0,0,0},
 				.z = gbe->header.absZ + 0.1,
 				.alpha = 1.0,
@@ -251,48 +251,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		}
 		
 		
-		
-		
-		
-		
-		
-		if(bl->length == 0) { // still check things on empty lines 
-					
-			// check selections
-			if(gbe->sel && gbe->sel->startLine == bl) {
-				inSelection = 1;
-				fg = &theme->hl_textColor;
-				bg = &theme->hl_bgColor;
-			}
-			if(gbe->sel && gbe->sel->endLine == bl) {
-				inSelection = 0;
-				fg = &theme->textColor;
-				bg = &theme->bgColor;
-			}
-		
-			// draw a little half-char of selection on empty lines 
-			if(inSelection) {
-				v = GUIManager_reserveElements(gm, 1);
-		
-				*v = (GUIUnifiedVertex){
-					.pos.t = tl.y,
-					.pos.l = tl.x + hsoff,
-					.pos.b = tl.y + tdp->lineHeight,
-					.pos.r = tl.x + hsoff + MAX(5, (float)tdp->charWidth / 2.0),
-					
-					.guiType = 0, // box
-					
-					.bg = GUI_COLOR4_TO_SHADER(*bg),
-					.z = gbe->header.absZ,
-					
-					// disabled in the shader right now
-					.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
-				};
-				
-			}
-			
-		}
-		else {// draw lines with text
+		if(bl->length) {// only draw lines with text
 			
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
@@ -383,20 +342,22 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					else { // selected text
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
+							// si->fgSelColor is never changed from generated values in lexer.c
 							struct Color4 color = {
-								si->fgSelColor.r,
-								si->fgSelColor.g,
-								si->fgSelColor.b,
-								si->fgSelColor.a,
+								si->fgColor.r,
+								si->fgColor.g,
+								si->fgColor.b,
+								si->fgColor.a,
 							};
-							struct Color4 bcolor = {
-								si->bgSelColor.r,
-								si->bgSelColor.g,
-								si->bgSelColor.b,
-								si->bgSelColor.a,
-							};
-							
-							drawCharacter(gm, tdp, &color, &bcolor, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+							// currently hardcoded in lexer which breaks selection bg highlighting
+							// struct Color4 bcolor = {
+							// 	si->bgSelColor.r,
+							// 	si->bgSelColor.g,
+							// 	si->bgSelColor.b,
+							// 	si->bgSelColor.a,
+							// };
+
+							drawCharacter(gm, tdp, &color, bg2, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 						}
 						else 
 							drawCharacter(gm, tdp, fg2, bg2, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
@@ -431,6 +392,25 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				bg = &theme->bgColor;
 			} 
 			
+		}
+
+		if(inSelection) {
+			v = GUIManager_reserveElements(gm, 1);
+
+			*v = (GUIUnifiedVertex){
+				.pos.t = tl.y,
+				.pos.l = tl.x + adv + hsoff,
+				.pos.b = tl.y + tdp->lineHeight,
+				.pos.r = tl.x + adv + hsoff + MAX(5, (float)tdp->charWidth / 1.0),
+
+				.guiType = 0, // box
+
+				.bg = GUI_COLOR4_TO_SHADER(*bg2),
+				.z = gbe->header.absZ,
+
+				// disabled in the shader right now
+				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+			};
 		}
 
 		if(tl.y > edh) break; // end of buffer control
