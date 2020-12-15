@@ -55,7 +55,7 @@ typedef struct AppState {
 	Matrix mProjWorld;
 	
 	Vector2 cursorPos;
-// 	Vector cursorPos;
+// 	Vector3 cursorPos;
 	int cursorIndex;
 
 	Vector2 mouseDownPos;

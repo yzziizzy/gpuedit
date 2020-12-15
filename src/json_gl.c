@@ -144,7 +144,7 @@ static int get_minmax(struct json_value* v, struct json_value** min, struct json
 }
 
 
-int json_vector3_minmax(struct json_value* v, Vector* min, Vector* max) {
+int json_vector3_minmax(struct json_value* v, Vector3* min, Vector3* max) {
 	int ret;
 	struct json_value* j_min, *j_max;
 	

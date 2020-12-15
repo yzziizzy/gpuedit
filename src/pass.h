@@ -22,14 +22,14 @@ typedef struct PassDrawParams {
 	Matrix* mProjView;
 	Matrix* mProjWorld;
 	
-	Vector eyeVec;
-	Vector eyePos;
-	Vector sunVec;
+	Vector3 eyeVec;
+	Vector3 eyePos;
+	Vector3 sunVec;
 	
-	Vector vEyePos;
-	Vector vLookDir;
-	Vector vEyeSun;
-	Vector vSunPos;
+	Vector3 vEyePos;
+	Vector3 vLookDir;
+	Vector3 vEyeSun;
+	Vector3 vSunPos;
 	
 	float timeSeconds;
 	float timeFractional;

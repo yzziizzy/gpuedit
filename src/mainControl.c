@@ -236,7 +236,7 @@ static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->header.size.y - 1;
 		
-		if(boxContainsPoint2(&box, &gev->pos)) {
+		if(boxContainsPoint2p(&box, &gev->pos)) {
 			if(tab->onClick) tab->onClick(i, gev->button, tab->onClickData);
 			if(tab->onActivate) tab->onActivate(i, tab->onActivateData);
 			
@@ -276,7 +276,7 @@ static int hitTestTabs(GUIMainControl* w, GUIEvent* gev) {
 		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->tabHeight - 1;
 		
-		if(boxContainsPoint2(&box, &gev->pos)) {
+		if(boxContainsPoint2p(&box, &gev->pos)) {
 			return i;
 		}
 	}
