@@ -393,6 +393,20 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			} 
 			
 		}
+		else { // empty lines
+			// check selection
+			if(gbe->sel && gbe->sel->startLine == bl) {
+				inSelection = 1;
+				fg = &theme->hl_textColor;
+				bg = &theme->hl_bgColor;
+			}
+			if(gbe->sel && gbe->sel->endLine == bl) {
+				inSelection = 0;
+				fg = &theme->textColor;
+				bg = &theme->bgColor;
+			}
+
+		}
 
 		if(inSelection) {
 			v = GUIManager_reserveElements(gm, 1);
