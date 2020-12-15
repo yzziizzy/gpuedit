@@ -55,22 +55,36 @@ FontManager* FontManager_alloc(GlobalSettings* gs) {
 
 
 void FontManager_init(FontManager* fm, GlobalSettings* gs) {
-	
-	if(FontManager_loadAtlas(fm, "/usr/share/gpuedit/fonts.atlas")) {
-		
-		FontManager_addFont(fm, "Arial");
-// 		FontManager_addFont(fm, "Impact");
-// 		FontManager_addFont(fm, "Modern");
-// 		FontManager_addFont(fm, "Times New Roman");
-		FontManager_addFont(fm, "Courier New");
-// 		FontManager_addFont(fm, "Copperplate");
-		
+	int i = 0;
+	int atlas_dirty = 0;
+	char* atlas_path = "/usr/share/gpuedit/fonts.atlas";
+	GUIFont* font;
+
+	FontManager_loadAtlas(fm, atlas_path);
+
+	while(gs->Buffer_fontList[i] != NULL) {
+		// printf("checking font: %s\n", gs->Buffer_fontList[i]);
+		if(HT_get(&fm->fonts, gs->Buffer_fontList[i], &font)) {
+			atlas_dirty = 1;
+			break;
+		}
+		i++;
+	}
+
+
+	if(atlas_dirty) {
+		i = 0;
+		while(gs->Buffer_fontList[i] != NULL) {
+			// printf("building font: %s\n", gs->Buffer_fontList[i]);
+			FontManager_addFont(fm, gs->Buffer_fontList[i]);
+			i++;
+		}
 		FontManager_finalize(fm);
 
 		FontManager_createAtlas(fm);
-		FontManager_saveAtlas(fm, "/usr/share/gpuedit/fonts.atlas");
+		FontManager_saveAtlas(fm, atlas_path);
 	}
-	
+
 	HT_get(&fm->fonts, "Arial", &fm->helv);
 }
 

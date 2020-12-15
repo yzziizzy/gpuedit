@@ -845,7 +845,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	ep->tabWidth = w->gs->Buffer_tabWidth;
 	
 	TextDrawParams* tdp = pcalloc(tdp);
-	tdp->font = FontManager_findFont(w->header.gm->fm, "Courier New");
+	tdp->font = FontManager_findFont(w->header.gm->fm, w->gs->Buffer_font);
 	tdp->fontSize = w->gs->Buffer_fontSize;
 	tdp->charWidth = w->gs->Buffer_charWidth;
 	tdp->lineHeight = w->gs->Buffer_lineHeight;

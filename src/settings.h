@@ -20,6 +20,7 @@
 	SETTING(float, Buffer_charWidth,            10,    1,    1920*16) \
 	SETTING(float, Buffer_lineHeight,           20,    1,    1920*16) \
 	SETTING(int,   Buffer_tabWidth,             4,     0,    INT_MAX) \
+	SETTING(charpp,Buffer_fontList,             ((char*[]){"Arial","Courier New", NULL}), NULL, NULL) \
 	SETTING(charp, Buffer_font,                 "Courier New", NULL, NULL) \
 	SETTING(float, Buffer_fontSize,             12,    1,    1920*16) \
 	SETTING(int,   Buffer_maxUndo,              4096,  0,    INT_MAX) \
