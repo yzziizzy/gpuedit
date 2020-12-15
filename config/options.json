@@ -7,7 +7,7 @@
 	"Buffer_hideScrollbar": 0,
 	"Buffer_highlightCurrentLine": 1,
 	"Buffer_outlineCurrentLine": 1,
-	"Buffer_outlineCurrentLineYOffset": 1,
+	"Buffer_outlineCurrentLineYOffset": 0,
 	"Buffer_lineNumExtraWidth": 10,
 	"Buffer_showLineNums": 1,
 	"Buffer_charWidth": 8,

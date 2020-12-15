@@ -223,7 +223,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		float adv = 0;
 		
 		// highlight current line
-		if(bl == gbe->current && gbe->outlineCurLine) {
+		if(bl == gbe->current && gbe->outlineCurLine && !gbe->sel) {
 			GUIUnifiedVertex* vv = GUIManager_reserveElements(gm, 1);
 			*vv = (GUIUnifiedVertex){
 				.pos = {
@@ -249,43 +249,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			bg = &theme->bgColor;
 		}
 		
-		
-		if(!bl->buf) { // still check selection info on empty lines 
-			printf("null line buffer in draw\n");
-			if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum) {
-				inSelection = 1;
-				fg = &theme->hl_textColor;
-				bg = &theme->hl_bgColor;
-			}
-			if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum) {
-				inSelection = 0;
-				fg = &theme->textColor;
-				bg = &theme->bgColor;
-			} 
-			
-			// draw a little half-char of selection on empty lines 
-			if(inSelection) {
-				v = GUIManager_reserveElements(gm, 1);
-		
-				*v = (GUIUnifiedVertex){
-					.pos.t = tl.y,
-					.pos.l = tl.x + hsoff,
-					.pos.b = tl.y + tdp->lineHeight,
-					.pos.r = tl.x + hsoff + MAX(5, (float)tdp->charWidth / 2.0),
-					
-					.guiType = 0, // box
-					
-					.bg = GUI_COLOR4_TO_SHADER(*bg),
-					.z = gbe->header.absZ,
-					
-					// disabled in the shader right now
-					.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
-				};
-				
-			}
-			
-		}
-		else {// only draw lines with text
+		if(bl->buf) {// only draw lines with text
 			
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
@@ -422,6 +386,25 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				bg = &theme->bgColor;
 			} 
 			
+		}
+
+		if(inSelection) {
+			v = GUIManager_reserveElements(gm, 1);
+
+			*v = (GUIUnifiedVertex){
+				.pos.t = tl.y,
+				.pos.l = tl.x + adv + hsoff,
+				.pos.b = tl.y + tdp->lineHeight,
+				.pos.r = tl.x + adv + hsoff + MAX(5, (float)tdp->charWidth / 1.0),
+
+				.guiType = 0, // box
+
+				.bg = GUI_COLOR4_TO_SHADER(*bg2),
+				.z = gbe->header.absZ,
+
+				// disabled in the shader right now
+				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+			};
 		}
 
 		if(tl.y > edh) break; // end of buffer control
