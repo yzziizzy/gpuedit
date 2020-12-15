@@ -102,7 +102,7 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 	if(gev->originalTarget == (void*)w->titlebar) {
 		w->isDragging = 1;
 		
-		vSub2(&gev->dragStartPos, &w->header.topleft, &w->dragOffset);
+		vSub2p(&gev->dragStartPos, &w->header.topleft, &w->dragOffset);
 		
 		gev->cancelled = 1;
 	}
@@ -128,7 +128,7 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	
 // 	printf("drag move\n");
 	if(w->isDragging) {
-		vSub2(&gev->pos, &w->dragOffset, &w->header.topleft);
+		vSub2p(&gev->pos, &w->dragOffset, &w->header.topleft);
 		
 		gev->cancelled = 1;
 	}
@@ -142,7 +142,7 @@ static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
 // 	printf("a: %p\n", a);
 	// TODO: take into account the scroll position and clipping
 	
-	if(boxContainsPoint2(&w->clientArea.absClip, &testPos)) {
+	if(boxContainsPoint2p(&w->clientArea.absClip, &testPos)) {
 		b = gui_defaultChildrenHitTest(&w->clientArea, testPos);
 	}
 	

@@ -80,7 +80,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->header.size.y - 1;
 		
-		if(boxContainsPoint2(&box, &gev->pos)) {
+		if(boxContainsPoint2p(&box, &gev->pos)) {
 			if(tab->onClick) tab->onClick(i, gev->button, tab);
 			if(tab->onActivate) tab->onActivate(i, tab);
 			

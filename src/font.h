@@ -65,8 +65,8 @@ typedef struct FontGenBMP {
 	uint8_t* glyph;
 	Vector2i glyphSize; // size of the bitmap
 	
-	Vector bearing;
-	Vector advance;
+	Vector3 bearing;
+	Vector3 advance;
 	
 	// final texture data
 	struct charInfo charinfo;
@@ -91,7 +91,7 @@ typedef struct FontGen {
 	uint8_t* rawGlyph;
 	Vector2i rawGlyphSize; // size of the raw bitmap
 
-	Vector rawBearing; // distance from the origin to the top left corner of the glyph
+	Vector3 rawBearing; // distance from the origin to the top left corner of the glyph
 	float rawAdvance; // horizontal advance, in pixels
 	
 	// the sdf is smaller than the raw glyph
@@ -102,7 +102,7 @@ typedef struct FontGen {
 	AABB2 sdfBounds; // bounding box of the non-empty data in the sdf bitmap, in pixels
 	Vector2i sdfDataSize; // size of the non-empty sdf data in the bitmap
 	
-	Vector sdfBearing; // distance from the origin to the top left corner of the clipped sdf data
+	Vector3 sdfBearing; // distance from the origin to the top left corner of the clipped sdf data
 	float sdfAdvance; // horizontal advance, in pixels
 	
 	

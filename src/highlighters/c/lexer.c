@@ -389,7 +389,7 @@ void __attribute__((used)) gpuedit_list_highlighters(Allocator* al, HighlighterP
 	list->name = "c";
 	list->description = "C syntax highlighter";
 	list->author = "yzziizzy";
-	list->extensions = "c;h";
+	list->extensions = "c;h;glsl";
 	
 	list->getStyleCount = get_style_count;
 	list->getStyleNames = get_style_names;

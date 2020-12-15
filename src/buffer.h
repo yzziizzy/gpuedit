@@ -51,6 +51,11 @@ typedef struct BufferRange {
 } BufferRange;
 
 
+typedef struct BufferRangeSet {
+	VEC(BufferRange*) ranges;
+} BufferRangeSet;
+
+
 typedef struct EditorParams {
 // 	char** indentIncreaseTerminals; // {, do, (, [, etc.
 	char* lineCommentPrefix; // "// "
@@ -209,13 +214,6 @@ typedef struct BufferDrawParams {
 
 
 
-typedef struct GBEFindRange {
-	BufferLine* bl;
-	intptr_t startChar, endChar;
-} GBEFindRange;
-
-
-
 // drawing and mouse controls
 typedef struct GUIBufferEditControl {
 	GUIHeader header;
@@ -247,6 +245,8 @@ typedef struct GUIBufferEditControl {
 	intptr_t curColWanted; // the visible display column to use, if it existed.
 
 	BufferRange* sel; // dynamic selection
+	
+	BufferRangeSet* findSet;
 	
 	// starting point of a mouse-drag selection
 	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
@@ -320,7 +320,7 @@ typedef struct GUIBufferEditor {
 	BufferLine* nextFindLine;
 	intptr_t nextFindChar;
 	
-	VEC(GBEFindRange) findRanges;
+	BufferRangeSet* findSet;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
 	void* setBreakpointData;

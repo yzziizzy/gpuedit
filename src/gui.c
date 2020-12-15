@@ -112,7 +112,7 @@ void gui_defaultUpdatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* p
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 	h->absZ = grp->baseZ + h->z;
-	vSub2(&tl, &grp->offset, &h->relTopLeft);
+	vSub2p(&tl, &grp->offset, &h->relTopLeft);
 	
 	if(!(h->flags & GUI_NO_CLIP)) {
 		h->absClip = gui_clipTo(grp->clip, (AABB2){
@@ -210,7 +210,7 @@ GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos) {
 		return NULL;
 	}
 	
-	if(!boxContainsPoint2(&h->absClip, &absTestPos)) return NULL;
+	if(!boxContainsPoint2p(&h->absClip, &absTestPos)) return NULL;
 	
 	return gui_defaultChildrenHitTest(h, absTestPos);
 }
