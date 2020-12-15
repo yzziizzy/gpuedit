@@ -27,8 +27,26 @@
 static void render(GUIObject* w_, PassFrameParams* pfp) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
 	GUIManager* gm = w->header.gm;
-	
+	GUIUnifiedVertex* v;
+
 	Vector2 tl = w->header.absTopLeft;
+
+	// draw general background
+	v = GUIManager_reserveElements(gm, 1);
+	*v = (GUIUnifiedVertex){
+		.pos = {
+			tl.x,
+			tl.y,
+			tl.x + w->header.size.x,
+			tl.y + w->header.size.y
+		},
+		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
+		.guiType = 0, // window (just a box)
+		.fg = {0, 0, 255, 255},
+		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.windowBgColor),
+		.z = w->header.absZ,
+		.alpha = 1,
+	};
 
 	
 	// 	drawTextLine();
@@ -50,7 +68,7 @@ static void render(GUIObject* w_, PassFrameParams* pfp) {
 		if(w->cursorIndex == i) { // backgrounds for selected items
 			struct Color4* color = &gm->defaults.tabActiveBgColor;
 			
-			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+			v = GUIManager_reserveElements(gm, 1);
 			*v = (GUIUnifiedVertex){
 				.pos = {box.min.x, box.min.y, box.max.x, box.max.y},
 				.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
