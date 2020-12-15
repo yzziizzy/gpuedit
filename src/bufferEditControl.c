@@ -614,18 +614,6 @@ void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 // 	printf("hl time: %f\n", timeSince(then)  * 1000.0);
 }
 
-static char* sprintfdup(char* fmt, ...) {
-	va_list va;
-	va_start(va, fmt);
-	size_t n = vsnprintf(NULL, 0, fmt, va);
-	char* buf = malloc(n + 1);
-	va_end(va);
-	va_start(va, fmt);
-	vsnprintf(buf, n + 1, fmt, va);
-	va_end(va);
-	
-	return buf;
-}
 
 
 void GBEC_SetHighlighter(GUIBufferEditControl* w, Highlighter* h) {

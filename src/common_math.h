@@ -16,12 +16,12 @@
 // basic vertex formats for general use
 
 typedef struct Vertex_PT {
-	Vector p;
+	Vector3 p;
 	struct { float u, v; } t;
 } Vertex_PT;
 
 typedef struct Vertex_PNT {
-	Vector p, n;
+	Vector3 p, n;
 	struct { float u, v; } t;
 } Vertex_PNT;
 

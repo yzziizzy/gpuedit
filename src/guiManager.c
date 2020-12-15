@@ -451,7 +451,7 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	
 	// check for dragging
 	if(gm->isMouseDown && !gm->isDragging && gm->dragStartTarget) {
-		float dragDist = vDist2(&newPos, &gm->dragStartPos);
+		float dragDist = vDist2p(&newPos, &gm->dragStartPos);
 		if(dragDist >= gm->minDragDist) {
 			gm->isDragging = 1;
 			

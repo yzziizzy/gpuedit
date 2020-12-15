@@ -51,7 +51,7 @@ GUIWindow* GUIWindow_New(GUIManager* gm) {
 	gw->header.hitbox.max.y = pos.y + size.y;
 	*/
 
-	//if(pos) vCopy(pos, &gw->header.pos);
+	//if(pos) vCopy3p(pos, &gw->header.pos);
 //	gt->size = size;
 	
 // 	unsigned int colors[] = {
@@ -125,7 +125,7 @@ void guiWindowDelete(GUIWindow* gw) {
 /*
 static int onclick(GUIWindow* gw, Vector2* clickPos) {
 	printf("window clicked \n");
-	gw->color = (Vector){1,0,1};
+	gw->color = (Vector3){1,0,1};
 	return 1;
 }*/
 
