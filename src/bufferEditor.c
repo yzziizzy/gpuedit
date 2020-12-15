@@ -266,7 +266,7 @@ do { \
 	// TODO more regex cleanup
 	GUIBufferEditor_StopFind(w);
 	
-	VEC_FREE(&w->findRanges);
+//	VEC_FREE(&w->findRanges);
 	
 	
 	// TODO: free gui stuff
@@ -413,7 +413,7 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 		w->findRE = NULL;
 	}
 	
-	VEC_FREE(&w->findRanges);
+//	VEC_FREE(&w->findRanges);
 }
 
 
@@ -452,6 +452,116 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 	return 1;
 // 	printf("not found: '%s'\n", word);
 }
+
+
+
+BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
+
+	BufferRangeSet* set = pcalloc(set);
+	
+	
+
+	pcre2_code* findRE;
+	pcre2_match_data* findMatch;
+	BufferLine* findLine;
+	intptr_t findCharS;
+	intptr_t findCharE;
+	intptr_t findLen;
+	char* findREError;
+	int findREErrorChar;
+	
+
+	int errno;
+	PCRE2_SIZE erroff;
+	PCRE2_UCHAR errbuf[256];
+	//printf("starting RE find: '%s'\n", pattern);
+	
+	
+	
+	uint32_t options = PCRE2_CASELESS;
+	
+	findRE = pcre2_compile((PCRE2_SPTR)pattern, PCRE2_ZERO_TERMINATED, options, &errno, &erroff, NULL);
+	if(!findRE) {
+		pcre2_get_error_message(errno, errbuf, sizeof(errbuf));
+		printf("PCRE find error #1: '%s' \n", errbuf);
+		
+		return 1;
+	}
+	
+	// compilation was successful.
+
+
+	BufferLine* nextFindLine;
+	intptr_t nextFindChar;
+	
+	
+	BufferLine* bl = w->buffer->first;
+	int off = 0; // this is for partial matches
+	uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;
+	int res;
+	int wraps = 0;
+	
+	while(bl) {
+		res = pcre2_match(findRE, bl->buf + nextFindChar, bl->length, off, opts, findMatch, NULL);
+		
+		if(res > 0) {
+			// found a match
+		
+			PCRE2_SIZE* ovec = pcre2_get_ovector_pointer(findMatch);
+			
+			BufferRange* r  = pcalloc(r);
+			r->startLine = bl;
+			r->startCol = (int)ovec[0] + nextFindChar;
+			r->endLine = bl;
+			r->endCol = (int)ovec[1] + nextFindChar;
+			
+			VEC_PUSH(&set->ranges, r);
+			
+			nextFindChar += (int)ovec[1];  
+			
+			printf("match found at: %d:%d\n", bl->lineNum, (int)ovec[0] + nextFindChar);
+			
+			if(nextFindChar >= bl->length) {
+				bl = bl->next;
+				nextFindChar = 0;
+			}
+		
+		}
+		else {
+			// no match
+			
+			if(res != PCRE2_ERROR_NOMATCH) {
+				// real error of some sort	
+				char errbuf[256];
+				pcre2_get_error_message(res, errbuf, sizeof(errbuf));
+				
+				printf("PCRE real error: %p %p %ld '%s'\n", findRE, bl->buf, bl->lineNum, errbuf);
+				
+				return 1;
+			}
+			
+			bl = bl->next;
+			nextFindChar = 0;
+		}
+		
+		if(!bl) { // end of file
+			break;
+		}
+	}
+	
+
+
+
+	
+	// clean up regex structures
+	if(findRE) {
+		pcre2_code_free(findRE);
+		pcre2_match_data_free(findMatch);
+	}
+		
+	return set;
+}
+
 
 
 
@@ -740,6 +850,11 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			// inetnational fallthrough
 			
 		case BufferCmd_FindResume:
+			
+			w->findSet = GUIBufferEditor_FindAll(w, "struct");
+			w->ec->findSet = w->findSet;
+			
+		/*
 			if(!w->findMode) {
 				char* preserved = NULL;
 				if(w->trayOpen) {
@@ -765,7 +880,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 			}
-			
+		*/
 			break;
 			
 		case BufferCmd_FindNext:
