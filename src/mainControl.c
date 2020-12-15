@@ -860,6 +860,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	decodeHexColorNorm(w->gs->Theme_lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
 	decodeHexColorNorm(w->gs->Theme_hl_bgColor, (float*)&(theme->hl_bgColor));
 	decodeHexColorNorm(w->gs->Theme_hl_textColor, (float*)&(theme->hl_textColor));
+	decodeHexColorNorm(w->gs->Theme_outlineCurrentLineBorderColor, (float*)&(theme->outlineCurrentLineBorderColor));
 	
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;

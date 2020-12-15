@@ -235,7 +235,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				.texIndex1 = 1, // order width
 				.guiType = 4, // bordered window (just a box)
-				.fg = {50, 50, 50, 255}, // border color
+				.fg = GUI_COLOR4_TO_SHADER(theme->outlineCurrentLineBorderColor), // border color 
 				.bg = {0,0,0,0},
 				.z = gbe->header.absZ + 0.1,
 				.alpha = 1.0,
@@ -372,20 +372,22 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					else { // selected text
 						if(atom) {
 							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
+							// si->fgSelColor is never changed from generated values in lexer.c
 							struct Color4 color = {
-								si->fgSelColor.r,
-								si->fgSelColor.g,
-								si->fgSelColor.b,
-								si->fgSelColor.a,
+								si->fgColor.r,
+								si->fgColor.g,
+								si->fgColor.b,
+								si->fgColor.a,
 							};
-							struct Color4 bcolor = {
-								si->bgSelColor.r,
-								si->bgSelColor.g,
-								si->bgSelColor.b,
-								si->bgSelColor.a,
-							};
-							
-							drawCharacter(gm, tdp, &color, &bcolor, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+							// currently hardcoded in lexer which breaks selection bg highlighting
+							// struct Color4 bcolor = {
+							// 	si->bgSelColor.r,
+							// 	si->bgSelColor.g,
+							// 	si->bgSelColor.b,
+							// 	si->bgSelColor.a,
+							// };
+
+							drawCharacter(gm, tdp, &color, bg2, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 						}
 						else 
 							drawCharacter(gm, tdp, fg2, bg2, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);

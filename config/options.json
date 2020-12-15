@@ -34,8 +34,9 @@
 	"Theme_lineNumColor": "#ffffffff",
 	"Theme_lineNumBgColor": "#141414ff",
 	"Theme_lineNumBookmarkColor": "#32ff32ff",
-	"Theme_hl_bgColor": "#00c8c8ff",
+	"Theme_hl_bgColor": "#264f78ff",
 	"Theme_hl_textColor": "#fa0032ff",
+	"Theme_outlineCurrentLineBorderColor": "#323232ff",
 
 	// gui manager defaults
 	"Theme_textColor": "#c8c8c8ff",
