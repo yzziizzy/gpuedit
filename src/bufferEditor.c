@@ -489,6 +489,8 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 	}
 	
 	// compilation was successful.
+	
+	findMatch = pcre2_match_data_create_from_pattern(findRE, NULL);
 
 
 	BufferLine* nextFindLine;
