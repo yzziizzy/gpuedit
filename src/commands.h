@@ -47,6 +47,7 @@
 	X(BufferCmd, Redo) \
 	X(BufferCmd, GrowSelectionH) \
 	X(BufferCmd, GrowSelectionV) \
+	X(BufferCmd, ClearSelection) \
 	X(BufferCmd, SelectSequenceUnder) \
 	X(BufferCmd, MoveToNextSequence) \
 	X(BufferCmd, MoveToPrevSequence) \

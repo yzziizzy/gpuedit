@@ -678,6 +678,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			GBEC_MoveCursorV(w->ec, cmd->amt);
 			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
 			break;
+		
+		case BufferCmd_ClearSelection:
+			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
+			break;
 			
 		case BufferCmd_SelectSequenceUnder:
 			GBEC_SelectSequenceUnder(w->ec, w->ec->current, w->ec->curCol, cmd->str); 
