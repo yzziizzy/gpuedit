@@ -49,7 +49,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		
 		
 		if(e->isSelected) { // backgrounds for selected items
-			struct Color4* color = &gm->defaults.tabActiveBgColor;
+			struct Color4* color = &gm->defaults.selectedItemBgColor;
 			
 			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 			*v = (GUIUnifiedVertex){
@@ -106,7 +106,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		}
 		
 		// the file name
-		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, e->name, strlen(e->name));
+		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor , 10000000, e->name, strlen(e->name));
 		
 		linesDrawn++;
 	}
@@ -123,7 +123,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 		.texIndex1 = 1, // order width
 		.guiType = 4, // bordered window (just a box)
-		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.tabActiveBgColor), // border color
+		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.outlineCurrentLineBorderColor), // border color
 		.bg = {0,0,0,0},
 		.z = w->header.absZ + 0.75,
 		.alpha = 1.0,

@@ -21,10 +21,17 @@ typedef struct MainCmd {
 } MainCmd;
 
 
+typedef enum MainControlTabType {
+	MCTAB_EDIT,
+	MCTAB_FILEOPEN,
+	MCTAB_FUZZYOPEN,
+} MainControlTabType_t;
+
 
 typedef struct MainControlTab {
 	GUIObject* client;
 	char* title;
+	MainControlTabType_t type;
 	
 	unsigned int isActive : 1;
 	unsigned int isStarred : 1;
