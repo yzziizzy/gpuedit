@@ -317,7 +317,7 @@ static void setText(GUIEdit* ed, char* s) {
 	strcpy(ed->buf, s);
 	ed->textlen = len;
 	
-	if(len < ed->cursorpos) {
+	if(len < ed->cursorpos || ed->cursorpos == 0) {
 		ed->cursorpos = len;
 		ed->cursorOffset = gui_getDefaultUITextWidth(ed->header.gm, ed->buf, ed->cursorpos);
 	}

@@ -68,6 +68,7 @@
 	X(BufferCmd, FindStart) \
 	X(BufferCmd, FindResume) \
 	X(BufferCmd, FindNext) \
+	X(BufferCmd, FindPrev) \
 	X(BufferCmd, ReplaceStart) \
 	X(BufferCmd, ReplaceNext) \
 	X(BufferCmd, ReplaceAll) \

@@ -165,7 +165,18 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
 			w->ec->findSet = w->findSet;
 			
-			GUIBufferEditor_NextFindMatch(w);
+			w->findIndex = BufferRange_FindNextRangeSet(w->findSet, w->ec->current, w->ec->curCol);
+			if(w->findIndex >= 0) {
+				BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
+				
+				w->ec->selectPivotLine = r->startLine;
+				w->ec->selectPivotCol = r->startCol;
+				GBEC_MoveCursorTo(w->ec, r->endLine, r->endCol);
+				
+				GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			}
+
+//			GUIBufferEditor_NextFindMatch(w);
 		// 	GUIBufferEditor_FindWord(w, word);
 			GUIBufferEditor_scrollToCursor(w);
 		}
@@ -364,6 +375,20 @@ int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
 };
 
 
+int GUIBufferEditor_PrevFindMatch(GUIBufferEditor* w) {
+	if(VEC_LEN(&w->findSet->ranges) == 0) return 1;
+
+	w->findIndex = (w->findIndex - 1 + VEC_LEN(&w->findSet->ranges)) % VEC_LEN(&w->findSet->ranges);
+	
+	BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
+	
+	GBEC_MoveCursorTo(w->ec, r->startLine, r->startCol);
+	GBEC_SetCurrentSelection(w->ec, r->startLine, r->startCol, r->endLine, r->endCol); 
+	
+	return 0;
+};
+
+
 void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 	
 	// clear errors
@@ -524,6 +549,23 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 }
 
 
+
+
+void GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* text) {
+	if(!VEC_LEN(&rset->ranges)) return;
+	
+	Buffer* b = w->ec->buffer;
+	GUIBufferEditControl* ec = w->ec;
+	size_t len = strlen(text);
+			
+	VEC_EACH(&rset->ranges, i, r) {		
+		if(r) {
+			Buffer_DeleteSelectionContents(b, r);
+			Buffer_LineInsertChars(b, r->startLine, text, r->startCol, len);
+		}
+	}
+	
+}
 
 
 void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t col) {
@@ -716,25 +758,38 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		case BufferCmd_ReplaceNext: { // TODO put this all in a better spot
 			Buffer* b = w->ec->buffer;
 			GUIBufferEditControl* ec = w->ec;
-			if(ec->sel) {
-				ec->current = ec->sel->startLine;
-				ec->curCol = ec->sel->startCol;
-				Buffer_DeleteSelectionContents(b, ec->sel);
+			
+			if(!VEC_LEN(&w->findSet->ranges)) break;
+			
+			BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
+			
+			if(r) {
+				Buffer_DeleteSelectionContents(b, r);
 				
 				char* rtext = GUIEdit_GetText(w->replaceBox);
 				size_t len = strlen(rtext);
 				
-				Buffer_LineInsertChars(b, ec->current, rtext, ec->curCol, len);
+				Buffer_LineInsertChars(b, r->startLine, rtext, r->startCol, len);
+				GBEC_MoveCursorTo(ec, r->startLine, r->startCol);
 				GBEC_MoveCursorH(ec, len);
 			}
 			
 			GUIBufferEditor_NextFindMatch(w);
 			break;
 		}
-		case BufferCmd_ReplaceAll:
-			printf("ReplaceAll NYI\n");
-			break;
+		
+		case BufferCmd_ReplaceAll: {
+			char* rtext = GUIEdit_GetText(w->replaceBox);
+//			size_t len = strlen(rtext);
 			
+			GUIBufferEditor_ReplaceAll(w, w->findSet, rtext);
+		
+			// HACK
+			VEC_TRUNC(&w->findSet->ranges);
+			 
+			break;
+		}
+		
 		case BufferCmd_ReplaceStart:
 			if(!w->replaceMode) {
 				char* preserved = NULL;
@@ -855,6 +910,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			GUIBufferEditor_NextFindMatch(w);
 			break;
 			
+		case BufferCmd_FindPrev:
+			GUIBufferEditor_PrevFindMatch(w);
+			break;
+			
 		case BufferCmd_PromptLoad:
 			GUIBufferEditor_ToggleTray(w, 50);
 			if(!w->loadTypingMode) {
@@ -897,6 +956,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->loadTypingMode = 0;
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
+				
+				// HACK
+				VEC_TRUNC(&w->findSet->ranges);
 			}
 			break;
 			

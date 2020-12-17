@@ -1060,6 +1060,10 @@ void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, intpt
 	}
 }
 
+void GBEC_SetCurrentSelectionRange(GUIBufferEditControl* w, BufferRange* r) {
+	GBEC_SetCurrentSelection(w, r->startLine, r->startCol, r->endLine, r->endCol);
+}
+
 
 
 void GBEC_InsertLinebreak(GUIBufferEditControl* w) {

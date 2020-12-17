@@ -661,6 +661,7 @@ GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
+	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
 //	GUIManager_popFocusedObject(w->header.gm);
 	GUIManager_pushFocusedObject(w->header.gm, a->client);
 	return a->client;
@@ -682,6 +683,7 @@ GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
+	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
 	GUIManager_pushFocusedObject(w->header.gm, a->client);
 	return a->client;
 }
@@ -697,6 +699,7 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
+	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
 	GUIManager_pushFocusedObject(w->header.gm, a->client);
 	return a->client;
 }
@@ -901,6 +904,8 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	decodeHexColorNorm(w->gs->Theme_lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
 	decodeHexColorNorm(w->gs->Theme_hl_bgColor, (float*)&(theme->hl_bgColor));
 	decodeHexColorNorm(w->gs->Theme_hl_textColor, (float*)&(theme->hl_textColor));
+	decodeHexColorNorm(w->gs->Theme_find_bgColor, (float*)&(theme->find_bgColor));
+	decodeHexColorNorm(w->gs->Theme_find_textColor, (float*)&(theme->find_textColor));
 	decodeHexColorNorm(w->gs->Theme_outlineCurrentLineBorderColor, (float*)&(theme->outlineCurrentLineBorderColor));
 	
 	BufferDrawParams* bdp = pcalloc(bdp);

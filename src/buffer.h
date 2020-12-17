@@ -195,7 +195,6 @@ typedef struct TextDrawParams {
 } TextDrawParams;
 
 
-// TODO: switch to HDR colors
 typedef struct ThemeDrawParams {
 	struct Color4 bgColor; 
 	struct Color4 textColor; 
@@ -205,6 +204,8 @@ typedef struct ThemeDrawParams {
 	struct Color4 lineNumBgColor; 
 	struct Color4 hl_bgColor; 
 	struct Color4 hl_textColor;
+	struct Color4 find_bgColor; 
+	struct Color4 find_textColor;
 	struct Color4 outlineCurrentLineBorderColor;
 } ThemeDrawParams;
 
@@ -466,6 +467,7 @@ int Buffer_UnsurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* e
 int BufferRange_CompleteLinesOnly(BufferRange* sel);
 
 void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC);
+void GBEC_SetCurrentSelectionRange(GUIBufferEditControl* w, BufferRange* r);
 void GBEC_ClearCurrentSelection(GUIBufferEditControl* w);
 void GBEC_ClearAllSelections(GUIBufferEditControl* w);
 void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel);
@@ -490,6 +492,10 @@ void Buffer_DuplicateSelection(Buffer* b, BufferRange* sel, int amt);
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol, BufferRange* outRange);
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferRange* sel);
+long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t col);
+int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
+int GUIBufferEditor_PrevFindMatch(GUIBufferEditor* w);
+
 
 void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_RemoveBookmarkAt(Buffer* b, BufferLine* bl);

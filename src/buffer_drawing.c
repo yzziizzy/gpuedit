@@ -179,25 +179,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	struct Color4* fg = &theme->textColor; 
 	struct Color4* bg = &theme->bgColor;
 	
-//	struct Color4* fga[] = {fg, fg2};
-//	struct Color4* bga[] = {bg, bg2};
-	
 	struct Color4 lineColors[] = {
 		theme->lineNumColor,
 		theme->lineNumBookmarkColor,
 		{.95,.05,.05,1.0}, // breakpoint
 	};
-	
-	/*
-	// for selections that cross the visible window boundary
-	if(gbe->sel && gbe->sel->startLine->lineNum < bl->lineNum) {
-		if(gbe->sel->endLine->lineNum >= bl->lineNum) {
-			inSelection = 1;
-			fg = &theme->hl_textColor;
-			bg = &theme->hl_bgColor;
-		}
-	}
-	*/
 	
 	
 	// draw lines
@@ -260,17 +246,18 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			// draw characters
 			for(int i = 0; i < bl->length; i++) { 
 								
-				if(BufferRangeSet_test(gbe->findSet, bl, i)) {
-					// inside other selection
+				if(BufferRangeSet_test(gbe->selSet, bl, i)) {
+					// inside main selection
 					inSelection = 1;
-					fg = &((Color4){1.0, 0.0, 0.3, 1.0});
-					bg = &((Color4){0.0, 1.0, 0.3, 1.0});
+					fg = &theme->hl_textColor;
+					bg = &theme->hl_bgColor;
 				}
 				else {
-					if(BufferRangeSet_test(gbe->selSet, bl, i)) {
+					if(BufferRangeSet_test(gbe->findSet, bl, i)) {
+						// inside other selection
 						inSelection = 1;
-						fg = &theme->hl_textColor;
-						bg = &theme->hl_bgColor;
+						fg = &theme->find_textColor;
+						bg = &theme->find_bgColor;
 					}
 					else {
 						inSelection = 0;
@@ -278,7 +265,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 						bg = &theme->bgColor;	
 					}
 				}
-				
 				
 				
 				int c = bl->buf[i]; 
@@ -296,7 +282,20 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 						si->fgColor.b,
 						si->fgColor.a,
 					};
+					
+					fg = &color;
 				}
+				
+				Color4 invfg;
+				if(inSelection) { // hack before selection theme colors are done
+					invfg.r = 1.0 - fg->r;
+					invfg.g = 1.0 - fg->g;
+					invfg.b = 1.0 - fg->b;
+					invfg.a = 1.0;
+					fg = &invfg;
+				}
+				
+				
 				
 				
 				// special drawing for null characters
@@ -342,7 +341,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				}
 				else { 
 					// normal, non-tab text		
-					drawCharacter(gm, tdp, atom ? &color : bg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+					drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					
 					adv += tdp->charWidth;
 				}
@@ -360,20 +359,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					else atom = NULL;
 				}
 			}
-		
-		/*	
-			// selections ending at the end of a line
-			if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum && gbe->sel->startCol == bl->length) {
-				inSelection = 1;
-				fg = &theme->hl_textColor;
-				bg = &theme->hl_bgColor;
-			}
-			if(gbe->sel && gbe->sel->endLine->lineNum == bl->lineNum && gbe->sel->endCol == bl->length) {
-				inSelection = 0;
-				fg = &theme->textColor;
-				bg = &theme->bgColor;
-			} 
-			*/
 		}
 		else { // empty lines
 			// check selection

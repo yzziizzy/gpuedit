@@ -167,12 +167,16 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	
 	// for debugging
+
+
 //	GUIMainControl_LoadFile(as->mc, "test.js");
 	GUIMainControl_LoadFile(as->mc, "testfile.c");
 	GUIMainControl_LoadFile(as->mc, "testfile.h");
+	GUIMainControl_FuzzyOpener(as->mc);
+	
+	GUIMainControl_GoToTab(as->mc, 0);
 	
 //	GUIMainControl_OpenFileBrowser(as->mc, "./");
-	GUIMainControl_FuzzyOpener(as->mc);
 	
 	GUIManager_pushFocusedObject(as->gui, as->mc);
 	

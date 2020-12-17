@@ -1836,4 +1836,19 @@ void BufferRangeSet_FreeAll(BufferRangeSet* s) {
 }
 
 
+long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t col) {
+	BufferLine* bl = line;
+	intptr_t c = col;
+	
+	if(!VEC_LEN(&rs->ranges)) return -1;
+	
+	VEC_EACH(&rs->ranges, i, r) {
+		if(r->endLine->lineNum > bl->lineNum) continue;
+		if(r->startLine->lineNum >= bl->lineNum) {
+			return i;
+		}
+	}
+	
+	return 0;
+}
 	

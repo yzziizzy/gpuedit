@@ -36,6 +36,8 @@
 	SETTING(charp, Theme_lineNumBookmarkColor,  "#32ff32ff", NULL, NULL) \
 	SETTING(charp, Theme_hl_bgColor,            "#00c8c8ff", NULL, NULL) \
 	SETTING(charp, Theme_hl_textColor,          "#fa0032ff", NULL, NULL) \
+	SETTING(charp, Theme_find_bgColor,          "#115511ff", NULL, NULL) \
+	SETTING(charp, Theme_find_textColor,        "#660022ff", NULL, NULL) \
 	SETTING(charp, Theme_outlineCurrentLineBorderColor, "#323232ff", NULL, NULL) \
 	SETTING(charp, Theme_selectedItemTextColor, "#c8c8c8ff", NULL, NULL) \
 	SETTING(charp, Theme_selectedItemBgColor,   "#505050ff", NULL, NULL) \
