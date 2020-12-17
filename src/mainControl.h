@@ -12,8 +12,6 @@
 #include "highlight.h"
 
 
-
-
 typedef struct MainCmd {
 	enum CmdType type;
 	int n;
@@ -21,17 +19,10 @@ typedef struct MainCmd {
 } MainCmd;
 
 
-typedef enum MainControlTabType {
-	MCTAB_EDIT,
-	MCTAB_FILEOPEN,
-	MCTAB_FUZZYOPEN,
-} MainControlTabType_t;
-
-
 typedef struct MainControlTab {
 	GUIObject* client;
 	char* title;
-	MainControlTabType_t type;
+	TabType_t type;
 	
 	unsigned int isActive : 1;
 	unsigned int isStarred : 1;
