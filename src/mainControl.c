@@ -216,7 +216,7 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 
 static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 // 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
-	GUIObject* o;
+	GUIObject* o = NULL;
 	
 	if(w->currentIndex > -1) {
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);

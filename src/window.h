@@ -7,6 +7,7 @@
 
 #include "common_gl.h"
 #include "input.h"
+#include "settings.h"
 
 
 typedef struct XStuff {
@@ -56,6 +57,9 @@ typedef struct XStuff {
 	
 	
 	Bool ready;
+	
+	
+	GlobalSettings* gs;
 } XStuff;
 
 

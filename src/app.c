@@ -598,79 +598,44 @@ char* execProcessPipe_charppv(char*** args, char*** charpp_out, size_t* n_out/*,
 
 
 
+
+
+/*
+char buffer[1024];
+
+
+errno = 0;
+// int len = read(buffer, 5, cc->child_stdout);
+int len = read(cc->child_stdout, buffer, 1023);
+if(len == -1 && errno != EWOULDBLOCK) {
+	printf("1: %d %s\n", errno,  strerror(errno));
+}
+
+if(len > 0) {
+	buffer[len] = 0;
+	printf("from bash[%d]: '%.*s'\n", len, len, buffer);
+}
+
+errno = 0;
+len = read(cc->child_stderr, buffer, 1023);
+if(len == -1 && errno != EWOULDBLOCK) {
+	printf("2: %d %s\n", errno, strerror(errno));
+}
+if(len > 0) {
+	buffer[len] = 0;
+	printf("from bash[%d]: '%.*s'\n", len, len, buffer);
+}
+*/
+
+
+
+
 void AppState_UpdateSettings(AppState* as, GlobalSettings* gs) {
 	
 	as->globalSettings = *gs;
 	
 	GUIMainControl_UpdateSettings(as->mc, gs);
 }
-
-
-void preFrame(AppState* as) {
-
-	// update timers
-	char frameCounterBuf[128];
-	
-	static int frameCounter = 0;
-	static double lastPoint = 0;
-	
-	double now;
-	double last_frame = as->lastFrameTime;
-	
-	as->frameTime = now = getCurrentTime();
-		
-	as->frameSpan = (double)(now - as->lastFrameTime);
-	
-	as->lastFrameTime = now;
-	
-	frameCounter = (frameCounter + 1) % 60;
-	
-	
-	
-	static double sdtime, sseltime, semittime;
-	
-	if(lastPoint == 0.0f) lastPoint = as->frameTime;
-	if(1 /*frameCounter == 0*/) {
-		float fps = 60.0f / (as->frameTime - lastPoint);
-		
-		uint64_t qtime;
-
-#define query_update_gui(qname)		\
-		if(!query_queue_try_result(&as->queries.qname, &qtime)) {\
-			sdtime = ((double)qtime) / 1000000.0;\
-		}\
-		snprintf(frameCounterBuf, 128, #qname ":  %.2fms", sdtime);\
-		GUIText_setString(gt_##qname, frameCounterBuf);
-
-
-		//query_update_gui(gui);
-		
-		lastPoint = now;
-	}
-	
-	
-
-	
-}
-
-
-
-
-void postFrame(AppState* as) {
-	
-	double now;
-	
-	now = getCurrentTime();
-	as->lastFrameDrawTime = now - as->frameTime; 
-	
-	as->perfTimes.draw = as->lastFrameDrawTime;
-	
-	GUIManager_Reap(as->gui);
-}
-
-
-
-
 
 
 
@@ -731,80 +696,248 @@ void prefilterEvent(AppState* as, InputState* is, InputEvent* ev) {
 
 
 
+void initRenderLoop(AppState* as) {
+	
+	// timer queries
+
+	query_queue_init(&as->queries.gui);
+	
+	
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+
+void SetUpPDP(AppState* as, PassDrawParams* pdp) {
+	
+	pdp->mWorldView = msGetTop(&as->view);
+	pdp->mViewProj = msGetTop(&as->proj);
+	
+	pdp->mProjView = &as->invProj;
+	pdp->mViewWorld = &as->invView;
+	
+	mInverse(pdp->mViewProj, &as->invProj);
+	mInverse(pdp->mWorldView, &as->invView);
+	
+// 	pdp->eyeVec = as->eyeDir;
+// 	pdp->eyePos = as->eyePos;
+	pdp->targetSize = (Vector2i){as->screen.wh.x, as->screen.wh.y};
+	pdp->timeSeconds = (float)(long)as->frameTime;
+	pdp->timeFractional = as->frameTime - pdp->timeSeconds;
+	
+}
+
+
+
+
+
+
+//#define PERF(...) __VA_ARGS__
+#define PERF(...) 
+
 #define PF_START(x) as->perfTimes.x = getCurrentTime()
 #define PF_STOP(x) as->perfTimes.x = timeSince(as->perfTimes.x)
 
 void appLoop(XStuff* xs, AppState* as, InputState* is) {
+	double ftime = 0.0;
+	
+	// in seconds
+	double frameTimeTarget = 1.0 / (as->globalSettings.AppState_frameRate);
+	double lastFrameCost = 0.0;
+	double lastFrameStart = getCurrentTime();
 	
 	// main running loop
 	while(1) {
 		InputEvent iev;
+		PassDrawParams pdp;		
+		PassFrameParams pfp;
+		double frameCostStart;
+		double frameStart;
+		double lastFrameSpan;
+		double totalEventsTime = 0.0;
+		double totalSleepTime = 0.0;
 		
-		for(int i = 0; i < 1000; i++) {
+		double now;
+		PERF(printf("\n\n"));
+		
+		
+		
+		frameStart = getCurrentTime();
+		lastFrameSpan = frameStart - lastFrameStart;
+		PERF(printf("last frame span: %fus [%ffps]\n", 
+			lastFrameSpan * 1000000.0,
+			1.0 / lastFrameSpan
+		));
+		lastFrameStart = frameStart;
+		
+		
+		double estimatedSleepTime;
+		
+		// frameCost is the amount of time it takes to generate a new frame
+		estimatedSleepTime = frameTimeTarget - lastFrameCost;
+		
+		struct timespec sleepInterval;
+		sleepInterval.tv_sec = estimatedSleepTime;
+		sleepInterval.tv_nsec = fmod(estimatedSleepTime, 1.0) * 1000000000.0;
+			
+		
+		// sleep through the beginning of the frame, checking events occasionally
+		for(int i = 0; ; i++) {
 			int drawRequired = 0;
+			PERF(now = getCurrentTime());
+				
 			if(processEvents(xs, is, &iev, -1)) {
-	// 			// handle the event
+				// handle the event
 				prefilterEvent(as, is, &iev);
+				PERF(totalEventsTime += timeSince(now));
 			}
-			
-			
-			if(drawRequired) break;
-		}
-		/*
-		char buffer[1024];
-		
-		
-		errno = 0;
-// 		int len = read(buffer, 5, cc->child_stdout);
-		int len = read(cc->child_stdout, buffer, 1023);
-		if(len == -1 && errno != EWOULDBLOCK) {
-			printf("1: %d %s\n", errno,  strerror(errno));
-		}
-		
-		if(len > 0) {
-			buffer[len] = 0;
-			printf("from bash[%d]: '%.*s'\n", len, len, buffer);
+			else { // no events, see if we need to sleep longer
+				now = getCurrentTime();
+				
+				if(now - frameStart < estimatedSleepTime) {
+					
+					nanosleep(&sleepInterval, &sleepInterval);
+					
+					PERF(totalSleepTime += timeSince(now));
+				}
+				else {
+					break; // time to renter the frame
+				}
+			}
 		}
 		
-		errno = 0;
-		len = read(cc->child_stderr, buffer, 1023);
-		if(len == -1 && errno != EWOULDBLOCK) {
-			printf("2: %d %s\n", errno, strerror(errno));
-		}
-		if(len > 0) {
-			buffer[len] = 0;
-			printf("from bash[%d]: '%.*s'\n", len, len, buffer);
-		}
-		*/
+		
+		
+		PERF(printf("events / sleep / total: %fus / %fus / %fus\n", 
+			totalEventsTime * 1000000.0,
+			totalSleepTime * 1000000.0,
+			timeSince(ftime) * 1000000.0
+		));
+		
+		
+		frameCostStart = getCurrentTime();
+		
+		
+		//  internal frame time is at the start of render, for the least lag
+		as->frameTime = getCurrentTime();
+		as->frameSpan = as->frameTime - as->lastFrameTime;		
+		as->lastFrameTime = as->frameTime;
+		
 		
 		checkResize(xs, as);
 		
-// 		double now = getCurrentTime();
-		preFrame(as); // updates timers
+			
+		/*
+		if(frameCounter == 0) {
+			
+			uint64_t qtime;
+	
+			#define query_update_gui(qname)		\
+			if(!query_queue_try_result(&as->queries.qname, &qtime)) {\
+				sdtime = ((double)qtime) / 1000000.0;\
+			}\
+			snprintf(frameCounterBuf, 128, #qname ":  %.2fms", sdtime);\
+			GUIText_setString(gt_##qname, frameCounterBuf);
+	
+	
+			//query_update_gui(gui);
+			
+			lastPoint = now;
+		}
+	*/
+	
+	
+			
 		
-		drawFrame(xs, as, is);
+		PERF(now = getCurrentTime());
+		
+		SetUpPDP(as, &pdp);
+		
+		pfp.dp = &pdp;
+		pfp.timeElapsed = as->frameSpan;
+		pfp.appTime = as->frameTime; // this will get regenerated from save files later
+		pfp.wallTime = as->frameTime;
+		
+		glexit("");
+		
+		glViewport(0, 0, as->screen.wh.x, as->screen.wh.y);
+		PERF(printf("pre-render time: %fus\n", timeSince(now) * 1000000.0));
+		
+		
+	// 	glEnable(GL_CULL_FACE);
+	// 	glFrontFace(GL_CW); // this is backwards, i think, because of the scaling inversion for z-up
+		
+		// the cpu will generally block here
+		PERF(now = getCurrentTime());
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		PERF(printf("glBindFramebuffer: %fus\n", timeSince(now) * 1000000.0));
+		
+		PERF(now = getCurrentTime());
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		PERF(printf("glClear: %fus\n", timeSince(now) * 1000000.0));
+		
+		
+		// frameCost is the amount of time it takes to generate a new frame
+		frameCostStart = getCurrentTime();
+		
+		
+		glexit("");
+	// 	query_queue_start(&as->queries.gui);
+		
+	// 	glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
+		glexit("");
+		
+		glDisable(GL_DEPTH_TEST);
+		
+		PERF(now = getCurrentTime());
+		RenderPass_preFrameAll(as->guiPass, &pfp);
+		RenderPass_renderAll(as->guiPass, pfp.dp);
+		RenderPass_postFrameAll(as->guiPass);
+		PERF(printf("gui render time: %fus\n", timeSince(now) * 1000000.0));
+		
+	// 	query_queue_stop(&as->queries.gui);
+	
+		glexit("");
+		
+		msPop(&as->view);
+		msPop(&as->proj);
+
+		lastFrameCost = timeSince(frameCostStart);
+		PERF(printf("frame cost: %fus\n", lastFrameCost * 1000000.0));
+		
+//		now = getCurrentTime();
+//		glFinish();
+//		printf("glFinish: %fus\n", timeSince(now) * 1000000.0);
+		
+		PERF(now = getCurrentTime());
+		glXSwapBuffers(xs->display, xs->clientWin);
+		PERF(printf("glXSwapBuffers: %fus\n", timeSince(now) * 1000000.0));
+	
+		
+		
 		
 		as->screen.resized = 0;
 		
-		postFrame(as); // finishes frame-draw timer
-// 		printf("frame time: %fms\n", timeSince(now) * 1000.0);
-		
-		double framerate = 605;
-		
-		double now = getCurrentTime();
-		
-		if(as->lastFrameDrawTime < 1.0/framerate) {
-			// shitty estimation based on my machine's heuristics, needs improvement
-			double fr_us = (1.0/framerate) * 1000000;
-			double lfdt_us = as->lastFrameDrawTime * 1000000;
-			
-			double sleeptime = (fr_us - lfdt_us) * .99;
-			//printf("sleeptime: %f\n", sleeptime / 1000000);
-			//sleeptime = 1000;
-// 			printf(">> fs(%f) sleeping %fus\n", lfdt_us, sleeptime);
-			if(sleeptime > 0) usleep(sleeptime); // problem... something is wrong in the math
-		}
-// 		sleep(1);
+
+		now = getCurrentTime();
+		as->lastFrameDrawTime = now - as->frameTime; 
+	
+		as->perfTimes.draw = as->lastFrameDrawTime;
+	
+	
+		PERF(now = getCurrentTime());
+		GUIManager_Reap(as->gui);
+		PERF(printf("GUIManager_Reap: %fus\n", timeSince(now) * 1000000));
 	}
 }
+
 

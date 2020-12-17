@@ -16,6 +16,7 @@ typedef struct TabSpec {
 //          type   name                default value | min | max    
 #define SETTING_LIST \
 	SETTING(int,   AppState_frameRate,          30,    15,   INT_MAX) \
+	SETTING(bool,  AppState_enableVSync,        false,  NULL, NULL) \
 	SETTING(int,   GUIManager_maxInstances,     8192,  4096, INT_MAX) \
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \

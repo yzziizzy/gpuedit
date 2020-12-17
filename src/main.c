@@ -65,8 +65,9 @@ int main(int argc, char* argv[]) {
 	input.dragMinDist = 4;
 	
 	memset(&xs, 0, sizeof(XStuff));
+	xs.gs = &app.globalSettings;
 	clearInputState(&input);
-	
+		
 	xs.targetMSAA = 4;
 	xs.windowTitle = "gpuedit";
 	
