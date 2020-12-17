@@ -66,7 +66,7 @@ static void render(GUIObject* w_, PassFrameParams* pfp) {
 
 
 		if(w->cursorIndex == i) { // backgrounds for selected items
-			struct Color4* color = &gm->defaults.tabActiveBgColor;
+			struct Color4* color = &gm->defaults.selectedItemBgColor;
 			
 			v = GUIManager_reserveElements(gm, 1);
 			*v = (GUIUnifiedVertex){
@@ -86,7 +86,7 @@ static void render(GUIObject* w_, PassFrameParams* pfp) {
 
 
 		// the file name
-		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.tabTextColor , 10000000, w->matches[i].filepath, strlen(w->matches[i].filepath));
+		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor , 10000000, w->matches[i].filepath, strlen(w->matches[i].filepath));
 		
 		linesDrawn++;
 	}
@@ -334,3 +334,4 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 }
 
 #undef DEBUG
+

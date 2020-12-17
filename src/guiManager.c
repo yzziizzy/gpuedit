@@ -120,6 +120,10 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	decodeHexColorNorm(gs->Theme_tabHoverBgColor, (float*)&(gm->defaults.tabHoverBgColor));
 	decodeHexColorNorm(gs->Theme_tabBgColor, (float*)&(gm->defaults.tabBgColor));
 
+	decodeHexColorNorm(gs->Theme_outlineCurrentLineBorderColor, (float*)&(gm->defaults.outlineCurrentLineBorderColor));
+	decodeHexColorNorm(gs->Theme_selectedItemTextColor, (float*)&(gm->defaults.selectedItemTextColor));
+	decodeHexColorNorm(gs->Theme_selectedItemBgColor, (float*)&(gm->defaults.selectedItemBgColor));
+
 	decodeHexColorNorm(gs->Theme_windowBgBorderColor, (float*)&(gm->defaults.windowBgBorderColor));
 	gm->defaults.windowBgBorderWidth = 1;
 	decodeHexColorNorm(gs->Theme_windowBgColor, (float*)&(gm->defaults.windowBgColor));

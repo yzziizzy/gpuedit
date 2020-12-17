@@ -702,6 +702,33 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 }
 
 
+GUIObject* GUIMainControl_nthTabOfType(GUIMainControl* w, MainControlTabType_t type, int n) {
+	int n_match = 0;
+	VEC_EACH(&w->tabs, i, tab) {
+		if(tab->type == type) {
+			n_match++;
+		}
+		if(n_match == n) {
+			if(w->currentIndex > -1) { // deactivate old tab
+				MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+				if(a) {
+					a->isActive = 0;
+				}
+			}
+				
+			w->currentIndex = i;
+			
+			GUIManager_pushFocusedObject(w->header.gm, tab->client);
+			GUIManager_SetMainWindowTitle(w->header.gm, tab->title);
+			tab->isActive = 1;
+
+			return tab->client;
+		}
+	}
+	return NULL;
+}
+
+
 static int mmBeforeClose(MainControlTab* t) {
 	
 	return 0;
@@ -737,31 +764,45 @@ static void fbEveryFrame(MainControlTab* t) {
 
 
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
-	
+	GUIObject* o = GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
+	if(o != NULL) {
+		return;
+	}
+
 	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
 	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 	fb->commands = w->commands;
 
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fb->header, path);
+	tab->type = MCTAB_FILEOPEN;
 	tab->beforeClose = fbBeforeClose;
 	tab->afterClose = fbAfterClose;
-// 	tab->everyFrame = fbEveryFrame;
+	// 	tab->everyFrame = fbEveryFrame;
 	
 	// very important, since normal registration is not used
 	fb->header.parent = (GUIObject*)w;
+
+	GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
 }
 
 
 void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
+	GUIObject* o = GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
+	if(o != NULL) {
+		return;
+	}
 
 	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->header.gm, "./");
 	fmc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fmc->header, "fuzzy matcher");
+	tab->type = MCTAB_FUZZYOPEN;
 	//tab->beforeClose = gbeBeforeClose;
 	//tab->beforeClose = gbeAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
 	fmc->header.parent = (GUIObject*)w;
+
+	GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 }
 
 

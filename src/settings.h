@@ -37,6 +37,8 @@
 	SETTING(charp, Theme_hl_bgColor,            "#00c8c8ff", NULL, NULL) \
 	SETTING(charp, Theme_hl_textColor,          "#fa0032ff", NULL, NULL) \
 	SETTING(charp, Theme_outlineCurrentLineBorderColor, "#323232ff", NULL, NULL) \
+	SETTING(charp, Theme_selectedItemTextColor, "#c8c8c8ff", NULL, NULL) \
+	SETTING(charp, Theme_selectedItemBgColor,   "#505050ff", NULL, NULL) \
 	\
 	SETTING(charp, Theme_textColor,             "#c8c8c8ff", NULL, NULL) \
 	SETTING(charp, Theme_buttonTextColor,       "#c8c8e1ff", NULL, NULL) \

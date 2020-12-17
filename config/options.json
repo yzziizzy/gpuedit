@@ -37,6 +37,8 @@
 	"Theme_hl_bgColor": "#264f78ff",
 	"Theme_hl_textColor": "#fa0032ff",
 	"Theme_outlineCurrentLineBorderColor": "#323232ff",
+	"Theme_selectedItemTextColor": "#333333ff",
+	"Theme_selectedItemBgColor": "#ddddddff",
 
 	// gui manager defaults
 	"Theme_textColor": "#c8c8c8ff",

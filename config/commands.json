@@ -56,6 +56,7 @@
 {cmd: "BufferCmd_GrowSelectionH", mods: "S", key: "XK_Right", amt: 1, flags: ["scrollToCursor", "resetCursorBlink"]},
 {cmd: "BufferCmd_GrowSelectionV", mods: "S", key: "XK_Up", amt: -1, flags: ["scrollToCursor", "resetCursorBlink"]},
 {cmd: "BufferCmd_GrowSelectionV", mods: "S", key: "XK_Down", amt: 1, flags: ["scrollToCursor", "resetCursorBlink"]},
+{cmd: "BufferCmd_ClearSelection", mods: "", key: "XK_Escape", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 {cmd: "BufferCmd_Indent", mods: "", key: "XK_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_Unindent", mods: "S", key: "XK_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_Unindent", mods: "S", key: "XK_ISO_Left_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
