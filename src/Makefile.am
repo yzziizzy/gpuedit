@@ -78,10 +78,8 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-DSTI_C3DLAS_NO_CONFLICT \
 	-DEACSMB_USE_SIMD \
 	-DEACSMB_HAVE_SSE4 \
-	-DEACSMB_HAVE_SSE41 \
 	-DEACSMB_HAVE_AVX \
-	-DEACSMB_HAVE_AVX2 \
-	-msse4.1 -mavx -mavx2\
+	-march=native -mtune=native \
 	-fno-math-errno \
 	-fexcess-precision=fast \
 	-fno-signed-zeros -fno-trapping-math -fassociative-math \
@@ -98,6 +96,7 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-Wno-unused-label \
 	-Wno-pointer-sign \
 	-Wno-missing-braces \
+	-Wno-maybe-uninitialized \
 	-Wno-char-subscripts \
 	-Wno-int-conversion \
 	-Wno-int-to-pointer-cast \
