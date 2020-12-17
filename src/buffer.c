@@ -689,14 +689,16 @@ void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl) {
 
 // make sure a range goes in the right direction
 // delete selections that are zero
-void BufferRange_Normalize(BufferRange** pbr) {
+// returns 0 if the selection is still valid, 1 if it was deleted
+int BufferRange_Normalize(BufferRange** pbr) {
 	BufferRange* br = *pbr;
-	if(!br) return;
+	if(!br) return 0;
 	
 	if(br->startLine == br->endLine) {
 		if(br->startCol == br->endCol) {
 			free(br); // delete empty ranges
 			*pbr = NULL;
+			return 1;
 		}
 		else if(br->startCol > br->endCol) {
 			intptr_t t = br->startCol;
@@ -714,7 +716,7 @@ void BufferRange_Normalize(BufferRange** pbr) {
 	}
 	
 // 	printf("sel: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
-
+	return 0;
 }
 
 
@@ -1802,3 +1804,36 @@ int BufferRange_CompleteLinesOnly(BufferRange* sel) {
 	return 1;
 }
 
+
+
+// returns 1 for inside, 0 for outside
+int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, intptr_t col) {
+	if(!s) return 0;
+	
+	VEC_EACH(&s->ranges, i, r) {
+		if(!r->startLine || !r->endLine) continue;
+		
+		if(r->startLine->lineNum > bl->lineNum) continue;
+		if(r->endLine->lineNum < bl->lineNum) continue; // TODO possible optimization
+		
+		// within the line range
+		if(r->startLine == bl && r->startCol > col) continue;
+		if(r->endLine == bl && r->endCol <= col) continue;
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+
+void BufferRangeSet_FreeAll(BufferRangeSet* s) {
+	VEC_EACH(&s->ranges, i, r) {
+		if(r) free(r);
+	}
+	VEC_FREE(&s->ranges);
+	VEC_LEN(&s->ranges) = 0;
+}
+
+
+	

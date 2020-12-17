@@ -56,6 +56,17 @@ typedef struct BufferRangeSet {
 } BufferRangeSet;
 
 
+typedef struct BufferRangeDrawInfo {
+	BufferRangeSet* set;
+	size_t index;
+	
+	
+	
+	// update notifications
+} BufferRangeDrawInfo;
+
+
+
 typedef struct EditorParams {
 // 	char** indentIncreaseTerminals; // {, do, (, [, etc.
 	char* lineCommentPrefix; // "// "
@@ -64,8 +75,6 @@ typedef struct EditorParams {
 	int tabWidth;
 	
 } EditorParams;
-
-
 
 
 // http://texteditors.org/cgi-bin/wiki.pl?Implementing_Undo_For_Text_Editors
@@ -244,9 +253,11 @@ typedef struct GUIBufferEditControl {
 	intptr_t curColDisp; // the visible display column, including tabstops, etc.
 	intptr_t curColWanted; // the visible display column to use, if it existed.
 
-	BufferRange* sel; // dynamic selection
+	BufferRange* sel; // primary dynamic selection
 	
+	BufferRangeSet* selSet;
 	BufferRangeSet* findSet;
+	long findIndex;
 	
 	// starting point of a mouse-drag selection
 	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
@@ -321,6 +332,7 @@ typedef struct GUIBufferEditor {
 	intptr_t nextFindChar;
 	
 	BufferRangeSet* findSet;
+	long findIndex;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
 	void* setBreakpointData;
@@ -460,6 +472,11 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel);
 void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, intptr_t col, char* charSet);
 void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet, BufferRange* out);
 
+
+BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern);
+int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, intptr_t col);
+void BufferRangeSet_FreeAll(BufferRangeSet* s);
+
 char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen);
 
 void GBEC_GrowSelectionH(GUIBufferEditControl* w, intptr_t cols);
@@ -481,7 +498,7 @@ void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_RelPosH(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t cols, BufferLine** outL, intptr_t* outC);
 void Buffer_RelPosV(Buffer* b, BufferLine* startL, intptr_t startC, intptr_t lines, BufferLine** outL, intptr_t* outC);
 
-void BufferRange_Normalize(BufferRange** pbr);
+int BufferRange_Normalize(BufferRange** pbr);
 intptr_t BufferLine_GetIndentCol(BufferLine* l);
 
 
@@ -504,6 +521,7 @@ void Buffer_NotifyChanges(BufferChangeNotification* note);
 void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
 void Buffer_NotifyUndoMoveCursor(Buffer* b, BufferLine* line, intptr_t col);
 void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC, char isReverse);
+void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel);
 
 
 // These functions operate on and with the cursor
