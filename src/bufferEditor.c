@@ -159,10 +159,13 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 			if(w->findQuery) free(w->findQuery);
 			w->findQuery = strndup(gev->userData, gev->userSize);
 			
-			GUIBufferEditor_StopFind(w);
-			GUIBufferEditor_StartFind(w, w->findQuery);
-			GUIBufferEditor_NextFindMatch(w);
 			
+			GUIBufferEditor_StopFind(w);
+			
+			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+			w->ec->findSet = w->findSet;
+			
+			GUIBufferEditor_NextFindMatch(w);
 		// 	GUIBufferEditor_FindWord(w, word);
 			GUIBufferEditor_scrollToCursor(w);
 		}
@@ -213,7 +216,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->ec = GUIBufferEditControl_New(gm);
 // 	w->ec->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 	GUIRegisterObject(w, w->ec);
-
+	
 	w->showStatusBar = 1;
 	w->statusBarHeight = gm->gs->Buffer_statusBarHeight;
 	w->statusBar = GUIStatusBar_New(gm);
@@ -229,6 +232,10 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	GUIRegisterObject(w, w->statusBar);
 	
+	
+	
+	pcalloc(w->findSet);
+	w->ec->findSet = w->findSet;
 	
 // 	GUITextF* textf;
 	
@@ -344,76 +351,31 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 
 
 int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
-	
-	BufferLine* bl = w->nextFindLine;
-	int off = 0; // this is for partial matches
-	uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;
-	int res;
-	int wraps = 0;
-	
-	while(bl) {
-		res = pcre2_match(w->findRE, bl->buf ? bl->buf + w->nextFindChar : "", bl->length, off, opts, w->findMatch, NULL);
-		
-		if(res > 0) break;
-		if(res != PCRE2_ERROR_NOMATCH) {
-			// real error of some sort
-			
-			char errbuf[256];
-			pcre2_get_error_message(res, errbuf, sizeof(errbuf));
-			
-			printf("PCRE real error: %p %p %ld '%s'\n", w->findRE, bl->buf, bl->lineNum, errbuf);
-			
-			return 1;
-		}
-		
-		bl = bl->next;
-		w->nextFindChar = 0;
-		
-		if(!bl) { // end of file
-			bl = w->buffer->first;
-// 			printf("find wrapped\n");
-			wraps++;
-			
-			if(wraps > 1) return 1;
-		}
-	}
-	
+	if(VEC_LEN(&w->findSet->ranges) == 0) return 1;
 
-	PCRE2_SIZE* ovec = pcre2_get_ovector_pointer(w->findMatch);
-	w->findCharS = (int)ovec[0] + w->nextFindChar;
-	w->findCharE = (int)ovec[1] + w->nextFindChar;
-	w->findLine = bl;
-	w->nextFindLine = bl;
-	w->nextFindChar = w->findCharE;
+	w->findIndex = (w->findIndex + 1 + VEC_LEN(&w->findSet->ranges)) % VEC_LEN(&w->findSet->ranges);
 	
-	GBEC_MoveCursorTo(w->ec, bl, w->findCharS);
-	GBEC_SetCurrentSelection(w->ec, bl, w->findCharS, bl, w->findCharE); 
+	BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
 	
-// 	printf("match found at: %d:%d\n", bl->lineNum, w->findCharS);
+	GBEC_MoveCursorTo(w->ec, r->startLine, r->startCol);
+	GBEC_SetCurrentSelection(w->ec, r->startLine, r->startCol, r->endLine, r->endCol); 
 	
 	return 0;
-}
-
+};
 
 
 void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 	
 	// clear errors
-	if(w->findREError) {
+	/*if(w->findREError) {
 		free(w->findREError);
 		w->findREError = NULL;
 		w->findREErrorChar = -1;
 	}
+	*/
 	
-	// clean up regex structures
-	if(w->findRE) {
-		pcre2_code_free(w->findRE);
-		pcre2_match_data_free(w->findMatch);
-		w->findMatch = NULL;
-		w->findRE = NULL;
-	}
-	
-//	VEC_FREE(&w->findRanges);
+	w->findIndex = -1;
+	BufferRangeSet_FreeAll(w->findSet);
 }
 
 
@@ -494,7 +456,7 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 
 
 	BufferLine* nextFindLine;
-	intptr_t nextFindChar;
+	intptr_t nextFindChar = 0;
 	
 	
 	BufferLine* bl = w->buffer->first;
@@ -521,7 +483,7 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 			
 			nextFindChar += (int)ovec[1];  
 			
-			printf("match found at: %d:%d\n", bl->lineNum, (int)ovec[0] + nextFindChar);
+//			printf("match found at: %d:%d\n", bl->lineNum, (int)ovec[0] + nextFindChar);
 			
 			if(nextFindChar >= bl->length) {
 				bl = bl->next;
@@ -552,9 +514,6 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 	}
 	
 
-
-
-	
 	// clean up regex structures
 	if(findRE) {
 		pcre2_code_free(findRE);
@@ -827,9 +786,13 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				char* str = Buffer_StringFromSelection(b, &sel, NULL);
 				GUIEdit_SetText(w->findBox, str);
 				
-				GUIBufferEditor_StopFind(w);
-				GUIBufferEditor_StartFind(w, str);					
-				GUIBufferEditor_NextFindMatch(w);
+				
+				w->findIndex = -1;
+				
+				w->findSet = GUIBufferEditor_FindAll(w, str);
+				w->ec->findSet = w->findSet;
+					
+//				GUIBufferEditor_NextFindMatch(w);
 				
 				if(w->findQuery) free(w->findQuery);
 				w->findQuery = str;
@@ -853,14 +816,13 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				free(w->findQuery);
 				w->findQuery = NULL;
 			}
+			
+			w->findIndex = -1;
 			// inetnational fallthrough
 			
 		case BufferCmd_FindResume:
 			
-			w->findSet = GUIBufferEditor_FindAll(w, "struct");
-			w->ec->findSet = w->findSet;
 			
-		/*
 			if(!w->findMode) {
 				char* preserved = NULL;
 				if(w->trayOpen) {
@@ -886,7 +848,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 			}
-		*/
+			
 			break;
 			
 		case BufferCmd_FindNext:

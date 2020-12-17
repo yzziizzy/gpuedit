@@ -22,7 +22,7 @@ size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos) {
 }
 
 size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
-	if(bl->buf == NULL) return 0;
+	if(bl->length == 0) return 0;
 	
 	// must handle tabs
 	float a = (x - w->header.absTopLeft.x - w->textAreaOffsetX) / w->bdp->tdp->charWidth;
@@ -119,7 +119,9 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	
 	if(w->isDragSelecting) {
 		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
+		
 		size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
+		
 		GBEC_SetCurrentSelection(w, bl, col, w->selectPivotLine, w->selectPivotCol);
 		
 		w->current = bl;
@@ -362,27 +364,40 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		}
 		
 		if(w->sel) {
-			if(BufferLine_IsInRange(w->sel->startLine, &note->sel)) {
-				w->sel->startLine = note->sel.startLine->prev;
-				if(!w->sel->startLine) {		
-					w->sel->startLine = note->sel.endLine->next;		
-				}
-			}
+			BufferRange_DeleteLineNotify(w->sel, &note->sel);
+		}
 		
-			if(BufferLine_IsInRange(w->sel->endLine, &note->sel)) {
-				w->sel->endLine = note->sel.startLine->prev;
-				if(!w->sel->endLine) {		
-					w->sel->endLine = note->sel.endLine->next;		
-				}
+		if(w->findSet && VEC_LEN(&w->findSet->ranges)) {
+			VEC_EACH(&w->findSet->ranges, i, r) {
+				BufferRange_DeleteLineNotify(r, &note->sel);		
 			}
+			// TODO: check deleted chars and re-regex		
 		}
 		// TODO: check scrollLines and scrollCols
 	
 	}
 	
-	
-	
 }
+
+
+
+void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel) {
+	if(BufferLine_IsInRange(r->startLine, dsel)) {
+		r->startLine = dsel->startLine->prev;
+		if(!r->startLine) {		
+			r->startLine = dsel->endLine->next;		
+		}
+	}
+
+	if(BufferLine_IsInRange(r->endLine, dsel)) {
+		r->endLine = dsel->startLine->prev;
+		if(!r->endLine) {		
+			r->endLine = dsel->endLine->next;		
+		}
+	}
+
+}
+
 
 
 GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
@@ -426,7 +441,7 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	
 	GUIRegisterObject(w, w->scrollbar);
 	
-	
+	pcalloc(w->selSet);
 	
 	return w;
 }
@@ -477,6 +492,8 @@ void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* w) {
 void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* w) {
 	if(!w->sel) {
 		pcalloc(w->sel);
+		
+		VEC_PUSH(&w->selSet->ranges, w->sel);
 	}
 	
 	w->sel->startLine = w->current;
@@ -488,7 +505,9 @@ void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* w) {
  //	BufferRange* br = w->sel;
  //	printf("sel0: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
 	
-	BufferRange_Normalize(&w->sel);
+	if(BufferRange_Normalize(&w->sel)) {
+		VEC_TRUNC(&w->selSet->ranges);
+	}
 }
 
 
@@ -995,11 +1014,16 @@ void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl) {
 void GBEC_ClearCurrentSelection(GUIBufferEditControl* w) {
 	if(w->sel) free(w->sel);
 	w->sel = NULL;
+	VEC_TRUNC(&w->selSet->ranges);
 }
 
 
 void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC) {
-	if(!w->sel) pcalloc(w->sel);
+	if(!w->sel) {
+		pcalloc(w->sel);
+		
+		VEC_PUSH(&w->selSet->ranges, w->sel); 
+	}
 	
 	// TODO: undo
 	
@@ -1067,6 +1091,7 @@ void GBEC_ClearAllSelections(GUIBufferEditControl* w) {
 	free(w->sel);
 	w->sel = NULL;
 	
+	VEC_TRUNC(&w->selSet->ranges);
 	// TODO: undo
 	// TODO: clear the selection list too
 }

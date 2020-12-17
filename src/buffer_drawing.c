@@ -13,6 +13,8 @@
 
 
 
+
+
 size_t getColOffset(char* txt, int col, int tabWidth) {
 	size_t w = 0;
 	
@@ -176,11 +178,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	
 	struct Color4* fg = &theme->textColor; 
 	struct Color4* bg = &theme->bgColor;
-	struct Color4* fg2 = &theme->hl_textColor; 
-	struct Color4* bg2 = &theme->hl_bgColor;
 	
-	struct Color4* fga[] = {fg, fg2};
-	struct Color4* bga[] = {bg, bg2};
+//	struct Color4* fga[] = {fg, fg2};
+//	struct Color4* bga[] = {bg, bg2};
 	
 	struct Color4 lineColors[] = {
 		theme->lineNumColor,
@@ -188,7 +188,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		{.95,.05,.05,1.0}, // breakpoint
 	};
 	
-	
+	/*
 	// for selections that cross the visible window boundary
 	if(gbe->sel && gbe->sel->startLine->lineNum < bl->lineNum) {
 		if(gbe->sel->endLine->lineNum >= bl->lineNum) {
@@ -197,13 +197,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			bg = &theme->hl_bgColor;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
+	*/
 	
 	
 	// draw lines
@@ -213,9 +207,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		if(bdp->showLineNums) {
 			sprintf(lnbuf, "%ld", bl->lineNum);
 			float nw = (floor(log10(bl->lineNum)) + 1) * tdp->charWidth;
+
 			Color4* lnc = &lineColors[0];
 			if(bl->flags & BL_BOOKMARK_FLAG) lnc = &lnc[1];
 			if(bl->flags & BL_BREAKPOINT_FLAG) lnc = &lnc[2];
+
 			drawTextLine(
 				gm, 
 				tdp, 
@@ -238,7 +234,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					tl.x - 1, 
 					tl.y + gm->gs->Buffer_outlineCurrentLineYOffset, 
 					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
-					tl.y + tdp->lineHeight + gm->gs->Buffer_outlineCurrentLineYOffset
+					tl.y + tdp->lineHeight + gm->gs->Buffer_outlineCurrentLineYOffset + 1, // +1 to not cover underscores
 				},
 				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				.texIndex1 = 1, // order width
@@ -251,7 +247,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		}
 		
 		
-		if(bl->length) {// only draw lines with text
+		if(bl->length) { // only draw lines with text
 			
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
@@ -263,21 +259,44 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			
 			// draw characters
 			for(int i = 0; i < bl->length; i++) { 
-				
-				// check selection
-				if(gbe->sel && gbe->sel->startLine == bl && gbe->sel->startCol <= i) {
+								
+				if(BufferRangeSet_test(gbe->findSet, bl, i)) {
+					// inside other selection
 					inSelection = 1;
-					fg = &theme->hl_textColor;
-					bg = &theme->hl_bgColor;
+					fg = &((Color4){1.0, 0.0, 0.3, 1.0});
+					bg = &((Color4){0.0, 1.0, 0.3, 1.0});
 				}
-				if(gbe->sel && gbe->sel->endLine == bl && gbe->sel->endCol <= i) {
-					inSelection = 0;
-					fg = &theme->textColor;
-					bg = &theme->bgColor;
+				else {
+					if(BufferRangeSet_test(gbe->selSet, bl, i)) {
+						inSelection = 1;
+						fg = &theme->hl_textColor;
+						bg = &theme->hl_bgColor;
+					}
+					else {
+						inSelection = 0;
+						fg = &theme->textColor;
+						bg = &theme->bgColor;	
+					}
 				}
+				
+				
 				
 				int c = bl->buf[i]; 
 //				if(c == 0) break;
+				
+				struct Color4 color;
+				
+				// highlighter color
+				if(atom) {
+					StyleInfo* si = &gbe->h->styles[atom->styleIndex];
+					// si->fgSelColor is never changed from generated values in lexer.c
+					color = (struct Color4){
+						si->fgColor.r,
+						si->fgColor.g,
+						si->fgColor.b,
+						si->fgColor.a,
+					};
+				}
 				
 				
 				// special drawing for null characters
@@ -321,51 +340,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
-				else { // non-tab text
-					if(!inSelection) { // non-selected text
-						
-						if(atom) {
-							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
-							struct Color4 color = {
-								si->fgColor.r,
-								si->fgColor.g,
-								si->fgColor.b,
-								si->fgColor.a,
-							};
-							
-							// highlighted text
-							drawCharacter(gm, tdp, &color, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
-						}
-						else // non-highlighted text
-							drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
-					}
-					else { // selected text
-						if(atom) {
-							StyleInfo* si = &gbe->h->styles[atom->styleIndex];
-							// si->fgSelColor is never changed from generated values in lexer.c
-							struct Color4 color = {
-								si->fgColor.r,
-								si->fgColor.g,
-								si->fgColor.b,
-								si->fgColor.a,
-							};
-							// currently hardcoded in lexer which breaks selection bg highlighting
-							// struct Color4 bcolor = {
-							// 	si->bgSelColor.r,
-							// 	si->bgSelColor.g,
-							// 	si->bgSelColor.b,
-							// 	si->bgSelColor.a,
-							// };
-
-							drawCharacter(gm, tdp, &color, bg2, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
-						}
-						else 
-							drawCharacter(gm, tdp, fg2, bg2, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
-					}
-					
+				else { 
+					// normal, non-tab text		
+					drawCharacter(gm, tdp, atom ? &color : bg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					
 					adv += tdp->charWidth;
 				}
+				
 				
 				// check on the style
 				styleCols--;
@@ -379,7 +360,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					else atom = NULL;
 				}
 			}
-			
+		
+		/*	
 			// selections ending at the end of a line
 			if(gbe->sel && gbe->sel->startLine->lineNum == bl->lineNum && gbe->sel->startCol == bl->length) {
 				inSelection = 1;
@@ -391,21 +373,29 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				fg = &theme->textColor;
 				bg = &theme->bgColor;
 			} 
-			
+			*/
 		}
 		else { // empty lines
 			// check selection
-			if(gbe->sel && gbe->sel->startLine == bl) {
+			if(BufferRangeSet_test(gbe->findSet, bl, 0)) {
+				// inside other selection
 				inSelection = 1;
-				fg = &theme->hl_textColor;
-				bg = &theme->hl_bgColor;
+				fg = &((Color4){1.0, 0.0, 0.3, 1.0});
+				bg = &((Color4){0.0, 1.0, 0.3, 1.0});
 			}
-			if(gbe->sel && gbe->sel->endLine == bl) {
-				inSelection = 0;
-				fg = &theme->textColor;
-				bg = &theme->bgColor;
+			else {
+				if(BufferRangeSet_test(gbe->selSet, bl, 0)) {
+					inSelection = 1;
+					fg = &theme->hl_textColor;
+					bg = &theme->hl_bgColor;
+				}
+				else {
+					inSelection = 0;
+					fg = &theme->textColor;
+					bg = &theme->bgColor;	
+				}
 			}
-
+		
 		}
 
 		if(inSelection) {
@@ -419,7 +409,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 
 				.guiType = 0, // box
 
-				.bg = GUI_COLOR4_TO_SHADER(*bg2),
+				.bg = GUI_COLOR4_TO_SHADER(theme->hl_bgColor),
 				.z = gbe->header.absZ,
 
 				// disabled in the shader right now
