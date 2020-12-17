@@ -1017,7 +1017,7 @@ void Buffer_DebugPrint(Buffer* b) {
 
 
 void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol, BufferRange* outRange) {
-	size_t tmplen;
+	size_t tmplen = 0;
 	char* tmp = NULL;
 	BufferLine* blc, *bl;
 	

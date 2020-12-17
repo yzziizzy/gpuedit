@@ -6,6 +6,7 @@
 //          type   name                default value | min | max    
 #define SETTING_LIST \
 	SETTING(int,   AppState_frameRate,          30,    15,   INT_MAX) \
+	SETTING(bool,  AppState_enableVSync,        false,  NULL, NULL) \
 	SETTING(int,   GUIManager_maxInstances,     8192,  4096, INT_MAX) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \

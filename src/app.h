@@ -133,10 +133,8 @@ void initAppGL(XStuff* xs, AppState* gs);
 
 void AppState_UpdateSettings(AppState* as, GlobalSettings* gs);
 
-void renderFrame(XStuff* xs, AppState* gs, InputState* is, PassFrameParams* pfp);
 void appLoop(XStuff* xs, AppState* gs, InputState* is);
-
-
+void SetUpPDP(AppState* as, PassDrawParams* pdp);
 void initRenderLoop(AppState* gs);
 
 

@@ -263,13 +263,45 @@ int initXWindow(XStuff* xs) {
 
 	glXMakeCurrent(xs->display, xs->clientWin, xs->glctx);
 	
+	
 	glexit("");
+	
 	// disable vsync; it causes glXSwapBuffers to block on (at least) nVidia drivers
-	PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((const GLubyte*)"glXSwapIntervalEXT");
-	glexit("");
-	if(glXSwapIntervalEXT)
-		glXSwapIntervalEXT(xs->display, xs->clientWin, 0); 
-	glexit("");
+	// There are 3 different extensions used for this, by different drivers.
+	do {
+		PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((const GLubyte*)"glXSwapIntervalEXT");
+		glexit("");
+		if(glXSwapIntervalEXT) {
+			glXSwapIntervalEXT(xs->display, xs->clientWin, !!xs->gs->AppState_enableVSync); 
+			break;
+		}
+		
+		printf("glXSwapIntervalEXT not supported.\n");
+		glexit("");
+		
+		
+		PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)glXGetProcAddress((const GLubyte*)"glXSwapIntervalSGI");
+		glexit("");
+		if(glXSwapIntervalSGI) {
+			glXSwapIntervalSGI(!!xs->gs->AppState_enableVSync);
+			break;
+		} 
+		
+		printf("glXSwapIntervalSGI not supported.\n");
+		glexit("");
+	
+	
+		PFNGLXSWAPINTERVALMESAPROC glXSwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)glXGetProcAddress((const GLubyte*)"glXSwapIntervalMESA");
+		glexit("");
+		if(glXSwapIntervalMESA) {
+			glXSwapIntervalMESA(!!xs->gs->AppState_enableVSync);
+			break; 
+		}
+		
+		printf("glXSwapIntervalMESA not supported.\n");
+		glexit("");
+		
+	} while(0);
 	
 	// have to have a current GLX context before initializing GLEW
 	initGLEW();

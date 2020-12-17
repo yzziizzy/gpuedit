@@ -35,7 +35,6 @@ gpuedit_SOURCES = main.c \
 	pass.c \
 	pcBuffer.c \
 	qsort_r.c \
-	renderLoop.c \
 	settings.c \
 	shader.c \
 	statusBar.c \

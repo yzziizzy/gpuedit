@@ -804,7 +804,7 @@ GUIObject* GUIManager_getFocusedObject(GUIManager* gm) {
 }
 
 GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
-	GUIObject* old, *new;
+	GUIObject* old = NULL, *new;
 	GUIEvent gev = {};
 	
 	// can't pop off the root element at the bottom
@@ -882,6 +882,13 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		printf("attempted to update invalid PCBuffer in GUIManager\n");
 		return;
 	}
+
+	double sort;
+	double time;
+	double total = 0.0;
+//	printf("\n");
+	
+	sort = getCurrentTime();
 	
 	
 	gm->elementCount = 0;
@@ -894,28 +901,42 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		.clip = gm->root->h.absClip,
 	};
 	
+#define printf(...)
+	
 	GUIHeader_updatePos(gm->root, &grp, pfp);
+	time = timeSince(sort);
+	total += time;
+	printf("updatePos time: %fus\n", time  * 1000000.0);
+	
+	sort = getCurrentTime();
 	
 	GUIHeader_render(&gm->root->header, pfp);
+	time = timeSince(sort);
+	total += time;
+	printf("render time: %fus\n", time  * 1000000.0);
 	
 // 	static size_t framecount = 0;
 	
-// 	double sort;
 	
-// 	sort = getCurrentTime();
+ 	sort = getCurrentTime();
 // 	gui_debugFileDumpVertexBuffer(gm, "/tmp/gpuedit/presortdump", framecount);
 	qsort(gm->elemBuffer, gm->elementCount, sizeof(*gm->elemBuffer), (void*)gui_elem_sort_fn);
-// 	printf("qsort time: [%d elem] %f\n", gm->elementCount, timeSince(sort)  * 1000.0);
+ 	time = timeSince(sort);
+	total += time;
+	printf("qsort time: %fus\n", time  * 1000000.0);
 	
 // 	gui_debugFileDumpVertexBuffer(gm, "/tmp/gpuedit/framedump", framecount);
 	
 // 	printf("Elemcount: %ld\n", gm->elementCount);
 	
 // 	framecount++;
-// 	sort = getCurrentTime();
+ 	sort = getCurrentTime();
 	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
-// printf("memcpy time: %f\n", timeSince(sort) * 1000.0);
-	
+	 time = timeSince(sort);
+	total += time;
+	printf("memcpy time: %fus\n", time  * 1000000.0);
+	printf("total time: %fus\n", total  * 1000000.0);
+#undef printf
 }
 
 static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
