@@ -1,13 +1,24 @@
 #ifndef __gpuedit_settings_h__
 #define __gpuedit_settings_h__
 
+typedef enum TabType {
+	MCTAB_NONE,
+	MCTAB_EDIT,
+	MCTAB_FILEOPEN,
+	MCTAB_FUZZYOPEN,
+} TabType_t;
 
+typedef struct TabSpec {
+	TabType_t type;
+	char* path;
+} TabSpec;
 
 //          type   name                default value | min | max    
 #define SETTING_LIST \
 	SETTING(int,   AppState_frameRate,          30,    15,   INT_MAX) \
 	SETTING(bool,  AppState_enableVSync,        false,  NULL, NULL) \
 	SETTING(int,   GUIManager_maxInstances,     8192,  4096, INT_MAX) \
+	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, Buffer_cursorBlinkOffTime,   0.600, 0,    300000) \
@@ -81,12 +92,14 @@ typedef struct GlobalSettings {
 #define charp char*
 #define charpp char**
 #define bool char
+#define tabsp TabSpec*
 #define SETTING(type, name, val ,min,max) type name;
 	SETTING_LIST
 #undef SETTING
 #undef charp
 #undef charpp
 #undef bool
+#undef tabsp
 } GlobalSettings;
 
 

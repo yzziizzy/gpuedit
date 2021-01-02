@@ -705,7 +705,7 @@ GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 }
 
 
-GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, MainControlTabType_t type, int n) {
+GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, TabType_t type, int n) {
 	int n_match = 0;
 	VEC_EACH(&w->tabs, i, tab) {
 		if(tab->type == type) {

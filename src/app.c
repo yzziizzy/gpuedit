@@ -166,23 +166,26 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	}
 	
 	
-	// for debugging
-
-
-//	GUIMainControl_LoadFile(as->mc, "test.js");
-	GUIMainControl_LoadFile(as->mc, "testfile.c");
-	GUIMainControl_LoadFile(as->mc, "testfile.h");
-	GUIMainControl_FuzzyOpener(as->mc);
-	
+	int i = 0;
+	TabSpec* ts = as->globalSettings.MainControl_startupTabs;
+	while(ts[i].type != MCTAB_NONE) {
+		switch(ts[i].type) {
+			case MCTAB_EDIT:
+				GUIMainControl_LoadFile(as->mc, ts[i].path);
+				break;
+			case MCTAB_FILEOPEN:
+				GUIMainControl_OpenFileBrowser(as->mc, ts[i].path);
+				break;
+			case MCTAB_FUZZYOPEN:
+				GUIMainControl_FuzzyOpener(as->mc);
+				break;
+		}
+		i++;
+	}
 	GUIMainControl_GoToTab(as->mc, 0);
 	
-//	GUIMainControl_OpenFileBrowser(as->mc, "./");
-	
 	GUIManager_pushFocusedObject(as->gui, &as->mc->header);
-	
-	
-	
-	
+		
 	
 	as->frameCount = 0;
 	

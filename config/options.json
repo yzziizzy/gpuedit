@@ -1,5 +1,11 @@
 {
 	"GUIManager_maxInstances": 16384,
+	"MainControl_startupTabs": [
+		{ "type": "Edit", "path": "./testfile.c", },
+		{ "type": "Edit", "path": "./testfile.h", },
+		{ "type": "FuzzyOpen", "path": "", },
+		// { "type": "FileOpen", "path": "./", },
+	],
 	"Buffer_linesPerScrollWheel": 3,
 	"Buffer_cursorBlinkEnable": 1,
 	"Buffer_cursorBlinkOffTime": 0.600,
