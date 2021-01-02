@@ -12,7 +12,7 @@
 
 
 
-static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 absTestPos);
+static GUIHeader* hitTest(GUIColumnLayout* cl, Vector2 absTestPos);
 static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
@@ -58,8 +58,8 @@ static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams
 	float total_h = 0.0;
 	float max_w = 0.0;
 	VEC_EACH(&cl->header.children, i, child) { 
-		total_h += cl->spacing + child->h.size.y;
-		max_w = fmax(max_w, child->h.size.x);
+		total_h += cl->spacing + child->size.y;
+		max_w = fmax(max_w, child->size.x);
 	}
 	
 	cl->header.size.y = total_h;
@@ -74,7 +74,7 @@ static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams
 		
 		GUIRenderParams grp2 = {
 			.clip = grp->clip,
-			.size = child->h.size, // sized to the child to eliminate gravity 
+			.size = child->size, // sized to the child to eliminate gravity 
 			.offset = {
 				.x = tl.x,
 				.y = tl.y + total_h 
@@ -84,25 +84,25 @@ static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams
 		
 		GUIHeader_updatePos(child, &grp2, pfp);
 		
-		total_h += child->h.size.y;
+		total_h += child->size.y;
 	}
 }
 
 
 
-static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 absTestPos) {
+static GUIHeader* hitTest(GUIColumnLayout* cl, Vector2 absTestPos) {
 	GUIHeader* h = &cl->header;
 	
 	int i;
-	GUIObject* bestKid = NULL;
+	GUIHeader* bestKid = NULL;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {
-		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&h->children, i), absTestPos);
+		GUIHeader* kid = GUIHeader_hitTest(VEC_ITEM(&h->children, i), absTestPos);
 		if(kid) {
 			if(!bestKid) {
 				bestKid = kid;
 			}
 			else {
-				if(kid->h.absZ > bestKid->h.absZ) bestKid = kid;
+				if(kid->absZ > bestKid->absZ) bestKid = kid;
 			}
 		}
 	}

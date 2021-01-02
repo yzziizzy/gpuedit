@@ -168,7 +168,7 @@ static void autoscroll(GUIMainMenu* w) { /*
 	*/
 }
 
-static void keyUp(GUIObject* w_, GUIEvent* gev) {
+static void keyUp(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainMenu* w = (GUIMainMenu*)w_;
 	
 	if(gev->keycode == XK_Down) {
@@ -184,10 +184,10 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainMenu* w = (GUIMainMenu*)w_;
 	
-	if(gev->originalTarget == w->saveBtn) {
+	if(gev->originalTarget == (void*)w->saveBtn) {
 		
 		// TODO: get updated settings
 		GUIMainMenu_SaveAll(w);
@@ -234,13 +234,13 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm, AppState* as) {
 	w->clientArea = GUIWindow_New(gm);
 	w->clientArea->header.vt = &client_vt;
 	w->clientArea->header.topleft.y = 50;
-	GUIRegisterObject(w, w->clientArea);
+	GUI_RegisterObject(w, w->clientArea);
 
 	w->saveBtn = GUIButton_New(gm, "Save");
 // 	w->saveBtn->isDisabled = 1;
 	w->saveBtn->header.size = (Vector2){100, 30};
 	w->saveBtn->header.topleft = (Vector2){10, 10};
-	GUIRegisterObject(w, w->saveBtn);
+	GUI_RegisterObject(w, w->saveBtn);
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(&w->scrollbar->header, (Vector2){10, 50});
@@ -248,7 +248,7 @@ GUIMainMenu* GUIMainMenu_New(GUIManager* gm, AppState* as) {
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
-	GUIRegisterObject(w, w->scrollbar);
+	GUI_RegisterObject(w, w->scrollbar);
 	
 	GUIMainMenu_AddInt(w, "MainControl_tabHeight", &as->globalSettings.MainControl_tabHeight);
 	GUIMainMenu_AddInt(w, "Buffer_tabWidth", &as->globalSettings.Buffer_tabWidth);
@@ -272,9 +272,9 @@ GUIMainMenuItem* GUIMainMenu_AddBaseItem(GUIMainMenu* w, char* name) {
 // 	GUIEdit_SetText(it->gControl, "tttyerty");
 // 	GUIEdit_SetInt(it->gControl, 25);
 	
-	GUIRegisterObject(w->clientArea, it->base);
-	GUIRegisterObject(it->base, it->gLabel);
-// 	GUIRegisterObject(it->base, it->gControl);
+	GUI_RegisterObject(w->clientArea, it->base);
+	GUI_RegisterObject(it->base, it->gLabel);
+// 	GUI_RegisterObject(it->base, it->gControl);
 	
 	VEC_PUSH(&w->items, it);
 	
@@ -288,11 +288,11 @@ GUIMainMenuItem* GUIMainMenu_AddInt(GUIMainMenu* w, char* label, int* i) {
 	item->type = 0;
 	item->data.i = i;
 	
-	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, "0");
+	item->gControl = (GUIHeader*)GUIEdit_New(w->header.gm, "0");
 	((GUIEdit*)item->gControl)->rightJustify = 1;
-	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	item->gControl->gravity = GUI_GRAV_TOP_RIGHT;
 	GUIEdit_SetInt((GUIEdit*)item->gControl, *i);
-	GUIRegisterObject(item->base, item->gControl);
+	GUIHeader_RegisterObject(&item->base->header, item->gControl);
 	
 	return item;
 }
@@ -302,11 +302,11 @@ GUIMainMenuItem* GUIMainMenu_AddFloat(GUIMainMenu* w, char* label, float* f) {
 	item->type = 1;
 	item->data.f = f;
 	
-	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, "0");
+	item->gControl = (GUIHeader*)GUIEdit_New(w->header.gm, "0");
 	((GUIEdit*)item->gControl)->rightJustify = 1;
-	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	item->gControl->gravity = GUI_GRAV_TOP_RIGHT;
 	GUIEdit_SetDouble((GUIEdit*)item->gControl, *f);
-	GUIRegisterObject(item->base, item->gControl);
+	GUIHeader_RegisterObject(&item->base->header, item->gControl);
 	
 	return item;
 }
@@ -316,11 +316,11 @@ GUIMainMenuItem* GUIMainMenu_AddDouble(GUIMainMenu* w, char* label, double* f) {
 	item->type = 2;
 	item->data.d = f;
 	
-	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, "0");
+	item->gControl = (GUIHeader*)GUIEdit_New(w->header.gm, "0");
 	((GUIEdit*)item->gControl)->rightJustify = 1;
-	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
+	item->gControl->gravity = GUI_GRAV_TOP_RIGHT;
 	GUIEdit_SetDouble((GUIEdit*)item->gControl, *f);
-	GUIRegisterObject(item->base, item->gControl);
+	GUIHeader_RegisterObject(&item->base->header, item->gControl);
 	
 	return item;
 }
@@ -330,9 +330,9 @@ GUIMainMenuItem* GUIMainMenu_AddString(GUIMainMenu* w, char* label, char** str) 
 	item->type = 3;
 	item->data.str = str;
 	
-	item->gControl = (GUIObject*)GUIEdit_New(w->header.gm, *str);
-	item->gControl->h.gravity = GUI_GRAV_TOP_RIGHT;
-	GUIRegisterObject(item->base, item->gControl);
+	item->gControl = (GUIHeader*)GUIEdit_New(w->header.gm, *str);
+	item->gControl->gravity = GUI_GRAV_TOP_RIGHT;
+	GUIHeader_RegisterObject(&item->base->header, item->gControl);
 	
 	return item;
 }

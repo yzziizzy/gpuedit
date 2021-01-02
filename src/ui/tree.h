@@ -9,7 +9,7 @@ typedef struct GUITreeControlItem {
 	
 	GUIWindow* opener;
 	
-	GUIObject* elem;
+	GUIHeader* elem;
 	int indentLevel;
 	char isOpen;
 	
@@ -31,7 +31,7 @@ typedef struct GUITreeControl {
 GUITreeControl* GUITreeControl_New(GUIManager* gm);
 
 GUITreeControlItem* GUITreeControl_AppendLabel(GUITreeControl* tc, GUITreeControlItem* parent, char* text, char isOpen);
-GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem* parent, GUIObject* o, char isOpen);
+GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem* parent, GUIHeader* o, char isOpen);
 
 
 

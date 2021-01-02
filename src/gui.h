@@ -97,7 +97,6 @@ typedef struct GUIUnifiedVertex {
 
 struct GUIHeader;
 typedef struct GUIHeader GUIHeader;
-typedef union GUIObject GUIObject;
 struct GUIManager;
 
 struct GUIRenderParams;
@@ -105,27 +104,27 @@ typedef struct GUIRenderParams GUIRenderParams;
 
 
 struct gui_vtbl {
-	void (*UpdatePos)(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
-	void (*Render)(GUIObject* go, PassFrameParams* pfp);
-	void (*Delete)(GUIObject* go);
-	void (*Reap)(GUIObject* go);
-	void (*Resize)(GUIObject* go, Vector2 newSz); // exterior size
-	Vector2 (*GetClientSize)(GUIObject* go);
-	void    (*SetClientSize)(GUIObject* go, Vector2 cSize); // and force exterior size to match
-	Vector2 (*RecalcClientSize)(GUIObject* go); // recalc client size from the client children and call SetClientSize
-	GUIObject* (*HitTest)(GUIObject* go, Vector2 testPos);
-	GUIObject* (*FindChild)(GUIObject* h, char* name);
+	void (*UpdatePos)(GUIHeader* go, GUIRenderParams* grp, PassFrameParams* pfp);
+	void (*Render)(GUIHeader* go, PassFrameParams* pfp);
+	void (*Delete)(GUIHeader* go);
+	void (*Reap)(GUIHeader* go);
+	void (*Resize)(GUIHeader* go, Vector2 newSz); // exterior size
+	Vector2 (*GetClientSize)(GUIHeader* go);
+	void    (*SetClientSize)(GUIHeader* go, Vector2 cSize); // and force exterior size to match
+	Vector2 (*RecalcClientSize)(GUIHeader* go); // recalc client size from the client children and call SetClientSize
+	GUIHeader* (*HitTest)(GUIHeader* go, Vector2 testPos);
+	GUIHeader* (*FindChild)(GUIHeader* h, char* name);
 	
-	void (*AddClient)(GUIObject* parent, GUIObject* child);
-	void (*RemoveClient)(GUIObject* parent, GUIObject* child);
-	Vector2 (*SetScrollPct)(GUIObject* go, Vector2 pct); // returns the final value
-	Vector2 (*SetScrollAbs)(GUIObject* go, Vector2 absPos);
+	void (*AddClient)(GUIHeader* parent, GUIHeader* child);
+	void (*RemoveClient)(GUIHeader* parent, GUIHeader* child);
+	Vector2 (*SetScrollPct)(GUIHeader* go, Vector2 pct); // returns the final value
+	Vector2 (*SetScrollAbs)(GUIHeader* go, Vector2 absPos);
 };
 
 
 struct GUIEvent;
 typedef struct GUIEvent GUIEvent;
-typedef void (*GUI_EventHandlerFn)(GUIObject*, GUIEvent*);
+typedef void (*GUI_EventHandlerFn)(GUIHeader*, GUIEvent*);
 
 // bubbling: 0=none, just the target
 //           1=rise until cancelled
@@ -213,8 +212,8 @@ typedef struct GUIEvent {
 	
 	double eventTime;
 	Vector2 eventPos;
-	GUIObject* originalTarget;
-	GUIObject* currentTarget;
+	GUIHeader* originalTarget;
+	GUIHeader* currentTarget;
 	
 	union {
 		Vector2 pos; // for mouse events; absolute position
@@ -240,7 +239,7 @@ typedef struct GUIEvent {
 } GUIEvent;
 
 
-typedef int  (*GUI_OnClickFn)(GUIObject* go, Vector2 clickPos);
+typedef int  (*GUI_OnClickFn)(GUIHeader* go, Vector2 clickPos);
 typedef void (*GUI_OnMouseEnterFn)(GUIEvent* e);
 typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 
@@ -256,9 +255,10 @@ typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 #define GUI_AUTO_SIZE       0x0010 // manual flag, for the bottom level
 #define GUI_CHILD_TABBING   0x0020 // grab tab events and cycle focused elements
 
-typedef struct GUIHeader {
+
+struct GUIHeader {
 	struct GUIManager* gm;
-	GUIObject* parent;
+	GUIHeader* parent;
 	struct gui_vtbl* vt;
 	struct GUIEventHandler_vtbl* event_vt;
 	
@@ -270,7 +270,7 @@ typedef struct GUIHeader {
 	char* name; // used by config loader atm
 
 	// fallback for easy hit testing
-	VEC(union GUIObject*) children;
+	VEC(GUIHeader*) children;
 	
 	Vector2 topleft; // relative to parent (and window padding)
 	Vector2 size; // absolute
@@ -301,7 +301,7 @@ typedef struct GUIHeader {
 	int currentTabStop;
 	VEC(GUIHeader*) tabStopCache;
 	
-} GUIHeader;
+};
 
 
 
@@ -336,29 +336,6 @@ typedef struct GUIHeader {
 
 
 
-union GUIObject {
-	GUIHeader h; // legacy
-	GUIHeader header;
-	GUIText text;
-	GUIButton button;
-	GUIWindow window;
-	GUISimpleWindow simpleWindow;
-	GUIImage image;
-	GUIColumnLayout columnLayout;
-	GUIGridLayout gridLayout;
-	GUIValueMonitor valueMonitor;
-	GUIDebugAdjuster debugAdjuster;
-	GUISlider Slider;
-	GUITabControl TabControl;
-// 	GUIScrollbar Scrollbar;
-	GUIEdit Edit;
-	GUIStructAdjuster structAdjuster;
-	GUIImageButton ImageButton;
-	GUIPerformanceGraph PerformanceGraph;
-};
-
-
-
 
 /*
 The general idea is this:
@@ -379,7 +356,7 @@ typedef struct GUIManager {
 	
 	Vector2i screenSize;
 	
-	GUIObject* root;
+	GUIHeader* root;
 	VEC(GUIHeader*) reapQueue; 
 	
 	FontManager* fm;
@@ -414,7 +391,7 @@ typedef struct GUIManager {
 	int defaultCursor;
 	int currentCursor;
 	
-	RING(GUIObject*) focusStack;
+	RING(GUIHeader*) focusStack;
 	
 	struct {
 		GUIFont* font;
@@ -476,6 +453,10 @@ typedef struct GUIManager {
 } GUIManager;
 
 
+typedef union {
+	GUIHeader header;
+} GUIObject;
+
 
 void GUIManager_init(GUIManager* gm, GlobalSettings* gs);
 void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs);
@@ -494,19 +475,19 @@ void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
 void GUIManager_Reap(GUIManager* gm);
 
 
-GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos);
-GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
+GUIHeader* GUIHeader_hitTest(GUIHeader* go, Vector2 testPos);
+GUIHeader* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
 // 
-// void GUIObject_triggerClick(GUIObject* go, GUIEvent* e); 
-void GUIObject_triggerClick(GUIObject* go, Vector2 testPos);
-GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos);
+// void GUIHeader_triggerClick(GUIHeader* go, GUIEvent* e); 
+void GUIHeader_triggerClick(GUIHeader* go, Vector2 testPos);
+GUIHeader* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos);
 
 
 // focus stack
-GUIObject* GUIManager_getFocusedObject(GUIManager* gm);
-#define GUIManager_pushFocusedObject(gm, o) GUIManager_pushFocusedObject_(gm, &(o)->header)
-void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h);
-GUIObject* GUIManager_popFocusedObject(GUIManager* gm);
+GUIHeader* GUIManager_getFocusedObject(GUIManager* gm);
+//#define GUIManager_pushFocusedObject(gm, o) GUIManager_pushFocusedObject_(gm, &(o)->header)
+void GUIManager_pushFocusedObject(GUIManager* gm, GUIHeader* h);
+GUIHeader* GUIManager_popFocusedObject(GUIManager* gm);
 
 
 void GUIResize(GUIHeader* gh, Vector2 newSz);
@@ -516,45 +497,46 @@ void guiTriggerClick(GUIEvent* e);
 
 
 // USE THIS ONE. virtual function.
-#define GUIAddClient(p, o) GUIAddClient_((p) ? &((p)->header) : NULL, &(o)->header)
-void GUIAddClient_(GUIHeader* parent, GUIHeader* o);
+#define GUI_AddClient(p, o) GUIHeader_AddClient((p) ? &((p)->header) : NULL, &(o)->header)
+void GUIHeader_AddClient(GUIHeader* parent, GUIHeader* o);
 
-#define GUIRemoveClient(p, o) GUIRemoveClient_((p) ? &((p)->header) : NULL, &(o)->header)
-void GUIRemoveClient_(GUIHeader* parent, GUIHeader* o);
+#define GUI_RemoveClient(p, o) GUIHeader_RemoveClient((p) ? &((p)->header) : NULL, &(o)->header)
+void GUIHeader_RemoveClient(GUIHeader* parent, GUIHeader* o);
 
 
 // NOT this one. direct child addition
-#define GUIRegisterObject(p, o) GUIRegisterObject_((p) ? (&((GUIObject*)(p))->header) : NULL, &(o)->header)
-void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o);
+#define GUI_RegisterObject(p, o) GUIHeader_RegisterObject((p) ? &(p)->header : NULL, &(o)->header)
+void GUIHeader_RegisterObject(GUIHeader* parent, GUIHeader* o);
 
-#define GUIUnregisterObject(o) GUIUnregisterObject_(&(o)->header)
-void GUIUnregisterObject_(GUIHeader* o);
+#define GUI_UnregisterObject(o) GUIHeader_UnregisterObject(&(o)->header)
+void GUIHeader_UnregisterObject(GUIHeader* o);
 
 
 
 // Delete marks things to be reaped later. It removes objects from the root tree.
-#define GUIObject_Delete(o) GUIObject_Delete_(&(o)->header)
-void GUIObject_Delete_(GUIHeader* h);
+#define GUI_Delete(o) GUIHeader_Delete(&(o)->header)
+void GUIHeader_Delete(GUIHeader* h);
 
 // Reap is for garbage collection. 
 // It happens at a separate phase and does not depend on object relations. 
-#define GUIObject_Reap(o) GUIObject_Reap_(&(o)->header)
-void GUIObject_Reap_(GUIHeader* h);
+#define GUI_Reap(o) GUIHeader_Reap(&(o)->header)
+void GUIHeader_Reap(GUIHeader* h);
 
-#define GUIObject_AddClient(p, c) GUIObject_AddClient_(&(p)->header, &(c)->header)
-void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client);
+/*#define GUI_AddClient(p, c) GUIHeader_AddClient_(&(p)->header, &(c)->header)
+void GUIHeader_AddClient_(GUIHeader* parent, GUIHeader* client);
 
-#define GUIObject_RemoveClient(p, c) GUIObject_RemoveClient_(&(p)->header, &(c)->header)
-void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client);
+#define GUI_RemoveClient(p, c) GUIHeader_RemoveClient_(&(p)->header, &(c)->header)
+void GUIHeader_RemoveClient_(GUIHeader* parent, GUIHeader* client);
+*/
 
-#define GUIObject_SetScrollPct(o, pct) GUIObject_SetScrollPct_(&(o)->header, pct)
-Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct);
+#define GUI_SetScrollPct(o, pct) GUIHeader_SetScrollPct(&(o)->header, pct)
+Vector2 GUIHeader_SetScrollPct(GUIHeader* go, Vector2 pct);
 
-#define GUIObject_SetScrollAbs(o, abs) GUIObject_SetScrollAbs_(&(o)->header, abs)
-Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos);
+#define GUI_SetScrollAbs(o, abs) GUIHeader_SetScrollAbs(&(o)->header, abs)
+Vector2 GUIHeader_SetScrollAbs(GUIHeader* go, Vector2 absPos);
 
-#define GUIObject_FindChild(p, n) GUIObject_FindChild_((p) ? &((p)->header) : NULL, n)
-GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name);
+#define GUI_FindChild(p, n) GUIHeader_FindChild((p) ? &((p)->header) : NULL, n)
+GUIHeader* GUIHeader_FindChild(GUIHeader* obj, char* name);
 
 
 
@@ -565,40 +547,40 @@ and removed at run time.
 
 They are NOT for general event handling in GUI elements. Use the vtable for that.
 */
-#define GUIObject_AddHandler(o, t, c) GUIObject_AddHandler_(&(o)->header, t, c)
-void GUIObject_AddHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb);
+#define GUI_AddHandler(o, t, c) GUIHeader_AddHandler(&(o)->header, t, c)
+void GUIHeader_AddHandler(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb);
 
-#define GUIObject_RemoveHandler(o, t, c) GUIObject_RemoveHandler_(&(o)->header, t, c)
-void GUIObject_RemoveHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb);
+#define GUI_RemoveHandler(o, t, c) GUIHeader_RemoveHandler(&(o)->header, t, c)
+void GUIHeader_RemoveHandler(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb);
 
 
 
 // USE THIS ONE to send an event into the system.
 // gev can be allocated on the stack.
-void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev);
+void GUIManager_BubbleEvent(GUIManager* gm, GUIHeader* target, GUIEvent* gev);
 
 // TriggerEvent DOES NOT BUBBLE. It only calls the virtual functions on the object.
 // gev can be allocated on the stack.
 void GUIManager_TriggerEvent(GUIManager* o, GUIEvent* gev);
-#define GUIObject_TriggerEvent(o, gev) GUIObject_TriggerEvent_(&(o)->header, gev)
-void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev);
+#define GUI_TriggerEvent(o, gev) GUIHeader_TriggerEvent(&(o)->header, gev)
+void GUIHeader_TriggerEvent(GUIHeader* o, GUIEvent* gev);
 
 void GUIHeader_RegenTabStopCache(GUIHeader* parent);
 
-#define GUIObject_NextTabStop(o) GUIHeader_NextTabStop(&((o)->header));
+#define GUI_NextTabStop(o) GUIHeader_NextTabStop(&((o)->header));
 GUIHeader* GUIHeader_NextTabStop(GUIHeader* h);
 
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev);
 void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev);
 
-GUIObject* GUIManager_SpawnTemplate(GUIManager* gm, char* name);
+GUIHeader* GUIManager_SpawnTemplate(GUIManager* gm, char* name);
 
 
 
-void guiSetClientSize(GUIObject* go, Vector2 cSize);
-Vector2 guiGetClientSize(GUIObject* go);
-Vector2 guiRecalcClientSize(GUIObject* go);
+void guiSetClientSize(GUIHeader* go, Vector2 cSize);
+Vector2 guiGetClientSize(GUIHeader* go);
+Vector2 guiRecalcClientSize(GUIHeader* go);
 
 
 // debugging

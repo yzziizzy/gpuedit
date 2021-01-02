@@ -35,7 +35,7 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 }
 
 
-static void keyDown(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
 	
@@ -150,7 +150,7 @@ void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
 	GUIBufferEditControl_SetBuffer(w->ec, b);
 }
 
-static void userEvent(GUIObject* w_, GUIEvent* gev) {
+static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	
 	if(w->trayOpen && (GUIEdit*)gev->originalTarget == w->findBox) {
@@ -187,11 +187,11 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 	}
 }
 
-static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	
 	if(w->findMode == 1 || w->replaceMode == 1) {
-		GUIManager_pushFocusedObject(w->header.gm, w->findBox);
+		GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 	}
 }
 
@@ -226,7 +226,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	w->ec = GUIBufferEditControl_New(gm);
 // 	w->ec->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-	GUIRegisterObject(w, w->ec);
+	GUI_RegisterObject(w, w->ec);
 	
 	w->showStatusBar = 1;
 	w->statusBarHeight = gm->gs->Buffer_statusBarHeight;
@@ -241,7 +241,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->statusBar->padding = (AABB2){{5,5}, {5,5}};
 	w->statusBar->spacing = 3;
 	
-	GUIRegisterObject(w, w->statusBar);
+	GUI_RegisterObject(w, w->statusBar);
 	
 	
 	
@@ -253,7 +253,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 // 	textf = GUITextF_new(w->header.gm);
 // 	textf->header.topleft = (Vector2){4, 0};
 // 	GUITextF_setString(textf, "Column %>ld", &w->ec->ec->curCol);
-// 	GUIRegisterObject(w->header.parent, textf);
+// 	GUI_RegisterObject(w->header.parent, textf);
 	
 	return w;
 }
@@ -623,10 +623,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 			// TODO: free json 
 			
-			GUIRegisterObject(w, w->menu);
+			GUI_RegisterObject(w, w->menu);
 			
 			
-			GUISelectBox* hlsel = (GUISelectBox*)GUIObject_FindChild(w->menu, "highlighter");
+			GUISelectBox* hlsel = (GUISelectBox*)GUI_FindChild(w->menu, "highlighter");
 			GUISelectBoxOption opts[] = {
 				{.label = "C", .data = "c"},
 				{.label = "C++", .data = "cpp"},
@@ -740,10 +740,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 // 				w->lineNumEntryBox->onEnter = gotoline_onenter;
 // 				w->lineNumEntryBox->onEnterData = w;
 				
-				GUIRegisterObject(w->trayRoot, w->lineNumEntryBox);
+				GUI_RegisterObject(w->trayRoot, w->lineNumEntryBox);
 				
 				w->ec->cursorBlinkPaused = 1;
-				GUIManager_pushFocusedObject(w->header.gm, w->lineNumEntryBox);
+				GUIManager_pushFocusedObject(w->header.gm, &w->lineNumEntryBox->header);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
@@ -803,15 +803,15 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		
 				
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
-				GUIRegisterObject(w, w->trayRoot);
-				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
-				w->replaceBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "replace");
+				GUI_RegisterObject(w, w->trayRoot);
+				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
+				w->replaceBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "replace");
 				if(w->findQuery) {
 					GUIEdit_SetText(w->findBox, w->findQuery);
 				}
 				
 				w->ec->cursorBlinkPaused = 1;
-				GUIManager_pushFocusedObject(w->header.gm, w->findBox);
+				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
@@ -832,8 +832,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->inputMode = 1;
 				
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
-				GUIRegisterObject(w, w->trayRoot);
-				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
+				GUI_RegisterObject(w, w->trayRoot);
+				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
 				
 				BufferRange sel;
 				Buffer* b = w->ec->buffer;
@@ -855,7 +855,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				GUIBufferEditor_scrollToCursor(w);
 				
 				w->ec->cursorBlinkPaused = 1;
-				GUIManager_pushFocusedObject(w->header.gm, w->findBox);
+				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
@@ -889,14 +889,14 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->inputMode = 1;
 				
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
-				GUIRegisterObject(w, w->trayRoot);
-				w->findBox = (GUIEdit*)GUIObject_FindChild(w->trayRoot, "find");
+				GUI_RegisterObject(w, w->trayRoot);
+				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
 				if(w->findQuery) {
 					GUIEdit_SetText(w->findBox, w->findQuery);
 				}
 				
 				w->ec->cursorBlinkPaused = 1;
-				GUIManager_pushFocusedObject(w->header.gm, w->findBox);
+				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
@@ -929,8 +929,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 // 				e->onEnterData = w;
 				
 				w->ec->cursorBlinkPaused = 1;
-				GUIRegisterObject(w->trayRoot, e);
-				GUIManager_pushFocusedObject(w->header.gm, e);
+				GUI_RegisterObject(w->trayRoot, e);
+				GUIManager_pushFocusedObject(w->header.gm, &e->header);
 				
 				w->loadBox = e;
 			}
@@ -963,8 +963,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 			
 // 		case BufferCmd_CloseBuffer: {
-// 			GUIObject* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
-// 			GUIRegisterObject(NULL, oo); // register to root window
+// 			GUIHeader* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
+// 			GUI_RegisterObject(NULL, oo); // register to root window
 			
 			
 // 			break;
@@ -1017,7 +1017,7 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 	
 	w->inputMode = 0;
 	
-	GUIObject_Delete(w->trayRoot);
+	GUI_Delete(w->trayRoot);
 	w->trayRoot = NULL;
 	w->findBox = NULL;
 	w->replaceBox = NULL;
@@ -1040,7 +1040,7 @@ void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
 	w->trayHeight = height;
 	w->trayRoot = GUIWindow_New(w->header.gm);
 	
-	GUIRegisterObject(w, w->trayRoot);
+	GUI_RegisterObject(w, w->trayRoot);
 	*/
 }
 

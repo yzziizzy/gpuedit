@@ -17,16 +17,16 @@ void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt, struct G
 void gui_defaultUpdatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp);
 void gui_selfUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
 void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
-GUIObject* gui_defaultFindChild(GUIObject* obj, char* name);
+GUIHeader* gui_defaultFindChild(GUIHeader* obj, char* name);
 
 GUIHeader* GUIHeader_New(GUIManager* gm, struct gui_vtbl* vt, struct GUIEventHandler_vtbl* event_vt);
 
 Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
-GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos);
-GUIObject* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos);
+GUIHeader* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos);
+GUIHeader* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos);
 Vector2 gui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt);
 
-void gui_default_ParentResize(GUIObject* root, GUIEvent* gev);
+void gui_default_ParentResize(GUIHeader* root, GUIEvent* gev);
 void gui_default_Delete(GUIHeader* h);
 
 GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm, int count);
@@ -35,7 +35,7 @@ GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count);
 void GUIHeader_render(GUIHeader* gh, PassFrameParams* pfp);
 void GUIHeader_renderChildren(GUIHeader* gh, PassFrameParams* pfp);
 
-void GUIHeader_updatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
+void GUIHeader_updatePos(GUIHeader* go, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
 static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {

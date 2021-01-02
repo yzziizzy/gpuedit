@@ -24,7 +24,7 @@ typedef struct GUIMainMenuItem {
 	
 	GUIWindow* base; 
 	GUIText* gLabel;
-	GUIObject* gControl;
+	GUIHeader* gControl;
 } GUIMainMenuItem;
 
 

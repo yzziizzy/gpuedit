@@ -22,21 +22,21 @@
 #include "dumpImage.h"
 
 
-// VEC(GUIObject*) gui_list; 
-// VEC(GUIObject*) gui_reap_queue; 
+// VEC(GUIHeader*) gui_list; 
+// VEC(GUIHeader*) gui_reap_queue; 
 
 
-GUIObject* guiBaseHitTest(GUIObject* go, Vector2 absTestPos);
+GUIHeader* guiBaseHitTest(GUIHeader* go, Vector2 absTestPos);
 
 
 
 
-void gui_default_ParentResize(GUIObject* root, GUIEvent* gev) {
-	root->h.size = gev->size;
+void gui_default_ParentResize(GUIHeader* root, GUIEvent* gev) {
+	root->size = gev->size;
 	
-	VEC_EACH(&root->h.children, i, child) {
+	VEC_EACH(&root->children, i, child) {
 		gev->currentTarget = child; 
-		GUIObject_TriggerEvent(child, gev);
+		GUIHeader_TriggerEvent(child, gev);
 	}
 }
 
@@ -53,11 +53,10 @@ void gui_default_Delete(GUIHeader* h) {
 //	printf("Deleting %p\n", h);
 	// delete the children
 	VEC_EACH(&h->children, i, ch) {
-		GUIObject_Delete_((GUIHeader*)ch);
+		GUIHeader_Delete(ch);
 	}
 	
-	
-	GUIUnregisterObject_(h);
+	GUIHeader_UnregisterObject(h);
 }
 
 
@@ -68,7 +67,7 @@ void GUIResize(GUIHeader* gh, Vector2 newSz) {
 	if(gh->deleted) return;
 	
 	if(gh->vt->Resize) {
-		gh->vt->Resize((GUIObject*)gh, newSz);
+		gh->vt->Resize((GUIHeader*)gh, newSz);
 	}
 	else {
 		gh->size = newSz;
@@ -159,8 +158,8 @@ void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* p
 	float total_h = 0.0;
 	float max_w = 0.0;
 	VEC_EACH(&gh->children, i, child) { 
-		total_h += child->h.size.y;
-		max_w = fmax(max_w, child->h.size.x);
+		total_h += child->size.y;
+		max_w = fmax(max_w, child->size.x);
 	}
 	
 	gh->size.y = total_h;
@@ -174,7 +173,7 @@ void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* p
 		
 		GUIRenderParams grp2 = {
 			.clip = grp->clip,
-			.size = child->h.size, // sized to the child to eliminate gravity 
+			.size = child->size, // sized to the child to eliminate gravity 
 			.offset = {
 				.x = tl.x,
 				.y = tl.y + total_h 
@@ -184,14 +183,14 @@ void gui_columnUpdatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* p
 		
 		GUIHeader_updatePos(child, &grp2, pfp);
 		
-		total_h += child->h.size.y;
+		total_h += child->size.y;
 	}
 }
 
 
 
-void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {
-	printf("GUIObject_triggerClick not implemented.");
+void GUIHeader_triggerClick(GUIHeader* go, Vector2 testPos) {
+	printf("GUIHeader_triggerClick not implemented.");
 // 	if(go->vt->Click)
 // 		go->vt->Click(go, testPos);
 }
@@ -200,7 +199,7 @@ void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {
 
 
 // default hit testing handler that only operates on the header
-GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos) {
+GUIHeader* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos) {
 	
 	if(!(absTestPos.x >= h->absTopLeft.x && 
 		absTestPos.y >= h->absTopLeft.y &&
@@ -215,30 +214,30 @@ GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos) {
 	return gui_defaultChildrenHitTest(h, absTestPos);
 }
 
-GUIObject* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos) {
+GUIHeader* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos) {
 	
 	int i;
-	GUIObject* bestKid = NULL;
+	GUIHeader* bestKid = NULL;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {
-		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&h->children, i), absTestPos);
+		GUIHeader* kid = GUIHeader_hitTest(VEC_ITEM(&h->children, i), absTestPos);
 		if(kid) {
 			if(!bestKid) {
 				bestKid = kid;
 			}
 			else {
-				if(kid->h.absZ > bestKid->h.absZ) bestKid = kid;
+				if(kid->absZ > bestKid->absZ) bestKid = kid;
 			}
 		}
 	}
 	
-	return bestKid ? bestKid : (GUIObject*)h;
+	return bestKid ? bestKid : (GUIHeader*)h;
 }
 
 
 
 
 /*
-void GUIObject_triggerClick(GUIObject* go, GUIEvent* e) {
+void GUIHeader_triggerClick(GUIHeader* go, GUIEvent* e) {
 	
 	if(!go) return;
 	e->currentTarget = go;
@@ -254,21 +253,21 @@ void GUIObject_triggerClick(GUIObject* go, GUIEvent* e) {
 
 // old
 
-void guiSetClientSize(GUIObject* go, Vector2 cSize) {
-	if(go->h.vt && go->h.vt->SetClientSize)
-		return go->h.vt->SetClientSize(go, cSize);
+void guiSetClientSize(GUIHeader* gh, Vector2 cSize) {
+	if(gh->vt && gh->vt->SetClientSize)
+		return gh->vt->SetClientSize(gh, cSize);
 }
 
-Vector2 guiGetClientSize(GUIObject* go) {
-	if(go->h.vt && go->h.vt->GetClientSize)
-		return go->h.vt->GetClientSize(go);
+Vector2 guiGetClientSize(GUIHeader* gh) {
+	if(gh->vt && gh->vt->GetClientSize)
+		return gh->vt->GetClientSize(gh);
 	
 	return (Vector2){-1,-1};
 } 
 
-Vector2 guiRecalcClientSize(GUIObject* go) {
-	if(go->h.vt && go->h.vt->RecalcClientSize)
-		return go->h.vt->RecalcClientSize(go);
+Vector2 guiRecalcClientSize(GUIHeader* gh) {
+	if(gh->vt && gh->vt->RecalcClientSize)
+		return gh->vt->RecalcClientSize(gh);
 	
 	return (Vector2){-1,-1};
 } 
@@ -276,14 +275,14 @@ Vector2 guiRecalcClientSize(GUIObject* go) {
 
 void GUIAddClient_(GUIHeader* parent, GUIHeader* child) {
 	if(parent->vt && parent->vt->AddClient)
-		parent->vt->AddClient((GUIObject*)parent, (GUIObject*)child);
+		parent->vt->AddClient(parent, child);
 	else
-		GUIRegisterObject_(parent, child);
+		GUIHeader_RegisterObject(parent, child);
 } 
 
 void GUIRemoveClient_(GUIHeader* parent, GUIHeader* child) {
 	if(parent->vt && parent->vt->RemoveClient)
-		parent->vt->RemoveClient((GUIObject*)parent, (GUIObject*)child);
+		parent->vt->RemoveClient(parent, child);
 } 
 
 
@@ -373,7 +372,7 @@ Vector2 gui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
 
 	// child's top left in parent coordinates
 	Vector2 ctl = gui_calcPosGrav(child, &grp);
-	printf("ctl: %f, %f | %f, %f\n", pt.x, pt.y, ctl.x, ctl.y);
+//	printf("ctl: %f, %f | %f, %f\n", pt.x, pt.y, ctl.x, ctl.y);
 	return (Vector2) {
 		.x = pt.x - ctl.x,
 		.y = pt.y - ctl.y
@@ -384,12 +383,12 @@ Vector2 gui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
 
 
 
-GUIObject* gui_defaultFindChild(GUIObject* obj, char* name) {
+GUIHeader* gui_defaultFindChild(GUIHeader* obj, char* name) {
 	if(!obj) return NULL;
-	if(obj->h.name && 0 == strcmp(obj->h.name, name)) return (GUIObject*)obj;
+	if(obj->name && 0 == strcmp(obj->name, name)) return (GUIHeader*)obj;
 	
-	VEC_EACH(&obj->h.children, i, child) {
-		GUIObject* o = GUIObject_FindChild(child, name);
+	VEC_EACH(&obj->children, i, child) {
+		GUIHeader* o = GUIHeader_FindChild(child, name);
 		if(o) return o;
 	}
 	
@@ -397,13 +396,13 @@ GUIObject* gui_defaultFindChild(GUIObject* obj, char* name) {
 }
 
 
-GUIObject* GUIObject_FindChild_(GUIHeader* obj, char* name) {
+GUIHeader* GUIHeader_FindChild(GUIHeader* obj, char* name) {
 	if(!obj) return NULL;
 	
 	if(obj->vt && obj->vt->FindChild)
-		return obj->vt->FindChild((GUIObject*)obj, name);
+		return obj->vt->FindChild(obj, name);
 	else
-		return gui_defaultFindChild((GUIObject*)obj, name);
+		return gui_defaultFindChild(obj, name);
 	
 	return NULL; // because GCC is too dump to realize the above will always return a value
 }
@@ -668,28 +667,28 @@ void GUIHeader_renderChildren(GUIHeader* gh, PassFrameParams* pfp) {
 // 	if(gh->hidden || gh->deleted) return;
 
 	VEC_EACH(&gh->children, i, obj) {
-		GUIHeader_render(&obj->h, pfp);
+		GUIHeader_render(obj, pfp);
 	}
 }
 
 
-void GUIRegisterObject_(GUIHeader* parent, GUIHeader* o) {
+void GUIHeader_RegisterObject(GUIHeader* parent, GUIHeader* o) {
 	int i;
 	
 	if(!parent) {
-		parent = (GUIHeader*)o->gm->root;
+		parent = o->gm->root;
 	}
-	o->parent = (GUIObject*)parent;
+	o->parent = parent;
 	i = VEC_FIND(&parent->children, &o);
 	if(i < 0) {
-		VEC_PUSH(&parent->children, (GUIObject*)o);
+		VEC_PUSH(&parent->children, o);
 	}
 	
 	GUIHeader_RegenTabStopCache(parent);
 }
 
 
-void GUIUnregisterObject_(GUIHeader* o) {
+void GUIHeader_UnregisterObject(GUIHeader* o) {
 	GUIHeader* parent = (GUIHeader*)o->parent;
 	
 	if(!parent) {
@@ -707,56 +706,56 @@ void GUIUnregisterObject_(GUIHeader* o) {
 // virtual methods
 
 
-void GUIObject_Delete_(GUIHeader* h) {
+void GUIHeader_Delete(GUIHeader* h) {
 	h->deleted = 1;
 	//printf("Delete vfn call %p\n");
 	VEC_PUSH(&h->gm->reapQueue, h);	
 
 	if(h->vt && h->vt->Delete)
-		h->vt->Delete((GUIObject*)h);
+		h->vt->Delete((GUIHeader*)h);
 	else 
 		gui_default_Delete(h);
 }
 
 
-void GUIObject_Reap_(GUIHeader* h) {
+void GUIHeader_Reap(GUIHeader* h) {
 	//printf("Reap vfn call %p\n", h);
 	if(!h->deleted) {
-		printf("Attempting to reap non-deleted GUIObject\n");
+		printf("Attempting to reap non-deleted GUIHeader\n");
 // 		Log("Attempting to reap non-deleted GUI Object");
 		return;
 	}
 	
 	if(h->vt && h->vt->Reap)
-		h->vt->Reap((GUIObject*)h);
+		h->vt->Reap((GUIHeader*)h);
 	else {
 		free(h);
 	}
 }
 
 
-GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 absTestPos) {
-	if(go->h.vt && go->h.vt->HitTest)
-		return go->h.vt->HitTest(go, absTestPos);
+GUIHeader* GUIHeader_hitTest(GUIHeader* gh, Vector2 absTestPos) {
+	if(gh->vt && gh->vt->HitTest)
+		return gh->vt->HitTest(gh, absTestPos);
 	
-	return gui_defaultHitTest(&go->h, absTestPos);
+	return gui_defaultHitTest(gh, absTestPos);
 }
 
-void GUIHeader_updatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp) {
+void GUIHeader_updatePos(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
-	if(go->h.flags & GUI_MAXIMIZE_X) {
-		go->h.topleft.x = 0;
-		go->h.size.x = grp->size.x;
+	if(gh->flags & GUI_MAXIMIZE_X) {
+		gh->topleft.x = 0;
+		gh->size.x = grp->size.x;
 	}
-	if(go->h.flags & GUI_MAXIMIZE_Y) {
-		go->h.topleft.y = 0;
-		go->h.size.y = grp->size.y;
+	if(gh->flags & GUI_MAXIMIZE_Y) {
+		gh->topleft.y = 0;
+		gh->size.y = grp->size.y;
 	}
 	
-	if(go->h.vt && go->h.vt->UpdatePos)
-		go->h.vt->UpdatePos(go, grp, pfp);
+	if(gh->vt && gh->vt->UpdatePos)
+		gh->vt->UpdatePos(gh, grp, pfp);
 	else
-		gui_defaultUpdatePos(&go->h, grp, pfp);
+		gui_defaultUpdatePos(gh, grp, pfp);
 }
 
 
@@ -765,31 +764,31 @@ void GUIHeader_render(GUIHeader* gh, PassFrameParams* pfp) {
 	if(gh->hidden || gh->deleted) return;
 	
 	if(gh->vt && gh->vt->Render)
-		gh->vt->Render((GUIObject*)gh, pfp);
+		gh->vt->Render((GUIHeader*)gh, pfp);
 	else
 		GUIHeader_renderChildren(gh, pfp);
 }
 
 
-void GUIObject_AddClient_(GUIHeader* parent, GUIHeader* client) {
+void GUIHeader_AddClient(GUIHeader* parent, GUIHeader* client) {
 	if(parent->vt && parent->vt->AddClient)
-		parent->vt->AddClient((GUIObject*)parent, (GUIObject*)client);
+		parent->vt->AddClient((GUIHeader*)parent, (GUIHeader*)client);
 	else
 		printf("Object does not have an AddClient function.");
 }
 
 
-void GUIObject_RemoveClient_(GUIHeader* parent, GUIHeader* client) {
+void GUIHeader_RemoveClient(GUIHeader* parent, GUIHeader* client) {
 	if(parent->vt && parent->vt->RemoveClient)
-		parent->vt->RemoveClient((GUIObject*)parent, (GUIObject*)client);
+		parent->vt->RemoveClient((GUIHeader*)parent, (GUIHeader*)client);
 	else
 		printf("Object does not have a RemoveClient function.");
 }
 
 
-Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct) {
+Vector2 GUIHeader_SetScrollPct(GUIHeader* go, Vector2 pct) {
 	if(go->vt && go->vt->SetScrollPct)
-		return go->vt->SetScrollPct((GUIObject*)go, pct);
+		return go->vt->SetScrollPct((GUIHeader*)go, pct);
 	else
 		printf("Object does not have a SetScrollPct function.");
 	
@@ -797,9 +796,9 @@ Vector2 GUIObject_SetScrollPct_(GUIHeader* go, Vector2 pct) {
 }
 
 
-Vector2 GUIObject_SetScrollAbs_(GUIHeader* go, Vector2 absPos) {
+Vector2 GUIHeader_SetScrollAbs(GUIHeader* go, Vector2 absPos) {
 	if(go->vt && go->vt->SetScrollAbs)
-		return go->vt->SetScrollAbs((GUIObject*)go, absPos);
+		return go->vt->SetScrollAbs((GUIHeader*)go, absPos);
 	else
 		printf("Object does not have a SetScrollAbs function.");
 	
@@ -813,7 +812,7 @@ GUIHeader* GUIHeader_NextTabStop(GUIHeader* h) {
 	h->currentTabStop = (h->currentTabStop + 1) % VEC_LEN(&h->tabStopCache);
 	
 	focused = VEC_ITEM(&h->tabStopCache, h->currentTabStop);
-	GUIManager_pushFocusedObject_(h->gm, focused);
+	GUIManager_pushFocusedObject(h->gm, focused);
 	
 	return focused;
 }
@@ -826,7 +825,7 @@ static void tab_regen(GUIHeader* trunk, GUIHeader* parent) {
 	
 	if(!(parent->flags & GUI_CHILD_TABBING)) {
 		VEC_EACH(&parent->children, i, kid) {
-			tab_regen(trunk, &kid->header);
+			tab_regen(trunk, kid);
 		}
 	}
 }
@@ -844,7 +843,7 @@ void GUIHeader_RegenTabStopCache(GUIHeader* parent) {
 	VEC_TRUNC(&parent->tabStopCache);
 	
 	VEC_EACH(&parent->children, i, kid) {
-		tab_regen(parent, &kid->header);
+		tab_regen(parent, kid);
 	}
 	
 	VEC_SORT(&parent->tabStopCache, tab_sort_fn);

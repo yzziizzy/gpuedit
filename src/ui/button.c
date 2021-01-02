@@ -14,17 +14,17 @@
 
 static void render(GUIButton* w, PassFrameParams* pfp);
 static void delete(GUIButton* w);
-static GUIObject* hitTest(GUIObject* go, Vector2 testPos);
+static GUIHeader* hitTest(GUIHeader* go, Vector2 testPos);
 
 
 static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, Vector2 off, float sz, float adv, float line);
 
 
 
-static void mEnter(GUIObject* w_, GUIEvent* gev) {
+static void mEnter(GUIHeader* w_, GUIEvent* gev) {
 	((GUIButton*)w_)->isHovered = 1;
 }
-static void mLeave(GUIObject* w_, GUIEvent* gev) {
+static void mLeave(GUIHeader* w_, GUIEvent* gev) {
 	((GUIButton*)w_)->isHovered = 0;
 }
 

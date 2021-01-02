@@ -23,7 +23,7 @@ typedef struct HLContextInternal {
 	struct {
 		BufferLine* readLine; 
 		BufferLine* writeLine; 
-		int writeCol;
+		intptr_t writeCol;
 	} color, flags;
 	
 } HLContextInternal;

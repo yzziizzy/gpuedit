@@ -127,7 +127,7 @@ static void updatePos(GUIFormControl* w, GUIRenderParams* grp, PassFrameParams* 
 
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUIFormControl* w = (GUIFormControl*)w_;
 	
 }
@@ -162,7 +162,7 @@ GUIFormControl* GUIFormControl_New(GUIManager* gm, int type, char* label) {
 			w->edit->header.size = (Vector2){100, 20};
 			w->edit->header.gravity = GUI_GRAV_TOP_RIGHT;
 			
-			GUIRegisterObject(w, w->edit);
+			GUI_RegisterObject(w, w->edit);
 		
 		case GUIFORMCONTROL_SELECT:
 			w->select = GUISelectBox_New(gm);
@@ -170,7 +170,7 @@ GUIFormControl* GUIFormControl_New(GUIManager* gm, int type, char* label) {
 			w->select->header.size = (Vector2){100, 20};
 			w->select->header.gravity = GUI_GRAV_TOP_RIGHT;
 			
-			GUIRegisterObject(w, w->select);
+			GUI_RegisterObject(w, w->select);
 			break;
 	}
 	

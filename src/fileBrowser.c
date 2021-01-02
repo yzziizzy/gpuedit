@@ -53,7 +53,7 @@ static void render(GUIFileBrowser* w, PassFrameParams* pfp) {
 
 
 
-static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
 	
 	float padding = 4;
@@ -112,7 +112,7 @@ static char* getParentDir(char* child) {
 }
 
 
-static void keyDown(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
 
 	Cmd found;
@@ -170,8 +170,8 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 				GUIEvent gev2 = {};
 				gev2.type = GUIEVENT_User;
 				gev2.eventTime = 0;//gev->eventTime;
-				gev2.originalTarget = w;
-				gev2.currentTarget = w;
+				gev2.originalTarget = &w->header;
+				gev2.currentTarget = &w->header;
 				gev2.cancelled = 0;
 				// handlers are responsible for cleanup
 				gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
@@ -179,7 +179,7 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 				
 				gev2.userType = "accepted";
 			
-				GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
 		
 				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
 				if(gev2.userData && !gev2.cancelled) {
@@ -194,8 +194,8 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 				GUIEvent gev2 = {};
 				gev2.type = GUIEVENT_User;
 				gev2.eventTime = 0;//gev->eventTime;
-				gev2.originalTarget = w;
-				gev2.currentTarget = w;
+				gev2.originalTarget = &w->header;
+				gev2.currentTarget = &w->header;
 				gev2.cancelled = 0;
 				// handlers are responsible for cleanup
 				gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
@@ -203,7 +203,7 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 				
 				gev2.userType = "accepted";
 			
-				GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
 		
 				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
 				if(gev2.userData && !gev2.cancelled) {
@@ -223,7 +223,7 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 }
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
 	
 	
@@ -238,11 +238,11 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	
 	
 	int userEvent = 0;
-	if(gev->originalTarget == w->cancelBtn) {
+	if(gev->originalTarget == (void*)w->cancelBtn) {
 		gev2.userType = "cancelled";
 		userEvent = 1;
 	}
-	else if(gev->originalTarget == w->acceptBtn) {
+	else if(gev->originalTarget == (void*)w->acceptBtn) {
 		
 		// handlers are responsible for cleanup
 		gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
@@ -251,17 +251,17 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 		gev2.userType = "accepted";
 		userEvent = 1;
 	}
-	else if(gev->originalTarget == w->newFileBtn) {
+	else if(gev->originalTarget == (void*)w->newFileBtn) {
 		gev2.userType = "new_file";
 		userEvent = 1;
 	}
-	else if(gev->originalTarget == w->newDirBtn) {
+	else if(gev->originalTarget == (void*)w->newDirBtn) {
 		gev2.userType = "new_dir";
 		userEvent = 1;
 	}
 	
 	if(userEvent) {
-		GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+		GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
 		
 		// clean up the entry list if nothing caught the event
 		if(gev2.userData && !gev2.cancelled) {
@@ -317,12 +317,12 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	w->newDirBtn->header.gravity = GUI_GRAV_BOTTOM_LEFT;
 	w->fbc->header.gravity = GUI_GRAV_TOP_LEFT;
 	
-	GUIRegisterObject(w, w->fbc);
-	GUIRegisterObject(w, w->filenameBar);
-	GUIRegisterObject(w, w->acceptBtn);
-	GUIRegisterObject(w, w->cancelBtn);
-	GUIRegisterObject(w, w->newDirBtn);
-	GUIRegisterObject(w, w->newFileBtn);
+	GUI_RegisterObject(w, w->fbc);
+	GUI_RegisterObject(w, w->filenameBar);
+	GUI_RegisterObject(w, w->acceptBtn);
+	GUI_RegisterObject(w, w->cancelBtn);
+	GUI_RegisterObject(w, w->newDirBtn);
+	GUI_RegisterObject(w, w->newFileBtn);
 	
 	w->curDir = realpath(path, NULL);
 	

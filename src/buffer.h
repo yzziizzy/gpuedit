@@ -23,8 +23,8 @@ typedef struct BufferLine {
 	
 	ptrdiff_t lineNum;
 	
-	size_t allocSz;
-	size_t length; // of the text itself
+	intptr_t allocSz;
+	intptr_t length; // of the text itself
 	char* buf;
 	
 	unsigned int flags;
@@ -272,7 +272,7 @@ typedef struct GUIBufferEditControl {
 	char scrollCoastDir;
 	
 	char showAutocomplete;
-	int maxAutocompleteLines; // lines to show in the popup
+	size_t maxAutocompleteLines; // lines to show in the popup
 	intptr_t autocompleteProvokeCol;
 	VEC(char*) autocompleteOptions;
 	

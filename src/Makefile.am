@@ -88,14 +88,19 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-include "signal.h" \
 	-pthread \
 	-Wall \
+	-Werror \
+	-Wextra \
 	-Wno-unused-result \
 	-Wno-unused-variable \
 	-Wno-unused-but-set-variable \
 	-Wno-unused-function \
 	-Wno-unused-label \
+	-Wno-unused-parameter \
 	-Wno-pointer-sign \
 	-Wno-missing-braces \
 	-Wno-maybe-uninitialized \
+	-Wno-implicit-fallthrough \
+	-Wno-sign-compare \
 	-Wno-char-subscripts \
 	-Wno-int-conversion \
 	-Wno-int-to-pointer-cast \
@@ -104,13 +109,13 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-Wno-switch \
 	-Wno-parentheses \
 	-Wno-comment \
+	-Wno-strict-aliasing \
 	-Werror=implicit-function-declaration \
 	-Werror=uninitialized \
 	-Werror=return-type 
 	
 AM_CXXFLAGS = $(AM_CFLAGS)
 
-# 	-Werror=incompatible-pointer-types 
 
 
 

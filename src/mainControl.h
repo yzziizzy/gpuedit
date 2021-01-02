@@ -29,7 +29,7 @@ typedef enum MainControlTabType {
 
 
 typedef struct MainControlTab {
-	GUIObject* client;
+	GUIHeader* client;
 	char* title;
 	MainControlTabType_t type;
 	
@@ -95,9 +95,9 @@ void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s);
 
 MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* client, char* title);
 void GUIMainControl_CloseTab(GUIMainControl* w, int index);
-GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic);
-GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic);
-GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i);
+GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic);
+GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic);
+GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i);
 
 
 

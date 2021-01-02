@@ -69,7 +69,7 @@ typedef struct DrawTimer {
 
 struct PassDrawable;
 
-typedef void (*PassDrawFn)(void* data, struct PassDrawable* drawable, PassDrawParams* dp);
+typedef void (*PassDrawFn)(void* data, GLuint progID, PassDrawParams* dp);
 
 
 typedef struct PassDrawable {

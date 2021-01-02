@@ -70,6 +70,7 @@ size_t drawCharacter(
 			.z = z,
 			
 			.clip = GUI_AABB2_TO_SHADER(*clip),
+			.alpha = 1,
 		};
 	}
 	
@@ -96,6 +97,7 @@ size_t drawCharacter(
 			.z = z+0.001,
 			
 			.clip = GUI_AABB2_TO_SHADER(*clip),
+			.alpha = 1,
 		};
 	}
 	
@@ -171,7 +173,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	
 	// scroll down
 	// TODO: cache a pointer
-	for(size_t i = 0; i < gbe->scrollLines && bl->next; i++) bl = bl->next; 
+	for(intptr_t i = 0; i < gbe->scrollLines && bl->next; i++) bl = bl->next; 
 	
 	int inSelection = 0;
 	int maxCols = 10000;
@@ -334,6 +336,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 							
 							// disabled in the shader right now
 							.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+							.alpha = 1,
 						};
 					}
 					
@@ -399,6 +402,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 
 				// disabled in the shader right now
 				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+				.alpha = 1,
 			};
 		}
 
@@ -438,7 +442,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	if(gbe->showAutocomplete) {
 		
 		
-		int popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
+		size_t popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
 		
 		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},

@@ -17,7 +17,7 @@
 
 
 
-static Vector2 setScrollAbs(GUIObject* w_, Vector2 absPos) {
+static Vector2 setScrollAbs(GUIHeader* w_, Vector2 absPos) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	w->absScrollPos.x = fmax(0, fmin(absPos.x, w->clientExtent.x - w->clientArea.size.x));
@@ -26,7 +26,7 @@ static Vector2 setScrollAbs(GUIObject* w_, Vector2 absPos) {
 	return w->absScrollPos;
 }
 
-static Vector2 setScrollPct(GUIObject* w_, Vector2 pct) {
+static Vector2 setScrollPct(GUIHeader* w_, Vector2 pct) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	float mx = w->clientExtent.x - w->clientArea.size.x;
@@ -39,7 +39,7 @@ static Vector2 setScrollPct(GUIObject* w_, Vector2 pct) {
 }
 
 
-static void scrollUp(GUIObject* w_, GUIEvent* gev) {
+static void scrollUp(GUIHeader* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 // 	if(gev->originalTarget == w->bg) {
@@ -55,7 +55,7 @@ static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void scrollDown(GUIObject* w_, GUIEvent* gev) {
+static void scrollDown(GUIHeader* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	float mx = w->clientExtent.x - w->clientArea.size.x;
@@ -74,20 +74,20 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	
 }
 
-static void clientScrollUp(GUIObject* w_, GUIEvent* gev) {
-	scrollUp((GUIObject*)w_->header.parent, gev);
+static void clientScrollUp(GUIHeader* w_, GUIEvent* gev) {
+	scrollUp(w_->parent, gev);
 }
-static void clientScrollDown(GUIObject* w_, GUIEvent* gev) {
-	scrollDown((GUIObject*)w_->header.parent, gev);
+static void clientScrollDown(GUIHeader* w_, GUIEvent* gev) {
+	scrollDown(w_->parent, gev);
 }
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	// close
 	if(gev->originalTarget == (void*)w->closebutton) {
 		w->header.hidden = 1;
-		GUIObject_Delete(w);
+		GUIHeader_Delete(w_);
 		
 		
 		gev->cancelled = 1;
@@ -95,7 +95,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	
 }
 
-static void dragStart(GUIObject* w_, GUIEvent* gev) {
+static void dragStart(GUIHeader* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 // 	printf("dragstart %p, %p\n", gev->originalTarget, w->titlebar);
@@ -111,7 +111,7 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void dragStop(GUIObject* w_, GUIEvent* gev) {
+static void dragStop(GUIHeader* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 
 // 	printf("drag stop\n");
@@ -123,7 +123,7 @@ static void dragStop(GUIObject* w_, GUIEvent* gev) {
 	
 }
 
-static void dragMove(GUIObject* w_, GUIEvent* gev) {
+static void dragMove(GUIHeader* w_, GUIEvent* gev) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 // 	printf("drag move\n");
@@ -134,8 +134,8 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	}
 }
 
-static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
-	GUIObject* a = NULL, *b = NULL;
+static GUIHeader* hitTest(GUIHeader* w_, Vector2 testPos) {
+	GUIHeader* a = NULL, *b = NULL;
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	a = gui_defaultHitTest(&w->header, testPos);
@@ -151,11 +151,11 @@ static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
 	if(!b) return a;
 // 	printf("not a\n");
 // 	
-	return a->header.absZ > b->header.absZ ? a : b;
+	return a->absZ > b->absZ ? a : b;
 }
 
 
-static void render(GUIObject* w_, PassFrameParams* pfp) {
+static void render(GUIHeader* w_, PassFrameParams* pfp) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	GUIHeader* h = &w->header;
 	
@@ -176,11 +176,11 @@ static void render(GUIObject* w_, PassFrameParams* pfp) {
 }
 
 
-static void delete(GUIObject* w_) {
+static void delete(GUIHeader* w_) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	
 	VEC_EACH(&w->clientArea.children, i, child) {
-		GUIObject_Delete(child);
+		GUIHeader_Delete(child);
 	}
 	
 	gui_default_Delete(&w->header);
@@ -189,7 +189,7 @@ static void delete(GUIObject* w_) {
 
 
 
-static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUISimpleWindow* w = (GUISimpleWindow*)w_;
 	GUIHeader* h = &w->header;
 	GUIHeader* ch = &w->clientArea;
@@ -210,8 +210,8 @@ static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	// look through the children and calculate their extent
 	Vector2 internalMax = {0,0};
 	VEC_EACH(&w->clientArea.children, i, child) {
-		internalMax.x = fmax(internalMax.x, child->h.topleft.x + child->h.size.x);
-		internalMax.y = fmax(internalMax.y, child->h.topleft.y + child->h.size.y);
+		internalMax.x = fmax(internalMax.x, child->topleft.x + child->size.x);
+		internalMax.y = fmax(internalMax.y, child->topleft.y + child->size.y);
 	}
 	
 	w->clientExtent = internalMax;
@@ -294,11 +294,11 @@ static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 
 
 /*
-Vector2 guiSimpleWindowGetClientSize(GUIObject* go) {
+Vector2 guiSimpleWindowGetClientSize(GUIHeader* go) {
 	return guiGetClientSize(&go->simpleWindow.bg);
 }
 
-void guiSimpleWindowSetClientSize(GUIObject* go, Vector2 cSize) {
+void guiSimpleWindowSetClientSize(GUIHeader* go, Vector2 cSize) {
 	
 	// TODO: fix
 	GUIHeader* h = &go->header;
@@ -311,28 +311,28 @@ void guiSimpleWindowSetClientSize(GUIObject* go, Vector2 cSize) {
 }
 
 // recalculate client size based on client children sizes and positions
-Vector2 guiSimpleWindowRecalcClientSize(GUIObject* go) {
+Vector2 guiSimpleWindowRecalcClientSize(GUIHeader* go) {
 	Vector2 csz = guiRecalcClientSize(go->simpleWindow.bg);
 	// TODO: probably something
 	return csz;
 }
 */
  
-static void addClient(GUIObject* _parent, GUIObject* child) {
+static void addClient(GUIHeader* _parent, GUIHeader* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
-	GUIRegisterObject_(&p->clientArea, &child->header);
+	GUIHeader_RegisterObject(&p->clientArea, child);
 };
 
-static void removeClient(GUIObject* _parent, GUIObject* child) {
+static void removeClient(GUIHeader* _parent, GUIHeader* child) {
 	GUISimpleWindow* p = (GUISimpleWindow*)_parent;
 	
-	GUIUnregisterObject(child);
+	GUIHeader_UnregisterObject(child);
 };
 
-static GUIObject* findChild(GUIObject* h, char* name) {
+static GUIHeader* findChild(GUIHeader* h, char* name) {
 	GUISimpleWindow* w = (GUISimpleWindow*)h;
 	
-	return gui_defaultFindChild((GUIObject*)&w->clientArea, name);
+	return gui_defaultFindChild((GUIHeader*)&w->clientArea, name);
 };
 
 
@@ -376,7 +376,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	gui_headerInit(&w->clientArea, gm, NULL, &client_event_vt);
-	w->clientArea.parent = (GUIObject*)w; // for event handling
+	w->clientArea.parent = (GUIHeader*)w; // for event handling
 	// general options
 	w->xScrollbarThickness = 5;
 	w->yScrollbarThickness = 5;
@@ -396,7 +396,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->bg->color = gm->defaults.windowBgColor;
 	w->bg->borderColor = gm->defaults.windowBgBorderColor;
 	w->bg->borderWidth = gm->defaults.windowBgBorderWidth;
-	GUIRegisterObject(w, w->bg);
+	GUI_RegisterObject(w, w->bg);
 	
 	
 	// title bar and close button
@@ -406,7 +406,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->titlebar->color = gm->defaults.windowTitleColor;
 	w->titlebar->borderColor = gm->defaults.windowTitleBorderColor;
 	w->titlebar->borderWidth = gm->defaults.windowTitleBorderWidth;
-	GUIRegisterObject(w, w->titlebar);
+	GUI_RegisterObject(w, w->titlebar);
 	
 	w->closebutton = GUIWindow_New(gm);
 	w->closebutton->header.topleft = (Vector2){-gm->defaults.windowTitleBorderWidth, gm->defaults.windowTitleBorderWidth};
@@ -415,7 +415,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->closebutton->header.z = 0.12;
 	w->closebutton->color = (Color4){0.9, 0.1, 0.1, 1};
 	w->closebutton->borderWidth = 0.0;
-	GUIRegisterObject(w, w->closebutton);
+	GUI_RegisterObject(w, w->closebutton);
 	
 	// scrollbars
 	w->scrollbarX = GUIWindow_New(w->header.gm);
@@ -427,7 +427,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarX->color = gm->defaults.windowScrollbarColor;;
 	w->scrollbarX->borderColor = gm->defaults.windowScrollbarBorderColor;;
 	w->scrollbarX->borderWidth = gm->defaults.windowScrollbarBorderWidth;
-	GUIRegisterObject(w, w->scrollbarX);
+	GUI_RegisterObject(w, w->scrollbarX);
 	
 	w->scrollbarY = GUIWindow_New(w->header.gm);
 	w->scrollbarY->header.topleft = (Vector2){-w->border.max.y, w->border.min.x + 20};
@@ -438,7 +438,7 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm) {
 	w->scrollbarY->color = gm->defaults.windowScrollbarColor;;
 	w->scrollbarY->borderColor = gm->defaults.windowScrollbarBorderColor;;
 	w->scrollbarY->borderWidth = gm->defaults.windowScrollbarBorderWidth;
-	GUIRegisterObject(w, w->scrollbarY);
+	GUI_RegisterObject(w, w->scrollbarY);
 	
 	return w;
 }

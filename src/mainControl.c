@@ -214,13 +214,13 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 }
 
 
-static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
+static GUIHeader* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 // 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
-	GUIObject* o = NULL;
+	GUIHeader* o = NULL;
 	
 	if(w->currentIndex > -1) {
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a) o = gui_defaultHitTest(&a->client->header, absTestPos);
+		if(a) o = gui_defaultHitTest(a->client, absTestPos);
 		if(o) return o;
 	}
 	
@@ -250,12 +250,12 @@ static GUIObject* hitTest(GUIMainControl* w, Vector2 absTestPos) {
 }
 
 
-static void parentResize(GUIObject* w_, GUIEvent* gev) {
+static void parentResize(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	gui_default_ParentResize(w_, gev);
 }
 
-static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	
 	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
@@ -286,7 +286,7 @@ static int hitTestTabs(GUIMainControl* w, GUIEvent* gev) {
 
 
 
-static void mouseMove(GUIObject* w_, GUIEvent* gev) {
+static void mouseMove(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	if(VEC_LEN(&w->tabs) == 0) return;
 	
@@ -300,7 +300,7 @@ static void mouseMove(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	if(VEC_LEN(&w->tabs) == 0) return;
 	
@@ -333,7 +333,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void keyDown(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	
 	// special commands
@@ -372,7 +372,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 
 
 
-static void userEvent(GUIObject* w_, GUIEvent* gev) {
+static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	
 	if(0 == strcmp(gev->userType, "accepted")) {
@@ -420,12 +420,12 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		sw->header.size = (Vector2){400, 400};
 		sw->title = "foobar";
 // 		sw->absScrollPos.x = 50;
-		GUIRegisterObject(w->header.parent, sw);
+		GUI_RegisterObject(w->header.parent, sw);
 		*/
 		
-		GUIObject* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
-		GUIRegisterObject(w->header.parent, oo);
-// 		GUIRegisterObject(sw, oo);
+		GUIHeader* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
+		GUIHeader_RegisterObject(w->header.parent, oo);
+// 		GUI_RegisterObject(sw, oo);
 	}
 		
 		
@@ -433,19 +433,19 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		textf = GUITextF_new(w->header.gm);
 		textf->header.topleft = (Vector2){20, 50};
 		GUITextF_setString(textf, "----%>ld--", args);
-		GUIRegisterObject(w->header.parent, textf);
+		GUI_RegisterObject(w->header.parent, textf);
 		
 		
 		for(int i = 0; i < 1; i++) {
 			/*GUIFormControl* ww = GUIFormControl_New(w->header.gm, (i%3) +1, "Foo");
 			ww->header.topleft.y = i * 35;
 			ww->header.size = (Vector2){370, 35};
-			GUIObject_AddClient(sw, ww);* /
+			GUIHeader_AddClient(sw, ww);* /
 			
 			GUISelectBox* ww = GUISelectBox_New(w->header.gm);
 			ww->header.topleft.y = i * 45;
 			ww->header.size = (Vector2){370, 35};
-			GUIObject_AddClient(sw, ww);
+			GUIHeader_AddClient(sw, ww);
 			
 			GUISelectBoxOption opts[] = {
 				{.label = "> One"},
@@ -604,7 +604,7 @@ MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* clien
 	
 	
 	MainControlTab* t = pcalloc(t);
-	t->client = (GUIObject*)client;
+	t->client = (GUIHeader*)client;
 	t->title = strdup(title);
 	
 	VEC_PUSH(&w->tabs, t);
@@ -646,7 +646,7 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 
 
 
-GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
+GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
 	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 0;
@@ -668,7 +668,7 @@ GUIObject* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 }
 
 
-GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
+GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
 	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 0;
@@ -689,7 +689,7 @@ GUIObject* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 }
 
 
-GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
+GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 	int len = VEC_LEN(&w->tabs);
 	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 0;
@@ -705,7 +705,7 @@ GUIObject* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 }
 
 
-GUIObject* GUIMainControl_nthTabOfType(GUIMainControl* w, MainControlTabType_t type, int n) {
+GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, MainControlTabType_t type, int n) {
 	int n_match = 0;
 	VEC_EACH(&w->tabs, i, tab) {
 		if(tab->type == type) {
@@ -767,7 +767,7 @@ static void fbEveryFrame(MainControlTab* t) {
 
 
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
-	GUIObject* o = GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
+	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
@@ -783,14 +783,14 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	// 	tab->everyFrame = fbEveryFrame;
 	
 	// very important, since normal registration is not used
-	fb->header.parent = (GUIObject*)w;
+	fb->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
 }
 
 
 void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
-	GUIObject* o = GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
+	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
@@ -803,7 +803,7 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 	//tab->beforeClose = gbeAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
-	fmc->header.parent = (GUIObject*)w;
+	fmc->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 }
@@ -929,7 +929,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->ec->bdp = bdp;
 	gbe->hm = &w->hm;
 	gbe->header.name = strdup(path);
-	gbe->header.parent = (GUIObject*)w; // important for bubbling
+	gbe->header.parent = (GUIHeader*)w; // important for bubbling
 	gbe->sourceFile = strdup(path);
 	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;

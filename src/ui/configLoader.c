@@ -21,7 +21,7 @@
 #include "../fileBrowser.h"
 
 
-typedef GUIObject* (*creator_fn)(GUIManager*, json_value_t*);
+typedef GUIHeader* (*creator_fn)(GUIManager*, json_value_t*);
 
 static struct Color4 json_get_color(json_value_t* v) {
 	struct Color4 c = {0,0,0,1};
@@ -162,7 +162,7 @@ static void read_header(GUIHeader* h, json_value_t* cfg) {
 
 
 
-static GUIObject* create_GUIButton(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIButton(GUIManager* gm, json_value_t* cfg) {
 	GUIButton* obj;
 	
 	char* s = json_obj_get_str(cfg, "value");
@@ -170,10 +170,10 @@ static GUIObject* create_GUIButton(GUIManager* gm, json_value_t* cfg) {
 	obj = GUIButton_New(gm, s ? s : "");
 	obj->isDisabled = json_obj_get_int(cfg, "disabled", 0);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIColumnLayout(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIColumnLayout(GUIManager* gm, json_value_t* cfg) {
 	GUIColumnLayout* obj;
 	Vector2 defaultSpacing = {0.01, 0.01};
 	
@@ -181,10 +181,10 @@ static GUIObject* create_GUIColumnLayout(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUIColumnLayout_new(gm, defaultSpacing, 0.02, 0);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIDebugAdjuster(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIDebugAdjuster(GUIManager* gm, json_value_t* cfg) {
 	GUIDebugAdjuster* obj;
 	
 	// TODO: read json for values
@@ -193,37 +193,37 @@ static GUIObject* create_GUIDebugAdjuster(GUIManager* gm, json_value_t* cfg) {
 	int type = 0;
 	obj = GUIDebugAdjuster_new(gm, fmt, NULL, type);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIEdit(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIEdit(GUIManager* gm, json_value_t* cfg) {
 	GUIEdit* obj;
 	
 	char* s = json_obj_get_str(cfg, "value");
 	obj = GUIEdit_New(gm, s ? s : "");
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIFileBrowser(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIFileBrowser(GUIManager* gm, json_value_t* cfg) {
 	GUIFileBrowser* obj;
 	
 // 	char* s = json_obj_get_string(cfg, "value");
 	obj = GUIFileBrowser_New(gm, ".");
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIFileBrowserControl(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIFileBrowserControl(GUIManager* gm, json_value_t* cfg) {
 	GUIFileBrowserControl* obj;
 	
 // 	char* s = json_obj_get_string(cfg, "value");
 	obj = GUIFileBrowserControl_New(gm, ".");
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIGridLayout(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIGridLayout(GUIManager* gm, json_value_t* cfg) {
 	GUIGridLayout* obj;
 	Vector2 defaultSpacing = {0.01, 0.01};
 	json_value_t* v;
@@ -238,10 +238,10 @@ static GUIObject* create_GUIGridLayout(GUIManager* gm, json_value_t* cfg) {
 	obj->maxCols = json_obj_get_int(cfg, "maxCols", 10);
 	obj->maxRows = json_obj_get_int(cfg, "maxRows", 10);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIImage(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIImage(GUIManager* gm, json_value_t* cfg) {
 	GUIImage* obj;
 	char* defaultImgName = "pre/denied";
 	
@@ -250,10 +250,10 @@ static GUIObject* create_GUIImage(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUIImage_new(gm, value || defaultImgName);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIImageButton(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIImageButton(GUIManager* gm, json_value_t* cfg) {
 	GUIImageButton* obj;
 	float border;
 	char* defaultImgName = "pre/denied";
@@ -264,10 +264,10 @@ static GUIObject* create_GUIImageButton(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUIImageButton_New(gm, border, s);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIPerformanceGraph(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIPerformanceGraph(GUIManager* gm, json_value_t* cfg) {
 	GUIPerformanceGraph* obj;
 	Vector2 defaultSpacing = {0.01, 0.01};
 	
@@ -275,11 +275,11 @@ static GUIObject* create_GUIPerformanceGraph(GUIManager* gm, json_value_t* cfg) 
 	
 	obj = guiPerformanceGraphNew(gm, defaultSpacing, 0.02, 120);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
 
-static GUIObject* create_GUISimpleWindow(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUISimpleWindow(GUIManager* gm, json_value_t* cfg) {
 	GUISimpleWindow* obj;
 	Vector2 defaultSpacing = {0.01, 0.01};
 	
@@ -290,11 +290,11 @@ static GUIObject* create_GUISimpleWindow(GUIManager* gm, json_value_t* cfg) {
 	char* s = json_obj_get_strdup(cfg, "title");
 	if(s) obj->title = s; // TODO broken
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
 
-static GUIObject* create_GUIText(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIText(GUIManager* gm, json_value_t* cfg) {
 	GUIText* obj;
 	char* defaultText = "";
 	char* defaultFont = "Arial";
@@ -311,10 +311,10 @@ static GUIObject* create_GUIText(GUIManager* gm, json_value_t* cfg) {
 	
 	obj = GUIText_new(gm, defaultText, defaultFont, defaultSize);
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
 	GUISelectBox* obj;
 	json_value_t* opts_v;
 	int optCnt = 0;
@@ -399,10 +399,10 @@ static GUIObject* create_GUISelectBox(GUIManager* gm, json_value_t* cfg) {
 		if(sbOpts) free(sbOpts);
 	}
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
-static GUIObject* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
+static GUIHeader* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 	GUIWindow* obj;
 	
 	// TODO: read json for values
@@ -414,7 +414,7 @@ static GUIObject* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 		decodeHexColorNorm(s, (float*)&obj->color);
 	}
 	
-	return (GUIObject*)obj;
+	return (GUIHeader*)obj;
 }
 
 
@@ -456,9 +456,9 @@ static void checkInitLookup() {
 
 
 
-GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
+GUIHeader* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 	char* elemType;
-	GUIObject* obj = NULL;
+	GUIHeader* obj = NULL;
 	creator_fn fn;
 	json_value_t* j_kids;
 	
@@ -473,17 +473,17 @@ GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg) {
 		
 		if(!HT_get(&creator_lookup, elemType, &fn) && fn) {
 			obj = (*fn)(gm, cfg);
-			obj->h.name = json_obj_get_str(cfg, "name");
+			obj->name = json_obj_get_str(cfg, "name");
 		}
 		else {
 			printf("unknown gui type: '%s'\n", elemType);
 			return NULL;
 		}
 		
-		read_header(&obj->header, cfg);
+		read_header(obj, cfg);
 		
 		if(!json_obj_get_key(cfg, "children", &j_kids)) {
-			GUICL_LoadChildren(gm, (GUIHeader*)obj, j_kids);
+			GUICL_LoadChildren(gm, obj, j_kids);
 		}
 		
 	}
@@ -503,7 +503,7 @@ void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg) {
 	link = cfg->arr.head;
 	while(link) {
 		json_value_t* j_child;
-		GUIObject* child;
+		GUIHeader* child;
 		json_value_t* j_kids;
 		
 		if(link->v->type != JSON_TYPE_OBJ) {
@@ -524,7 +524,7 @@ void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg) {
 		}
 		
 		
-		GUIAddClient_(parent, (GUIHeader*)child);
+		GUIHeader_AddClient(parent, child);
 		
 		
 		link = link->next;

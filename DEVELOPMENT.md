@@ -1,7 +1,6 @@
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
-* Replace All
 * WantedCol is broken, especially across tabs
 * Basic autocomplete
 * Reorder tabs

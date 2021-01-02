@@ -18,9 +18,9 @@
 
 
 
-static void preFrame(PassFrameParams* pfp, GUIManager* gm);
-static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp);
-static void postFrame(GUIManager* gm);
+static void preFrame(PassFrameParams* pfp, void* gm_);
+static void draw(void* gm_, GLuint progID, PassDrawParams* pdp);
+static void postFrame(void* gm_);
 
 
 
@@ -89,7 +89,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	gm->doubleClickTime = 0.300;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
-	gui_headerInit(&gm->root->header, NULL, &root_vt, &event_vt); 
+	gui_headerInit(gm->root, NULL, &root_vt, &event_vt); 
 	
 	RING_PUSH(&gm->focusStack, gm->root);
 	
@@ -165,7 +165,7 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 		
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // z-index, alpha, opts 1-2
 		
-		{0, 0, 0}
+		{0, 0, 0, 0, 0}
 	};
 
 	
@@ -251,17 +251,17 @@ void GUIManager_SetCursor(GUIManager* gm, int cursor) {
 }
 
 
-GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos) {
-	GUIObject* go = GUIManager_hitTest(gm, testPos);
+GUIHeader* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos) {
+	GUIHeader* go = GUIManager_hitTest(gm, testPos);
 	
-	if(go) GUIObject_triggerClick(go, testPos);
+	if(go) GUIHeader_triggerClick(go, testPos);
 	
 	return go;
 }
 
 
-GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos) {
-	GUIObject* go = GUIObject_hitTest(gm->root, testPos);
+GUIHeader* GUIManager_hitTest(GUIManager* gm, Vector2 testPos) {
+	GUIHeader* go = GUIHeader_hitTest(gm->root, testPos);
 	return go == gm->root ? NULL : go;
 }
 
@@ -286,7 +286,7 @@ void GUIManager_Reap(GUIManager* gm) {
 	check_nullfiy(dragStartTarget)
 	#undef check_nullify
 	
-	GUIObject* head = GUIManager_getFocusedObject(gm);
+	GUIHeader* head = GUIManager_getFocusedObject(gm);
 	
 	
 /*	printf("\nreap Focus Stack:\n");
@@ -299,7 +299,7 @@ RESTART:
 		//printf( "  .. [%d] checking FS: %p", i, fh);
 		// BUG modifying the ring causes the next element to be skipped
 		// shouldn't be a problem here, but it might be
-		if(fh->header.deleted) {
+		if(fh->deleted) {
 			//printf(" -> deleting, restart search \n");
 			RING_RM(&gm->focusStack, i);
 			goto RESTART; // shitty hack for getting around modifying the array
@@ -308,22 +308,22 @@ RESTART:
 	}
 	
 	
-	GUIObject* head2 = GUIManager_getFocusedObject(gm);
+	GUIHeader* head2 = GUIManager_getFocusedObject(gm);
 	//if(VEC_LEN(&gm->reapQueue)) printf("head1: %p, new head: %p \n", head, head2);
 	
 	// GeinedFocus event for the new top of the stack if the old one was deleted
 	if(head != head2) {
 		GUIEvent gev = {};
 		gev.type = GUIEVENT_GainedFocus;
-		gev.originalTarget = (GUIObject*)head2;
-		gev.currentTarget = (GUIObject*)head2;
+		gev.originalTarget = head2;
+		gev.currentTarget = head2;
 	
-		GUIManager_BubbleEvent(gm, (GUIObject*)head2, &gev);	
+		GUIManager_BubbleEvent(gm, head2, &gev);	
 	}
 	
 	VEC_EACH(&gm->reapQueue, i, h) {
 	//	printf("Reaping %p\n", h);
-		GUIObject_Reap_(h);
+		GUIHeader_Reap(h);
 	}
 	
 	VEC_TRUNC(&gm->reapQueue);
@@ -380,8 +380,8 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	};
 	
 	// find the deepest target
-	GUIObject* t = GUIManager_hitTest(gm, newPos);
-	if(t && t->header.deleted) {
+	GUIHeader* t = GUIManager_hitTest(gm, newPos);
+	if(t && t->deleted) {
 		printf("Event target is deleted\n");
 		return;
 	}
@@ -403,10 +403,10 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	if(!t) { // mouse left the window
 		if(gm->lastHoveredObject) {
 			gev.type = GUIEVENT_MouseLeave;
-			gev.originalTarget = (GUIObject*)gm->lastHoveredObject;
-			gev.currentTarget = (GUIObject*)gm->lastHoveredObject;
+			gev.originalTarget = (GUIHeader*)gm->lastHoveredObject;
+			gev.currentTarget = (GUIHeader*)gm->lastHoveredObject;
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, (GUIObject*)gm->lastHoveredObject, &gev);
+			GUIManager_BubbleEvent(gm, (GUIHeader*)gm->lastHoveredObject, &gev);
 			
 			gm->lastHoveredObject = NULL;
 		}
@@ -414,11 +414,11 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		// still send move events 
 		if(gm->isDragging) {
 			gev.type = GUIEVENT_DragMove;
-			gev.originalTarget = (GUIObject*)gm->dragStartTarget;
-			gev.currentTarget = (GUIObject*)gm->dragStartTarget;
+			gev.originalTarget = (GUIHeader*)gm->dragStartTarget;
+			gev.currentTarget = (GUIHeader*)gm->dragStartTarget;
 			gev.dragStartPos = gm->dragStartPos;
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
+			GUIManager_BubbleEvent(gm, (GUIHeader*)gm->dragStartTarget, &gev);
 		}
 		
 		return;
@@ -426,7 +426,7 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	
 	
 	// set the cursor, maybe
-	int cur = t->h.cursor; 
+	int cur = t->cursor; 
 	GUIManager_SetCursor(gm, cur);
 
 	// mouse enter/leave
@@ -437,12 +437,12 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 		gev.cancelled = 0;
 		GUIManager_BubbleEvent(gm, t, &gev);
 	}
-	else if((GUIObject*)gm->lastHoveredObject != t) {
+	else if((GUIHeader*)gm->lastHoveredObject != t) {
 		gev.type = GUIEVENT_MouseLeave;
-		gev.originalTarget = (GUIObject*)gm->lastHoveredObject;
-		gev.currentTarget = (GUIObject*)gm->lastHoveredObject;
+		gev.originalTarget = (GUIHeader*)gm->lastHoveredObject;
+		gev.currentTarget = (GUIHeader*)gm->lastHoveredObject;
 		gev.cancelled = 0;
-		GUIManager_BubbleEvent(gm, (GUIObject*)gm->lastHoveredObject, &gev);
+		GUIManager_BubbleEvent(gm, (GUIHeader*)gm->lastHoveredObject, &gev);
 		
 		gev.type = GUIEVENT_MouseEnter;
 		gev.originalTarget = t;
@@ -461,22 +461,22 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 			
 			gev.button = gm->dragButton;
 			gev.type = GUIEVENT_DragStart;
-			gev.originalTarget = (GUIObject*)gm->dragStartTarget;
+			gev.originalTarget = (GUIHeader*)gm->dragStartTarget;
 			gev.currentTarget = t;
 			gev.dragStartPos = gm->dragStartPos;
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
+			GUIManager_BubbleEvent(gm, (GUIHeader*)gm->dragStartTarget, &gev);
 		};
 	}
 	
 	// DragMove event
 	if(gm->isDragging) {
 		gev.type = GUIEVENT_DragMove;
-		gev.originalTarget = (GUIObject*)gm->dragStartTarget;
+		gev.originalTarget = (GUIHeader*)gm->dragStartTarget;
 		gev.currentTarget = t;
 		gev.dragStartPos = gm->dragStartPos;
 		gev.cancelled = 0;
-		GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
+		GUIManager_BubbleEvent(gm, (GUIHeader*)gm->dragStartTarget, &gev);
 	}
 	
 	gev.type = GUIEVENT_MouseMove;
@@ -495,7 +495,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	};
 	
 	// find the deepest target
-	GUIObject* t = GUIManager_hitTest(gm, newPos);
+	GUIHeader* t = GUIManager_hitTest(gm, newPos);
 	if(!t) return; // TODO handle mouse leaves;
 	
 	
@@ -554,9 +554,9 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 			gev.dragStartPos = gm->dragStartPos;
 			GUIManager_BubbleEvent(gm, t, &gev);
 			
-			gev.currentTarget = (GUIObject*)gm->dragStartTarget,
+			gev.currentTarget = (GUIHeader*)gm->dragStartTarget,
 			gev.cancelled = 0;
-			GUIManager_BubbleEvent(gm, (GUIObject*)gm->dragStartTarget, &gev);
+			GUIManager_BubbleEvent(gm, (GUIHeader*)gm->dragStartTarget, &gev);
 			
 			// end dragging
 			gm->dragStartTarget = NULL;
@@ -666,7 +666,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 			return; // not actually a kb event
 	}
 	
-	GUIObject* t = GUIManager_getFocusedObject(gm);
+	GUIHeader* t = GUIManager_getFocusedObject(gm);
 	if(!t) {
 		fprintf(stderr, "key input with no focused object\n");
 		return; // TODO ???
@@ -690,35 +690,35 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 
 
 // handles event bubbling and logic
-void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
-	GUIObject* obj = target;
-	if(target->header.deleted) return;
+void GUIManager_BubbleEvent(GUIManager* gm, GUIHeader* target, GUIEvent* gev) {
+	GUIHeader* obj = target;
+	if(target->deleted) return;
 	
 	int bubble = GUIEventBubbleBehavior[gev->type];
 	
 	if(bubble == 0) {
 		// no bubbling, just the target
-		GUIObject_TriggerEvent(obj, gev);
+		GUIHeader_TriggerEvent(obj, gev);
 	}
 	else if(bubble == 1) {
 		// bubble until cancelled
 		//printf("\n");
 		while(obj && !gev->cancelled) {
-			if(obj->header.deleted) break;
+			if(obj->deleted) break;
 			//printf("bubbling %p, %s\n", obj, obj->header.name);
 			gev->currentTarget = obj;
-			GUIObject_TriggerEvent(obj, gev);
+			GUIHeader_TriggerEvent(obj, gev);
 			
-			obj = obj->h.parent;
+			obj = obj->parent;
 		}
 	}
 	else if(bubble == 2) {
 		// trigger on all parents
 		while(obj) {
 			gev->currentTarget = obj;
-			GUIObject_TriggerEvent(obj, gev);
+			GUIHeader_TriggerEvent(obj, gev);
 			
-			obj = obj->h.parent;
+			obj = obj->parent;
 		}
 	}
 	else {
@@ -730,13 +730,13 @@ void GUIManager_BubbleEvent(GUIManager* gm, GUIObject* target, GUIEvent* gev) {
 
 // lowest level of event triggering
 // does not do bubbling
-void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev) {
+void GUIHeader_TriggerEvent(GUIHeader* o, GUIEvent* gev) {
 	
 	if(o && o->event_vt) {
 		
 		switch(gev->type) {
 			#define X(name, b) case GUIEVENT_##name: \
-					if(o->event_vt && o->event_vt->name) (*o->event_vt->name)((GUIObject*)o, gev); \
+					if(o->event_vt && o->event_vt->name) (*o->event_vt->name)((GUIHeader*)o, gev); \
 					break;
 				
 				GUIEEVENTTYPE_LIST
@@ -746,13 +746,13 @@ void GUIObject_TriggerEvent_(GUIHeader* o, GUIEvent* gev) {
 		if(gev->cancelled) return;
 		
 		// BUG: check for cancelled event?
-		if(o->event_vt && o->event_vt->Any) (*o->event_vt->Any)((GUIObject*)o, gev);
+		if(o->event_vt && o->event_vt->Any) (*o->event_vt->Any)((GUIHeader*)o, gev);
 		
 		
 		VEC_EACH(&o->dynamicHandlers, i, hand) {
 			if(gev->cancelled) return;
 			if(hand.type == gev->type || hand.type == GUIEVENT_Any) {
-				if(hand.cb) hand.cb((GUIObject*)o, gev);
+				if(hand.cb) hand.cb((GUIHeader*)o, gev);
 			}
 		}
 	}
@@ -798,13 +798,13 @@ void GUIHeader_RemoveHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHan
 
 // focus stack functions
 
-GUIObject* GUIManager_getFocusedObject(GUIManager* gm) {
+GUIHeader* GUIManager_getFocusedObject(GUIManager* gm) {
 	if(RING_LEN(&gm->focusStack) == 0) return NULL;
 	return RING_TAIL(&gm->focusStack);
 }
 
-GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
-	GUIObject* old = NULL, *new;
+GUIHeader* GUIManager_popFocusedObject(GUIManager* gm) {
+	GUIHeader* old = NULL, *new;
 	GUIEvent gev = {};
 	
 	// can't pop off the root element at the bottom
@@ -815,25 +815,25 @@ GUIObject* GUIManager_popFocusedObject(GUIManager* gm) {
 	//printf("popping object %p from focus stack\n", old);
 	
 	gev.type = GUIEVENT_LostFocus;
-	gev.originalTarget = (GUIObject*)old;
-	gev.currentTarget = (GUIObject*)old;
+	gev.originalTarget = (GUIHeader*)old;
+	gev.currentTarget = (GUIHeader*)old;
 	
-	GUIManager_BubbleEvent(gm, (GUIObject*)old, &gev);
+	GUIManager_BubbleEvent(gm, (GUIHeader*)old, &gev);
 	
 	new = RING_TAIL(&gm->focusStack);
 	//printf("  -> %p now head of stack\n", new);
 	
 	gev.type = GUIEVENT_GainedFocus;
-	gev.originalTarget = (GUIObject*)new;
-	gev.currentTarget = (GUIObject*)new;
+	gev.originalTarget = (GUIHeader*)new;
+	gev.currentTarget = (GUIHeader*)new;
 	
-	GUIManager_BubbleEvent(gm, (GUIObject*)new, &gev);
+	GUIManager_BubbleEvent(gm, (GUIHeader*)new, &gev);
 	
 	return old;
 }
 
 
-void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
+void GUIManager_pushFocusedObject(GUIManager* gm, GUIHeader* h) {
 	GUIHeader* old = (GUIHeader*)GUIManager_getFocusedObject(gm);
 	GUIEvent gev = {};
 	
@@ -845,13 +845,13 @@ void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
 	//printf("old focused obj: %p\n", old);
 	if(old) {
 		gev.type = GUIEVENT_LostFocus;
-		gev.originalTarget = (GUIObject*)old;
-		gev.currentTarget = (GUIObject*)old;
+		gev.originalTarget = (GUIHeader*)old;
+		gev.currentTarget = (GUIHeader*)old;
 	
-		GUIManager_BubbleEvent(gm, (GUIObject*)old, &gev);
+		GUIManager_BubbleEvent(gm, (GUIHeader*)old, &gev);
 	}
 	
-	RING_PUSH(&gm->focusStack, (GUIObject*)h);
+	RING_PUSH(&gm->focusStack, (GUIHeader*)h);
 	/*
 	printf("\nFocus Stack:\n");
 	RING_EACH(&gm->focusStack, i, o) {
@@ -859,10 +859,10 @@ void GUIManager_pushFocusedObject_(GUIManager* gm, GUIHeader* h) {
 	}
 	*/
 	gev.type = GUIEVENT_GainedFocus;
-	gev.originalTarget = (GUIObject*)h;
-	gev.currentTarget = (GUIObject*)h;
+	gev.originalTarget = (GUIHeader*)h;
+	gev.currentTarget = (GUIHeader*)h;
 	
-	GUIManager_BubbleEvent(gm, (GUIObject*)h, &gev);
+	GUIManager_BubbleEvent(gm, (GUIHeader*)h, &gev);
 }
 
 
@@ -876,7 +876,9 @@ static int gui_elem_sort_fn(GUIUnifiedVertex* a, GUIUnifiedVertex* b) {
 }
 
 
-static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
+static void preFrame(PassFrameParams* pfp, void* gm_) {
+	GUIManager* gm = (GUIManager*)gm_;
+	
 	GUIUnifiedVertex* vmem = PCBuffer_beginWrite(&gm->instVB);
 	if(!vmem) {
 		printf("attempted to update invalid PCBuffer in GUIManager\n");
@@ -892,13 +894,13 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	
 	
 	gm->elementCount = 0;
-	gm->root->h.size = (Vector2){pfp->dp->targetSize.x, pfp->dp->targetSize.y};
-	gm->root->h.absClip = (AABB2){0,0, pfp->dp->targetSize.x, pfp->dp->targetSize.y};
+	gm->root->size = (Vector2){pfp->dp->targetSize.x, pfp->dp->targetSize.y};
+	gm->root->absClip = (AABB2){0,0, pfp->dp->targetSize.x, pfp->dp->targetSize.y};
 	
 	GUIRenderParams grp = {
 		.offset = {0,0}, 
-		.size = gm->root->h.size,
-		.clip = gm->root->h.absClip,
+		.size = gm->root->size,
+		.clip = gm->root->absClip,
 	};
 	
 #define printf(...)
@@ -910,7 +912,7 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	
 	sort = getCurrentTime();
 	
-	GUIHeader_render(&gm->root->header, pfp);
+	GUIHeader_render(gm->root, pfp);
 	time = timeSince(sort);
 	total += time;
 	printf("render time: %fus\n", time  * 1000000.0);
@@ -939,7 +941,8 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 #undef printf
 }
 
-static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
+static void draw(void* gm_, GLuint progID, PassDrawParams* pdp) {
+	GUIManager* gm = (GUIManager*)gm_;
 	size_t offset;
 	
 
@@ -978,7 +981,8 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 
 
 
-static void postFrame(GUIManager* gm) {
+static void postFrame(void* gm_) {
+	GUIManager* gm = (GUIManager*)gm_;
 	PCBuffer_afterDraw(&gm->instVB);
 }
 
@@ -1012,9 +1016,9 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 	
 	pd = Pass_allocDrawable("GUIManager");
 	pd->data = gm;
-	pd->preFrame = (void*)preFrame;
-	pd->draw = (PassDrawFn)draw;
-	pd->postFrame = (void*)postFrame;
+	pd->preFrame = preFrame;
+	pd->draw = draw;
+	pd->postFrame = postFrame;
 	pd->prog = prog;
 	
 	return pd;;
@@ -1022,12 +1026,12 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 
 
 
-void GUIManager_SpawnModal(GUIManager* gm, GUIObject* obj) {
+void GUIManager_SpawnModal(GUIManager* gm, GUIHeader* obj) {
 	
 }
 
 
-GUIObject* GUIManager_SpawnTemplate(GUIManager* gm, char* name) {
+GUIHeader* GUIManager_SpawnTemplate(GUIManager* gm, char* name) {
 	json_value_t* v;
 	
 	json_obj_get_key(gm->templates, name, &v);

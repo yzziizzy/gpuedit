@@ -11,11 +11,11 @@
 
 
 
-// Vector2 guiWindowGetClientSize(GUIObject* go);
-// void guiWindowSetClientSize(GUIObject* go, Vector2 cSize);
-// Vector2 guiWindowRecalcClientSize(GUIObject* go);
-void guiWindowAddClient(GUIObject* parent, GUIObject* child);
-void guiWindowRemoveClient(GUIObject* parent, GUIObject* child);
+// Vector2 guiWindowGetClientSize(GUIHeader* go);
+// void guiWindowSetClientSize(GUIHeader* go, Vector2 cSize);
+// Vector2 guiWindowRecalcClientSize(GUIHeader* go);
+void guiWindowAddClient(GUIHeader* parent, GUIHeader* child);
+void guiWindowRemoveClient(GUIHeader* parent, GUIHeader* child);
 
 
 static void delete(GUIScrollWindow* gw);
@@ -185,8 +185,8 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	Vector2 max;
 	VEC_EACH(&gw->header.children, i, child) {
 		// TODO: figure out
-		max.x = fmax(max.x, child->h.topleft.x + child->h.size.x);
-		max.y = fmax(max.y, child->h.topleft.y + child->h.size.y);
+		max.x = fmax(max.x, child->topleft.x + child->size.x);
+		max.y = fmax(max.y, child->topleft.y + child->size.y);
 	}
 	
 	gw->internalSize = max;

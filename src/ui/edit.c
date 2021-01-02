@@ -137,24 +137,24 @@ static int recieveText(InputEvent* ev, GUIEdit* ed) {
 }
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
-	GUIEdit* w = (GUIEdit*)w_;
-	GUIManager_pushFocusedObject(w->header.gm, w);
+static void click(GUIHeader* w_, GUIEvent* gev) {
+//	GUIEdit* w = (GUIEdit*)w_;
+	GUIManager_pushFocusedObject(w_->gm, w_);
 	
 	// TODO: position cursor
 }
 
-static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	w->hasFocus = 1;
 }
-static void lostFocus(GUIObject* w_, GUIEvent* gev) {
+static void lostFocus(GUIHeader* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	w->hasFocus = 0;
 }
 
 
-static void keyDown(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	
 	// NOTE: paste will be an event type
@@ -254,7 +254,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	
 // 	w->textControl = GUIText_new(gm, initialValue, "Arial", 6.0f);
 // 	w->textControl->header.z = 10000.5;
-// 	GUIRegisterObject(&w->header, w->textControl);
+// 	GUI_RegisterObject(&w->header, w->textControl);
 
 // 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
 	w->cursorOffset = gui_getDefaultUITextWidth(gm, initialValue, 9999999);
@@ -329,15 +329,15 @@ static void fireOnchange(GUIEdit* ed) {
 	GUIEvent gev = {};
 	gev.type = GUIEVENT_User;
 	gev.eventTime = 0;
-	gev.originalTarget = (GUIObject*)ed;
-	gev.currentTarget = (GUIObject*)ed;
+	gev.originalTarget = (GUIHeader*)ed;
+	gev.currentTarget = (GUIHeader*)ed;
 	gev.cancelled = 0;
 	gev.userType = "change";
 	
 	gev.userData = ed->buf;
 	gev.userSize = ed->textlen;
 	
-	GUIManager_BubbleEvent(ed->header.gm, (GUIObject*)ed, &gev);
+	GUIManager_BubbleEvent(ed->header.gm, (GUIHeader*)ed, &gev);
 }
 
 
@@ -346,15 +346,15 @@ static void fireOnEnter(GUIEdit* ed) {
 	GUIEvent gev = {};
 	gev.type = GUIEVENT_User;
 	gev.eventTime = 0;
-	gev.originalTarget = (GUIObject*)ed;
-	gev.currentTarget = (GUIObject*)ed;
+	gev.originalTarget = (GUIHeader*)ed;
+	gev.currentTarget = (GUIHeader*)ed;
 	gev.cancelled = 0;
 	gev.userType = "enter";
 	
 	gev.userData = ed->buf;
 	gev.userSize = ed->textlen;
 	
-	GUIManager_BubbleEvent(ed->header.gm, (GUIObject*)ed, &gev);
+	GUIManager_BubbleEvent(ed->header.gm, (GUIHeader*)ed, &gev);
 }
 
 

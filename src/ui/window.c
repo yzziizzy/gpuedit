@@ -12,11 +12,11 @@
 
 
 void guiWindowDelete(GUIWindow* gw);
-// Vector2 guiWindowGetClientSize(GUIObject* go);
-// void guiWindowSetClientSize(GUIObject* go, Vector2 cSize);
-// Vector2 guiWindowRecalcClientSize(GUIObject* go);
-void guiWindowAddClient(GUIObject* parent, GUIObject* child);
-void guiWindowRemoveClient(GUIObject* parent, GUIObject* child);
+// Vector2 guiWindowGetClientSize(GUIHeader* go);
+// void guiWindowSetClientSize(GUIHeader* go, Vector2 cSize);
+// Vector2 guiWindowRecalcClientSize(GUIHeader* go);
+void guiWindowAddClient(GUIHeader* parent, GUIHeader* child);
+void guiWindowRemoveClient(GUIHeader* parent, GUIHeader* child);
 
 
 static void render(GUIWindow* gw, PassFrameParams* pfp);
@@ -133,14 +133,13 @@ static int onclick(GUIWindow* gw, Vector2* clickPos) {
 
 
 
-Vector2 GUIWindow_getClientSize(GUIObject* go) {
-	GUIWindow* w = &go->window;
+Vector2 GUIWindow_getClientSize(GUIHeader* go) {
+	GUIWindow* w = (GUIWindow*)go;
 	return w->clientSize;
 }
 
-void GUIWindow_setClientSize(GUIObject* go, Vector2 cSize) {
-	GUIHeader* h = &go->header;
-	GUIWindow* w = &go->window;
+void GUIWindow_setClientSize(GUIHeader* go, Vector2 cSize) {
+	GUIWindow* w = (GUIWindow*)go;
 	w->clientSize = cSize;
 // 	h->size.x = cSize.x + w->padding.left + w->padding.right;
 // 	h->size.y = cSize.y + w->padding.bottom + w->padding.top;
@@ -149,8 +148,8 @@ void GUIWindow_setClientSize(GUIObject* go, Vector2 cSize) {
 }
 
 // recalculate client size based on client children sizes and positions
-Vector2 guiWindowRecalcClientSize(GUIObject* go) {
-	GUIWindow* w = &go->window;
+Vector2 guiWindowRecalcClientSize(GUIHeader* go) {
+	GUIWindow* w = (GUIWindow*)go;
 	int i;
 	Vector2 max = {0, 0}; 
 	

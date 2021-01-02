@@ -67,7 +67,7 @@ static void delete(GUITabBar* w) {
 
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUITabBar* w = (GUITabBar*)w_;
 	
 	Vector2 tl = w->header.absTopLeft;

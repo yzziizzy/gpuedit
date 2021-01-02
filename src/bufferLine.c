@@ -89,7 +89,7 @@ BufferLine* BufferLine_Copy(BufferLine* orig) {
 void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len) {
 	if(l->buf == NULL) {
 		printf("null line buffer\n"); exit(1);
-		l->allocSz = MAX(32, nextPOT(len + 1));
+		l->allocSz = MAX(32ul, nextPOT(len + 1));
 		l->buf = calloc(1, l->allocSz);
 		l->flagBuf = calloc(1, l->allocSz);
 // 		l->style = calloc(1, l->allocSz);

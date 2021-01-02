@@ -13,7 +13,7 @@
 
 
 static void render(GUITextF* w, PassFrameParams* pfp);
-static GUIObject* hitTest(GUIObject* go, Vector2 testPos);
+static GUIHeader* hitTest(GUIHeader* go, Vector2 testPos);
 static void reap(GUITextF* w);
 static void updatePos(GUITextF* w, GUIRenderParams* grp, PassFrameParams* pfp);
 

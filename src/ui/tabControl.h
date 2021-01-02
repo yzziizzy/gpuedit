@@ -22,9 +22,9 @@ GUITabControl* GUITabControl_New(GUIManager* gm);
 int GUITabControl_AddTab(GUITabControl* w, GUIHeader* tab, char* title);
 
 // returns the new current tab's contents
-GUIObject* GUITabControl_NextTab(GUITabControl* w, char cyclic);
-GUIObject* GUITabControl_PrevTab(GUITabControl* w, char cyclic);
-GUIObject* GUITabControl_GoToTab(GUITabControl* w, int i);
+GUIHeader* GUITabControl_NextTab(GUITabControl* w, char cyclic);
+GUIHeader* GUITabControl_PrevTab(GUITabControl* w, char cyclic);
+GUIHeader* GUITabControl_GoToTab(GUITabControl* w, int i);
 
 
 #endif //__gpuedit_ui_tabControl_h__

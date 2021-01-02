@@ -5,7 +5,7 @@
 
 
 
-GUIObject* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg);
+GUIHeader* GUICL_CreateFromConfig(GUIManager* gm, json_value_t* cfg);
 
 void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg);
 

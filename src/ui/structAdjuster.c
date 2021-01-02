@@ -33,14 +33,14 @@ static const char* getTypeFormat(char t) {
 }
 
 
-static void delete(GUIObject* go) {
-	GUIStructAdjuster* sa = &go->structAdjuster;
+static void delete(GUIHeader* go) {
+	GUIStructAdjuster* sa = (GUIStructAdjuster*)go;
 	
 	free(sa->formatPrefix);
 	VEC_FREE(&sa->fields);
 	
 // 	VEC_EACH(&sa->adjusters, ai, a) {
-// 		GUIObject_delete(a);
+// 		GUIHeader_delete(a);
 // 	}
 }
 
@@ -69,7 +69,7 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, void* target, GUISA_Fie
 	
 	// container for the field adjusters
 	sa->column = GUIColumnLayout_new(gm, (Vector2){0,0}, 16, 0);
-	GUIRegisterObject(sa, sa->column);
+	GUI_RegisterObject(sa, sa->column);
 	
 	
 	
@@ -83,13 +83,13 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, void* target, GUISA_Fie
 		char* base = malloc(len+1);
 		snprintf(base, len+1, sa->formatPrefix, f->name);
 		
-		char* fmt = "";//strcatdup2(base, f->formatSuffix ? f->formatSuffix : getTypeFormat(f->type));
+		char* fmt = strdup("");//strcatdup2(base, f->formatSuffix ? f->formatSuffix : getTypeFormat(f->type));
 		GUIDebugAdjuster* da = GUIDebugAdjuster_new(gm, fmt, target + (ptrdiff_t)f->base + f->offset, f->type);
 		free(fmt);
 		free(base);
 		
 		VEC_PUSH(&sa->adjusters, da);
-		GUIRegisterObject(sa->column, da);
+		GUI_RegisterObject(sa->column, da);
 	}
 	
 	

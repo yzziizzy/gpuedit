@@ -13,7 +13,7 @@
 
 
 static void render(GUIText* gt, PassFrameParams* pfp);
-static GUIObject* hitTest(GUIObject* go, Vector2 testPos);
+static GUIHeader* hitTest(GUIHeader* go, Vector2 testPos);
 static void guiTextDelete(GUIText* gt);
 
 
@@ -114,7 +114,7 @@ static void render(GUIText* gt, PassFrameParams* pfp) {
 	
 }
 
-static GUIObject* hitTest(GUIObject* go, Vector2 testPos) {
+static GUIHeader* hitTest(GUIHeader* go, Vector2 testPos) {
 	
 	printf("text hit test, %f, %f \n", testPos.x, testPos.y);
 	

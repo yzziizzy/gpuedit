@@ -22,7 +22,7 @@
 
 
 
-static void scrollUp(GUIObject* w_, GUIEvent* gev) {
+static void scrollUp(GUIHeader* w_, GUIEvent* gev) {
 /*	GUISelectBox* w = (GUISelectBox*)w_;
 	
 // 	if(gev->originalTarget == w->bg) {
@@ -38,7 +38,7 @@ static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void scrollDown(GUIObject* w_, GUIEvent* gev) {
+static void scrollDown(GUIHeader* w_, GUIEvent* gev) {
 /*	GUISelectBox* w = (GUISelectBox*)w_;
 	
 	float mx = w->clientExtent.x - w->clientArea.size.x;
@@ -58,8 +58,8 @@ static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
-	GUIObject* a = NULL;
+static GUIHeader* hitTest(GUIHeader* w_, Vector2 testPos) {
+	GUIHeader* a = NULL;
 	GUISelectBox* w = (GUISelectBox*)w_;
 	
 	if(w->isOpen) {
@@ -72,19 +72,19 @@ static GUIObject* hitTest(GUIObject* w_, Vector2 testPos) {
 
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUISelectBox* w = (GUISelectBox*)w_;
 	w->isOpen = !w->isOpen;
 }
 
-static void dd_mouseMove(GUIObject* ddh, GUIEvent* gev) {
-	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+static void dd_mouseMove(GUIHeader* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->parent;
 	w->hoveredIndex = -1 + (gev->pos.y - w->header.absTopLeft.y + w->dropdownScrollPos) / 35;
 }
 
 
-static void dd_click(GUIObject* ddh, GUIEvent* gev) {
-	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+static void dd_click(GUIHeader* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->parent;
 	
 	w->selectedIndex = -1 + (gev->pos.y - w->header.absTopLeft.y + w->dropdownScrollPos) / 35;
 	w->isOpen = 0;
@@ -93,8 +93,8 @@ static void dd_click(GUIObject* ddh, GUIEvent* gev) {
 }
 
 
-static void dd_scrollUp(GUIObject* ddh, GUIEvent* gev) {
-	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+static void dd_scrollUp(GUIHeader* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->parent;
 	
 // 	w->dropdownScrollPos = w->dropdownScrollPos - 35;
 	w->dropdownScrollPos = MAX(w->dropdownScrollPos - 35 * 1, 0);
@@ -102,8 +102,8 @@ static void dd_scrollUp(GUIObject* ddh, GUIEvent* gev) {
 	gev->cancelled = 1;
 }
 
-static void dd_scrollDown(GUIObject* ddh, GUIEvent* gev) {
-	GUISelectBox* w = (GUISelectBox*)ddh->header.parent;
+static void dd_scrollDown(GUIHeader* ddh, GUIEvent* gev) {
+	GUISelectBox* w = (GUISelectBox*)ddh->parent;
 	
 	w->dropdownScrollPos = MIN((w->optionCnt - 4) * 35, w->dropdownScrollPos + 35);
 // 	w->dropdownScrollPos = MAX(w->dropdownScrollPos - 35 * 1, w->optionCnt * 35);
@@ -287,10 +287,10 @@ GUISelectBox* GUISelectBox_New(GUIManager* gm) {
 	
 	// dropdown
 	w->dropdownBg = GUIHeader_New(gm, &dd_static_vt, &dd_event_vt);
-	GUIRegisterObject_(&w->header, w->dropdownBg);
+	GUIHeader_RegisterObject(&w->header, w->dropdownBg);
 	
 	w->dropdownScrollbar = GUIHeader_New(gm, NULL, NULL);
-	GUIRegisterObject_(&w->header, w->dropdownScrollbar);
+	GUIHeader_RegisterObject(&w->header, w->dropdownScrollbar);
 	
 	
 	

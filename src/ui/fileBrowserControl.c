@@ -82,8 +82,6 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 				.pos = {tl.x +10, box.min.y, tl.x +10+20, box.min.y + 20},
 				.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
 				
-				.guiType = 0, // window (just a box)
-				
 				.texIndex1 = it->index,
 				.texIndex2 = 0,
 				.texFade = .5,
@@ -194,17 +192,17 @@ void GUIFileBrowserControl_Autoscroll(GUIFileBrowserControl* w) {
 	}
 }
 
-static void scrollUp(GUIObject* w_, GUIEvent* gev) {
+static void scrollUp(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
 	w->scrollOffset -= 60;
 }
-static void scrollDown(GUIObject* w_, GUIEvent* gev) {
+static void scrollDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
 	w->scrollOffset += 60;
 }
 
 
-static void keyUp(GUIObject* w_, GUIEvent* gev) {
+static void keyUp(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
 	
 	if(gev->keycode == XK_Down) {
@@ -267,7 +265,7 @@ static void keyUp(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void click(GUIObject* w_, GUIEvent* gev) {
+static void click(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
 	
 	intptr_t line = floor((gev->pos.y - w->header.absTopLeft.y) / w->lineHeight) + w->scrollOffset;
@@ -368,7 +366,7 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
-	GUIRegisterObject(w, w->scrollbar);
+	GUI_RegisterObject(w, w->scrollbar);
 	
 	w->curDir = realpath(path, NULL);
 	

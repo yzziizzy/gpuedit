@@ -7,7 +7,7 @@
 
 
 
-// static GUIObject* hitTest(GUITreeControl* cl, Vector2 absTestPos);
+// static GUIHeader* hitTest(GUITreeControl* cl, Vector2 absTestPos);
 static void updatePos(GUITreeControl* cl, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
@@ -49,7 +49,7 @@ GUITreeControl* GUITreeControl_New(GUIManager* gm) {
 	
 	
 	tc->root = GUITreeControlItem_New(gm);
-	GUIRegisterObject(tc, tc->root);
+	GUI_RegisterObject(tc, tc->root);
 	
 	return tc;
 }
@@ -128,7 +128,7 @@ static void updatePos(GUITreeControl* tc, GUIRenderParams* grp, PassFrameParams*
 
 
 
-GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem* parent, GUIObject* o, char isOpen) {
+GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem* parent, GUIHeader* o, char isOpen) {
 	
 	GUITreeControlItem* it = GUITreeControlItem_New(tc->header.gm);
 	it->elem = o;
@@ -138,8 +138,8 @@ GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem
 	
 	VEC_PUSH(&parent->kids, it);
 	
-	GUIRegisterObject(parent, it);
-	GUIRegisterObject(it, o);
+	GUI_RegisterObject(parent, it);
+	GUIHeader_RegisterObject(&it->header, o);
 	
 	return it;
 }
@@ -149,5 +149,5 @@ GUITreeControlItem* GUITreeControl_AppendLabel(GUITreeControl* tc, GUITreeContro
 	
 	GUIText* gt = GUIText_new(tc->header.gm, text, "Arial", 6.0f);
 	
-	return GUITreeControl_Append(tc, parent, (GUIObject*)gt, isOpen);
+	return GUITreeControl_Append(tc, parent, (GUIHeader*)gt, isOpen);
 }

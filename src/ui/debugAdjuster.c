@@ -17,9 +17,11 @@ static void render(GUIDebugAdjuster* da, PassFrameParams* pfp);
 
 static void updateText(GUIDebugAdjuster* da);
 
-static void delete(GUIObject* go) {
-	if(go->debugAdjuster.format)
-		free(go->debugAdjuster.format);
+static void delete(GUIHeader* w_) {
+	GUIDebugAdjuster* w = (GUIDebugAdjuster*)w_;
+	
+	if(w->format)
+		free(w->format);
 }
 
 
@@ -50,7 +52,7 @@ GUIDebugAdjuster* GUIDebugAdjuster_new(GUIManager* gm, char* format, void* targe
 	da->text = GUIText_new(gm, "", "Arial", 3.0f);
 	updateText(da);
 	
-	GUIRegisterObject(da, da->text);
+	GUI_RegisterObject(da, da->text);
 	
 	da->increments[0].f = 1.0f;
 	da->increments[0].d = 1.0;
@@ -208,7 +210,7 @@ static void decrement(GUIDebugAdjuster* da, int scale) {
 static int keyUp(InputEvent* ev, GUIDebugAdjuster* da) {
 	if(ev->keysym == XK_Escape) {
 		
-// 		GUIObject_revertFocus(da);
+// 		GUIHeader_revertFocus(da);
 		//gbcTest = NULL;
 		return 0;
 	}

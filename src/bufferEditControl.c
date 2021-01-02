@@ -58,13 +58,13 @@ static void render(GUIBufferEditControl* w, PassFrameParams* pfp) {
 
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
-	if(gev->originalTarget != w) return;
+	if(gev->originalTarget != (void*)w) return;
 	w->scrollLines = MAX(0, w->scrollLines - w->linesPerScrollWheel);
 }
 
 static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
-	if(gev->originalTarget != w) return;
+	if(gev->originalTarget != (void*)w) return;
 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
 }
 
@@ -72,7 +72,7 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	Buffer* b = w->buffer;
 	
-	if(gev->originalTarget == w->scrollbar) {
+	if(gev->originalTarget == (void*)w->scrollbar) {
 		printf("scrollbar drag start\n");
 		return;
 	}
@@ -104,7 +104,7 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	Buffer* b = w->buffer;
 // 	w->header.gm
 	
-	if(gev->originalTarget == w->scrollbar) {
+	if(gev->originalTarget == (void*)w->scrollbar) {
 		gev->cancelled = 1;
 		
 		float val;
@@ -439,7 +439,7 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	w->scrollbar->header.z = 100;
 	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
 	
-	GUIRegisterObject(w, w->scrollbar);
+	GUI_RegisterObject(w, w->scrollbar);
 	
 	pcalloc(w->selSet);
 	
@@ -469,8 +469,8 @@ void GBEC_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols) {
 void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* w) {
 	if(!w || !w->current) return;
 	
-	size_t scroll_first = w->scrollLines;
-	size_t scroll_last = w->scrollLines + w->linesOnScreen;
+	intptr_t scroll_first = w->scrollLines;
+	intptr_t scroll_last = w->scrollLines + w->linesOnScreen;
 	
 	if(w->current->lineNum <= scroll_first) {
 		w->scrollLines = w->current->lineNum - 1;
@@ -512,7 +512,7 @@ void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* w) {
 
 
 
-int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
+int getNextLine(HLContextInternal* hl, char** txt, intptr_t* len) {
 	BufferLine* l = hl->color.readLine;
 	
 	if(!hl->color.readLine) return 1;
@@ -526,12 +526,12 @@ int getNextLine(HLContextInternal* hl, char** txt, size_t* len) {
 	return 0;
 }
 
-void writeSection(HLContextInternal* hl, unsigned char style, size_t len) {
+void writeSection(HLContextInternal* hl, unsigned char style, intptr_t len) {
 	if(len == 0) return;
 	
 //	printf("writeSection, %d\n", style);
 	while(len > 0 && hl->color.writeLine) {
-		size_t maxl = MIN(255, MIN(len, hl->color.writeLine->length - hl->color.writeCol));
+		intptr_t maxl = MIN(255, MIN(len, hl->color.writeLine->length - hl->color.writeCol));
 		
 //	printf(" maxl: %d\n", maxl, len);
 				
@@ -554,7 +554,7 @@ void writeSection(HLContextInternal* hl, unsigned char style, size_t len) {
 	// TODO: handle overlapping style segments
 }
 
-void writeFlags(HLContextInternal* hl, unsigned char style, unsigned char len) {
+void writeFlags(HLContextInternal* hl, unsigned char style, intptr_t len) {
 	if(len == 0) return;
 	
 	VEC_INC(&hl->flags.writeLine->style);

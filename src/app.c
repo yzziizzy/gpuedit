@@ -64,7 +64,7 @@ void resize_callback(XStuff* xs, void* gm_) {
 		.originalTarget = gm->root,
 	};
 	
-	GUIObject_TriggerEvent(gm->root, &gev);
+	GUIHeader_TriggerEvent(gm->root, &gev);
 }
 
 static struct child_process_info* cc;
@@ -134,7 +134,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
 	as->mc->as = as;
 	as->mc->commands = as->commands;
-	GUIRegisterObject(as->gui->root, as->mc);
+	GUIHeader_RegisterObject(as->gui->root, &as->mc->header);
 
 	
 	
@@ -178,7 +178,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 //	GUIMainControl_OpenFileBrowser(as->mc, "./");
 	
-	GUIManager_pushFocusedObject(as->gui, as->mc);
+	GUIManager_pushFocusedObject(as->gui, &as->mc->header);
 	
 	
 	
@@ -268,17 +268,17 @@ void initAppGL(XStuff* xs, AppState* as) {
 	
 	GUICL_LoadChildren(as->gui, as->gui->root, kids);
 	
-	GUIObject* ps = GUIObject_findChild(as->gui->root, "perfstats");
-	gt_terrain = GUIObject_findChild(ps, "terrain");
-	gt_solids = GUIObject_findChild(ps, "solids");
-	gt_selection = GUIObject_findChild(ps, "selection");
-	gt_decals = GUIObject_findChild(ps, "decals");
-	gt_emitters = GUIObject_findChild(ps, "emitters");
-	gt_effects = GUIObject_findChild(ps, "effects");
-	gt_lighting = GUIObject_findChild(ps, "lighting");
-	gt_sunShadow = GUIObject_findChild(ps, "sunShadow");
-	gt_shading = GUIObject_findChild(ps, "shading");
-	gt_gui = GUIObject_findChild(ps, "gui");
+	GUIHeader* ps = GUIHeader_findChild(as->gui->root, "perfstats");
+	gt_terrain = GUIHeader_findChild(ps, "terrain");
+	gt_solids = GUIHeader_findChild(ps, "solids");
+	gt_selection = GUIHeader_findChild(ps, "selection");
+	gt_decals = GUIHeader_findChild(ps, "decals");
+	gt_emitters = GUIHeader_findChild(ps, "emitters");
+	gt_effects = GUIHeader_findChild(ps, "effects");
+	gt_lighting = GUIHeader_findChild(ps, "lighting");
+	gt_sunShadow = GUIHeader_findChild(ps, "sunShadow");
+	gt_shading = GUIHeader_findChild(ps, "shading");
+	gt_gui = GUIHeader_findChild(ps, "gui");
 	
 	
 */

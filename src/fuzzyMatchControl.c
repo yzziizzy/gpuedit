@@ -24,7 +24,7 @@
 #define DEBUG(...)
 
 
-static void render(GUIObject* w_, PassFrameParams* pfp) {
+static void render(GUIHeader* w_, PassFrameParams* pfp) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
 	GUIManager* gm = w->header.gm;
 	GUIUnifiedVertex* v;
@@ -98,7 +98,7 @@ static void render(GUIObject* w_, PassFrameParams* pfp) {
 
 
 
-static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
 	
 	w->searchBox->header.topleft.y = 0;
@@ -111,7 +111,7 @@ static void updatePos(GUIObject* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 
 
 
-static void userEvent(GUIObject* w_, GUIEvent* gev) {
+static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
 	
 	if((GUIEdit*)gev->originalTarget == w->searchBox) {
@@ -132,7 +132,7 @@ static void userEvent(GUIObject* w_, GUIEvent* gev) {
 
 
 
-static void keyDown(GUIObject* w_, GUIEvent* gev) {
+static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
 
 	Cmd found;
@@ -146,10 +146,10 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 }
 
 
-static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
 	
-	GUIManager_pushFocusedObject(w->header.gm, w->searchBox);
+	GUIManager_pushFocusedObject(w->header.gm, &w->searchBox->header);
 }
 
 
@@ -169,8 +169,8 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			GUIEvent gev2 = {};
 			gev2.type = GUIEVENT_User;
 			gev2.eventTime = 0;//gev->eventTime;
-			gev2.originalTarget = w;
-			gev2.currentTarget = w;
+			gev2.originalTarget = &w->header;
+			gev2.currentTarget = &w->header;
 			gev2.cancelled = 0;
 			// handlers are responsible for cleanup
 			gev2.userData = path;
@@ -178,7 +178,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			
 			gev2.userType = "openFile";
 		
-			GUIManager_BubbleEvent(w->header.gm, w, &gev2);
+			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
 			
 			free(path_raw);
 			free(path);
@@ -225,7 +225,7 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path) {
 	w->searchBox->header.flags |= GUI_MAXIMIZE_X;
 	w->searchBox->header.gravity = GUI_GRAV_TOP_LEFT;
 	
-	GUIRegisterObject(w, w->searchBox);
+	GUI_RegisterObject(w, w->searchBox);
 	
 	
 	return w;

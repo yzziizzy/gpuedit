@@ -79,7 +79,7 @@ static int keyDown(InputEvent* ev, GUISlider* w) {
 	else if(ev->keysym == XK_Right) return 0;
 
 	else if(ev->keysym == XK_Escape) {
-// 		GUIObject_revertFocus((GUIObject*)w);
+// 		GUIHeader_revertFocus((GUIHeader*)w);
 		w->hasFocus = 0;
 		return 0;
 	};
@@ -89,7 +89,7 @@ static int keyDown(InputEvent* ev, GUISlider* w) {
 }
 static int click(GUISlider* w, Vector2 clickPos) {
 	
-// 	GUIObject_giveFocus(w->header.parent);
+// 	GUIHeader_giveFocus(w->header.parent);
 // 	((GUISlider*)w->header.parent)->hasFocus = 1;
 	
 	return 0;
@@ -122,7 +122,7 @@ GUISlider* GUISlider_New(GUIManager* gm, double min, double max, double initialV
 	w->textControl = GUIText_new(gm, "", "Arial", 6.0f);
 	w->textControl->header.size = w->header.size;
 	w->textControl->header.z = 100.5;
-	GUIRegisterObject(&w->header, w->textControl);
+	GUI_RegisterObject(w, w->textControl);
 	
 // 	w->textControl->header.onClick = (GUI_OnClickFn)click;
 	

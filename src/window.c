@@ -136,7 +136,7 @@ int initXWindow(XStuff* xs) {
 	
 	// for the empty cursor
 	Pixmap emptyPx;
-	XColor black = {0, 0, 0};
+	XColor black = {0};
 	static char zeros[] = {0};
 	
 	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };

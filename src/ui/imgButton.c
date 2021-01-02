@@ -95,7 +95,7 @@ GUIImageButton* GUIImageButton_New(GUIManager* gm, float border, char* imgName) 
 	w->border = border;
 	
 	w->img = GUIImage_new(gm, imgName);
-	GUIRegisterObject(&w->header, w->img);
+	GUIHeader_RegisterObject(&w->header, &w->img->header);
 // 	w->header.onClick = (GUI_OnClickFn)click;
 	w->img->header.topleft = (Vector2){w->border, w->border};
 // 	w->img->header.onClick = (GUI_OnClickFn)click;

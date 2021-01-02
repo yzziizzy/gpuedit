@@ -43,15 +43,15 @@ static void updatePos(GUITabControl* w, GUIRenderParams* grp, PassFrameParams* p
 			.baseZ = grp->baseZ + w->header.z,
 		};
 		
-		GUIHeader_updatePos((GUIObject*)child, &grp2, pfp);
+		GUIHeader_updatePos((GUIHeader*)child, &grp2, pfp);
 	}
 }
 
 
-static GUIObject* hitTest(GUITabControl* w, Vector2 absTestPos) {
+static GUIHeader* hitTest(GUITabControl* w, Vector2 absTestPos) {
 // 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
 	if(w->activeTab) {
-		GUIObject* o = gui_defaultHitTest(w->activeTab, absTestPos);
+		GUIHeader* o = gui_defaultHitTest(w->activeTab, absTestPos);
 		if(o) return o;
 	}
 	
@@ -59,9 +59,9 @@ static GUIObject* hitTest(GUITabControl* w, Vector2 absTestPos) {
 }
 
 
-static void gainedFocus(GUIObject* w_, GUIEvent* gev) {
+static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 	GUITabControl* w = (GUITabControl*)w_;
-	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+	GUIManager_pushFocusedObject(w->header.gm, (GUIHeader*)w->activeTab);
 	
 }
 
@@ -87,7 +87,7 @@ GUITabControl* GUITabControl_New(GUIManager* gm) {
 	
 	// TODO: resize
 	w->bar = GUITabBar_New(gm);
-	GUIRegisterObject(w, w->bar);
+	GUI_RegisterObject(w, w->bar);
 	GUIResize(&w->bar->header, (Vector2){800, 20});
 	
 	return w;
@@ -98,7 +98,7 @@ static void switchtab(int index, void* w_) {
 	GUITabControl* w = (GUITabControl*)w_;
 	GUITabControl_GoToTab(w, index);
 	GUIManager_popFocusedObject(w->header.gm);
-	GUIManager_pushFocusedObject(w->header.gm, (GUIObject*)w->activeTab);
+	GUIManager_pushFocusedObject(w->header.gm, (GUIHeader*)w->activeTab);
 }
 
 
@@ -109,7 +109,7 @@ int GUITabControl_AddTab(GUITabControl* w, GUIHeader* tab, char* title) {
 	}
 	
 	VEC_PUSH(&w->tabs, tab);
-	tab->parent = (GUIObject*)w; // important for event bubbling
+	tab->parent = (GUIHeader*)w; // important for event bubbling
 	
 	GUITabBar_AddTabEx(w->bar, title, w, NULL, (void*)switchtab, NULL, NULL);
 	
@@ -117,7 +117,7 @@ int GUITabControl_AddTab(GUITabControl* w, GUIHeader* tab, char* title) {
 }
 
 
-GUIObject* GUITabControl_NextTab(GUITabControl* w, char cyclic) {
+GUIHeader* GUITabControl_NextTab(GUITabControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
 	if(cyclic) {
 		w->currentIndex = (w->currentIndex + 1) % len;
@@ -127,11 +127,11 @@ GUIObject* GUITabControl_NextTab(GUITabControl* w, char cyclic) {
 	}
 	
 	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
-	return (GUIObject*)w->activeTab;
+	return (GUIHeader*)w->activeTab;
 }
 
 
-GUIObject* GUITabControl_PrevTab(GUITabControl* w, char cyclic) {
+GUIHeader* GUITabControl_PrevTab(GUITabControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
 	if(cyclic) {
 		w->currentIndex = (w->currentIndex - 1 + len) % len;
@@ -141,15 +141,15 @@ GUIObject* GUITabControl_PrevTab(GUITabControl* w, char cyclic) {
 	}
 	
 	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
-	return (GUIObject*)w->activeTab;
+	return (GUIHeader*)w->activeTab;
 }
 
 
-GUIObject* GUITabControl_GoToTab(GUITabControl* w, int i) {
+GUIHeader* GUITabControl_GoToTab(GUITabControl* w, int i) {
 	int len = VEC_LEN(&w->tabs);
 	w->currentIndex = MAX(0, MIN(len - 1, i));
 	
 	w->activeTab = VEC_ITEM(&w->tabs, w->currentIndex);
-	return (GUIObject*)w->activeTab;
+	return (GUIHeader*)w->activeTab;
 }
 

@@ -12,7 +12,7 @@
 
 
 
-static GUIObject* hitTest(GUIGridLayout* gl, Vector2 absTestPos);
+static GUIHeader* hitTest(GUIGridLayout* gl, Vector2 absTestPos);
 static void updatePos(GUIGridLayout* gl, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
@@ -89,7 +89,7 @@ static void updatePos(GUIGridLayout* gl, GUIRenderParams* grp, PassFrameParams* 
 		
 		GUIRenderParams grp2 = {
 			.clip = grp->clip,
-			.size = child->h.size, // sized to the child to eliminate gravity 
+			.size = child->size, // sized to the child to eliminate gravity 
 			.offset = {
 				.x = tl.x + (col * gl->spacing.x),
 				.y = tl.y + (row * gl->spacing.y)
@@ -113,19 +113,19 @@ static void updatePos(GUIGridLayout* gl, GUIRenderParams* grp, PassFrameParams* 
 
 
 
-static GUIObject* hitTest(GUIGridLayout* gl, Vector2 absTestPos) {
+static GUIHeader* hitTest(GUIGridLayout* gl, Vector2 absTestPos) {
 	GUIHeader* h = &gl->header;
 	
 	int i;
-	GUIObject* bestKid = NULL;
+	GUIHeader* bestKid = NULL;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {
-		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&h->children, i), absTestPos);
+		GUIHeader* kid = GUIHeader_hitTest(VEC_ITEM(&h->children, i), absTestPos);
 		if(kid) {
 			if(!bestKid) {
 				bestKid = kid;
 			}
 			else {
-				if(kid->h.absZ > bestKid->h.absZ) bestKid = kid;
+				if(kid->absZ > bestKid->absZ) bestKid = kid;
 			}
 		}
 	}

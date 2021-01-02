@@ -48,9 +48,9 @@ typedef struct HLContext {
 	
 	// these are callbacks provided by gpuedit to the module in order for
 	//   the module to interact with the text
-	int  (*getNextLine)(struct HLContext*, char** /*txt*/, size_t* /*len*/);
-	void (*writeSection)(struct HLContext*, unsigned char /*style*/, size_t/*length*/);
-	void (*writeFlags)(struct HLContext*, uint8_t* /*flag_buffer*/, size_t /*buffer_len*/);
+	int  (*getNextLine)(struct HLContext*, char** /*txt*/, intptr_t* /*len*/);
+	void (*writeSection)(struct HLContext*, unsigned char /*style*/, intptr_t/*length*/);
+	void (*writeFlags)(struct HLContext*, uint8_t* /*flag_buffer*/, intptr_t /*buffer_len*/);
 	
 	// read-only
 	ptrdiff_t dirtyLines;

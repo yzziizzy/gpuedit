@@ -19,7 +19,7 @@ int writePNG(char* path, unsigned int channels, char* data, unsigned int w, unsi
 	FILE* f;
 	png_byte sig[8];
 	png_bytep* rowPtrs;
-	int i;
+	unsigned int i;
 	
 	png_structp pngPtr;
 	png_infop infoPtr;
@@ -31,7 +31,7 @@ int writePNG(char* path, unsigned int channels, char* data, unsigned int w, unsi
 		PNG_COLOR_TYPE_RGB_ALPHA
 	};
 	
-	int ret = 2;
+	int ret;
 
 	printf("png write | w: %d, h: %d \n", w, h);
 

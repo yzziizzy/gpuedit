@@ -37,7 +37,7 @@ GUIValueMonitor* GUIValueMonitor_new(GUIManager* gm, char* format, void* target,
 	gfm->text = GUIText_new(gm, "", "Arial", 3.0f);
 	updateText(gfm);
 	
-	GUIRegisterObject(gfm, gfm->text);
+	GUI_RegisterObject(gfm, gfm->text);
 	
 	return gfm;
 }
