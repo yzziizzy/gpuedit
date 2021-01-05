@@ -1093,7 +1093,7 @@ void Buffer_AppendRawText(Buffer* b, char* source, intptr_t len) {
 		char* e = strpbrk(s, "\r\n");
 		
 		if(e == NULL) {
-			Buffer_AppendLine(b, s, 0);
+			Buffer_AppendLine(b, s, strlen(s));
 			return;
 		}
 		

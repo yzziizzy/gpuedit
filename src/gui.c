@@ -273,21 +273,6 @@ Vector2 guiRecalcClientSize(GUIHeader* gh) {
 } 
 
 
-void GUIAddClient_(GUIHeader* parent, GUIHeader* child) {
-	if(parent->vt && parent->vt->AddClient)
-		parent->vt->AddClient(parent, child);
-	else
-		GUIHeader_RegisterObject(parent, child);
-} 
-
-void GUIRemoveClient_(GUIHeader* parent, GUIHeader* child) {
-	if(parent->vt && parent->vt->RemoveClient)
-		parent->vt->RemoveClient(parent, child);
-} 
-
-
-
-
 
 
 
@@ -772,9 +757,9 @@ void GUIHeader_render(GUIHeader* gh, PassFrameParams* pfp) {
 
 void GUIHeader_AddClient(GUIHeader* parent, GUIHeader* client) {
 	if(parent->vt && parent->vt->AddClient)
-		parent->vt->AddClient((GUIHeader*)parent, (GUIHeader*)client);
+		parent->vt->AddClient(parent, client);
 	else
-		printf("Object does not have an AddClient function.");
+		GUIHeader_RegisterObject(parent, client);
 }
 
 
