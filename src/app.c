@@ -576,7 +576,11 @@ void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*
 		fclose(cc->f_stdin);
 		fclose(cc->f_stdout);
 		fclose(cc->f_stderr);
-
+		
+		// clean up the zombie process
+		int status;
+		waitpid(cc->pid, &status, 0); 
+		
 		i++;
 	}
 	contents[offset] = '\0';
