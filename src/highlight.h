@@ -33,7 +33,8 @@ typedef struct HLContextInternal {
 typedef struct Highlighter {
 	HighlighterPluginInfo* plugin; // fetched from the module
 	
-	StyleInfo* styles; // fetched from the module
+	StyleInfo* stylesDark; // fetched from the module
+	StyleInfo* stylesLight;
 	int numStyles;
 	
 	

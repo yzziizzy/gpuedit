@@ -80,7 +80,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	};
 	
 	char* homedir = getenv("HOME");
-	char* tmp = pathJoin(homedir, ".gpuedit/commands.json");
+	char* tmp = path_join(homedir, ".gpuedit/commands.json");
 
 	// as->commands = CommandList_loadJSONFile("/etc/gpuedit/commands.json");
 	as->commands = CommandList_loadJSONFile(tmp);
@@ -119,11 +119,11 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->ta = as->ta;
 	xs->onResize = resize_callback;
 	xs->onResizeData = as->gui;
-	decodeHexColorNorm(as->globalSettings.Theme_tabBorderColor, (float*)&(as->gui->defaults.tabBorderColor));
-	decodeHexColorNorm(as->globalSettings.Theme_tabActiveBgColor, (float*)&(as->gui->defaults.tabActiveBgColor));
-	decodeHexColorNorm(as->globalSettings.Theme_tabHoverBgColor, (float*)&(as->gui->defaults.tabHoverBgColor));
-	decodeHexColorNorm(as->globalSettings.Theme_tabBgColor, (float*)&(as->gui->defaults.tabBgColor));
-	decodeHexColorNorm(as->globalSettings.Theme_tabTextColor, (float*)&(as->gui->defaults.tabTextColor));
+	decodeHexColorNorm(as->globalSettings.Theme->tabBorderColor, (float*)&(as->gui->defaults.tabBorderColor));
+	decodeHexColorNorm(as->globalSettings.Theme->tabActiveBgColor, (float*)&(as->gui->defaults.tabActiveBgColor));
+	decodeHexColorNorm(as->globalSettings.Theme->tabHoverBgColor, (float*)&(as->gui->defaults.tabHoverBgColor));
+	decodeHexColorNorm(as->globalSettings.Theme->tabBgColor, (float*)&(as->gui->defaults.tabBgColor));
+	decodeHexColorNorm(as->globalSettings.Theme->tabTextColor, (float*)&(as->gui->defaults.tabTextColor));
 	
 	as->gui->windowTitleSetFn = (void*)XStuff_SetWindowTitle;
 	as->gui->windowTitleSetData = xs;

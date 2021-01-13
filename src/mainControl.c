@@ -896,17 +896,17 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	tdp->tabWidth = w->gs->Buffer_tabWidth;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
-	decodeHexColorNorm(w->gs->Theme_bgColor, (float*)&(theme->bgColor));
-	decodeHexColorNorm(w->gs->Theme_textColor, (float*)&(theme->textColor));
-	decodeHexColorNorm(w->gs->Theme_cursorColor, (float*)&(theme->cursorColor));
-	decodeHexColorNorm(w->gs->Theme_lineNumColor, (float*)&(theme->lineNumColor));
-	decodeHexColorNorm(w->gs->Theme_lineNumBgColor, (float*)&(theme->lineNumBgColor));
-	decodeHexColorNorm(w->gs->Theme_lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
-	decodeHexColorNorm(w->gs->Theme_hl_bgColor, (float*)&(theme->hl_bgColor));
-	decodeHexColorNorm(w->gs->Theme_hl_textColor, (float*)&(theme->hl_textColor));
-	decodeHexColorNorm(w->gs->Theme_find_bgColor, (float*)&(theme->find_bgColor));
-	decodeHexColorNorm(w->gs->Theme_find_textColor, (float*)&(theme->find_textColor));
-	decodeHexColorNorm(w->gs->Theme_outlineCurrentLineBorderColor, (float*)&(theme->outlineCurrentLineBorderColor));
+	decodeHexColorNorm(w->gs->Theme->bgColor, (float*)&(theme->bgColor));
+	decodeHexColorNorm(w->gs->Theme->textColor, (float*)&(theme->textColor));
+	decodeHexColorNorm(w->gs->Theme->cursorColor, (float*)&(theme->cursorColor));
+	decodeHexColorNorm(w->gs->Theme->lineNumColor, (float*)&(theme->lineNumColor));
+	decodeHexColorNorm(w->gs->Theme->lineNumBgColor, (float*)&(theme->lineNumBgColor));
+	decodeHexColorNorm(w->gs->Theme->lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
+	decodeHexColorNorm(w->gs->Theme->hl_bgColor, (float*)&(theme->hl_bgColor));
+	decodeHexColorNorm(w->gs->Theme->hl_textColor, (float*)&(theme->hl_textColor));
+	decodeHexColorNorm(w->gs->Theme->find_bgColor, (float*)&(theme->find_bgColor));
+	decodeHexColorNorm(w->gs->Theme->find_textColor, (float*)&(theme->find_textColor));
+	decodeHexColorNorm(w->gs->Theme->outlineCurrentLineBorderColor, (float*)&(theme->outlineCurrentLineBorderColor));
 	
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;

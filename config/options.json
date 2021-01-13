@@ -25,65 +25,11 @@
 	],
 	"Buffer_font": "Courier New",
 	"Buffer_fontSize": 16,
+	"Buffer_invertSelection": 1,
 	"Buffer_maxUndo": 4096,
 	"Buffer_statusBarHeight": 20,
 	// "MainControl_searchPaths": ["foo", "bar"],
 
 	// Theme Settings
-	"Theme_name": "default dark",
-	"Theme_is_dark": 1,
-
-	// mainControl.c
-	"Theme_bgColor": "#0f0f0fff",
-	// "Theme_textColor": "#f0f0f0ff",
-	// "Theme_cursorColor": "#ff00ffb4",
-	"Theme_lineNumColor": "#ffffffff",
-	"Theme_lineNumBgColor": "#141414ff",
-	"Theme_lineNumBookmarkColor": "#32ff32ff",
-	"Theme_hl_bgColor": "#264f78ff",
-	"Theme_hl_textColor": "#fa0032ff",
-	"Theme_outlineCurrentLineBorderColor": "#323232ff",
-	"Theme_selectedItemTextColor": "#333333ff",
-	"Theme_selectedItemBgColor": "#ddddddff",
-
-	// gui manager defaults
-	"Theme_textColor": "#c8c8c8ff",
-
-	"Theme_buttonTextColor": "#c8c8e1ff",
-	"Theme_buttonHoverTextColor": "#c80202ff",
-	"Theme_buttonDisTextColor": "#141414ff",
-	"Theme_buttonBgColor": "#0202e1ff",
-	"Theme_buttonHoverBgColor": "#c8c802ff",
-	"Theme_buttonDisBgColor": "#646464ff",
-	"Theme_buttonBorderColor": "#c802e1ff",
-	"Theme_buttonHoverBorderColor": "#02c8e1ff",
-	"Theme_buttonDisBorderColor": "#14147dff",
-
-	"Theme_editBorderColor": "#19f519ff",
-	"Theme_editBgColor": "#143219ff",
-
-	"Theme_cursorColor": "#f0f0f0ff",
-
-	"Theme_tabBorderColor": "#787878ff",
-	"Theme_tabActiveBgColor": "#505050ff",
-	"Theme_tabHoverBgColor": "#282828ff",
-	"Theme_tabBgColor": "#0a0a0aff",
-	"Theme_tabTextColor": "#c8c8c8ff",
-
-	"Theme_windowBgBorderColor": "#b4b400ff",
-
-	"Theme_windowBgColor": "#141414ff",
-	"Theme_windowTitleBorderColor": "#b4b400ff",
-
-	"Theme_windowTitleColor": "#282828ff",
-	"Theme_windowTitleTextColor": "#d2d200ff",
-	"Theme_windowCloseBtnBorderColor": "#d22800ff",
-
-	"Theme_windowCloseBtnColor": "#b43c00ff",
-	"Theme_windowScrollbarColor": "#969600ff",
-	"Theme_windowScrollbarBorderColor": "#969600ff",
-
-	"Theme_selectBgColor": "#140f03ff",
-	"Theme_selectBorderColor": "#64961eff",
-	"Theme_selectTextColor": "#96be3cff",
+	"Theme_path": "default_dark.json",
 }

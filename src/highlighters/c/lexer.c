@@ -222,7 +222,7 @@ void hlfn(HLContext* hl) {
 	int q = 0;
 	while(hl->dirtyLines > 0) {
 		char* line;
-		size_t llen;
+		intptr_t llen;
 		
 		if(hl->getNextLine(hl, &line, &llen)) {
 			break;
