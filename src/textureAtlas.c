@@ -84,7 +84,7 @@ void TextureAtlas_addFolder(TextureAtlas* ta, char* prefix, char* dirPath, int r
 		if(0 == strncmp(dir->d_name, ".", 1)) continue;
 		if(0 == strncmp(dir->d_name, "..", 2)) continue;
 		
-		path = pathJoin(dirPath, dir->d_name);
+		path = path_join(dirPath, dir->d_name);
 		
 		if(dir->d_type == DT_REG) { // regular file
 			int namelen;
@@ -102,7 +102,7 @@ void TextureAtlas_addFolder(TextureAtlas* ta, char* prefix, char* dirPath, int r
 			free(name);
 		}
 		else if(recursive && dir->d_type == DT_DIR) {
-			char* dirpre = pathJoin(prefix, dir->d_name);
+			char* dirpre = path_join(prefix, dir->d_name);
 			
 			TextureAtlas_addFolder(ta, dirpre, path, 1);
 			free(dirpre);

@@ -83,9 +83,11 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 		Highlighter* h = pcalloc(h);
 		h->plugin = hpi;
 		h->numStyles = hpi->getStyleCount();
-		h->styles = calloc(1, sizeof(*h->styles) * h->numStyles);
+		h->stylesDark = calloc(1, sizeof(*h->stylesDark) * h->numStyles);
+		h->stylesLight = calloc(1, sizeof(*h->stylesLight) * h->numStyles);
 		
-		hpi->getStyleDefaults(h->styles, h->numStyles);
+		hpi->getStyleDefaults(h->stylesDark, h->numStyles);
+		hpi->getStyleDefaults(h->stylesLight, h->numStyles);
 		
 		char* homedir = getenv("HOME");
 		char* tmp;
@@ -171,10 +173,19 @@ do { \
 
 
 
-static StyleInfo* get_style(Highlighter* h, char* name) {
+static StyleInfo* get_style(Highlighter* h, char* name, char prefix) {
 	for(int i = 0; i < h->numStyles; i++) {
-		if(0 == strcmp(h->styles[i].name, name)) {
-			return &h->styles[i];
+		switch(prefix) {
+			case 'd':
+				if(0 == strcmp(h->stylesDark[i].name, name)) {
+					return &h->stylesDark[i];
+				}
+				break;
+			case 'l':
+				if(0 == strcmp(h->stylesLight[i].name, name)) {
+					return &h->stylesLight[i];
+				}
+				break;
 		}
 	}
 	
@@ -186,7 +197,8 @@ static StyleInfo* get_style(Highlighter* h, char* name) {
 void Highlighter_PrintStyles(Highlighter* h) {
 	
 	for(int i = 0; i < h->numStyles; i++) {
-		printf("%d: %s\n", i, h->styles[i].name);
+		printf("%d (dark): %s\n", i, h->stylesDark[i].name);
+		printf("%d (light): %s\n", i, h->stylesLight[i].name);
 	}
 	
 }
@@ -203,23 +215,22 @@ void Highlighter_LoadStyles(Highlighter* h, char* path) {
 	
 	char** lines2 = lines;
 	for(int ln = 1; *lines2; lines2++, ln++) {
+		char prefix[2];
 		char name[128];
 		char value[128];
 		StyleInfo* style;
 		
-		if(2 != sscanf(*lines2, " %127[_a-zA-Z0-9] = %127s ", name, value)) {
+		if(3 != sscanf(*lines2, " %1[dl] %127[_a-zA-Z0-9] = %127s ", prefix, name, value)) {
 			printf("Invalid highlighting color line %s:%d: '%s'\n", path, ln, *lines2);
 			continue;
 		}
 		
 // 		printf("line: '%s' = '%s'\n", name, value);
-		
-		style = get_style(h, name);
+		style = get_style(h, name, prefix[0]);
 		if(!style) {
 			fprintf(stderr, "Unknown style name '%s' in %s:%d\n", name, path, ln);
 			continue;
 		}
-		
 		
 		if(value[0] == '#') { // hex code
 			decodeHexColorNorm(value, (float*)&style->fgColor);

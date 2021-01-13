@@ -224,7 +224,7 @@ static void keyUp(GUIHeader* w_, GUIEvent* gev) {
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
 		
 		if(e->type == 2) { // enter the directory
-			char* p = pathJoin(w->curDir, e->name);
+			char* p = path_join(w->curDir, e->name);
 			free(w->curDir);
 			w->curDir = p;
 			
@@ -238,7 +238,7 @@ static void keyUp(GUIHeader* w_, GUIEvent* gev) {
 			for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
 				GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 				if(!e->isSelected) continue;
-				files[n++] = pathJoin(w->curDir, e->name);
+				files[n++] = path_join(w->curDir, e->name);
 				
 				e->isSelected = 0; // unselect them 
 			}
@@ -277,7 +277,7 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 	
 	// open the file on doubleclick
 	if(gev->multiClick == 2) {
-		char* files[2] = { pathJoin(w->curDir, e->name), NULL };
+		char* files[2] = { path_join(w->curDir, e->name), NULL };
 		
 		if(w->onChoose) w->onChoose(w->onChooseData, files, 1);
 		
@@ -318,7 +318,7 @@ GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl
 		
 		files[n] = *e;
 		files[n].name = strdup(e->name);
-		files[n].fullPath = pathJoin(w->curDir, e->name);
+		files[n].fullPath = path_join(w->curDir, e->name);
 		
 		n++;
 	}
@@ -472,7 +472,7 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 // 	lstat(e->name, &st);
 	
 		
-// 		e->name = pathJoin(w->curDir, result->d_name);
+// 		e->name = path_join(w->curDir, result->d_name);
 		e->name = strdup(result->d_name);
 		
 	}
