@@ -163,7 +163,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			break;
 			
 		case FuzzyMatcherCmd_Open: {
-			char* path_raw = pathJoin(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
+			char* path_raw = path_join(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
 			char* path = resolve_path(path_raw);
 		
 			GUIEvent gev2 = {};

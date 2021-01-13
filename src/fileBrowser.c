@@ -154,7 +154,7 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 			GUIFileBrowserEntry* e = &VEC_ITEM(&w->fbc->entries, w->fbc->cursorIndex);
 			
 			if(e->type == 2) { // enter the directory
-				char* p = pathJoin(w->fbc->curDir, e->name);
+				char* p = path_join(w->fbc->curDir, e->name);
 				free(w->fbc->curDir);
 				w->fbc->curDir = p;
 				

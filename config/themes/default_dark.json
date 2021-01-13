@@ -1,0 +1,59 @@
+{
+	// Theme Settings
+	"name": "default dark",
+	"is_dark": 1,
+
+	// mainControl.c
+	"bgColor": "#0f0f0fff",
+	"lineNumColor": "#ffffffff",
+	"lineNumBgColor": "#141414ff",
+	"lineNumBookmarkColor": "#32ff32ff",
+	"hl_bgColor": "#264f78ff",
+	"hl_textColor": "#fa0032ff",
+	"find_bgColor": "#115511ff",
+	"find_textColor": "#660022ff",
+	"outlineCurrentLineBorderColor": "#323232ff",
+	"selectedItemTextColor": "#c8c8c8ff",
+	"selectedItemBgColor": "#505050ff",
+
+	// gui manager defaults
+	"textColor": "#c8c8c8ff",
+
+	"buttonTextColor": "#c8c8e1ff",
+	"buttonHoverTextColor": "#c80202ff",
+	"buttonDisTextColor": "#141414ff",
+	"buttonBgColor": "#0202e1ff",
+	"buttonHoverBgColor": "#c8c802ff",
+	"buttonDisBgColor": "#646464ff",
+	"buttonBorderColor": "#c802e1ff",
+	"buttonHoverBorderColor": "#02c8e1ff",
+	"buttonDisBorderColor": "#14147dff",
+
+	"editBorderColor": "#19f519ff",
+	"editBgColor": "#143219ff",
+
+	"cursorColor": "#f0f0f0ff",
+
+	"tabBorderColor": "#787878ff",
+	"tabActiveBgColor": "#505050ff",
+	"tabHoverBgColor": "#282828ff",
+	"tabBgColor": "#0a0a0aff",
+	"tabTextColor": "#c8c8c8ff",
+
+	"windowBgBorderColor": "#b4b400ff",
+
+	"windowBgColor": "#141414ff",
+	"windowTitleBorderColor": "#b4b400ff",
+
+	"windowTitleColor": "#282828ff",
+	"windowTitleTextColor": "#d2d200ff",
+	"windowCloseBtnBorderColor": "#d22800ff",
+
+	"windowCloseBtnColor": "#b43c00ff",
+	"windowScrollbarColor": "#969600ff",
+	"windowScrollbarBorderColor": "#969600ff",
+
+	"selectBgColor": "#140f03ff",
+	"selectBorderColor": "#64961eff",
+	"selectTextColor": "#96be3cff",
+}

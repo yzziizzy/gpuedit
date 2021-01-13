@@ -76,9 +76,16 @@ void freeptrlist(void* _p) {
 #define set_charp(x) strdup(x);
 #define set_charpp(x) strlistdup(x);
 #define set_tabsp(x) tabspeclistdup(x);
+#define set_themep(x) x;
 void GlobalSettings_loadDefaults(GlobalSettings* s) {
 	#define SETTING(type, name, val ,min,max) s->name = set_##type(val);
-		SETTING_LIST
+		GLOBAL_SETTING_LIST
+	#undef SETTING
+}
+
+void ThemeSettings_loadDefaults(ThemeSettings* s) {
+	#define SETTING(type, name, val ,min,max) s->name = set_##type(val);
+		THEME_SETTING_LIST
 	#undef SETTING
 }
 
@@ -185,6 +192,11 @@ static void grab_double(double* out, json_value_t* obj, char* prop) {
 	}
 }
 
+static void grab_themep(ThemeSettings** out, json_value_t* obj, char* prop) {
+	*out = NULL;
+}
+
+
 
 void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
 	json_file_t* jsf;
@@ -195,7 +207,22 @@ void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
 	obj = jsf->root;
 	
 	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, obj, #name);
-		SETTING_LIST
+		GLOBAL_SETTING_LIST
+	#undef SETTING
+	
+	json_file_free(jsf);
+}
+
+void ThemeSettings_loadFromFile(ThemeSettings* s, char* path) {
+	json_file_t* jsf;
+	json_value_t* obj;
+	
+	jsf = json_load_path(path);
+	if(!jsf) return;
+	obj = jsf->root;
+	
+	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, obj, #name);
+		THEME_SETTING_LIST
 	#undef SETTING
 	
 	json_file_free(jsf);

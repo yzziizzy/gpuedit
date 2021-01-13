@@ -226,7 +226,7 @@ char* realFromSiblingPath(char* sibling, char* file) {
 	
 	dir = dirname(fuckdirname);
 	
-	falsePath = pathJoin(dir, file);
+	falsePath = path_join(dir, file);
 	
 	realPath = realpath(falsePath, NULL);
 	if(!realPath) {

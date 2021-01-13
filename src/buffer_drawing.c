@@ -186,6 +186,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		theme->lineNumBookmarkColor,
 		{.95,.05,.05,1.0}, // breakpoint
 	};
+
+	StyleInfo* styles;
+	if(gm->gs->Theme->is_dark) {
+		styles = gbe->h->stylesDark;
+	} else {
+		styles = gbe->h->stylesLight;
+	}
 	
 	
 	// draw lines
@@ -276,7 +283,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				
 				// highlighter color
 				if(atom) {
-					StyleInfo* si = &gbe->h->styles[atom->styleIndex];
+					StyleInfo* si = &styles[atom->styleIndex];
 					// si->fgSelColor is never changed from generated values in lexer.c
 					color = (struct Color4){
 						si->fgColor.r,
@@ -288,8 +295,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					fg = &color;
 				}
 				
+				// hack before selection theme colors are done
 				Color4 invfg;
-				if(inSelection) { // hack before selection theme colors are done
+				if(inSelection && gm->gs->Buffer_invertSelection) {
 					invfg.r = 1.0 - fg->r;
 					invfg.g = 1.0 - fg->g;
 					invfg.b = 1.0 - fg->b;

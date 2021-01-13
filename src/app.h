@@ -43,6 +43,7 @@ typedef struct AppState {
 	AppScreen screen;
 	
 	GlobalSettings globalSettings;
+	ThemeSettings themeSettings;
 	
 	GUIManager* gui;
 	RenderPass* guiPass;
