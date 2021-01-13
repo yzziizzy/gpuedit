@@ -23,9 +23,7 @@
 * s/GUIBufferEditControl_*()/GBEC_*()/
 * Highlight all find matches, give total count
 * Center search result in the screen when finding
-* Handle and render nulls in files
 * Command: delete lines under selection/cursor
-* Reduce CPU usage on shtty laptop
 * Gutter width is wrong for 10 line files
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar

@@ -72,6 +72,10 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->gs = gs;
 	
+//	gm->useSoftCursor = 1;
+//	gm->softCursorName = "icon/folder";
+//	gm->softCursorSize = (Vector2){50,50};
+	
 	gm->maxInstances = gs->GUIManager_maxInstances;
 	
 	gm->elementCount = 0;
@@ -378,6 +382,8 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	Vector2 newPos = {
 		iev->intPos.x, iev->intPos.y
 	};
+	
+	gm->lastMousePos = newPos;
 	
 	// find the deepest target
 	GUIHeader* t = GUIManager_hitTest(gm, newPos);
@@ -916,6 +922,42 @@ static void preFrame(PassFrameParams* pfp, void* gm_) {
 	time = timeSince(sort);
 	total += time;
 	printf("render time: %fus\n", time  * 1000000.0);
+
+	if(gm->useSoftCursor) {
+		TextureAtlasItem* it;
+		if(HT_get(&gm->ta->items, gm->softCursorName, &it)) {
+			printf("could not find gui image '%s'\n", name);
+		}
+		else { 
+			
+			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+			*v++ = (GUIUnifiedVertex){
+				.pos = {
+					gm->lastMousePos.x, 
+					gm->lastMousePos.y, 
+					gm->lastMousePos.x + gm->softCursorSize.x, 
+					gm->lastMousePos.y + gm->softCursorSize.y
+				},
+				.clip = {0,0,999999,999999},
+				
+				.guiType = 2, // image
+				
+				.texIndex1 = it->index,
+				.texIndex2 = 0,
+	
+				.texOffset1 = { it->offsetNorm.x * 65535, it->offsetNorm.y * 65535 },
+				.texOffset2 = 0,
+				.texSize1 = { it->sizeNorm.x * 65535, it->sizeNorm.y * 65535 },
+				.texSize2 = 0,
+	
+				
+				.z = 9999999,
+				.alpha = 1,
+				.rot = 0,
+			};
+		}
+	}
+
 	
 // 	static size_t framecount = 0;
 	

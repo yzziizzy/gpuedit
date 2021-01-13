@@ -391,6 +391,10 @@ typedef struct GUIManager {
 	int defaultCursor;
 	int currentCursor;
 	
+	char useSoftCursor;
+	char* softCursorName;
+	Vector2 softCursorSize;
+	
 	RING(GUIHeader*) focusStack;
 	
 	struct {
