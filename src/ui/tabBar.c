@@ -162,7 +162,7 @@ void GUITabBar_RemoveTab(GUITabBar* w, int index) {
 	
 	if(t->onRemove) t->onRemove(index, t);
 	
-	VEC_RM_SAFE(&w->tabs, index);
+	VEC_RM_SAFE(&w->tabs, (size_t)index);
 	
 	if(t->title) free(t->title);
 	free(t);
@@ -170,7 +170,7 @@ void GUITabBar_RemoveTab(GUITabBar* w, int index) {
 
 
 void GUITabBar_SetActive(GUITabBar* w, int index) {
-	if(index >= VEC_LEN(&w->tabs)) return;
+	if((size_t)index >= VEC_LEN(&w->tabs)) return;
 	
 	// clear all active tabs
 	VEC_EACH(&w->tabs, i, tab) {

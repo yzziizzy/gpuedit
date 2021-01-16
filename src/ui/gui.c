@@ -208,7 +208,7 @@ GUIHeader* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos) {
 
 GUIHeader* gui_defaultChildrenHitTest(GUIHeader* h, Vector2 absTestPos) {
 	
-	int i;
+	size_t i;
 	GUIHeader* bestKid = NULL;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {
 		GUIHeader* kid = GUIHeader_hitTest(VEC_ITEM(&h->children, i), absTestPos);
@@ -524,10 +524,10 @@ void gui_drawTextLine(
 	
 	float spaceadv = f->regular[' '].advance;
 	
-	for(int n = 0; txt[n] != 0 && adv < maxAdv && n < charCount; n++) {
+	for(size_t n = 0; txt[n] != 0 && adv < maxAdv && n < charCount; n++) {
 		char c = txt[n];
 		
-		struct charInfo* ci = &f->regular[c];
+		struct charInfo* ci = &f->regular[(int)c];
 		
 		if(c == '\t') {
 			adv += spaceadv * 4; // hardcoded to annoy you
@@ -593,14 +593,14 @@ float gui_getDefaultUITextWidth(
 	
 	float spaceadv = f->regular[' '].advance;
 	
-	for(int n = 0; txt[n] != 0 && n < maxChars; n++) {
+	for(size_t n = 0; txt[n] != 0 && n < maxChars; n++) {
 		char c = txt[n];
 		
 		if(c == '\t') {
 			adv += spaceadv * 4; // hardcoded to annoy you
 		}
 		else if(c != ' ') {
-			struct charInfo* ci = &f->regular[c];
+			struct charInfo* ci = &f->regular[(int)c];
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
 		}
 		else {

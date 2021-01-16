@@ -29,7 +29,7 @@ void GUIFormControl_SetString(GUIFormControl* w, char* str) {
 			break;
 			
 		case GUIFORMCONTROL_SELECT:
-	
+			break;	
 			
 		default:
 			printf("Unsupported type in GUIFormControl_SetString: %d\n", w->type);
@@ -163,6 +163,7 @@ GUIFormControl* GUIFormControl_New(GUIManager* gm, int type, char* label) {
 			w->edit->header.gravity = GUI_GRAV_TOP_RIGHT;
 			
 			GUI_RegisterObject(w, w->edit);
+			break;
 		
 		case GUIFORMCONTROL_SELECT:
 			w->select = GUISelectBox_New(gm);

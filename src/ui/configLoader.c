@@ -417,7 +417,7 @@ static GUIHeader* create_GUIWindow(GUIManager* gm, json_value_t* cfg) {
 
 static HT(creator_fn) creator_lookup;
 
-static void checkInitLookup() {
+static void checkInitLookup(void) {
 	static int initialized = 0;
 	if(initialized) return;
 	
@@ -442,7 +442,7 @@ static void checkInitLookup() {
 		{"window", create_GUIWindow},
 	};
 	
-	for(int i = 0; i < sizeof(fns) / sizeof(fns[0]); i++) {
+	for(size_t i = 0; i < sizeof(fns) / sizeof(fns[0]); i++) {
 		HT_set(&creator_lookup, fns[i].name, fns[i].fn);
 	}
 	

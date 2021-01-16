@@ -93,7 +93,7 @@ static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams
 static GUIHeader* hitTest(GUIColumnLayout* cl, Vector2 absTestPos) {
 	GUIHeader* h = &cl->header;
 	
-	int i;
+	size_t i;
 	GUIHeader* bestKid = NULL;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {
 		GUIHeader* kid = GUIHeader_hitTest(VEC_ITEM(&h->children, i), absTestPos);

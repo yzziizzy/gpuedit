@@ -125,6 +125,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	
 	// TODO: move to gbe->resize or somewhere appropriate
 	gbe->linesOnScreen = edh / tdp->lineHeight;
+	gbe->colsOnScreen = gbe->header.size.x / tdp->charWidth;
 	
 	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
@@ -323,8 +324,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 						1
 					};
 					
-					drawCharacter(gm, tdp, &pulseColor, &pulseColorBg, '0', 
-					(Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) 
+						drawCharacter(gm, tdp, &pulseColor, &pulseColorBg, '0', 
+							(Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					
 					adv += tdp->charWidth;	
 				}
@@ -352,7 +354,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				}
 				else { 
 					// normal, non-tab text		
-					drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) 
+						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					
 					adv += tdp->charWidth;
 				}
