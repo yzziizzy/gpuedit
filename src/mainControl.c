@@ -6,8 +6,8 @@
 #include "mainControl.h"
 #include "app.h"
 #include "fuzzyMatch.h"
-#include "gui.h"
-#include "gui_internal.h"
+#include "ui/gui.h"
+#include "ui/gui_internal.h"
 #include "ui/configLoader.h"
 #include "c_json/json.h"
 
@@ -796,6 +796,7 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 	}
 
 	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->header.gm, "./");
+	fmc->gs = w->gs;
 	fmc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fmc->header, "fuzzy matcher");
 	tab->type = MCTAB_FUZZYOPEN;
@@ -896,9 +897,9 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	tdp->tabWidth = w->gs->Buffer_tabWidth;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
-	decodeHexColorNorm(w->gs->Theme->bgColor, (float*)&(theme->bgColor));
-	decodeHexColorNorm(w->gs->Theme->textColor, (float*)&(theme->textColor));
-	decodeHexColorNorm(w->gs->Theme->cursorColor, (float*)&(theme->cursorColor));
+	decodeHexColorNorm(w->gs->GUI_GlobalSettings->bgColor, (float*)&(theme->bgColor));
+	decodeHexColorNorm(w->gs->GUI_GlobalSettings->textColor, (float*)&(theme->textColor));
+	decodeHexColorNorm(w->gs->GUI_GlobalSettings->cursorColor, (float*)&(theme->cursorColor));
 	decodeHexColorNorm(w->gs->Theme->lineNumColor, (float*)&(theme->lineNumColor));
 	decodeHexColorNorm(w->gs->Theme->lineNumBgColor, (float*)&(theme->lineNumBgColor));
 	decodeHexColorNorm(w->gs->Theme->lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
@@ -921,6 +922,8 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
+	GUIBufferEditor_UpdateSettings(gbe, w->gs);
+
 	gbe->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 // 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
 	gbe->ec->font = tdp->font;

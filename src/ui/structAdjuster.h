@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_structAdjuster_h__
-#define __EACSMB_ui_structAdjuster_h__
+#ifndef __gputk_structAdjuster_h__
+#define __gputk_structAdjuster_h__
 
 
 /*
@@ -60,4 +60,4 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, void* target, GUISA_Fie
 
 
 
-#endif //__EACSMB_ui_structAdjuster_h__
+#endif //__gputk_structAdjuster_h__

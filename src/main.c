@@ -47,16 +47,20 @@ int main(int argc, char* argv[]) {
 	int configStatus = 0;
 	char* wd;
 	
-	GlobalSettings_loadDefaults(&app.globalSettings);
-	GlobalSettings_loadFromFile(&app.globalSettings, "/etc/gpuedit/options.json");
+	GlobalSettings_LoadDefaults(&app.globalSettings);
+	app.globalSettings.Theme = &app.themeSettings;
+	app.globalSettings.GUI_GlobalSettings = calloc(1, sizeof(*app.globalSettings.GUI_GlobalSettings));
+	
+	GlobalSettings_LoadFromFile(&app.globalSettings, "/etc/gpuedit/options.json");
+	
 	char* homedir = getenv("HOME");
 	char* tmp = path_join(homedir, ".gpuedit/options.json");
-	GlobalSettings_loadFromFile(&app.globalSettings, tmp);
+	GlobalSettings_LoadFromFile(&app.globalSettings, tmp);
 	free(tmp);
-	app.globalSettings.Theme = &app.themeSettings;
-	ThemeSettings_loadDefaults(&app.themeSettings);
+	
+	ThemeSettings_LoadDefaults(&app.themeSettings);
 	tmp = path_join(homedir, "/.gpuedit/themes/", app.globalSettings.Theme_path);
-	ThemeSettings_loadFromFile(&app.themeSettings, tmp);
+	GlobalSettings_LoadFromFile(&app.globalSettings, tmp);
 	free(tmp);
 
 	

@@ -7,7 +7,7 @@
 #include "sti/sti.h"
 
 #include "commands.h"
-#include "gui.h"
+#include "ui/gui.h"
 
 
 

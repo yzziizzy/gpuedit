@@ -5,8 +5,8 @@
 
 
 
-#include "../gui.h"
-#include "../gui_internal.h"
+#include "gui.h"
+#include "gui_internal.h"
 
 
 
@@ -116,7 +116,7 @@ static void updatePos(GUIGridLayout* gl, GUIRenderParams* grp, PassFrameParams* 
 static GUIHeader* hitTest(GUIGridLayout* gl, Vector2 absTestPos) {
 	GUIHeader* h = &gl->header;
 	
-	int i;
+	size_t i;
 	GUIHeader* bestKid = NULL;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {
 		GUIHeader* kid = GUIHeader_hitTest(VEC_ITEM(&h->children, i), absTestPos);

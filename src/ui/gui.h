@@ -1,19 +1,11 @@
-#ifndef __EACSMB_GUI_H__
-#define __EACSMB_GUI_H__
+#ifndef __gputk_gui_H__
+#define __gputk_gui_H__
 
 #include <stdatomic.h>
 
-#include "common_gl.h"
-#include "common_math.h"
+#include "../gui_deps.h"
 
-#include "utilities.h"
-
-#include "input.h"
-#include "texture.h"
-#include "pass.h"
-#include "pcBuffer.h"
-
-#include "font.h"
+#include "gui_settings.h"
 
 
 struct GameState;
@@ -311,28 +303,28 @@ struct GUIHeader {
 
 
 // GUI elements
-#include "ui/window.h"
-#include "ui/text.h"
-#include "ui/textf.h"
-#include "ui/button.h"
-#include "ui/scrollWindow.h"
-#include "ui/simpleWindow.h"
-#include "ui/image.h"
-#include "ui/imgButton.h"
-#include "ui/tree.h"
-#include "ui/edit.h"
-#include "ui/selectBox.h"
-#include "ui/slider.h"
-#include "ui/columnLayout.h"
-#include "ui/gridLayout.h"
-#include "ui/tabBar.h"
-#include "ui/tabControl.h"
-#include "ui/formControl.h"
-#include "ui/monitors.h"
-#include "ui/debugAdjuster.h"
-#include "ui/structAdjuster.h"
-#include "ui/performanceGraph.h"
-#include "ui/fileBrowser.h"
+#include "window.h"
+#include "text.h"
+#include "textf.h"
+#include "button.h"
+#include "scrollWindow.h"
+#include "simpleWindow.h"
+#include "image.h"
+#include "imgButton.h"
+#include "tree.h"
+#include "edit.h"
+#include "selectBox.h"
+#include "slider.h"
+#include "columnLayout.h"
+#include "gridLayout.h"
+#include "tabBar.h"
+#include "tabControl.h"
+#include "formControl.h"
+#include "monitors.h"
+#include "debugAdjuster.h"
+#include "structAdjuster.h"
+#include "performanceGraph.h"
+#include "fileBrowser.h"
 
 
 
@@ -452,7 +444,7 @@ typedef struct GUIManager {
 	
 	VEC(GLuint64) texHandles;
 	
-	GlobalSettings* gs;
+	GUI_GlobalSettings* gs;
 	
 } GUIManager;
 
@@ -462,9 +454,9 @@ typedef union {
 } GUIObject;
 
 
-void GUIManager_init(GUIManager* gm, GlobalSettings* gs);
-void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs);
-GUIManager* GUIManager_alloc(GlobalSettings* gs);
+void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs);
+void GUIManager_initGL(GUIManager* gm);
+GUIManager* GUIManager_alloc(GUI_GlobalSettings* gs);
 
 
 RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
@@ -597,4 +589,4 @@ void gui_debugFileDumpVertexBuffer(GUIManager* gm, char* filePrefix, int fileNum
 
 
 
-#endif // __EACSMB_GUI_H__
+#endif // __gputk_gui_h__

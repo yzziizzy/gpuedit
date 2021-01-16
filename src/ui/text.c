@@ -4,11 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../window.h"
-#include "../gui.h"
-#include "../gui_internal.h"
+#include "gui.h"
+#include "gui_internal.h"
 
-#include "../utilities.h"
 
 
 
@@ -86,7 +84,7 @@ static void render(GUIText* gt, PassFrameParams* pfp) {
 	for(int n = 0; txt[n] != 0; n++) {
 		char c = txt[n];
 		
-		struct charInfo* ci = &f->regular[c];
+		struct charInfo* ci = &f->regular[(int)c];
 		
 		
 		if(c != ' ') {
@@ -140,7 +138,7 @@ float guiTextGetTextWidth(GUIText* gt, int numChars) {
 	
 	for(int n = 0; txt[n] != 0 && n < numChars; n++) {
 		char c = txt[n];
-		struct charInfo* ci = &f->regular[c];
+		struct charInfo* ci = &f->regular[(int)c];
 		
 		if(c != ' ') {
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?

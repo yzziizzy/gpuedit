@@ -11,8 +11,8 @@
 //#include <sys/stat.h>
 
 
-#include "gui.h"
-#include "gui_internal.h"
+#include "ui/gui.h"
+#include "ui/gui_internal.h"
 
 #include "fuzzyMatch.h"
 #include "fuzzyMatchControl.h"
@@ -244,7 +244,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	
 	int i = 0;
 	int j = 0;
-	while(w->header.gm->gs->MainControl_searchPaths[i]) {
+	while(w->gs->MainControl_searchPaths[i]) {
 		i++;
 	}
 	if(i == 0) return;
@@ -258,8 +258,8 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	char*** stringBuffers = malloc(sizeof(*stringBuffers)*i);
 	
 	i = 0;
-	while(w->header.gm->gs->MainControl_searchPaths[i]) {
-		args[2] = w->header.gm->gs->MainControl_searchPaths[i];
+	while(w->gs->MainControl_searchPaths[i]) {
+		args[2] = w->gs->MainControl_searchPaths[i];
 		contents[i] = execProcessPipe_charpp(args, &stringBuffers[i], &n_filepaths);
 		DEBUG("result: %ld filepaths\n", n_filepaths);
 
@@ -269,7 +269,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 		}
 		for(j=0;j<n_filepaths;j++) {
 			DEBUG("got filepath: %s\n", stringBuffers[i][j]);
-			candidates[n_candidates+j].basepath = w->header.gm->gs->MainControl_searchPaths[i];
+			candidates[n_candidates+j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates+j].filepath = stringBuffers[i][j];
 		}
 

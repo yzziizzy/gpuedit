@@ -378,6 +378,8 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		KeySym sym;
 		char c;
 		
+		
+		
 		// capture expose events cause they're useful. fullscreen games are for wimps who can't ultratask.
 		if(xev.type == Expose) {
 			// update some standard numbers
@@ -428,7 +430,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			continue;
 		}
 		else if(xev.type == xs->XFixes_eventBase + XFixesSelectionNotify) {
-// 			printf("xfixes selection notify\n");
+			printf("xfixes selection notify\n");
 			// ignore our own actions
 			if(((XFixesSelectionNotifyEvent*)&xev)->owner == xs->clientWin) continue;
 			
@@ -440,6 +442,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		else if(xev.type == SelectionNotify) {
 // 			xev.xselection
 // 			.property
+			printf("regular selection notify\n");
 			Atom actualType;
 			unsigned int resultBitsPerItem;
 			unsigned long resultItemCount;
@@ -493,7 +496,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		}
 		else if(xev.type == SelectionRequest) {
 // 			xev.xselectionrequest.selection
-// 			printf("selection request\n");
+ 			printf("selection request\n");
 			int which;
 			if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_PRIMARY;
 			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;
@@ -507,7 +510,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			
 			if(xev.xselectionrequest.target == xs->targetsID) {
-// 				printf("senfing target list\n");
+// 				printf("sending target list\n");
 				Atom alist[3];
 				alist[0] = xs->targetsID;
 				alist[1] = xs->textID;

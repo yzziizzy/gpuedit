@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_gridLayout_h__
-#define __EACSMB_ui_gridLayout_h__
+#ifndef __gputk_gridLayout_h__
+#define __gputk_gridLayout_h__
 
 
 
@@ -23,4 +23,4 @@ GUIGridLayout* GUIGridLayout_new(GUIManager* gm, Vector2 pos, Vector2 spacing);
 
 
 
-#endif // __EACSMB_ui_gridLayout_h__
+#endif // __gputk_gridLayout_h__

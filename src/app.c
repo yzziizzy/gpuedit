@@ -35,7 +35,7 @@
 #include "texture.h"
 #include "window.h"
 #include "app.h"
-#include "gui.h"
+#include "ui/gui.h"
 
 
 
@@ -115,15 +115,15 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	Highlighter_LoadStyles(ch, "config/c_colors.txt");
 	*/
 	
-	as->gui = GUIManager_alloc(&as->globalSettings);
+	as->gui = GUIManager_alloc(as->globalSettings.GUI_GlobalSettings);
 	as->gui->ta = as->ta;
 	xs->onResize = resize_callback;
 	xs->onResizeData = as->gui;
-	decodeHexColorNorm(as->globalSettings.Theme->tabBorderColor, (float*)&(as->gui->defaults.tabBorderColor));
-	decodeHexColorNorm(as->globalSettings.Theme->tabActiveBgColor, (float*)&(as->gui->defaults.tabActiveBgColor));
-	decodeHexColorNorm(as->globalSettings.Theme->tabHoverBgColor, (float*)&(as->gui->defaults.tabHoverBgColor));
-	decodeHexColorNorm(as->globalSettings.Theme->tabBgColor, (float*)&(as->gui->defaults.tabBgColor));
-	decodeHexColorNorm(as->globalSettings.Theme->tabTextColor, (float*)&(as->gui->defaults.tabTextColor));
+	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabBorderColor, (float*)&(as->gui->defaults.tabBorderColor));
+	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabActiveBgColor, (float*)&(as->gui->defaults.tabActiveBgColor));
+	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabHoverBgColor, (float*)&(as->gui->defaults.tabHoverBgColor));
+	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabBgColor, (float*)&(as->gui->defaults.tabBgColor));
+	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabTextColor, (float*)&(as->gui->defaults.tabTextColor));
 	
 	as->gui->windowTitleSetFn = (void*)XStuff_SetWindowTitle;
 	as->gui->windowTitleSetData = xs;
@@ -224,7 +224,7 @@ void initAppGL(XStuff* xs, AppState* as) {
 	
 	TextureAtlas_initGL(as->ta, &as->globalSettings);
 	
-	GUIManager_initGL(as->gui, &as->globalSettings);
+	GUIManager_initGL(as->gui);
 	as->guiPass = GUIManager_CreateRenderPass(as->gui);
 	
 

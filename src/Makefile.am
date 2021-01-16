@@ -24,8 +24,6 @@ gpuedit_SOURCES = main.c \
 	font.c \
 	fuzzyMatch.c \
 	fuzzyMatchControl.c \
-	gui.c \
-	guiManager.c \
 	highlight.c \
 	input.c \
 	json_gl.c \
@@ -50,6 +48,9 @@ gpuedit_SOURCES = main.c \
 	ui/fileBrowserControl.c \
 	ui/formControl.c \
 	ui/gridLayout.c \
+	ui/gui.c \
+	ui/gui_settings.c \
+	ui/guiManager.c \
 	ui/image.c \
 	ui/imgButton.c \
 	ui/monitors.c \

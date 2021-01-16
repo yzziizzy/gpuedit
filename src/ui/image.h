@@ -1,9 +1,8 @@
-#ifndef __EACSMB_ui_image_h__
-#define __EACSMB_ui_image_h__
+#ifndef __gputk_image_h__
+#define __gputk_image_h__
 
 
 
-#include "../pass.h"
 
 
 
@@ -47,4 +46,4 @@ void guiRenderTarget_SetScreenRes(GUIRenderTarget* rt, Vector2i newRes);
 // also initialize GUIRenderTarget data
 void gui_Image_Init(char* file);
 
-#endif // __EACSMB_ui_image_h__
+#endif // __gputk_image_h__

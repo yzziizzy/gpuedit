@@ -5,7 +5,7 @@
 
 
 
-#include "gui.h"
+#include "ui/gui.h"
 #include "buffer.h"
 #include "mainMenu.h"
 #include "commands.h"

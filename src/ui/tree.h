@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_tree_h__
-#define __EACSMB_ui_tree_h__
+#ifndef __gputk_tree_h__
+#define __gputk_tree_h__
 
 
 
@@ -35,4 +35,4 @@ GUITreeControlItem* GUITreeControl_Append(GUITreeControl* tc, GUITreeControlItem
 
 
 
-#endif // __EACSMB_ui_tree_h__
+#endif // __gputk_tree_h__

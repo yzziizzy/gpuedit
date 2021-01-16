@@ -1,5 +1,5 @@
-#ifndef __gpuedit_ui_fileBrowser_h__
-#define __gpuedit_ui_fileBrowser_h__
+#ifndef __gputk_fileBrowser_h__
+#define __gputk_fileBrowser_h__
 
 #include <sys/stat.h>
 
@@ -70,4 +70,4 @@ GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl
 
 void GUIFileBrowserControl_Autoscroll(GUIFileBrowserControl* w);
 
-#endif // __gpuedit_ui_fileBrowser_h__
+#endif // __gputk_fileBrowser_h__

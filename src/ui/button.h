@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_button_h__
-#define __EACSMB_ui_button_h__
+#ifndef __gputk_button_h__
+#define __gputk_button_h__
 
 
 
@@ -23,4 +23,4 @@ GUIButton* GUIButton_New(GUIManager* gm, char* str);
 
 
 
-#endif // __EACSMB_ui_button_h__
+#endif // __gputk_button_h__

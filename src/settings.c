@@ -77,13 +77,14 @@ void freeptrlist(void* _p) {
 #define set_charpp(x) strlistdup(x);
 #define set_tabsp(x) tabspeclistdup(x);
 #define set_themep(x) x;
-void GlobalSettings_loadDefaults(GlobalSettings* s) {
+#define set_guisettingsp(x) x;
+void GlobalSettings_LoadDefaults(GlobalSettings* s) {
 	#define SETTING(type, name, val ,min,max) s->name = set_##type(val);
 		GLOBAL_SETTING_LIST
 	#undef SETTING
 }
 
-void ThemeSettings_loadDefaults(ThemeSettings* s) {
+void ThemeSettings_LoadDefaults(ThemeSettings* s) {
 	#define SETTING(type, name, val ,min,max) s->name = set_##type(val);
 		THEME_SETTING_LIST
 	#undef SETTING
@@ -193,12 +194,24 @@ static void grab_double(double* out, json_value_t* obj, char* prop) {
 }
 
 static void grab_themep(ThemeSettings** out, json_value_t* obj, char* prop) {
-	*out = NULL;
+	json_value_t* v;
+	
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		ThemeSettings_LoadFromJSON(*out, v);
+	}
+}
+
+static void grab_guisettingsp(GUI_GlobalSettings** out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		GUI_GlobalSettings_LoadFromJSON(*out, v);
+	}
 }
 
 
 
-void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
+void GlobalSettings_LoadFromFile(GlobalSettings* s, char* path) {
 	json_file_t* jsf;
 	json_value_t* obj;
 	
@@ -213,17 +226,8 @@ void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
 	json_file_free(jsf);
 }
 
-void ThemeSettings_loadFromFile(ThemeSettings* s, char* path) {
-	json_file_t* jsf;
-	json_value_t* obj;
-	
-	jsf = json_load_path(path);
-	if(!jsf) return;
-	obj = jsf->root;
-	
-	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, obj, #name);
+void ThemeSettings_LoadFromJSON(ThemeSettings* s, struct json_value* jsv) {
+	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, jsv, #name);
 		THEME_SETTING_LIST
 	#undef SETTING
-	
-	json_file_free(jsf);
 }

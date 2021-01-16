@@ -11,7 +11,7 @@
 #include "mainMenu.h"
 #include "app.h"
 
-#include "gui_internal.h"
+#include "ui/gui_internal.h"
 
 
 

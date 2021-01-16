@@ -1,6 +1,10 @@
 #ifndef __gpuedit_settings_h__
 #define __gpuedit_settings_h__
 
+#include "c_json/json.h"
+#include "ui/gui_settings.h"
+
+
 typedef enum TabType {
 	MCTAB_NONE,
 	MCTAB_EDIT,
@@ -32,7 +36,6 @@ typedef struct TabSpec {
 	SETTING(float, Buffer_charWidth,            10,    1,    1920*16) \
 	SETTING(float, Buffer_lineHeight,           20,    1,    1920*16) \
 	SETTING(int,   Buffer_tabWidth,             4,     0,    INT_MAX) \
-	SETTING(charpp,Buffer_fontList,             ((char*[]){"Arial","Courier New", NULL}), NULL, NULL) \
 	SETTING(charp, Buffer_font,                 "Courier New", NULL, NULL) \
 	SETTING(float, Buffer_fontSize,             12,    1,    1920*16) \
 	SETTING(bool,  Buffer_invertSelection,      true,  NULL,  NULL) \
@@ -42,6 +45,7 @@ typedef struct TabSpec {
 	SETTING(charpp,MainControl_searchPaths,     ((char*[]){"./", NULL}),  NULL, NULL) \
 	SETTING(charp, Theme_path,                  "default_dark.json", NULL, NULL) \
 	SETTING(themep,Theme,                       NULL,  NULL, NULL) \
+	SETTING(guisettingsp, GUI_GlobalSettings,   NULL,  NULL, NULL) \
 	
 
 #define THEME_SETTING_LIST \
@@ -58,37 +62,7 @@ typedef struct TabSpec {
 	SETTING(charp, outlineCurrentLineBorderColor, "#323232ff", NULL, NULL) \
 	SETTING(charp, selectedItemTextColor,         "#c8c8c8ff", NULL, NULL) \
 	SETTING(charp, selectedItemBgColor,           "#505050ff", NULL, NULL) \
-	\
-	SETTING(charp, textColor,                     "#c8c8c8ff", NULL, NULL) \
-	SETTING(charp, buttonTextColor,               "#c8c8e1ff", NULL, NULL) \
-	SETTING(charp, buttonHoverTextColor,          "#c80202ff", NULL, NULL) \
-	SETTING(charp, buttonDisTextColor,            "#141414ff", NULL, NULL) \
-	SETTING(charp, buttonBgColor,                 "#0202e1ff", NULL, NULL) \
-	SETTING(charp, buttonHoverBgColor,            "#c8c802ff", NULL, NULL) \
-	SETTING(charp, buttonDisBgColor,              "#646464ff", NULL, NULL) \
-	SETTING(charp, buttonBorderColor,             "#c802e1ff", NULL, NULL) \
-	SETTING(charp, buttonHoverBorderColor,        "#02c8e1ff", NULL, NULL) \
-	SETTING(charp, buttonDisBorderColor,          "#14147dff", NULL, NULL) \
-	SETTING(charp, editBorderColor,               "#19f519ff", NULL, NULL) \
-	SETTING(charp, editBgColor,                   "#143219ff", NULL, NULL) \
-	SETTING(charp, cursorColor,                   "#f0f0f0ff", NULL, NULL) \
-	SETTING(charp, tabTextColor,                  "#c8c8c8ff", NULL, NULL) \
-	SETTING(charp, tabBorderColor,                "#787878ff", NULL, NULL) \
-	SETTING(charp, tabActiveBgColor,              "#505050ff", NULL, NULL) \
-	SETTING(charp, tabHoverBgColor,               "#282828ff", NULL, NULL) \
-	SETTING(charp, tabBgColor,                    "#0a0a0aff", NULL, NULL) \
-	SETTING(charp, windowBgBorderColor,           "#b4b400ff", NULL, NULL) \
-	SETTING(charp, windowBgColor,                 "#141414ff", NULL, NULL) \
-	SETTING(charp, windowTitleBorderColor,        "#b4b400ff", NULL, NULL) \
-	SETTING(charp, windowTitleColor,              "#282828ff", NULL, NULL) \
-	SETTING(charp, windowTitleTextColor,          "#d2d200ff", NULL, NULL) \
-	SETTING(charp, windowCloseBtnBorderColor,     "#d22800ff", NULL, NULL) \
-	SETTING(charp, windowCloseBtnColor,           "#b43c00ff", NULL, NULL) \
-	SETTING(charp, windowScrollbarColor,          "#969600ff", NULL, NULL) \
-	SETTING(charp, windowScrollbarBorderColor,    "#969600ff", NULL, NULL) \
-	SETTING(charp, selectBgColor,                 "#140f03ff", NULL, NULL) \
-	SETTING(charp, selectBorderColor,             "#64961eff", NULL, NULL) \
-	SETTING(charp, selectTextColor,               "#96be3cff", NULL, NULL) \
+	
 
 
 struct ThemeSettings;
@@ -99,6 +73,7 @@ typedef struct ThemeSettings ThemeSettings;
 #define bool char
 #define tabsp TabSpec*
 #define themep ThemeSettings*
+#define guisettingsp GUI_GlobalSettings*
 #define SETTING(type, name, val ,min,max) type name;
 
 typedef struct GlobalSettings {
@@ -115,14 +90,16 @@ typedef struct ThemeSettings {
 #undef bool
 #undef tabsp
 #undef themep
+#undef guisettingsp
 
 
 
-void GlobalSettings_loadDefaults(GlobalSettings* s);
-void GlobalSettings_loadFromFile(GlobalSettings* s, char* path);
+void GlobalSettings_LoadDefaults(GlobalSettings* s);
+void GlobalSettings_LoadFromFile(GlobalSettings* s, char* path);
+void GlobalSettings_LoadFromJSON(GlobalSettings* s, char* path);
 
-void ThemeSettings_loadDefaults(ThemeSettings* s);
-void ThemeSettings_loadFromFile(ThemeSettings* s, char* path);
+void ThemeSettings_LoadDefaults(ThemeSettings* s);
+void ThemeSettings_LoadFromJSON(ThemeSettings* s, struct json_value* jsv);
 
 
 #endif // __gpuedit_settings_h__

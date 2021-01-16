@@ -17,8 +17,8 @@
 #include "sti/sti.h"
 
 
-#include "gui.h"
-#include "gui_internal.h"
+#include "ui/gui.h"
+#include "ui/gui_internal.h"
 
 #include "fileBrowser.h"
 #include "commands.h"

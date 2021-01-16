@@ -3,8 +3,8 @@
 #include <math.h>
 
 
-#include "../../gui.h"
-#include "../../gui_internal.h"
+#include "../gui.h"
+#include "../gui_internal.h"
 
 
 

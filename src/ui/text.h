@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_text_h__
-#define __EACSMB_ui_text_h__
+#ifndef __gputk_text_h__
+#define __gputk_text_h__
 
 
 typedef struct GUIText {
@@ -24,4 +24,4 @@ float guiTextGetTextWidth(GUIText* gt, int numChars);
 
 
 
-#endif // __EACSMB_ui_text_h__
+#endif // __gputk_text_h__

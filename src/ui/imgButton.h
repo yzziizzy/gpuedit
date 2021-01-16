@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_imgButton_h__
-#define __EACSMB_ui_imgButton_h__
+#ifndef __gputk_imgButton_h__
+#define __gputk_imgButton_h__
 
 
 
@@ -26,4 +26,4 @@ GUIImageButton* GUIImageButton_New(GUIManager* gm, float border, char* imgName);
 
 
 
-#endif // __EACSMB_ui_imgButton_h__
+#endif // __gputk_imgButton_h__

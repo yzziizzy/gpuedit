@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_slider_h__
-#define __EACSMB_ui_slider_h__
+#ifndef __gputk_slider_h__
+#define __gputk_slider_h__
 
 
 
@@ -32,4 +32,4 @@ void GUISlider_SetDouble(GUISlider* ed, double dval);
 double GUISlider_GetDouble(GUISlider* ed);
 
 
-#endif // __EACSMB_ui_slider_h__
+#endif // __gputk_slider_h__

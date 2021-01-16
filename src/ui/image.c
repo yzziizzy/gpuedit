@@ -3,13 +3,8 @@
 #include "stdio.h"
 #include "string.h"
 
-#include "../gui.h"
-#include "../gui_internal.h"
-
-#include "shader.h"
-#include "texture.h"
-#include "c_json/json.h"
-
+#include "gui.h"
+#include "gui_internal.h"
 
 
 

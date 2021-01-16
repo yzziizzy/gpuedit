@@ -5,7 +5,7 @@
 #include <pcre2.h>
 
 
-#include "gui.h"
+#include "ui/gui.h"
 #include "font.h"
 #include "highlight.h"
 #include "commands.h"
@@ -287,6 +287,7 @@ typedef struct GUIBufferEditControl {
 	GUIWindow* scrollbar;
 	float sbMinHeight;
 
+	GlobalSettings* gs;
 // 	Cmd* commands;
 	
 } GUIBufferEditControl;
@@ -350,6 +351,7 @@ typedef struct GUIBufferEditor {
 	
 	GUISimpleWindow* menu;
 	
+	GlobalSettings* gs;
 	Cmd* commands;
 
 } GUIBufferEditor;

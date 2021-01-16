@@ -6,8 +6,8 @@
 
 
 #include "buffer.h"
-#include "gui.h"
-#include "gui_internal.h"
+#include "ui/gui.h"
+#include "ui/gui_internal.h"
 #include "clipboard.h"
 
 
@@ -228,8 +228,8 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 // 	w->ec->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 	GUI_RegisterObject(w, w->ec);
 	
+	
 	w->showStatusBar = 1;
-	w->statusBarHeight = gm->gs->Buffer_statusBarHeight;
 	w->statusBar = GUIStatusBar_New(gm);
 // 	w->statusBar->header.flags = GUI_MAXIMIZE_X;
 	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;
@@ -257,6 +257,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	return w;
 }
+
 
 
 void GUIBufferEditor_Destroy(GUIBufferEditor* w) {
@@ -297,10 +298,9 @@ do { \
 
 
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s) {
-	w->ec->linesPerScrollWheel = s->Buffer_linesPerScrollWheel;
-	w->ec->cursorBlinkOnTime = s->Buffer_cursorBlinkOnTime;
-	w->ec->cursorBlinkOffTime = s->Buffer_cursorBlinkOffTime;
-	w->ec->outlineCurLine = s->Buffer_outlineCurrentLine;
+	w->gs = s;
+	
+	w->statusBarHeight = w->gs->Buffer_statusBarHeight;
 	
 	GUIBufferEditControl_UpdateSettings(w->ec, s);
 }

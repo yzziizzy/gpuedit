@@ -1,5 +1,5 @@
-#ifndef __gpuedit_ui_tabBar_h__
-#define __gpuedit_ui_tabBar_h__
+#ifndef __gputk_tabBar_h__
+#define __gputk_tabBar_h__
 
 
 typedef struct GUITabBarTab {
@@ -46,4 +46,4 @@ void GUITabBar_RemoveTab(GUITabBar* w, int index);
 void GUITabBar_SetActive(GUITabBar* w, int index);
 
 
-#endif // __gpuedit_ui_tabBar_h__
+#endif // __gputk_tabBar_h__

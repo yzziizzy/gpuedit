@@ -88,13 +88,17 @@ Buffer* Clipboard_PopBuffer() {
 	Buffer* b;
 	
 	if(clipboard->selfOwned) {
+//		printf(" paste: self owned\n");
 		if(VEC_LEN(&clipboard->stack) == 0) return NULL;
 		ClipboardClip* cc = VEC_TAIL(&clipboard->stack);
 		b = cc->b;
 	}
 	else {
+//		printf(" paste: os owned\n");
 		if(clipboard->os[CLIP_SELECTION].length == 0) return NULL;
+//		printf("   no early return\n");
 		b = Buffer_New();
+		
 		Buffer_AppendRawText(b, clipboard->os[CLIP_SELECTION].buf, clipboard->os[CLIP_SELECTION].length);
 	}
 // 	VEC_POP1(&clipboard->stack);
@@ -112,7 +116,7 @@ void Clipboard_SendToOS(unsigned int which, char* text, size_t len, int encoding
 	clipboard->selfOwned = 1;
 	callOnChangeFns(which);
 	
-	printf("self owned\n");
+//	printf("self owned\n");
 }
 
 
@@ -124,7 +128,7 @@ void Clipboard_SetFromOS(unsigned int which, char* text, size_t len, int encodin
 		b->allocSize = nextPOT(len + 1);
 		b->buf = realloc(b->buf, b->allocSize);
 	}
-	printf("> %d '%.*s'\n", which, (int)len, text);
+	printf("clip> %d '%.*s'\n", which, (int)len, text);
 	memcpy(b->buf, text, len);
 	b->buf[len] = 0;
 	

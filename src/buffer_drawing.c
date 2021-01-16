@@ -6,8 +6,8 @@
 #include "math.h"
 
 #include "buffer.h"
-#include "gui.h"
-#include "gui_internal.h"
+#include "ui/gui.h"
+#include "ui/gui_internal.h"
 #include "clipboard.h"
 
 
@@ -188,7 +188,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	};
 
 	StyleInfo* styles;
-	if(gm->gs->Theme->is_dark) {
+	if(gbe->gs->Theme->is_dark) {
 		styles = gbe->h->stylesDark;
 	} else {
 		styles = gbe->h->stylesLight;
@@ -227,9 +227,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			*vv = (GUIUnifiedVertex){
 				.pos = {
 					tl.x - 1, 
-					tl.y + gm->gs->Buffer_outlineCurrentLineYOffset, 
+					tl.y + gbe->gs->Buffer_outlineCurrentLineYOffset, 
 					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
-					tl.y + tdp->lineHeight + gm->gs->Buffer_outlineCurrentLineYOffset + 1, // +1 to not cover underscores
+					tl.y + tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 1, // +1 to not cover underscores
 				},
 				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				.texIndex1 = 1, // order width
@@ -297,7 +297,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				
 				// hack before selection theme colors are done
 				Color4 invfg;
-				if(inSelection && gm->gs->Buffer_invertSelection) {
+				if(inSelection && gbe->gs->Buffer_invertSelection) {
 					invfg.r = 1.0 - fg->r;
 					invfg.g = 1.0 - fg->g;
 					invfg.b = 1.0 - fg->b;

@@ -1,6 +1,6 @@
 
 #include "statusBar.h"
-#include "gui_internal.h"
+#include "ui/gui_internal.h"
 
 
 

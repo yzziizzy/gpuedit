@@ -10,15 +10,9 @@
 #include <unistd.h> // pathconf
 #include <sys/stat.h>
 
-#include "common_math.h"
-#include "common_gl.h"
 
-
-#include "sti/sti.h"
-
-
-#include "../gui.h"
-#include "../gui_internal.h"
+#include "gui.h"
+#include "gui_internal.h"
 
 
 
@@ -34,7 +28,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 	
 	int linesDrawn = 0;
 	
-	for(intptr_t i = w->scrollOffset; i < VEC_LEN(&w->entries); i++) {
+	for(intptr_t i = w->scrollOffset; i < (intptr_t)VEC_LEN(&w->entries); i++) {
 		if(lh * linesDrawn > w->header.size.y) break; // stop at the bottom of the window
 		
 		// TODO stop drawing at end of window properly
@@ -419,7 +413,7 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 	w->numSelected = 0;
 	w->scrollOffset = 0;
 	
-	for(int i = 0; i < VEC_LEN(&w->entries); i++) {
+	for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
 		if(e->name) {
@@ -431,7 +425,7 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 	VEC_TRUNC(&w->entries);
 	
 // 	recurseDirs(w->curDir, read_dir_cb, w, 0, 0);
-	
+
 	
 	DIR* derp;
 	struct dirent* result;

@@ -5,15 +5,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "window.h"
-#include "app.h"
-#include "texture.h"
-#include "sti/sti.h"
 
 #include "gui.h"
 #include "gui_internal.h"
 
-#include "utilities.h"
 
 
 
@@ -24,7 +19,7 @@ static void postFrame(void* gm_);
 
 
 
-GUIManager* GUIManager_alloc(GlobalSettings* gs) {
+GUIManager* GUIManager_alloc(GUI_GlobalSettings* gs) {
 	GUIManager* gm;
 	pcalloc(gm);
 	
@@ -55,7 +50,7 @@ static void renderRoot(GUIHeader* gh, PassFrameParams* pfp) {
 
 
 // _init is always called before _initGL
-void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
+void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	static struct gui_vtbl root_vt = {
 		.UpdatePos = (void*)updatePosRoot,
@@ -76,7 +71,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 //	gm->softCursorName = "icon/folder";
 //	gm->softCursorSize = (Vector2){50,50};
 	
-	gm->maxInstances = gs->GUIManager_maxInstances;
+	gm->maxInstances = gs->maxInstances;
 	
 	gm->elementCount = 0;
 	gm->elementAlloc = 2048;
@@ -99,52 +94,52 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
 	gm->defaults.fontSize = .45;
-	decodeHexColorNorm(gs->Theme->textColor, (float*)&(gm->defaults.textColor));
+	decodeHexColorNorm(gs->textColor, (float*)&(gm->defaults.textColor));
 
-	decodeHexColorNorm(gs->Theme->buttonTextColor, (float*)&(gm->defaults.buttonTextColor));
-	decodeHexColorNorm(gs->Theme->buttonHoverTextColor, (float*)&(gm->defaults.buttonHoverTextColor));
-	decodeHexColorNorm(gs->Theme->buttonDisTextColor, (float*)&(gm->defaults.buttonDisTextColor));
-	decodeHexColorNorm(gs->Theme->buttonBgColor, (float*)&(gm->defaults.buttonBgColor));
-	decodeHexColorNorm(gs->Theme->buttonHoverBgColor, (float*)&(gm->defaults.buttonHoverBgColor));
-	decodeHexColorNorm(gs->Theme->buttonDisBgColor, (float*)&(gm->defaults.buttonDisBgColor));
-	decodeHexColorNorm(gs->Theme->buttonBorderColor, (float*)&(gm->defaults.buttonBorderColor));
-	decodeHexColorNorm(gs->Theme->buttonHoverBorderColor, (float*)&(gm->defaults.buttonHoverBorderColor));
-	decodeHexColorNorm(gs->Theme->buttonDisBorderColor, (float*)&(gm->defaults.buttonDisBorderColor));
+	decodeHexColorNorm(gs->buttonTextColor, (float*)&(gm->defaults.buttonTextColor));
+	decodeHexColorNorm(gs->buttonHoverTextColor, (float*)&(gm->defaults.buttonHoverTextColor));
+	decodeHexColorNorm(gs->buttonDisTextColor, (float*)&(gm->defaults.buttonDisTextColor));
+	decodeHexColorNorm(gs->buttonBgColor, (float*)&(gm->defaults.buttonBgColor));
+	decodeHexColorNorm(gs->buttonHoverBgColor, (float*)&(gm->defaults.buttonHoverBgColor));
+	decodeHexColorNorm(gs->buttonDisBgColor, (float*)&(gm->defaults.buttonDisBgColor));
+	decodeHexColorNorm(gs->buttonBorderColor, (float*)&(gm->defaults.buttonBorderColor));
+	decodeHexColorNorm(gs->buttonHoverBorderColor, (float*)&(gm->defaults.buttonHoverBorderColor));
+	decodeHexColorNorm(gs->buttonDisBorderColor, (float*)&(gm->defaults.buttonDisBorderColor));
 
-	decodeHexColorNorm(gs->Theme->editBorderColor, (float*)&(gm->defaults.editBorderColor));
-	decodeHexColorNorm(gs->Theme->editBgColor, (float*)&(gm->defaults.editBgColor));
+	decodeHexColorNorm(gs->editBorderColor, (float*)&(gm->defaults.editBorderColor));
+	decodeHexColorNorm(gs->editBgColor, (float*)&(gm->defaults.editBgColor));
 	gm->defaults.editWidth = 150;
 	gm->defaults.editHeight = 18;
 
-	decodeHexColorNorm(gs->Theme->cursorColor, (float*)&(gm->defaults.cursorColor));
+	decodeHexColorNorm(gs->cursorColor, (float*)&(gm->defaults.cursorColor));
 
-	decodeHexColorNorm(gs->Theme->tabTextColor, (float*)&(gm->defaults.tabTextColor));
-	decodeHexColorNorm(gs->Theme->tabBorderColor, (float*)&(gm->defaults.tabBorderColor));
-	decodeHexColorNorm(gs->Theme->tabActiveBgColor, (float*)&(gm->defaults.tabActiveBgColor));
-	decodeHexColorNorm(gs->Theme->tabHoverBgColor, (float*)&(gm->defaults.tabHoverBgColor));
-	decodeHexColorNorm(gs->Theme->tabBgColor, (float*)&(gm->defaults.tabBgColor));
+	decodeHexColorNorm(gs->tabTextColor, (float*)&(gm->defaults.tabTextColor));
+	decodeHexColorNorm(gs->tabBorderColor, (float*)&(gm->defaults.tabBorderColor));
+	decodeHexColorNorm(gs->tabActiveBgColor, (float*)&(gm->defaults.tabActiveBgColor));
+	decodeHexColorNorm(gs->tabHoverBgColor, (float*)&(gm->defaults.tabHoverBgColor));
+	decodeHexColorNorm(gs->tabBgColor, (float*)&(gm->defaults.tabBgColor));
 
-	decodeHexColorNorm(gs->Theme->outlineCurrentLineBorderColor, (float*)&(gm->defaults.outlineCurrentLineBorderColor));
-	decodeHexColorNorm(gs->Theme->selectedItemTextColor, (float*)&(gm->defaults.selectedItemTextColor));
-	decodeHexColorNorm(gs->Theme->selectedItemBgColor, (float*)&(gm->defaults.selectedItemBgColor));
+	decodeHexColorNorm(gs->outlineCurrentLineBorderColor, (float*)&(gm->defaults.outlineCurrentLineBorderColor));
+	decodeHexColorNorm(gs->selectedItemTextColor, (float*)&(gm->defaults.selectedItemTextColor));
+	decodeHexColorNorm(gs->selectedItemBgColor, (float*)&(gm->defaults.selectedItemBgColor));
 
-	decodeHexColorNorm(gs->Theme->windowBgBorderColor, (float*)&(gm->defaults.windowBgBorderColor));
+	decodeHexColorNorm(gs->windowBgBorderColor, (float*)&(gm->defaults.windowBgBorderColor));
 	gm->defaults.windowBgBorderWidth = 1;
-	decodeHexColorNorm(gs->Theme->windowBgColor, (float*)&(gm->defaults.windowBgColor));
-	decodeHexColorNorm(gs->Theme->windowTitleBorderColor, (float*)&(gm->defaults.windowTitleBorderColor));
+	decodeHexColorNorm(gs->windowBgColor, (float*)&(gm->defaults.windowBgColor));
+	decodeHexColorNorm(gs->windowTitleBorderColor, (float*)&(gm->defaults.windowTitleBorderColor));
 	gm->defaults.windowTitleBorderWidth = 1;
-	decodeHexColorNorm(gs->Theme->windowTitleColor, (float*)&(gm->defaults.windowTitleColor));
-	decodeHexColorNorm(gs->Theme->windowTitleTextColor, (float*)&(gm->defaults.windowTitleTextColor));
-	decodeHexColorNorm(gs->Theme->windowCloseBtnBorderColor, (float*)&(gm->defaults.windowCloseBtnBorderColor));
+	decodeHexColorNorm(gs->windowTitleColor, (float*)&(gm->defaults.windowTitleColor));
+	decodeHexColorNorm(gs->windowTitleTextColor, (float*)&(gm->defaults.windowTitleTextColor));
+	decodeHexColorNorm(gs->windowCloseBtnBorderColor, (float*)&(gm->defaults.windowCloseBtnBorderColor));
 	gm->defaults.windowCloseBtnBorderWidth = 1;
-	decodeHexColorNorm(gs->Theme->windowCloseBtnColor, (float*)&(gm->defaults.windowCloseBtnColor));
-	decodeHexColorNorm(gs->Theme->windowScrollbarColor, (float*)&(gm->defaults.windowScrollbarColor));
-	decodeHexColorNorm(gs->Theme->windowScrollbarBorderColor, (float*)&(gm->defaults.windowScrollbarBorderColor));
+	decodeHexColorNorm(gs->windowCloseBtnColor, (float*)&(gm->defaults.windowCloseBtnColor));
+	decodeHexColorNorm(gs->windowScrollbarColor, (float*)&(gm->defaults.windowScrollbarColor));
+	decodeHexColorNorm(gs->windowScrollbarBorderColor, (float*)&(gm->defaults.windowScrollbarBorderColor));
 	gm->defaults.windowScrollbarBorderWidth = 1;
 
-	decodeHexColorNorm(gs->Theme->selectBgColor, (float*)&(gm->defaults.selectBgColor));
-	decodeHexColorNorm(gs->Theme->selectBorderColor, (float*)&(gm->defaults.selectBorderColor));
-	decodeHexColorNorm(gs->Theme->selectTextColor, (float*)&(gm->defaults.selectTextColor));
+	decodeHexColorNorm(gs->selectBgColor, (float*)&(gm->defaults.selectBgColor));
+	decodeHexColorNorm(gs->selectBorderColor, (float*)&(gm->defaults.selectBorderColor));
+	decodeHexColorNorm(gs->selectTextColor, (float*)&(gm->defaults.selectTextColor));
 	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
@@ -156,7 +151,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 }
 
 
-void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
+void GUIManager_initGL(GUIManager* gm) {
 	static VAOConfig vaoConfig[] = {
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // top, left, bottom, right
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // tlbr clipping planes

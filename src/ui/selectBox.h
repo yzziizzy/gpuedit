@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_selectBox_h__
-#define __EACSMB_ui_selectBox_h__
+#ifndef __gputk_selectBox_h__
+#define __gputk_selectBox_h__
 
 
 
@@ -43,4 +43,4 @@ void GUISelectBox_SetOptions(GUISelectBox* w, GUISelectBoxOption* opts, int cnt)
 
 
 
-#endif // __EACSMB_ui_selectBox_h__
+#endif // __gputk_selectBox_h__

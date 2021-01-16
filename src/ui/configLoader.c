@@ -5,17 +5,11 @@
 #include <ctype.h>
 
 
-#include "../common_math.h"
-#include "../sti/sti.h"
-
-#include "../utilities.h"
-
-#include "../gui.h"
-#include "../gui_internal.h"
+#include "gui.h"
+#include "gui_internal.h"
 
 
-#include "../c_json/json.h"
-#include "../json_gl.h"
+
 
 // TEMP HACK
 #include "../fileBrowser.h"
@@ -63,7 +57,7 @@ static void read_flags(GUIHeader* h, json_value_t* cfg) {
 	
 	int flags = 0;
 	
-	for(int i = 0; i < len; i++) {
+	for(size_t i = 0; i < len; i++) {
 		char* f = flist[i];
 		
 		     if(0 == strcasecmp(f, "MAXIMIZE_X")) flags |= GUI_MAXIMIZE_X;
@@ -248,7 +242,7 @@ static GUIHeader* create_GUIImage(GUIManager* gm, json_value_t* cfg) {
 	char* value = json_obj_get_str(cfg, "imgName");
 	// TODO smarter conversion from json
 	
-	obj = GUIImage_new(gm, value || defaultImgName);
+	obj = GUIImage_new(gm, value ? value : defaultImgName);
 	
 	return (GUIHeader*)obj;
 }

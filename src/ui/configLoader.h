@@ -1,7 +1,6 @@
-#ifndef __EACSMB_ui_configLoader_h__
-#define __EACSMB_ui_configLoader_h__
+#ifndef __gputk_configLoader_h__
+#define __gputk_configLoader_h__
 
-#include "../c_json/json.h"
 
 
 
@@ -13,4 +12,4 @@ void GUICL_LoadChildren(GUIManager* gm, GUIHeader* parent, json_value_t* cfg);
 
 
 
-#endif // __EACSMB_ui_configLoader_h__
+#endif // __gputk_configLoader_h__

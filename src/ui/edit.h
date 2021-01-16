@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_edit_h__
-#define __EACSMB_ui_edit_h__
+#ifndef __gputk_edit_h__
+#define __gputk_edit_h__
 
 
 
@@ -36,4 +36,4 @@ double GUIEdit_GetDouble(GUIEdit* ed);
 char* GUIEdit_GetText(GUIEdit* ed); // returns an internal string. do not cache, do not free.
 
 
-#endif // __EACSMB_ui_edit_h__
+#endif // __gputk_edit_h__

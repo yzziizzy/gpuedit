@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_performanceGraph_h__
-#define __EACSMB_ui_performanceGraph_h__
+#ifndef __gputk_performanceGraph_h__
+#define __gputk_performanceGraph_h__
 
 
 
@@ -28,4 +28,4 @@ void GUIPerformanceGraph_AddTime(GUIPerformanceGraph* w, float t);
 
 
 
-#endif // __EACSMB_ui_performanceGraph_h__
+#endif // __gputk_performanceGraph_h__

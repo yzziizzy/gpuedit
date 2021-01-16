@@ -6,7 +6,7 @@
 
 #include "settings.h"
 #include "window.h"
-#include "gui.h"
+#include "ui/gui.h"
 #include "buffer.h"
 #include "mainControl.h"
 

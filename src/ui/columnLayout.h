@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_columnLayout_h__
-#define __EACSMB_ui_columnLayout_h__
+#ifndef __gputk_columnLayout_h__
+#define __gputk_columnLayout_h__
 
 
 
@@ -21,4 +21,4 @@ GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing,
 
 
 
-#endif // __EACSMB_ui_columnLayout_h__
+#endif // __gputk_columnLayout_h__

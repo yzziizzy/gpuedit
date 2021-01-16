@@ -5,21 +5,13 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "window.h"
-#include "app.h"
-#include "texture.h"
-#include "sti/sti.h"
 
 #include "gui.h"
 #include "gui_internal.h"
 
-#include "utilities.h"
 
 // // FontConfig
 // #include "text/fcfg.h"
-
-// for sdf debugging
-#include "dumpImage.h"
 
 
 // VEC(GUIHeader*) gui_list; 

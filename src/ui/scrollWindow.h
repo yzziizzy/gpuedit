@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_scrollWindow_h__
-#define __EACSMB_ui_scrollWindow_h__
+#ifndef __gputk_scrollWindow_h__
+#define __gputk_scrollWindow_h__
 
 
 
@@ -21,4 +21,4 @@ GUIScrollWindow* GUIScrollWindow_new(GUIManager* gm);
 
 
 
-#endif // __EACSMB_ui_scrollWindow_h__
+#endif // __gputk_scrollWindow_h__

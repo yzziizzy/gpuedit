@@ -1,7 +1,7 @@
 #ifndef __gpuedit_mainMenu_h__
 #define __gpuedit_mainMenu_h__
 
-#include "gui.h"
+#include "ui/gui.h"
 #include "commands.h"
 
 #include "sti/sti.h"

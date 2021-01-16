@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_formControl__
-#define __EACSMB_ui_formControl__
+#ifndef __gputk_formControl__
+#define __gputk_formControl__
 
 
 
@@ -45,4 +45,4 @@ void* GUIFormControl_GetData(GUIFormControl* w); // mostly for select boxes
 
 
 
-#endif // __EACSMB_ui_formControl__
+#endif // __gputk_formControl__

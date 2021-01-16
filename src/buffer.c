@@ -6,8 +6,8 @@
 
 
 #include "buffer.h"
-#include "gui.h"
-#include "gui_internal.h"
+#include "ui/gui.h"
+#include "ui/gui_internal.h"
 #include "clipboard.h"
 
 

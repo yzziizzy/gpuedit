@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_simpleWindow_h__
-#define __EACSMB_ui_simpleWindow_h__
+#ifndef __gputk_simpleWindow_h__
+#define __gputk_simpleWindow_h__
 
 
 
@@ -50,4 +50,4 @@ GUISimpleWindow* GUISimpleWindow_New(GUIManager* gm);
 
 
 
-#endif // __EACSMB_ui_simpleWindow_h__
+#endif // __gputk_simpleWindow_h__

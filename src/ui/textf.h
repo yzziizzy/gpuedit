@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_textf_h__
-#define __EACSMB_ui_textf_h__
+#ifndef __gputk_textf_h__
+#define __gputk_textf_h__
 
 
 typedef struct GUITextF {
@@ -25,4 +25,4 @@ void GUITextF_refresh(GUITextF* w);
 
 
 
-#endif // __EACSMB_ui_textf_h__
+#endif // __gputk_textf_h__

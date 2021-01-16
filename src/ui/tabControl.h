@@ -1,5 +1,5 @@
-#ifndef __gpuedit_ui_tabControl_h__
-#define __gpuedit_ui_tabControl_h__
+#ifndef __gputk_tabControl_h__
+#define __gputk_tabControl_h__
 
 
 
@@ -27,4 +27,4 @@ GUIHeader* GUITabControl_PrevTab(GUITabControl* w, char cyclic);
 GUIHeader* GUITabControl_GoToTab(GUITabControl* w, int i);
 
 
-#endif //__gpuedit_ui_tabControl_h__
+#endif //__gputk_tabControl_h__

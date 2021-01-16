@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_debugAdjuster_h__
-#define __EACSMB_ui_debugAdjuster_h__
+#ifndef __gputk_debugAdjuster_h__
+#define __gputk_debugAdjuster_h__
 
 
 
@@ -50,4 +50,4 @@ static void GUIDebugAdjuster_setMinMaxu(GUIDebugAdjuster* da, uint64_t min, uint
 
 
 
-#endif // __EACSMB_ui_debugAdjuster_h__
+#endif // __gputk_debugAdjuster_h__

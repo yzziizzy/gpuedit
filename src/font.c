@@ -23,6 +23,8 @@
 
 
 
+
+
 static FT_Error (*_FT_Init_FreeType)(FT_Library *alibrary);
 static FT_Error (*_FT_Set_Pixel_Sizes)(FT_Face face, FT_UInt pixel_width, FT_UInt pixel_height);
 static FT_Error (*_FT_Load_Char)(FT_Face face, FT_ULong char_code, FT_Int32 load_flags);
@@ -40,7 +42,7 @@ static void addFont(FontManager* fm, char* name);
 
 
 
-FontManager* FontManager_alloc(GlobalSettings* gs) {
+FontManager* FontManager_alloc(GUI_GlobalSettings* gs) {
 	FontManager* fm;
 	
 	pcalloc(fm);
@@ -54,7 +56,7 @@ FontManager* FontManager_alloc(GlobalSettings* gs) {
 }
 
 
-void FontManager_init(FontManager* fm, GlobalSettings* gs) {
+void FontManager_init(FontManager* fm, GUI_GlobalSettings* gs) {
 	int i = 0;
 	int atlas_dirty = 0;
 	char* atlas_path = "/usr/share/gpuedit/fonts.atlas";
@@ -62,9 +64,9 @@ void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 
 	FontManager_loadAtlas(fm, atlas_path);
 
-	while(gs->Buffer_fontList[i] != NULL) {
+	while(gs->fontList[i] != NULL) {
 		// printf("checking font: %s\n", gs->Buffer_fontList[i]);
-		if(HT_get(&fm->fonts, gs->Buffer_fontList[i], &font)) {
+		if(HT_get(&fm->fonts, gs->fontList[i], &font)) {
 			atlas_dirty = 1;
 			break;
 		}
@@ -74,9 +76,9 @@ void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 
 	if(atlas_dirty) {
 		i = 0;
-		while(gs->Buffer_fontList[i] != NULL) {
+		while(gs->fontList[i] != NULL) {
 			// printf("building font: %s\n", gs->Buffer_fontList[i]);
-			FontManager_addFont(fm, gs->Buffer_fontList[i]);
+			FontManager_addFont(fm, gs->fontList[i]);
 			i++;
 		}
 		FontManager_finalize(fm);

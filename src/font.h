@@ -9,7 +9,8 @@
 #include "settings.h"
 
 
-
+// here until factored better:
+#include "ui/gui_settings.h"
 
 
 
@@ -142,8 +143,8 @@ void FontManager_finalize(FontManager* fm);
 
 GUIFont* FontManager_findFont(FontManager* fm, char* name);
 
-FontManager* FontManager_alloc(GlobalSettings* gs);
-void FontManager_init(FontManager* fm, GlobalSettings* gs);
+FontManager* FontManager_alloc(GUI_GlobalSettings* gs);
+void FontManager_init(FontManager* fm, GUI_GlobalSettings* gs);
 
 
 

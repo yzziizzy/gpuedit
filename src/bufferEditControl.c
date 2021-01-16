@@ -7,8 +7,8 @@
 
 
 #include "buffer.h"
-#include "gui.h"
-#include "gui_internal.h"
+#include "ui/gui.h"
+#include "ui/gui_internal.h"
 #include "clipboard.h"
 
 
@@ -278,8 +278,8 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	
 	float lineNumWidth = ceil(log10(b->numLines)) * w->bdp->tdp->charWidth + w->bdp->lineNumExtraWidth;
 	
-	w->linesOnScreen = w->header.size.y / w->header.gm->gs->Buffer_lineHeight;
-	w->colsOnScreen = (w->header.size.x - lineNumWidth) / w->header.gm->gs->Buffer_charWidth;
+	w->linesOnScreen = w->header.size.y / w->gs->Buffer_lineHeight;
+	w->colsOnScreen = (w->header.size.x - lineNumWidth) / w->gs->Buffer_charWidth;
 
 	w->scrollCoastMax = 50;
 	// scroll coasting while selection dragging
@@ -427,11 +427,6 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	
 	w->header.cursor = GUIMOUSECURSOR_TEXT;
 	
-	w->linesPerScrollWheel = gm->gs->Buffer_linesPerScrollWheel;
-	w->cursorBlinkOnTime = gm->gs->Buffer_cursorBlinkOnTime;
-	w->cursorBlinkOffTime = gm->gs->Buffer_cursorBlinkOffTime;
-	w->outlineCurLine = gm->gs->Buffer_outlineCurrentLine;
-	
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(&w->scrollbar->header, (Vector2){10, 50});
@@ -447,6 +442,8 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 }
 
 void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s) {
+	w->gs = s;
+	
 	w->linesPerScrollWheel = s->Buffer_linesPerScrollWheel;
 	w->cursorBlinkOnTime = s->Buffer_cursorBlinkOnTime;
 	w->cursorBlinkOffTime = s->Buffer_cursorBlinkOffTime;

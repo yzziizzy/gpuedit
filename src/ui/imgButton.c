@@ -3,8 +3,8 @@
 #include "stdio.h"
 #include "string.h"
 
-#include "../gui.h"
-#include "../gui_internal.h"
+#include "gui.h"
+#include "gui_internal.h"
 
 
 

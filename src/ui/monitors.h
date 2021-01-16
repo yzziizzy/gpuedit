@@ -1,5 +1,5 @@
-#ifndef __EACSMB_ui_monitors_h__
-#define __EACSMB_ui_monitors_h__
+#ifndef __gputk_monitors_h__
+#define __gputk_monitors_h__
 
 
 typedef struct GUIValueMonitor {
@@ -22,4 +22,4 @@ GUIValueMonitor* GUIValueMonitor_new(GUIManager* gm, char* format, void* target,
 
 
 
-#endif // __EACSMB_ui_monitors_h__
+#endif // __gputk_monitors_h__
