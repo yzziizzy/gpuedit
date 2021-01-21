@@ -44,6 +44,8 @@ typedef struct GUIFileBrowserControl {
 	intptr_t cursorIndex;
 	intptr_t numSelected;
 	
+	int linesPerScrollWheel;
+
 	char* curDir;
 	
 	VEC(GUIFileBrowserEntry) entries;

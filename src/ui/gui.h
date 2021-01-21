@@ -554,6 +554,7 @@ void GUIHeader_RemoveHandler(GUIHeader* h, enum GUIEventType type, GUI_EventHand
 // USE THIS ONE to send an event into the system.
 // gev can be allocated on the stack.
 void GUIManager_BubbleEvent(GUIManager* gm, GUIHeader* target, GUIEvent* gev);
+void GUIManager_BubbleUserEvent(GUIManager* gm, GUIHeader* target, char* ev);
 
 // TriggerEvent DOES NOT BUBBLE. It only calls the virtual functions on the object.
 // gev can be allocated on the stack.

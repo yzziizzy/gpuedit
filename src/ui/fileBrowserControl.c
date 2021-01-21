@@ -188,11 +188,12 @@ void GUIFileBrowserControl_Autoscroll(GUIFileBrowserControl* w) {
 
 static void scrollUp(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
-	w->scrollOffset -= 60;
+	w->scrollOffset = MAX(0, w->scrollOffset - w->linesPerScrollWheel);
 }
 static void scrollDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
-	w->scrollOffset += 60;
+	float linesOnScreen = floor(w->header.size.y / w->lineHeight);
+	w->scrollOffset = MIN(MAX(0, VEC_LEN(&w->entries) - linesOnScreen), w->scrollOffset + w->linesPerScrollWheel);
 }
 
 
