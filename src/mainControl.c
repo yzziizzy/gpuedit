@@ -392,7 +392,10 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	else if(0 == strcmp(gev->userType, "openFile")) {
 		GUIMainControl_LoadFile(w, gev->userData);
 	}
-	
+	else if(0 == strcmp(gev->userType, "closeMe")) {
+		int i = GUIMainControl_FindTabHeaderIndex(w, gev->originalTarget);
+		if(i > -1) GUIMainControl_CloseTab(w, i);
+	}
 }
 
 
@@ -645,6 +648,17 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 
 
 
+int GUIMainControl_FindTabHeaderIndex(GUIMainControl* w, GUIHeader* h) {
+	VEC_EACH(&w->tabs, i, tab) {
+		if(tab->client == h) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+
 
 GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
@@ -773,6 +787,7 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	}
 
 	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
+	fb->gs = w->gs;
 	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 	fb->commands = w->commands;
 

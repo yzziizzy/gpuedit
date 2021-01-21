@@ -29,6 +29,7 @@ typedef struct GUIFileBrowser {
 	
 	char* curDir;
 	
+	GlobalSettings* gs;
 	char* acceptButtonLabel;
 	
 	Cmd* commands;

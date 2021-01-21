@@ -1,11 +1,16 @@
 {
 	"GUIManager_maxInstances": 16384,
+
 	"MainControl_startupTabs": [
 		{ "type": "Edit", "path": "./testfile.c", },
 		{ "type": "Edit", "path": "./testfile.h", },
 		{ "type": "FuzzyOpen", "path": "", },
 		// { "type": "FileOpen", "path": "./", },
 	],
+	
+	"MainControl_openInPlace": 0,
+	
+
 	"Buffer_linesPerScrollWheel": 3,
 	"Buffer_cursorBlinkEnable": 1,
 	"Buffer_cursorBlinkOffTime": 0.600,
@@ -31,7 +36,8 @@
 	"Theme_path": "default_dark.json",
 	
 	GUI_GlobalSettings: {
-		maxInstances: 16384,
+		"maxInstances": 16384,
+		"linesPerScrollWheel": 5,
 		
 		"fontList": [
 			"Arial",
