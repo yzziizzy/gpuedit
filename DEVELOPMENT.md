@@ -11,6 +11,12 @@
 * NULL-inserting bug related to line splitting after movign from long line to short
 
 == Needed before fractal dogfooding ==
+* CS+left/right expand selection by sequence
+* clicking out of find switches input to edit buffer
+* old find term highlighted on findreplace resume
+* sequence commands in findreplace input box
+* find sequence from last selection on findreplace resume
+
 * full Pascal string conversion
 * ctrl+l/r jumps across tabs
 * copy cannot paste to pgadmin3 (INCR? mime type?)
@@ -33,7 +39,6 @@
 * Tab Bar scrolling
 * Smart uncomment
 * home: start of text <-> start of line
-* Mark changed tabs with "*" -- semi-working
 * Clipboard ring
 * Choose highlighter based on file extension
 * Proper tabstops

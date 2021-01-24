@@ -230,7 +230,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					tl.x - 1, 
 					tl.y + gbe->gs->Buffer_outlineCurrentLineYOffset, 
 					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
-					tl.y + tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 1, // +1 to not cover underscores
+					tl.y + tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 2, // +1 to not cover underscores
 				},
 				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
 				.texIndex1 = 1, // order width

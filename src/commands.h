@@ -95,9 +95,13 @@
 	X(FuzzyMatcherCmd, CursorMove) \
 	X(FuzzyMatcherCmd, Open) \
 	\
+	X(GrepOpenCmd, CursorMove) \
+	X(GrepOpenCmd, Open) \
+	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \
 	X(MainCmd, FuzzyOpener) \
+	X(MainCmd, GrepOpen) \
 	X(MainCmd, SaveActiveTab) \
 	X(MainCmd, SaveAll) \
 	X(MainCmd, Quit) \

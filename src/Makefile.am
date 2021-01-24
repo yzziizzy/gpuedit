@@ -24,6 +24,7 @@ gpuedit_SOURCES = main.c \
 	font.c \
 	fuzzyMatch.c \
 	fuzzyMatchControl.c \
+	grepOpenControl.c \
 	highlight.c \
 	input.c \
 	json_gl.c \
