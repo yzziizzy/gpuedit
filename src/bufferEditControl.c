@@ -204,9 +204,11 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	
 	// maybe nudge the screen down a tiny bit
 	GUIBufferEditControl_scrollToCursor(w);
+	
+	if(gev->multiClick == 2) {
+		GBEC_SelectSequenceUnder(w, w->current, w->curCol, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+	}
 }
-
-
 
 
 static void keyDown(GUIObject* w_, GUIEvent* gev) {

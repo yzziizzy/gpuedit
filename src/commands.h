@@ -54,6 +54,10 @@
 	X(BufferCmd, MoveToPrevSequence) \
 	X(BufferCmd, DeleteToNextSequence) \
 	X(BufferCmd, DeleteToPrevSequence) \
+	X(BufferCmd, GrowSelectionToNextSequence) \
+	X(BufferCmd, GrowSelectionToPrevSequence) \
+	X(BufferCmd, GrowSelectionToSOL) \
+	X(BufferCmd, GrowSelectionToEOL) \
 	X(BufferCmd, Indent) \
 	X(BufferCmd, SmartIndent) \
 	X(BufferCmd, Unindent) \

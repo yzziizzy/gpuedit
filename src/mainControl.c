@@ -641,7 +641,12 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 	// TODO: check active
 	
 	// update the current tab index
-	w->currentIndex %= VEC_LEN(&w->tabs);
+	size_t n_tabs = VEC_LEN(&w->tabs);
+	if(!n_tabs) {
+		// todo: exit more fancily
+		exit(0);
+	}
+	w->currentIndex %= n_tabs;
 	
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;

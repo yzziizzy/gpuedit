@@ -670,6 +670,43 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
 			break;
 		
+		case BufferCmd_GrowSelectionToNextSequence:
+			if(!w->ec->sel) {
+				w->ec->selectPivotLine = w->ec->current;
+				w->ec->selectPivotCol = w->ec->curCol;
+			}
+			GBEC_MoveToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
+			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			break;
+		
+		case BufferCmd_GrowSelectionToPrevSequence:
+			if(!w->ec->sel) {
+				w->ec->selectPivotLine = w->ec->current;
+				w->ec->selectPivotCol = w->ec->curCol;
+			}
+			GBEC_MoveToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
+			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			break;
+		
+		case BufferCmd_GrowSelectionToSOL:
+			if(!w->ec->sel) {
+				w->ec->selectPivotLine = w->ec->current;
+				w->ec->selectPivotCol = w->ec->curCol;
+			}
+			GBEC_MoveToFirstCharOfLine(w->ec, w->ec->current);
+			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			break;
+		
+		case BufferCmd_GrowSelectionToEOL:
+			if(!w->ec->sel) {
+				w->ec->selectPivotLine = w->ec->current;
+				w->ec->selectPivotCol = w->ec->curCol;
+			}
+			GBEC_MoveToLastCharOfLine(w->ec, w->ec->current);
+			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			break;
+			
+		
 		case BufferCmd_GrowSelectionV:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
