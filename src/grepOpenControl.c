@@ -279,20 +279,21 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 
 	int i = 0;
 	int j = 0;
+	int n_paths = 0;
 
 	if(!w->searchTerm || strlen(w->searchTerm) < 3) {
 		goto CLEANUP;
 	}
 
-	while(w->gs->MainControl_searchPaths[i]) {
-		i++;
+	while(w->gs->MainControl_searchPaths[n_paths]) {
+		n_paths++;
 	}
-	if(i == 0) return;
+	if(n_paths == 0) return;
 
 	candidates = malloc(max_candidates*sizeof(*candidates));
 
-	contents = malloc(sizeof(*contents)*i);
-	stringBuffers = malloc(sizeof(*stringBuffers)*i);
+	contents = malloc(sizeof(*contents)*(n_paths+1));
+	stringBuffers = malloc(sizeof(*stringBuffers)*(n_paths+1));
 
 	i = 0;
 	while(w->gs->MainControl_searchPaths[i]) {
@@ -301,7 +302,7 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 		DEBUG("result: %ld filepaths\n", n_filepaths);
 
 		if(n_candidates+n_filepaths >= max_candidates) {
-			max_candidates *= 2;
+			max_candidates = 2 * MAX(n_filepaths, max_candidates);
 			candidates = realloc(candidates, max_candidates*sizeof(*candidates));
 		}
 		for(j=0;j<n_filepaths;j++) {
@@ -309,7 +310,7 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 			candidates[n_candidates+j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates+j].filepath = stringBuffers[i][j];
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);
-			candidates[n_candidates+j].render_line = sprintfdup("%s:%s",
+			candidates[n_candidates+j].render_line = sprintfdup("%s:%120s",
 				candidates[n_candidates+j].filepath,
 				candidates[n_candidates+j].line
 			);
@@ -343,8 +344,11 @@ CLEANUP:
 	w->contents = contents;
 
 	if(w->matches) {
+		DEBUG("freeing %lu matches\n", w->matchCnt);
 		for(i=0;i<w->matchCnt;i++) {
+			DEBUG("i: %d, line: %s, render: %s\n", i, w->matches[i].line, w->matches[i].render_line);
 			free(w->matches[i].render_line);
+			w->matches[i].render_line = NULL;
 		}
 		free(w->matches);
 	}

@@ -16,6 +16,8 @@
 * old find term highlighted on findreplace resume
 * sequence commands in findreplace input box
 * find sequence from last selection on findreplace resume
+* cursor/focus rendering in findreplace needs help
+* smart cut
 
 * full Pascal string conversion
 * ctrl+l/r jumps across tabs

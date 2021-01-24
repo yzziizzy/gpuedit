@@ -243,24 +243,25 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	
 	
 	
-	// printf("launching fuzzy opener\n");
+	DEBUG("~~ begin fuzzy opener\n");
 	char* cmd = "/usr/bin/git";
 	char* args[] = {cmd, "-C", NULL, "ls-files", "-co", "--exclude-standard", NULL};
 	
 	int i = 0;
 	int j = 0;
-	while(w->gs->MainControl_searchPaths[i]) {
-		i++;
+	int n_paths = 0;
+	while(w->gs->MainControl_searchPaths[n_paths]) {
+		n_paths++;
 	}
-	if(i == 0) return;
+	if(n_paths == 0) return;
 
 	size_t max_candidates = 1024;
 	fcandidate* candidates = malloc(max_candidates*sizeof(*candidates));
 	size_t n_candidates = 0;
 
 	size_t n_filepaths;
-	char** contents = malloc(sizeof(*contents)*i);
-	char*** stringBuffers = malloc(sizeof(*stringBuffers)*i);
+	char** contents = malloc(sizeof(*contents)*(n_paths+1));
+	char*** stringBuffers = malloc(sizeof(*stringBuffers)*(n_paths+1));
 	
 	i = 0;
 	while(w->gs->MainControl_searchPaths[i]) {
@@ -269,7 +270,9 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 		DEBUG("result: %ld filepaths\n", n_filepaths);
 
 		if(n_candidates+n_filepaths >= max_candidates) {
-			max_candidates *= 2;
+			DEBUG("fps: %lu, mc: %lu\n", n_filepaths, max_candidates);
+			max_candidates = 2*MAX(n_filepaths, max_candidates);
+			DEBUG("mc: %lu, size: %lu\n", max_candidates, sizeof(*candidates));
 			candidates = realloc(candidates, max_candidates*sizeof(*candidates));
 		}
 		for(j=0;j<n_filepaths;j++) {
