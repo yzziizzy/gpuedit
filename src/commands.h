@@ -34,6 +34,7 @@
 	X(BufferCmd, GoToAfterIndent) \
 	X(BufferCmd, RehilightWholeBuffer) \
 	X(BufferCmd, Cut) \
+	X(BufferCmd, SmartCut) \
 	X(BufferCmd, Copy) \
 	X(BufferCmd, Paste) \
 	X(BufferCmd, SetBookmark) \

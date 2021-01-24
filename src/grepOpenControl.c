@@ -310,7 +310,7 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 			candidates[n_candidates+j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates+j].filepath = stringBuffers[i][j];
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);
-			candidates[n_candidates+j].render_line = sprintfdup("%s:%120s",
+			candidates[n_candidates+j].render_line = sprintfdup("%s:%s",
 				candidates[n_candidates+j].filepath,
 				candidates[n_candidates+j].line
 			);

@@ -72,6 +72,7 @@
 {cmd: "BufferCmd_DuplicateLine", mods: "CA", key: "XK_Down", amt: 1, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_DuplicateLine", mods: "CA", key: "XK_Up", amt: -1, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_Cut", mods: "C", key: "x", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+{cmd: "BufferCmd_SmartCut", mods: "CS", key: "x", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_Copy", mods: "C", key: "c", amt: 0, },
 {cmd: "BufferCmd_Paste", mods: "C", key: "v", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_SelectAll", mods: "C", key: "a", amt: 0, },

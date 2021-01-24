@@ -884,6 +884,40 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			}
 			break;
 		
+		case BufferCmd_SmartCut: {
+			int smart = 0;
+			if(!w->sel) {
+				// make the current line the selection
+				GBEC_SetCurrentSelection(w, w->current, 0, w->current, w->current->length);
+				smart = 1;
+			}
+			if(w->sel) {
+				// stolen from BufferCmd_Cut
+				b2 = Buffer_FromSelection(b, w->sel);
+				Clipboard_PushBuffer(b2);
+				// TODO: move cursor to cut spot, if it isn't already
+				if(!w->sel->reverse) {
+					w->current = w->sel->startLine;
+					w->curCol = w->sel->startCol;
+				}
+				
+				Buffer_DeleteSelectionContents(b, w->sel);
+				GBEC_ClearAllSelections(w);
+			}
+			if(smart) {
+				// stolen from BufferCmd_DeleteCurLine
+				// preserve proper cursor position
+				BufferLine* cur = w->current->next;
+				if(!cur) cur = w->current->prev;
+				intptr_t col = w->curCol;
+				
+				Buffer_DeleteLine(b, w->current);
+				
+				if(cur) GBEC_MoveCursorTo(w, cur, col);
+			}
+			break;
+		}
+		
 		case BufferCmd_Paste:
 			b2 = Clipboard_PopBuffer();
 			if(b2) {
