@@ -1,4 +1,6 @@
 {
+	AppState_frameRate: 30,
+	
 	"GUIManager_maxInstances": 16384,
 	"MainControl_startupTabs": [
 		{ "type": "Edit", "path": "./testfile.c", },

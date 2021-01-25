@@ -56,6 +56,7 @@ BufferLine* BufferLine_New() {
 	l->buf = malloc(sizeof(*l->buf) * l->allocSz);
 	l->flagBuf = malloc(sizeof(*l->flagBuf) * l->allocSz);
 	l->buf[0] = 0;
+	l->length = 0;
 	return l;
 }
 
@@ -76,11 +77,11 @@ BufferLine* BufferLine_Copy(BufferLine* orig) {
 	BufferLine* l = BufferLine_New();
 	l->length = orig->length;
 	l->allocSz = orig->allocSz;
-	l->buf = calloc(1, l->allocSz);
-	l->flagBuf = calloc(1, l->allocSz);
+	l->buf = calloc(1, sizeof(*l->buf) * l->allocSz);
+	l->flagBuf = calloc(1, sizeof(*l->flagBuf) * l->allocSz);
 	l->flags = orig->flags;
-	strncpy(l->buf, orig->buf, l->length);
-	strncpy(l->flagBuf, orig->flagBuf, l->length); // better than nothing
+	memcpy(l->buf, orig->buf, sizeof(*l->buf) * l->length);
+	memcpy(l->flagBuf, orig->flagBuf, sizeof(*l->flagBuf) * l->length); // better than nothing
 	VEC_COPY(&l->style, &orig->style);
 	return l;
 }
@@ -96,8 +97,8 @@ void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len) {
 	}
 	else if(l->allocSz < len + 1) {
 		l->allocSz = nextPOT(len + 1);
-		l->buf = realloc(l->buf, l->allocSz);
-		l->flagBuf = realloc(l->flagBuf, l->allocSz);
+		l->buf = realloc(l->buf, sizeof(*l->buf) * l->allocSz);
+		l->flagBuf = realloc(l->flagBuf, sizeof(*l->flagBuf) * l->allocSz);
 // 		l->style = realloc(l->style, l->allocSz);
 	}
 }
@@ -128,12 +129,13 @@ void BufferLine_DeleteChars(BufferLine* l, intptr_t offset, intptr_t len) {
 	if(offset > l->length + 1) return; // strange overrun
 	
 	if(offset < l->length) {
-		intptr_t n = l->length - offset - len + 1; // +1 for the null terminator
+		intptr_t n = l->length - offset - len;
 // 		n = MAX(0, n);
 // 		printf("length: %ld, alloc: %ld, off: %ld, len: %ld, n: %ld\n", l->length, l->allocSz, offset, len, n);
 		memmove(l->buf + offset, l->buf + offset + len, n);
 	}
 	
+//	printf("delchar len:%ld, %ld\n", len, l->length);
 	l->length -= len;
 	l->buf[l->length] = 0;
 }

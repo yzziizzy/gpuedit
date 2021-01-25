@@ -744,11 +744,8 @@ void SetUpPDP(AppState* as, PassDrawParams* pdp) {
 //#define PERF(...) __VA_ARGS__
 #define PERF(...) 
 
-#define PF_START(x) as->perfTimes.x = getCurrentTime()
-#define PF_STOP(x) as->perfTimes.x = timeSince(as->perfTimes.x)
 
 void appLoop(XStuff* xs, AppState* as, InputState* is) {
-	double ftime = 0.0;
 	
 	// in seconds
 	double frameTimeTarget = 1.0 / (as->globalSettings.AppState_frameRate);
@@ -783,7 +780,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		double estimatedSleepTime;
 		
 		// frameCost is the amount of time it takes to generate a new frame
-		estimatedSleepTime = frameTimeTarget - lastFrameCost;
+		estimatedSleepTime = (frameTimeTarget - lastFrameCost) * .98;
 		
 		struct timespec sleepInterval;
 		sleepInterval.tv_sec = estimatedSleepTime;
@@ -820,9 +817,10 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		PERF(printf("events / sleep / total: %fus / %fus / %fus\n", 
 			totalEventsTime * 1000000.0,
 			totalSleepTime * 1000000.0,
-			timeSince(ftime) * 1000000.0
+			timeSince(frameStart) * 1000000.0
 		));
-		
+		PERF(totalSleepTime = 0);
+		PERF(totalEventsTime = 0);
 		
 		frameCostStart = getCurrentTime();
 		

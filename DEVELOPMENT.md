@@ -5,8 +5,8 @@
 * Basic autocomplete
 * Reorder tabs
 * Autosort tabs
-* Get rid of null-buf in empty lines
 * Go to previous search match (refactor search to find all in a list)
+* Resume search is broken
 * Able to refocus on the editor while finding
 * NULL-inserting bug related to line splitting after movign from long line to short
 
@@ -38,7 +38,6 @@
 * Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working
 * Clipboard ring
-* Choose highlighter based on file extension
 * Proper tabstops
 * Ability to change the highlighter
 * Open file command
@@ -68,12 +67,10 @@
 * Drag and drop from the WM
 * Save-as and save dialog
 * Breadcrumbs/path in file browser
-* Load GUIManager defaults from file
 * Wire all the settings updates through the app
 * Folder-local config file
 * Split windows
 * Adjustable scroll lines in fileBrowser, get from OS if possible
-* Finish factoring editing state out of Buffer
 * MIME type probing of some sort
 * Persist bookmarks
 * Polish scrollbar dragging
@@ -167,10 +164,8 @@
 * Mouse scroll on files with fewer lines than the screen
 * Should not be able to delete the last line
 * Check all column usage for correct 1/0 basing
-* Theme styling of selection stub on empty lines
 * Mouse drag start params need tuning 
 * Need warnings and protection against overrunning the persistent gpu vertex buffers
-* GUIManager hit test needs to sort hits by z
 * Tabbing between edit boxes in the Replace tray causes the buffer to jump to the top.
 * Undo breaks with CollapseWhitespace after deleting a selected word.
 

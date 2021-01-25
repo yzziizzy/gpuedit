@@ -85,7 +85,7 @@ enum UndoActions {
 	UndoAction_DeleteText,
 	UndoAction_InsertChar,
 	UndoAction_DeleteChar,
-	UndoAction_InsertLineAfter, // 0 inserts a line at the beginning
+	UndoAction_InsertLineAt, // the new line will have the given line number
 	UndoAction_DeleteLine,
 	UndoAction_MoveCursorTo,
 	UndoAction_SetSelection,

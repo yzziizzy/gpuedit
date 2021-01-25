@@ -12,6 +12,10 @@
 
 
 
+//#define LOG_UNDO(...) __VA_ARGS__
+#define LOG_UNDO(...)
+
+
 
 
 extern int g_DisableSave;
@@ -60,6 +64,12 @@ void Buffer_Delete(Buffer* b) {
 	
 	Buffer_FreeAllUndo(b);
 }
+
+
+
+//
+//    Undo Functions
+//
 
 
 static int undo_avail(Buffer* b) {
@@ -151,7 +161,11 @@ void Buffer_UndoInsertText(
 	u->action = UndoAction_InsertText;
 	u->lineNum = line;
 	u->colNum = col;
-	u->text = txt ? strndup(txt, len) : NULL;
+	u->text = NULL;
+	if(txt) {
+		u->text = malloc(sizeof(*txt) * len);
+		memcpy(u->text, txt, len);
+	}
 	u->length = len;
 }
 
@@ -166,7 +180,11 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 	u->action = UndoAction_DeleteText;
 	u->lineNum = bl->lineNum;
 	u->colNum = offset;
-	u->text = bl->buf ? strndup(bl->buf + offset, len) : NULL;
+	u->text = NULL;
+	if(len) {
+		u->text = malloc(sizeof(*bl->buf) * len);
+		memcpy(u->text, bl->buf + offset, len);
+	}
 	u->length = len;
 }
 
@@ -214,8 +232,20 @@ void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
 	BufferUndo* u = undo_inc(b);
 	
-	u->action = UndoAction_InsertLineAfter;
-	u->lineNum = before ? before->lineNum : 0; // 0 means the first line 
+	u->action = UndoAction_InsertLineAt;
+	u->lineNum = before ? before->lineNum + 1 : 1; 
+	u->colNum = 0;
+	u->text = NULL;
+	u->length = 0;
+}
+
+void Buffer_UndoInsertLineBefore(Buffer* b, BufferLine* after) {
+// 	VEC_INC(&b->undoStack);
+// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+	BufferUndo* u = undo_inc(b);
+	
+	u->action = UndoAction_InsertLineAt;
+	u->lineNum = after->lineNum; 
 	u->colNum = 0;
 	u->text = NULL;
 	u->length = 0;
@@ -283,6 +313,7 @@ void Buffer_RedoReplayToSeqBreak(Buffer* b) {
 }
 
 
+
 // executes a single undo action
 // returns 0 on a sequence break
 int Buffer_UndoReplayTop(Buffer* b) {
@@ -297,27 +328,34 @@ int Buffer_UndoReplayTop(Buffer* b) {
 	switch(u->action) {
 		case UndoAction_InsertText: // delete text
 			bl = Buffer_raw_GetLine(b, u->lineNum);
+			LOG_UNDO(printf("UNDO: deleting text at col %d '%.*s'\n", (int)u->colNum, (int)u->length, bl->buf));
 			Buffer_raw_DeleteChars(b, bl, u->colNum, u->length);
 			break;
 			
 		case UndoAction_DeleteText: // re-insert the text
 			bl = Buffer_raw_GetLine(b, u->lineNum);
+			LOG_UNDO(printf("UNDO: inserting text at col %d '%.*s'\n", (int)u->colNum, (int)u->length, u->text));
 			Buffer_raw_InsertChars(b, bl, u->text, u->colNum, u->length);
 			//b->current = bl; // BUG not right after <delete> key
 			//b->curCol = u->colNum + u->length;
 			break;
 			
-		case UndoAction_InsertLineAfter: // delete the line
-			bl = Buffer_raw_GetLine(b, u->lineNum + 1);
+		case UndoAction_InsertLineAt: // delete the line
+			bl = Buffer_raw_GetLine(b, u->lineNum);
+			LOG_UNDO(printf("UNDO: deleting line number (%ld) '%.*s'\n", u->lineNum, (int)bl->length, bl->buf));
+			
+			Buffer_NotifyLineDeletion(b, bl, bl);
 			Buffer_raw_DeleteLine(b, bl);
 			break; 
 			
 		case UndoAction_DeleteLine: // insert the line
 			if(u->lineNum == 0) {
+				LOG_UNDO(printf("UNDO: insert first line\n"));
 				BufferLine* bln = Buffer_raw_InsertLineBefore(b, b->first);
 				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
 			}
 			else {
+				LOG_UNDO(printf("UNDO: insert line before (%ld) '%.*s'\n", u->lineNum, (int)u->length, u->text));
 				bl = Buffer_raw_GetLine(b, u->lineNum);
 				BufferLine* bln = Buffer_raw_InsertLineBefore(b, bl);
 				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
@@ -397,7 +435,9 @@ int Buffer_RedoReplay(Buffer* b, BufferUndo* u) {
 			Buffer_raw_DeleteLine(b, bl);
 			break; 
 			
-		case UndoAction_InsertLineAfter:
+		case UndoAction_InsertLineAt:
+		
+			// TODO: fix for s/After/At/
 			if(u->lineNum == 0) {
 				BufferLine* bln = Buffer_raw_InsertLineBefore(b, b->first);
 				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
@@ -442,7 +482,7 @@ BufferLine* Buffer_InsertEmptyLineAfter(Buffer* b, BufferLine* before) {
 	return Buffer_raw_InsertLineAfter(b, before);
 }
 BufferLine* Buffer_InsertEmptyLineBefore(Buffer* b, BufferLine* after) {
-	Buffer_UndoInsertLineAfter(b, after->prev);
+	Buffer_UndoInsertLineBefore(b, after);
 	return Buffer_raw_InsertLineBefore(b, after);
 }
 
@@ -483,7 +523,7 @@ void Buffer_LineInsertChars(Buffer* b, BufferLine* bl, char* text, intptr_t offs
 
 void Buffer_LineAppendText(Buffer* b, BufferLine* bl, char* text, intptr_t length) {
 	Buffer_UndoInsertText(b, bl->lineNum, 
-		bl->length + 1,
+		bl->length, // used to have +1
 		text, length);
 	Buffer_raw_InsertChars(b, bl, text, bl->length, length); // BUG: of by 1?
 }
@@ -493,8 +533,12 @@ void Buffer_LineAppendLine(Buffer* b, BufferLine* target, BufferLine* src) {
 }
 
 void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, intptr_t col, intptr_t length) {
-	Buffer_UndoDeleteText(b, bl, col, length);
-	Buffer_raw_DeleteChars(b, bl, col, length);
+	
+	intptr_t len = MIN(bl->length - col, length);
+	if(len <= 0) return;
+	
+	Buffer_UndoDeleteText(b, bl, col, len);
+	Buffer_raw_DeleteChars(b, bl, col, len);
 }
 
 
@@ -645,28 +689,53 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 	
 	if(s.startLine == s.endLine) {
 		// move the end down
-		Buffer_LineDeleteChars(b, s.startLine, s.startCol, s.endCol - s.startCol);
+		if(s.startCol < s.endCol) {
+			Buffer_LineDeleteChars(b, s.startLine, s.startCol, s.endCol - s.startCol);
+			LOG_UNDO(printf(" > moving the end down\n"));
+		}
 	}
 	else {
+		// don't truncate start line if scol is at the end
+		LOG_UNDO(printf(" > non-single-line selection deletion\n"));
+	
 		// truncate start line after selection start
-		Buffer_LineTruncateAfter(b, s.startLine, s.startCol);
 		
-		// append end line after selection ends to first line
-		char* elb = s.endLine->buf + s.endCol;
-		Buffer_LineAppendText(b, s.startLine, elb, strlen(elb));
+		if(s.startCol > 0) {
+			LOG_UNDO(printf(" > truncating line '%.*s'\n", (int)s.startLine->length - (int)s.startCol, s.startLine->buf));
+			Buffer_LineTruncateAfter(b, s.startLine, s.startCol);
+			
+			// append end line after selection ends to first line
+			char* elb = s.endLine->buf + s.endCol;
+			
+			LOG_UNDO(printf(" > append text '%.*s'\n", (int)s.endLine->length - (int)s.endCol, elb));
+			
+			Buffer_LineAppendText(b, s.startLine, elb, s.endLine->length - s.endCol);
+		}
+		else {
+			LOG_UNDO(printf(" > delete first line %.*s\n", (int)s.startLine->length, s.startLine->buf));
+			Buffer_DeleteLine(b, s.startLine);
+		}
 		
 		
 		// delete lines 1-n
 		BufferLine* bl = s.startLine->next;
 		BufferLine* next;
-		while(bl) {
+		while(bl != s.endLine) {
 			next = bl->next; 
 			//Buffer_NotifyLineDeletion(b, bl, bl);
+			LOG_UNDO(printf(" > delete line %.*s\n", (int)bl->length, bl->buf));
 			Buffer_DeleteLine(b, bl);
 			
 			if(bl == s.endLine) break;
 			bl = next;
 		}
+		
+		if(s.startCol > 0) {
+			printf(" > delete last line %.*s\n", (int)s.endLine->length, s.endLine->buf);
+			
+			Buffer_DeleteLine(b, s.endLine);
+		}
+		
 	}
 	
 }
@@ -936,6 +1005,7 @@ Buffer* Buffer_Copy(Buffer* src) {
 Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	Buffer* b = Buffer_New();
 	
+	LOG_UNDO(printf("\n\n"));
 	
 	BufferLine* blc, *blc_prev, *bl;
 	
@@ -956,11 +1026,12 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	bl = sel->startLine;
 	if(sel->startCol == 0) {
 		blc = BufferLine_Copy(sel->startLine);
+		LOG_UNDO(printf("copy entire first line\n"));
 	}
 	else {
 		// copy only the end
-		char* start = sel->startLine->buf ? sel->startLine->buf + sel->startCol : "";
-		blc = BufferLine_FromStr(start, strlen(start));
+		blc = BufferLine_FromStr(sel->startLine->buf, sel->startLine->length - sel->startCol);
+		LOG_UNDO(printf("copying end of the first line\n"));
 	}
 	
 	b->numLines++;
@@ -987,6 +1058,8 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 		
 	b->numLines++;
 	b->last = blc;
+	
+	LOG_UNDO(printf("\n"));
 	
 	return b;
 }
@@ -1021,14 +1094,21 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 	char* tmp = NULL;
 	BufferLine* blc, *bl;
 	
+	LOG_UNDO(printf("\n"));
+	
 	if(outRange) {
 		outRange->startLine = tline;
 		outRange->startCol = tcol;
 	}
 		
 	// check for easy special  cases
-	if(graft->numLines == 0) return;
+	if(graft->numLines == 0) {
+		LOG_UNDO(printf("zero-line buffer insert\n\n"));
+		return;
+	}
+	
 	if(graft->numLines == 1) {
+		LOG_UNDO(printf("single-line buffer insert\n\n"));
 		Buffer_LineInsertChars(target, tline, graft->first->buf, tcol, graft->first->length);
 		
 		if(outRange) {
@@ -1039,33 +1119,46 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 		return;
 	}
 	
+	LOG_UNDO(printf("multi-line buffer insert:\n"));
+
+	BufferLine* t = tline;
+	
 	// cutting the remainder of the first line to a temporary buffer
-	if(tline->length) {
+	if(tline->length && tcol > 0) {
 		tmplen = tline->length - tcol;
 		tmp = malloc(tmplen);
-		tmp[tmplen] = 0;
 		memcpy(tmp, tline->buf + tcol, tmplen);
+		LOG_UNDO(printf(" > tmp: '%.*s'\n", (int)tmplen, tmp));
 		
 		tline->length = tcol;
-		tline->buf[tcol] = 0;
+	}
+	else if(graft->last->length == 0) {
+		LOG_UNDO(printf(" > inserting empty line before\n"));
+		t = Buffer_InsertEmptyLineBefore(target, tline);
 	}
 	
-
-	Buffer_LineAppendText(target, tline, graft->first->buf, graft->first->length);
+	LOG_UNDO(printf(" > inserting first line '%.*s'\n", (int)graft->first->length, graft->first->buf));
+	Buffer_LineAppendText(target, t, graft->first->buf, graft->first->length);
 	
 	// copy in the middle lines
 	BufferLine* gbl = graft->first->next;
-	BufferLine* t = tline;
 	while(gbl && gbl != graft->last) {
 		
+		LOG_UNDO(printf(" > inserting line '%.*s'\n", (int)gbl->length, gbl->buf));
 		t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
 		
 		gbl = gbl->next;
 	}
 	
-	t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
+	if(graft->last->length > 0) {
+		LOG_UNDO(printf(" > inserting last line '%.*s'\n", (int)gbl->length, gbl->buf));
+		t = Buffer_InsertLineAfter(target, t, gbl->buf, gbl->length);
+	}
+	
 	// prepend the last line to the temp buffer
-	if(tline->length) {
+	if(tmplen) {
+		LOG_UNDO(printf(" > appending last line (%d)'%.*s'\n", (int)tmplen, (int)tmplen, tmp));
+	
 		Buffer_LineAppendText(target, t, tmp, tmplen);
 	}
 	
@@ -1625,7 +1718,7 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 		if(ii == b->undoSaveIndex) c  = 's';
 		if(ii == b->undoCurrent) c  = '>';
 		
-		printf("%c%d [%s] {%ld,%ld} %ld:'%.*s'\n", c, i, names[u->action], 
+		printf("%c%d [%s] {line:%ld:%ld} len:%ld:'%.*s'\n", c, i, names[u->action], 
 			u->lineNum, u->colNum, u->length, (int)u->length, u->text);
 	}
 	
@@ -1717,6 +1810,9 @@ void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
 }
 
 void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l) {
+	
+	return;
+	
 	size_t n;
 	char* s = l->buf;
 	
