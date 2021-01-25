@@ -392,7 +392,10 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	else if(0 == strcmp(gev->userType, "openFile")) {
 		GUIMainControl_LoadFile(w, gev->userData);
 	}
-	
+	else if(0 == strcmp(gev->userType, "closeMe")) {
+		int i = GUIMainControl_FindTabIndexByHeaderP(w, gev->originalTarget);
+		if(i > -1) GUIMainControl_CloseTab(w, i);
+	}
 }
 
 
@@ -645,6 +648,33 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 
 
 
+int GUIMainControl_FindTabIndexByHeaderP(GUIMainControl* w, GUIHeader* h) {
+	VEC_EACH(&w->tabs, i, tab) {
+		if(tab->client == h) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+
+int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path) {
+	GUIBufferEditor* be;
+	VEC_EACH(&w->tabs, i, tab) {
+		if(tab->type == MCTAB_EDIT) {
+			be = (GUIBufferEditor*)tab->client;
+			
+			if(0 == strcmp(path, be->sourceFile)) {
+				return i;
+			}
+		}
+	}
+
+	return -1;
+}
+
+
 
 GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	int len = VEC_LEN(&w->tabs);
@@ -773,6 +803,7 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	}
 
 	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
+	fb->gs = w->gs;
 	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 	fb->commands = w->commands;
 
@@ -881,6 +912,12 @@ static void setBreakpoint(char* file, intptr_t line, GUIMainControl* w) {
 }
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
+	int index = GUIMainControl_FindTabIndexByBufferPath(w, path);
+	if(index > -1) {
+		GUIMainControl_GoToTab(w, index);
+		return;
+	}
+	
 	
 	// HACK: these structures should be looked up from elsewhere
 	EditorParams* ep = pcalloc(ep);
@@ -959,6 +996,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	char* shortname = strdup(path);
 	
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &gbe->header, basename(shortname));
+	tab->type = MCTAB_EDIT;
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;
 	tab->everyFrame = gbeEveryFrame;

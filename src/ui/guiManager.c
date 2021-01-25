@@ -729,6 +729,23 @@ void GUIManager_BubbleEvent(GUIManager* gm, GUIHeader* target, GUIEvent* gev) {
 }
 
 
+void GUIManager_BubbleUserEvent(GUIManager* gm, GUIHeader* target, char* ev) {
+	GUIEvent gev = {};
+	gev.type = GUIEVENT_User;
+	gev.eventTime = 0; //gev->eventTime;
+	gev.originalTarget = target;
+	gev.currentTarget = target;
+	gev.cancelled = 0;
+	// handlers are responsible for cleanup
+	gev.userData = NULL;
+	gev.userSize = NULL;
+	
+	gev.userType = ev;
+
+	GUIManager_BubbleEvent(gm, target, &gev);
+}
+
+
 // lowest level of event triggering
 // does not do bubbling
 void GUIHeader_TriggerEvent(GUIHeader* o, GUIEvent* gev) {

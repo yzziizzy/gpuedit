@@ -182,6 +182,11 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			
 			free(path_raw);
 			free(path);
+
+			if(w->gs->MainControl_openInPlace) {
+				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+			}
+
 			break;
 		}
 		

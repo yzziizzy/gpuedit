@@ -23,6 +23,7 @@ typedef struct TabSpec {
 	SETTING(bool,  AppState_enableVSync,        false,  NULL, NULL) \
 	SETTING(int,   GUIManager_maxInstances,     8192,  4096, INT_MAX) \
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
+	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, Buffer_cursorBlinkOffTime,   0.600, 0,    300000) \

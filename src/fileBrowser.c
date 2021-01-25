@@ -180,6 +180,9 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 				gev2.userType = "accepted";
 			
 				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+				if(w->gs->MainControl_openInPlace) {
+					GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+				}
 		
 				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
 				if(gev2.userData && !gev2.cancelled) {
@@ -204,6 +207,9 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
 				gev2.userType = "accepted";
 			
 				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+				if(w->gs->MainControl_openInPlace) {
+					GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+				}
 		
 				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
 				if(gev2.userData && !gev2.cancelled) {
@@ -237,6 +243,7 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 	gev2.cancelled = 0;
 	
 	
+	int userClose = 0;
 	int userEvent = 0;
 	if(gev->originalTarget == (void*)w->cancelBtn) {
 		gev2.userType = "cancelled";
@@ -250,6 +257,8 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 		
 		gev2.userType = "accepted";
 		userEvent = 1;
+
+		userClose = w->gs->MainControl_openInPlace ? 1 : 0;
 	}
 	else if(gev->originalTarget == (void*)w->newFileBtn) {
 		gev2.userType = "new_file";
@@ -267,6 +276,9 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 		if(gev2.userData && !gev2.cancelled) {
 			GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
 		}
+	}
+	if(userClose) {
+		GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
 	}
 	
 	gev->cancelled = 1;
@@ -301,6 +313,8 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	
 	w->fbc = GUIFileBrowserControl_New(gm, path);
 	w->fbc->header.flags |= GUI_MAXIMIZE_X;
+
+	w->fbc->linesPerScrollWheel = gm->gs->linesPerScrollWheel;
 	
 	w->filenameBar = GUIEdit_New(gm, "");
 	w->filenameBar->header.flags |= GUI_MAXIMIZE_X;

@@ -11,8 +11,6 @@
 * NULL-inserting bug related to line splitting after movign from long line to short
 
 == Needed before fractal dogfooding ==
-* theme switching
-* dark/light/theme? highlighter colors
 * full Pascal string conversion
 * ctrl+l/r jumps across tabs
 * copy cannot paste to pgadmin3 (INCR? mime type?)
@@ -35,7 +33,6 @@
 * Tab Bar scrolling
 * Smart uncomment
 * home: start of text <-> start of line
-* Don't reopen files that are already open
 * Mark changed tabs with "*" -- semi-working
 * Clipboard ring
 * Proper tabstops

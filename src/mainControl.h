@@ -86,9 +86,14 @@ void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s);
 
 MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* client, char* title);
 void GUIMainControl_CloseTab(GUIMainControl* w, int index);
+
+int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path);
+int GUIMainControl_FindTabIndexByHeaderP(GUIMainControl* w, GUIHeader* h);
+
 GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic);
 GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic);
 GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i);
+GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, TabType_t type, int n);
 
 
 

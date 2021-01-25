@@ -16,10 +16,21 @@
 		"outlineCurrentLineBorderColor": "#ccccccff",
 		"selectedItemTextColor": "#333333ff",
 		"selectedItemBgColor": "#ddddddff",
-	
-		// gui manager defaults
 	},
+	// gui manager defaults
 	GUI_GlobalSettings: {
+		"bgColor": "#ffffffff",
+		"lineNumColor": "#333333ff",
+		"lineNumBgColor": "#ffffffff",
+		"lineNumBookmarkColor": "#32ff32ff",
+		"hl_bgColor": "#add6ffff",
+		"hl_textColor": "#ffffff00",
+		"find_bgColor": "#add6ffff",
+		"find_textColor": "#ffffff00",
+		"outlineCurrentLineBorderColor": "#ccccccff",
+		"selectedItemTextColor": "#333333ff",
+		"selectedItemBgColor": "#ddddddff",
+
 		"textColor": "#000000ff",
 		
 		"buttonTextColor": "#c8c8e1ff",

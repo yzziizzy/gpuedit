@@ -10,6 +10,8 @@
 	\
 	SETTING(charpp,fontList,             ((char*[]){"Arial","Courier New", NULL}), NULL, NULL) \
 	\
+	SETTING(int,   linesPerScrollWheel,           5, 1, 999) \
+	\
 	SETTING(bool,  is_dark,                       true,        NULL, NULL) \
 	SETTING(charp, bgColor,                       "#0f0f0fff", NULL, NULL) \
 	SETTING(charp, lineNumColor,                  "#ffffffff", NULL, NULL) \

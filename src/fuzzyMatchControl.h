@@ -21,7 +21,7 @@ typedef struct GUIFuzzyMatchControl {
 	float lineHeight;
 	float leftMargin;
 	
-	GlobalSettings* gs;	
+	GlobalSettings* gs;
 	Cmd* commands;
 	
 } GUIFuzzyMatchControl;
