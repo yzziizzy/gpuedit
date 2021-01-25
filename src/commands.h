@@ -34,6 +34,7 @@
 	X(BufferCmd, GoToAfterIndent) \
 	X(BufferCmd, RehilightWholeBuffer) \
 	X(BufferCmd, Cut) \
+	X(BufferCmd, SmartCut) \
 	X(BufferCmd, Copy) \
 	X(BufferCmd, Paste) \
 	X(BufferCmd, SetBookmark) \
@@ -53,6 +54,10 @@
 	X(BufferCmd, MoveToPrevSequence) \
 	X(BufferCmd, DeleteToNextSequence) \
 	X(BufferCmd, DeleteToPrevSequence) \
+	X(BufferCmd, GrowSelectionToNextSequence) \
+	X(BufferCmd, GrowSelectionToPrevSequence) \
+	X(BufferCmd, GrowSelectionToSOL) \
+	X(BufferCmd, GrowSelectionToEOL) \
 	X(BufferCmd, Indent) \
 	X(BufferCmd, SmartIndent) \
 	X(BufferCmd, Unindent) \
@@ -95,9 +100,13 @@
 	X(FuzzyMatcherCmd, CursorMove) \
 	X(FuzzyMatcherCmd, Open) \
 	\
+	X(GrepOpenCmd, CursorMove) \
+	X(GrepOpenCmd, Open) \
+	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \
 	X(MainCmd, FuzzyOpener) \
+	X(MainCmd, GrepOpen) \
 	X(MainCmd, SaveActiveTab) \
 	X(MainCmd, SaveAll) \
 	X(MainCmd, Quit) \

@@ -145,6 +145,8 @@ static void grab_tabsp(TabSpec** out, json_value_t* obj, char* prop) {
 						tmp[i].type = MCTAB_FUZZYOPEN;
 					} else if(!strcasecmp(type_str, "FileOpen")) {
 						tmp[i].type = MCTAB_FILEOPEN;
+					} else if(!strcasecmp(type_str, "GrepOpen")) {
+						tmp[i].type = MCTAB_GREPOPEN;
 					} else {
 						tmp[i].type = MCTAB_EDIT;
 					}
