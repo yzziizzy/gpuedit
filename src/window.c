@@ -116,9 +116,9 @@ int event_base, error_base;
 static void clipNotify(int which, XStuff* xs) {
 	Atom a;
 	switch(which) {
-		case CLIP_PRIMARY: a = xs->primaryID; break;
+		case CLIP_SELECTION: a = xs->primaryID; break;
 		case CLIP_SECONDARY: a = xs->secondaryID; break;
-		case CLIP_SELECTION: a = xs->clipboardID; break;
+		case CLIP_PRIMARY: a = xs->clipboardID; break;
 		default: return;
 	}
 	XSetSelectionOwner(xs->display, a, xs->clientWin, CurrentTime);
@@ -499,9 +499,9 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 // 			xev.xselectionrequest.selection
 // 			printf("selection request\n");
 			int which;
-			if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_PRIMARY;
+			if(xev.xselectionrequest.selection == xs->clipboardID) which = CLIP_PRIMARY;
 			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;
-			else if(xev.xselectionrequest.selection == xs->clipboardID) which = CLIP_SELECTION;
+			else if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_SELECTION;
 			else continue;
 			
 			char* txt;
