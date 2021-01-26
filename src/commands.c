@@ -41,6 +41,7 @@ static struct {
 	{"resetCursorBlink", 1 << 2},
 	{"undoSeqBreak",     1 << 3},
 	{"hideMouse",        1 << 4},
+	{"centerOnCursor",   1 << 5},
 	{NULL, 0},
 };
 

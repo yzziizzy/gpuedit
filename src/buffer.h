@@ -586,9 +586,10 @@ void GUIBufferEditor_Destroy(GUIBufferEditor* w);
 void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b);
 void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b);
 
-
-void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);;
-void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* gbe);;
+void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intptr_t col);
+void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);
+void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* gbe);
+void GBEC_scrollToCursorCentered(GUIBufferEditControl* w);
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
 

@@ -8,6 +8,7 @@
 
 static void insertChar(GUIEdit* ed, char c);
 static void updateTextControl(GUIEdit* ed);
+static void setText(GUIEdit* ed, char* s);
 static void fireOnchange(GUIEdit* ed);
 static void fireOnEnter(GUIEdit* ed);
 
@@ -157,6 +158,14 @@ static void lostFocus(GUIHeader* w_, GUIEvent* gev) {
 static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	
+	if((gev->modifiers == GUIMODKEY_CTRL) && (gev->keycode == XK_BackSpace)) {
+		setText(w, "");
+		
+		fireOnchange(w);
+		
+		gev->cancelled = 1;
+	}
+	
 	// NOTE: paste will be an event type
 	if(gev->modifiers & (GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX)) return;
 	
@@ -168,10 +177,10 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		moveCursor(w, 1);
 		gev->cancelled = 1;
 	}
-	else if(gev->keycode == XK_Return) {
+	/*else if(gev->keycode == XK_Return) {
 		fireOnEnter(w);
 		gev->cancelled = 1;
-	}
+	}*/
 	else if(gev->keycode == XK_BackSpace) {
 		removeChar(w, w->cursorpos - 1);
 		moveCursor(w, -1);

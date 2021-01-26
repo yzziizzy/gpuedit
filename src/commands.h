@@ -28,7 +28,9 @@
 	X(BufferCmd, SelectLine) \
 	X(BufferCmd, SelectToEOL) \
 	X(BufferCmd, SelectFromSOL) \
-	X(BufferCmd, GoToLine) \
+	X(BufferCmd, GoToLineLaunch) \
+	X(BufferCmd, GoToLineSubmit) \
+	X(BufferCmd, GoToLineCancel) \
 	X(BufferCmd, GoToEOL) \
 	X(BufferCmd, GoToSOL) \
 	X(BufferCmd, GoToAfterIndent) \
@@ -70,6 +72,7 @@
 	X(BufferCmd, SmartUncomment) \
 	X(BufferCmd, CollapseWhitespace) \
 	X(BufferCmd, FindStartSequenceUnderCursor) \
+	X(BufferCmd, FindStartFromSelection) \
 	X(BufferCmd, FindStart) \
 	X(BufferCmd, FindResume) \
 	X(BufferCmd, FindNext) \
@@ -97,11 +100,13 @@
 	X(FileBrowserCmd, ToggleSelect) \
 	X(FileBrowserCmd, JumpToLetter) \
 	\
+	X(FuzzyMatcherCmd, Exit) \
 	X(FuzzyMatcherCmd, CursorMove) \
-	X(FuzzyMatcherCmd, Open) \
+	X(FuzzyMatcherCmd, OpenFile) \
 	\
+	X(GrepOpenCmd, Exit) \
 	X(GrepOpenCmd, CursorMove) \
-	X(GrepOpenCmd, Open) \
+	X(GrepOpenCmd, OpenFile) \
 	\
 	X(MainCmd, SimpleWindowTest) \
 	X(MainCmd, OpenFileBrowser) \

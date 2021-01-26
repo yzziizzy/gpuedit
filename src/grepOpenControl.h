@@ -8,6 +8,7 @@
 typedef struct {
 	char* basepath;
 	char* filepath;
+	intptr_t line_num;
 	char* line;
 	char* render_line;
 } gocandidate;

@@ -58,6 +58,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		unsigned int resetCursorBlink = 1 << 2;
 		unsigned int undoSeqBreak     = 1 << 3;
 		unsigned int hideMouse        = 1 << 4;
+		unsigned int centerOnCursor   = 1 << 5;
 		
 		
 		Cmd found;
@@ -99,6 +100,10 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 						1 // TODO check pivot locations
 					);
 				}
+			}
+			
+			if(found.flags & centerOnCursor) {
+				GBEC_scrollToCursorCentered(w->ec);
 			}
 		}
 		
@@ -178,10 +183,6 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 //			GUIBufferEditor_NextFindMatch(w);
 		// 	GUIBufferEditor_FindWord(w, word);
-			GUIBufferEditor_scrollToCursor(w);
-		}
-		else if(0 == strcmp(gev->userType, "enter")) {
-			GUIBufferEditor_NextFindMatch(w);
 			GUIBufferEditor_scrollToCursor(w);
 		}
 	}
@@ -758,38 +759,46 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			GBEC_MoveCursorTo(w->ec, w->ec->current, BufferLine_GetIndentCol(w->ec->current));
 			break;
 			
-		case BufferCmd_GoToLine:
-			GUIBufferEditor_ToggleTray(w, 50);
-		
+		case BufferCmd_GoToLineLaunch:
 			if(!w->lineNumTypingMode) {
+				if(w->trayOpen) {
+					GUIBufferEditor_CloseTray(w);
+				}
+				
 				w->lineNumTypingMode = 1;
-				// activate the line number entry box
-				w->lineNumEntryBox = GUIEdit_New(w->header.gm, "");
-				GUIResize(&w->lineNumEntryBox->header, (Vector2){200, 20});
-				w->lineNumEntryBox->header.topleft = (Vector2){0,5};
-				w->lineNumEntryBox->header.gravity = GUI_GRAV_TOP_CENTER;
-				w->lineNumEntryBox->header.z = 600;
-				w->lineNumEntryBox->numType = 1; // integers
+				w->trayOpen = 1;
+				w->inputMode = 3;
 				
-// 				w->lineNumEntryBox->onChange = gotoline_onchange;
-// 				w->lineNumEntryBox->onChangeData = w;
-				
-// 				w->lineNumEntryBox->onEnter = gotoline_onenter;
-// 				w->lineNumEntryBox->onEnterData = w;
-				
-				GUI_RegisterObject(w->trayRoot, w->lineNumEntryBox);
+				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "goto_tray");
+				GUI_RegisterObject(w, w->trayRoot);
+				w->lineNumEntryBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "goto_line");
 				
 				w->ec->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, &w->lineNumEntryBox->header);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
-				w->lineNumTypingMode = 0;
 				w->ec->cursorBlinkPaused = 0;
-// 				guiDelete(w->lineNumEntryBox);
 				GUIManager_popFocusedObject(w->header.gm);
 			}
 		// TODO: change hooks
+			break;
+		
+		case BufferCmd_GoToLineSubmit:
+			printf("goto line submit\n");
+			if(w->lineNumTypingMode) {
+				intptr_t line_num = atol(GUIEdit_GetText(w->lineNumEntryBox));
+				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
+				
+				if(bl) {
+					GBEC_MoveCursorTo(w->ec, bl, 0);
+					GBEC_scrollToCursorCentered(w->ec);
+				}
+				
+				GUIBufferEditor_CloseTray(w);
+				w->lineNumTypingMode = 0;
+				GUIManager_popFocusedObject(w->header.gm);
+			}
 			break;
 		
 		case BufferCmd_ReplaceNext: { // TODO put this all in a better spot
@@ -901,6 +910,50 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 			
 		
+			break;
+			
+		case BufferCmd_FindStartFromSelection:
+			if(!w->findMode) {
+				char* preserved = NULL;
+				if(w->trayOpen) {
+					GUIBufferEditor_CloseTray(w);
+				}
+				
+				w->findMode = 1;
+				w->trayOpen = 1;
+				w->inputMode = 1;
+				
+				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
+				GUI_RegisterObject(w, w->trayRoot);
+				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
+				
+//				BufferRange sel;
+				Buffer* b = w->ec->buffer;
+//				Buffer_GetSequenceUnder(b, w->ec->current, w->ec->curCol, cmd->str, &sel);
+				char* str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
+				GUIEdit_SetText(w->findBox, str);
+				
+				
+				w->findIndex = -1;
+				
+				w->findSet = GUIBufferEditor_FindAll(w, str);
+				w->ec->findSet = w->findSet;
+					
+//				GUIBufferEditor_NextFindMatch(w);
+				
+				if(w->findQuery) free(w->findQuery);
+				w->findQuery = str;
+
+				GUIBufferEditor_scrollToCursor(w);
+				
+				w->ec->cursorBlinkPaused = 1;
+				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
+			}
+			else {
+				GUIBufferEditor_CloseTray(w);
+				w->ec->cursorBlinkPaused = 0;
+				GUIManager_popFocusedObject(w->header.gm);
+			}
 			break;
 		
 		case BufferCmd_FindStart:

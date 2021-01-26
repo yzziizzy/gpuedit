@@ -23,11 +23,15 @@
 
 {cmd: "BufferCmd_ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 
+{cmd: "FuzzyMatcherCmd_Exit", mods: "", key: "XK_Escape", amt: 0},
 {cmd: "FuzzyMatcherCmd_CursorMove", mods: "", key: "XK_Up", amt: -1},
 {cmd: "FuzzyMatcherCmd_CursorMove", mods: "", key: "XK_Down", amt: 1},
+{cmd: "FuzzyMatcherCmd_OpenFile", mods: "", key: "XK_Return", amt: 0},
 
+{cmd: "GrepOpenCmd_Exit", mods: "", key: "XK_Escape", amt: 0},
 {cmd: "GrepOpenCmd_CursorMove", mods: "", key: "XK_Up", amt: -1},
 {cmd: "GrepOpenCmd_CursorMove", mods: "", key: "XK_Down", amt: 1},
+{cmd: "GrepOpenCmd_OpenFile", mods: "", key: "XK_Return", amt: 0},
 
 {cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Up", amt: -1},
 {cmd: "FileBrowserCmd_CursorMoveNoWrap", mods: "", key: "XK_Down", amt: 1},
@@ -127,4 +131,8 @@
 {mode: 2, cmd: "BufferCmd_FindStart",    mods: "C", key: "f", amt: 0, flags: ["scrollToCursor"]},
 {mode: 2, cmd: "BufferCmd_ReplaceNext",  mods: "A", key: "r", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 {mode: 2, cmd: "BufferCmd_ReplaceAll",   mods: "A", key: "a", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
+
+{mode: 0, cmd: "BufferCmd_GoToLineLaunch", mods: "C", key: "g", amt: 0, flags: ["resetCursorBlink"]},
+{mode: 3, cmd: "BufferCmd_GoToLineSubmit", mods: "", key: "XK_Return", amt: 0, flags: ["centerOnCursor", "resetCursorBlink"]},
+{mode: 3, cmd: "BufferCmd_CloseTray",      mods: "", key: "XK_Escape", amt: 0, flags: ["centerOnCursor", "resetCursorBlink"]},
 ]
