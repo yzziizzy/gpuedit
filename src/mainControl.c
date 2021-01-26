@@ -960,7 +960,14 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	int index = GUIMainControl_FindTabIndexByBufferPath(w, opt->path);
 	if(index > -1) {
-		GUIMainControl_GoToTab(w, index);
+		GUIHeader* header = GUIMainControl_GoToTab(w, index);
+		GUIBufferEditor* gbe = (GUIBufferEditor*)header;
+		BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
+		if(bl) {
+			GBEC_MoveCursorTo(gbe->ec, bl, 0);
+			GBEC_scrollToCursorCentered(gbe->ec);
+//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
+		}
 		return;
 	}
 	
@@ -1046,7 +1053,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;
 	tab->everyFrame = gbeEveryFrame;
-	
+
 	if(opt->set_focus) {
 		int i = GUIMainControl_FindTabIndexByHeaderP(w, tab->client);
 		GUIMainControl_GoToTab(w, i);
