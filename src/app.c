@@ -179,6 +179,9 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 			case MCTAB_FUZZYOPEN:
 				GUIMainControl_FuzzyOpener(as->mc);
 				break;
+			case MCTAB_GREPOPEN:
+				GUIMainControl_GrepOpen(as->mc);
+				break;
 		}
 		i++;
 	}

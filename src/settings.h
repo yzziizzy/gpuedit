@@ -10,6 +10,7 @@ typedef enum TabType {
 	MCTAB_EDIT,
 	MCTAB_FILEOPEN,
 	MCTAB_FUZZYOPEN,
+	MCTAB_GREPOPEN,
 } TabType_t;
 
 typedef struct TabSpec {

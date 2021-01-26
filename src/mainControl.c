@@ -14,6 +14,7 @@
 
 #include "fileBrowser.h"
 #include "fuzzyMatchControl.h"
+#include "grepOpenControl.h"
 
 // temporary, should be separated
 #include "window.h"
@@ -472,6 +473,10 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 	case MainCmd_FuzzyOpener:
 		GUIMainControl_FuzzyOpener(w);
 		break;
+	
+	case MainCmd_GrepOpen:
+		GUIMainControl_GrepOpen(w);
+		break;
 
 	case MainCmd_MainMenu:
 		GUIMainControl_OpenMainMenu(w);
@@ -636,7 +641,12 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 	// TODO: check active
 	
 	// update the current tab index
-	w->currentIndex %= VEC_LEN(&w->tabs);
+	size_t n_tabs = VEC_LEN(&w->tabs);
+	if(!n_tabs) {
+		// todo: exit more fancily
+		exit(0);
+	}
+	w->currentIndex %= n_tabs;
 	
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;
@@ -838,6 +848,27 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 	fmc->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
+}
+
+
+void GUIMainControl_GrepOpen(GUIMainControl* w) {
+	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
+	if(o != NULL) {
+		return;
+	}
+
+	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->header.gm, "./");
+	goc->gs = w->gs;
+	goc->commands = w->commands;
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &goc->header, "grep opener");
+	tab->type = MCTAB_GREPOPEN;
+	//tab->beforeClose = gbeBeforeClose;
+	//tab->beforeClose = gbeAfterClose;
+	//tab->everyFrame = gbeEveryFrame;
+	
+	goc->header.parent = (GUIHeader*)w;
+
+	GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 }
 
 
