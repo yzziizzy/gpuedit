@@ -393,6 +393,9 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	else if(0 == strcmp(gev->userType, "openFile")) {
 		GUIMainControl_LoadFile(w, gev->userData);
 	}
+	else if(0 == strcmp(gev->userType, "openFileOpt")) {
+		GUIMainControl_LoadFileOpt(w, gev->userData);
+	}
 	else if(0 == strcmp(gev->userType, "closeMe")) {
 		int i = GUIMainControl_FindTabIndexByHeaderP(w, gev->originalTarget);
 		if(i > -1) GUIMainControl_CloseTab(w, i);
@@ -640,11 +643,15 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 	
 	// TODO: check active
 	
+	
 	// update the current tab index
 	size_t n_tabs = VEC_LEN(&w->tabs);
 	if(!n_tabs) {
 		// todo: exit more fancily
 		exit(0);
+	}
+	if(w->currentIndex > index || w->currentIndex > (n_tabs - 1)) {
+		w->currentIndex--;
 	}
 	w->currentIndex %= n_tabs;
 	
@@ -943,7 +950,15 @@ static void setBreakpoint(char* file, intptr_t line, GUIMainControl* w) {
 }
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
-	int index = GUIMainControl_FindTabIndexByBufferPath(w, path);
+	GUIFileOpt opt = {
+		.path = path,
+		.line_num = 1,
+	};
+	GUIMainControl_LoadFileOpt(w, &opt);
+}
+
+void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
+	int index = GUIMainControl_FindTabIndexByBufferPath(w, opt->path);
 	if(index > -1) {
 		GUIMainControl_GoToTab(w, index);
 		return;
@@ -999,9 +1014,9 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	gbe->bdp = bdp;
 	gbe->ec->bdp = bdp;
 	gbe->hm = &w->hm;
-	gbe->header.name = strdup(path);
+	gbe->header.name = strdup(opt->path);
 	gbe->header.parent = (GUIHeader*)w; // important for bubbling
-	gbe->sourceFile = strdup(path);
+	gbe->sourceFile = strdup(opt->path);
 	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
@@ -1016,7 +1031,7 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 //	Highlighter_LoadStyles(gbe->h, tmp);
 //	free(tmp);
 
-	Buffer_LoadFromFile(buf, path);
+	Buffer_LoadFromFile(buf, opt->path);
 	GUIBufferEditor_SetBuffer(gbe, buf);
 //	GUIBufferEditControl_RefreshHighlight(gbe->ec);
 	GUIBufferEditor_ProbeHighlighter(gbe);
@@ -1024,11 +1039,23 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	VEC_PUSH(&w->editors, gbe);
 	VEC_PUSH(&w->buffers, buf);
 	
-	char* shortname = strdup(path);
+	char* shortname = strdup(opt->path);
 	
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &gbe->header, basename(shortname));
 	tab->type = MCTAB_EDIT;
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;
 	tab->everyFrame = gbeEveryFrame;
+	
+	if(opt->set_focus) {
+		int i = GUIMainControl_FindTabIndexByHeaderP(w, tab->client);
+		GUIMainControl_GoToTab(w, i);
+	}
+	
+	BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
+	if(bl) {
+		GBEC_MoveCursorTo(gbe->ec, bl, 0);
+		GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
+	}
 }
+

@@ -103,6 +103,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd);
 void GUIMainControl_OpenMainMenu(GUIMainControl* w);
 
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path);
+void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt);
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);
 void GUIMainControl_FuzzyOpener(GUIMainControl* w);
 void GUIMainControl_GrepOpen(GUIMainControl* w);

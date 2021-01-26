@@ -17,6 +17,10 @@
 * find sequence from last selection on findreplace resume
 * cursor/focus rendering in findreplace needs help
 * findreplace does not search again on reopen
+* start findreplace on next match from cursor position
+
+* launch grep opener with selection
+* folder level options file
 
 * full Pascal string conversion
 * ctrl+l/r jumps across tabs
@@ -149,7 +153,6 @@
 * Option: Render selection pivot marker
 * Option: automatically scroll so that the cursor has n lines of padding on the top and bottom.
 * Option: don't scroll to end cursor when ctrl-a
-* Goto line should move the middle of the screen to the cursor
 * Comment hint to hilighter to treat a certain identifier as a certain type, for use with macros
 * Increment/decrement numbers in identifiers on this line. Combo with Dup Line.
 * Increase value of number under cursor by: 1, order of mag, power of 2

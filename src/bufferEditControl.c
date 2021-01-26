@@ -26,7 +26,7 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 	
 	// must handle tabs
 	float a = (x - w->header.absTopLeft.x - w->textAreaOffsetX) / w->bdp->tdp->charWidth;
-	ptrdiff_t screenCol = floor(a + .5) + w->scrollCols;
+	ptrdiff_t screenCol = floor(a + 0.25) + w->scrollCols;
 	
 	int tabwidth = w->bdp->tdp->tabWidth;
 	ptrdiff_t charCol = 0;
@@ -184,7 +184,9 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	
 	if(!w->current) return;
 	
-	GBEC_ClearCurrentSelection(w);
+	unsigned int shift = gev->modifiers & GUIMODKEY_SHIFT;
+	
+	if(!shift) GBEC_ClearCurrentSelection(w);
 	
 	Vector2 tl = w->header.absTopLeft;
 	Vector2 sz = w->header.size;
@@ -192,6 +194,11 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	// TODO: reverse calculate cursor position
 	if(gev->pos.x < tl.x + 50 || gev->pos.x > tl.x + sz.x) return;   
 	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
+	
+	if(shift && !w->sel) {
+		w->selectPivotLine = w->current;
+		w->selectPivotCol = w->curCol;
+	}
 	
 	size_t line = GBEC_lineFromPos(w, gev->pos);
 	w->current = Buffer_raw_GetLine(b, line);
@@ -201,6 +208,10 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	w->curColWanted = w->curColDisp;
 	
 	w->cursorBlinkTimer = 0;
+	
+	if(shift) {
+		GUIBufferEditControl_SetSelectionFromPivot(w);
+	}
 	
 	// maybe nudge the screen down a tiny bit
 	GUIBufferEditControl_scrollToCursor(w);
@@ -485,6 +496,21 @@ void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* w) {
 		w->scrollCols = w->curColDisp;
 	}
 	
+}
+
+void GBEC_scrollToCursorCentered(GUIBufferEditControl* w) {
+	if(!w || !w->current) return;
+
+	intptr_t line_num = w->current->lineNum - w->linesOnScreen/2;
+	
+	w->scrollLines = MIN(MAX(0, line_num), w->buffer->numLines);
+	
+	if(w->curColDisp >= w->scrollCols + w->colsOnScreen) {
+		w->scrollCols = w->curColDisp - w->colsOnScreen + 2;
+	}
+	else if(w->curColDisp <= w->scrollCols) {
+		w->scrollCols = w->curColDisp;
+	}
 }
 
 
