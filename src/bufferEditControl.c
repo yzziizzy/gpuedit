@@ -336,14 +336,14 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)_w;
 	
 	if(note->action == BCA_Undo_MoveCursor) {
-		printf("move notify\n");
+//		printf("move notify\n");
 		GBEC_MoveCursorTo(w, note->sel.startLine, note->sel.startCol);
 	}
 	else if(note->action == BCA_Undo_SetSelection) {
-		printf("selection notify %ld:%ld -> %ld:%ld\n",
+		/*printf("selection notify %ld:%ld -> %ld:%ld\n",
 			note->sel.startLine->lineNum, note->sel.startCol,
 			note->sel.endLine->lineNum, note->sel.endCol
-		);
+		);*/
 		if(note->isReverse) {
 			w->selectPivotLine = note->sel.endLine;
 			w->selectPivotCol = note->sel.endCol;

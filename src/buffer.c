@@ -107,6 +107,10 @@ static BufferUndo* undo_current(Buffer* b) {
 	return b->undoRing + b->undoCurrent;
 }
 
+static BufferUndo* undo_prev(Buffer* b) { // the one before the current one
+	return b->undoRing + ((b->undoCurrent - 1 + b->undoMax) % b->undoMax);
+}
+
 static BufferUndo* undo_dec(Buffer* b) {
 	if(b->undoFill <= 0) return NULL;
 	if(b->undoOldest == b->undoCurrent) return NULL;
@@ -204,7 +208,7 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved,
 	
 	// don't add duplicates
 	if(b->undoFill > 0) {
-		if(undo_current(b)->action == UndoAction_SequenceBreak) {
+		if(undo_prev(b)->action == UndoAction_SequenceBreak) {
 			if(saved) b->undoSaveIndex = b->undoCurrent;
 			return;
 		}
@@ -214,8 +218,8 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved,
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
 	BufferUndo* u = undo_inc(b);
 	
-	printf("saving seq break: %ld:%ld -> %ld->%ld\n",
-		startL, startC, endL, endC);
+	//printf("saving seq break: %ld:%ld -> %ld->%ld\n",
+	//	startL, startC, endL, endC);
 	
 	u->action = UndoAction_SequenceBreak;
 	u->lineNum = startL;
@@ -730,8 +734,9 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 			bl = next;
 		}
 		
-		if(s.startCol > 0) {
-			printf(" > delete last line %.*s\n", (int)s.endLine->length, s.endLine->buf);
+		
+		if(s.startCol > 0 || s.endCol == s.endLine->length) {
+			LOG_UNDO(printf(" > delete last line %.*s\n", (int)s.endLine->length, s.endLine->buf));
 			
 			Buffer_DeleteLine(b, s.endLine);
 		}

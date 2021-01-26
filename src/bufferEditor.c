@@ -84,7 +84,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 			
 			if(found.flags & undoSeqBreak) {
 				if(!w->ec->sel) {
-					printf("seq break without selection\n");
+//					printf("seq break without selection\n");
 					Buffer_UndoSequenceBreak(
 						w->buffer, 0, 
 						w->ec->current->lineNum, w->ec->curCol,
@@ -92,7 +92,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 					);
 				}
 				else {
-					printf("seq break with selection\n");
+//					printf("seq break with selection\n");
 					Buffer_UndoSequenceBreak(
 						w->buffer, 0, 
 						w->ec->sel->startLine->lineNum, w->ec->sel->startCol,
