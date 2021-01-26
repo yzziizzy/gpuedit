@@ -893,14 +893,14 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		case BufferCmd_Copy:
 			if(w->sel) {
 				b2 = Buffer_FromSelection(b, w->sel);
-				Clipboard_PushBuffer(b2);
+				Clipboard_PushBuffer(cmd->amt/*CLIP_PRIMARY*/, b2);
 			}
 			break;
 		
 		case BufferCmd_Cut:
 			if(w->sel) {
 				b2 = Buffer_FromSelection(b, w->sel);
-				Clipboard_PushBuffer(b2);
+				Clipboard_PushBuffer(cmd->amt/*CLIP_PRIMARY*/, b2);
 				// TODO: move cursor to cut spot, if it isn't already
 				if(!w->sel->reverse) {
 					w->current = w->sel->startLine;
@@ -922,7 +922,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			if(w->sel) {
 				// stolen from BufferCmd_Cut
 				b2 = Buffer_FromSelection(b, w->sel);
-				Clipboard_PushBuffer(b2);
+				Clipboard_PushBuffer(cmd->amt, b2);
 				// TODO: move cursor to cut spot, if it isn't already
 				if(!w->sel->reverse) {
 					w->current = w->sel->startLine;
@@ -947,7 +947,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		}
 		
 		case BufferCmd_Paste:
-			b2 = Clipboard_PopBuffer();
+			b2 = Clipboard_PopBuffer(cmd->amt/*CLIP_PRIMARY*/);
 			if(b2) {
 				if(w->sel) {
 					GBEC_MoveCursorTo(w, w->sel->startLine, w->sel->startCol);

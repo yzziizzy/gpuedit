@@ -12,9 +12,9 @@ typedef struct Buffer Buffer;
 
 
 enum {
-	CLIP_PRIMARY = 0,
-	CLIP_SECONDARY,
-	CLIP_SELECTION,
+	CLIP_PRIMARY = 0, // "regular" clipboard
+	CLIP_SECONDARY, // secondary "regular" clipboard
+	CLIP_SELECTION, // select/middle-click buffer
 };
 
 
@@ -36,10 +36,10 @@ typedef struct ClipboardClip {
 void Clipboard_Init();
 
 
-void Clipboard_PushBuffer(Buffer* b);
-void Clipboard_PushRawText(char* raw, size_t len);
-Buffer* Clipboard_PeekBuffer();
-Buffer* Clipboard_PopBuffer();
+void Clipboard_PushBuffer(int which, Buffer* b);
+void Clipboard_PushRawText(int which, char* raw, size_t len);
+Buffer* Clipboard_PeekBuffer(int which);
+Buffer* Clipboard_PopBuffer(int which);
 
 void Clipboard_SendToOS(unsigned int which, char* text, size_t len, int encoding);
 

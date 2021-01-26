@@ -25,12 +25,12 @@ struct ClipCallback {
 
 
 typedef struct Clipboard {
-	VEC(ClipboardClip*) stack;
+	RING(ClipboardClip*) stack[3];
 	
 	
 	struct ClipBuffer os[3];
 	
-	char selfOwned; // 1 if this app has ownership of the clipboard, 0 otherwise
+	char selfOwned[3]; // 1 if this app has ownership of the clipboard, 0 otherwise
 	
 	VEC(struct ClipCallback) onChange;
 	
@@ -49,7 +49,7 @@ static void callOnChangeFns(int which) {
 }
 
 
-void Clipboard_PushBuffer(Buffer* b) {
+void Clipboard_PushBuffer(int which, Buffer* b) {
 	
 	ClipboardClip* cc = pcalloc(cc);
 	
@@ -58,12 +58,11 @@ void Clipboard_PushBuffer(Buffer* b) {
 	
 	Clipboard_SendToOS(CLIP_SELECTION, cc->flatText, cc->flatTextLen, 0);
 	
-	if(VEC_LEN(&clipboard->stack) > 0) VEC_POP1(&clipboard->stack); // HACK, effectively disabling the unfinished stack behavior
-	VEC_PUSH(&clipboard->stack, cc);
+	RING_PUSH(&clipboard->stack[which], cc);
 }
 
 
-void Clipboard_PushRawText(char* raw, size_t len) {
+void Clipboard_PushRawText(int which, char* raw, size_t len) {
 	if(!clipboard) return;
 	
 	ClipboardClip* cc = pcalloc(cc);
@@ -73,33 +72,31 @@ void Clipboard_PushRawText(char* raw, size_t len) {
 	cc->flatText = strndup(raw, len);
 	Buffer_AppendRawText(cc->b, raw, len);
 	
-	VEC_PUSH(&clipboard->stack, cc);
-	
-
+	RING_PUSH(&clipboard->stack[which], cc);
 }
 
 
-Buffer* Clipboard_PeekBuffer() {
-	return VEC_TAIL(&clipboard->stack)->b;
+Buffer* Clipboard_PeekBuffer(int which) {
+	return RING_TAIL(&clipboard->stack[which])->b;
 }
 
 
-Buffer* Clipboard_PopBuffer() {
+Buffer* Clipboard_PopBuffer(int which) {
 	Buffer* b;
 	
-	if(clipboard->selfOwned) {
+	if(clipboard->selfOwned[which]) {
 //		printf(" paste: self owned\n");
-		if(VEC_LEN(&clipboard->stack) == 0) return NULL;
-		ClipboardClip* cc = VEC_TAIL(&clipboard->stack);
+		if(RING_LEN(&clipboard->stack[which]) == 0) return NULL;
+		ClipboardClip* cc = RING_TAIL(&clipboard->stack[which]);
 		b = cc->b;
 	}
 	else {
-//		printf(" paste: os owned\n");
-		if(clipboard->os[CLIP_SELECTION].length == 0) return NULL;
+//		printf(" paste: os owned [%d]\n", which);
+		if(clipboard->os[which].length == 0) return NULL;
 //		printf("   no early return\n");
 		b = Buffer_New();
 		
-		Buffer_AppendRawText(b, clipboard->os[CLIP_SELECTION].buf, clipboard->os[CLIP_SELECTION].length);
+		Buffer_AppendRawText(b, clipboard->os[which].buf, clipboard->os[which].length);
 	}
 // 	VEC_POP1(&clipboard->stack);
 	
@@ -113,7 +110,7 @@ Buffer* Clipboard_PopBuffer() {
 void Clipboard_SendToOS(unsigned int which, char* text, size_t len, int encoding) {
 	Clipboard_SetFromOS(which, text, len, encoding);
 // 	printf("'%.*s'",len, text);
-	clipboard->selfOwned = 1;
+	clipboard->selfOwned[which] = 1;
 	callOnChangeFns(which);
 	
 //	printf("self owned\n");
@@ -128,14 +125,14 @@ void Clipboard_SetFromOS(unsigned int which, char* text, size_t len, int encodin
 		b->allocSize = nextPOT(len + 1);
 		b->buf = realloc(b->buf, b->allocSize);
 	}
-	printf("clip> %d '%.*s'\n", which, (int)len, text);
+//	printf("clip> %d '%.*s'\n", which, (int)len, text);
 	memcpy(b->buf, text, len);
 	b->buf[len] = 0;
 	
 	b->length = len;
 	b->encoding = encoding;
 	
-	clipboard->selfOwned = 0;
+	clipboard->selfOwned[which] = 0;
 }
 
 void Clipboard_GetFromOS(unsigned int which, char** text, size_t* len, int* encoding) {
@@ -154,6 +151,10 @@ void Clipboard_RegisterOnChange(void (*fn)(int,void*), void* data) {
 
 void Clipboard_Init() {
 	pcalloc(clipboard);
+	
+	RING_INIT(&clipboard->stack[0], 16);
+	RING_INIT(&clipboard->stack[1], 16);
+	RING_INIT(&clipboard->stack[2], 16);
 }
 
 
