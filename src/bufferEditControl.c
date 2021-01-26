@@ -896,7 +896,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			if(w->sel) {
 				// stolen from BufferCmd_Cut
 				b2 = Buffer_FromSelection(b, w->sel);
-				Clipboard_PushBuffer(b2);
+				Clipboard_PushBuffer(cmd->amt, b2);
 				// TODO: move cursor to cut spot, if it isn't already
 				if(!w->sel->reverse) {
 					w->current = w->sel->startLine;
