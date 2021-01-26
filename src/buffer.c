@@ -1164,6 +1164,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 	
 	
 	if(outRange) {
+		if(graft->last->length == 0) t = t->next;
 		outRange->endLine = t;
 		outRange->endCol = gbl->length;
 	}
