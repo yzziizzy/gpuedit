@@ -483,17 +483,17 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			else if(xev.xselection.selection == xs->secondaryID) which = CLIP_SECONDARY;
 			else if(xev.xselection.selection == xs->clipboardID) which = CLIP_PRIMARY;
 			else {
-// 				printf("wrong buffer\n");
+ 				printf("invalid selection buffer (clipboard) from X\n");
 				continue;
 			}
 			
 			Clipboard_SetFromOS(which, result, (resultBitsPerItem / 8) * resultItemCount, 1);
 			
-// 			printf("result %d '%.*s'\n", resultBitsPerItem, resultItemCount, result);
+// 			printf("result %d '%.*s'\n", resultBitsPerItem, (int)resultItemCount, result);
 			
 			XFree(result);
 			continue;
-// 			printf("selection Notify\n");
+ 		
 		}
 		else if(xev.type == SelectionRequest) {
 // 			xev.xselectionrequest.selection

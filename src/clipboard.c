@@ -56,7 +56,7 @@ void Clipboard_PushBuffer(int which, Buffer* b) {
 	cc->b = Buffer_Copy(b);
 	Buffer_ToRawText(b, &cc->flatText, &cc->flatTextLen);
 	
-	Clipboard_SendToOS(CLIP_SELECTION, cc->flatText, cc->flatTextLen, 0);
+	Clipboard_SendToOS(which, cc->flatText, cc->flatTextLen, 0);
 	
 	RING_PUSH(&clipboard->stack[which], cc);
 }
@@ -109,7 +109,7 @@ Buffer* Clipboard_PopBuffer(int which) {
 
 void Clipboard_SendToOS(unsigned int which, char* text, size_t len, int encoding) {
 	Clipboard_SetFromOS(which, text, len, encoding);
-// 	printf("'%.*s'",len, text);
+// 	printf("'%.*s'",(int)len, text);
 	clipboard->selfOwned[which] = 1;
 	callOnChangeFns(which);
 	
