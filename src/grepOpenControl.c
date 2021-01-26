@@ -51,6 +51,47 @@ char* split_result(char* grep_result) {
 }
 
 
+// sorry about this function
+char* cleanup_line(char* line) {
+	char* out = line;
+	
+	if(!out) return out;
+	
+	for(;;out++) {
+		switch(out[0]) {
+			case '\0':
+				return out;
+				break;
+			case '\\':
+				if(out[1] != '\0') {
+					out++;
+				} else {
+					return out;
+				}
+				break;
+			case ':':
+				out++;
+				goto COLON_FOUND;
+				break;
+		}
+	}
+COLON_FOUND:
+	
+	for(;;out++) {
+		switch(out[0]) {
+			case ' ':
+			case '\t':
+				break;
+			default:
+				return out;
+				break;
+		}
+	}
+	
+	return out;
+}
+
+
 static void render(GUIHeader* w_, PassFrameParams* pfp) {
 	GUIGrepOpenControl* w = (GUIGrepOpenControl*)w_;
 	GUIManager* gm = w->header.gm;
@@ -88,7 +129,7 @@ static void render(GUIHeader* w_, PassFrameParams* pfp) {
 		AABB2 box;
 		box.min.x = tl.x + gutter;
 		box.min.y = tl.y + 30 + (lh * linesDrawn);
-		box.max.x = tl.x + 800;
+		box.max.x = tl.x + w_->size.x - gutter;
 		box.max.y = tl.y + 30 + (lh * (linesDrawn + 1));
 
 
@@ -150,10 +191,6 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 			GUIGrepOpenControl_Refresh(w);
 		}
-		else if(0 == strcmp(gev->userType, "enter")) {
-			Cmd found = {.cmd = GrepOpenCmd_Open};
-			GUIGrepOpenControl_ProcessCommand(w, &found);
-		}
 	}
 }
 
@@ -184,14 +221,27 @@ void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {
+		case FuzzyMatcherCmd_Exit:
+			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+			break;
+			
 		case GrepOpenCmd_CursorMove:
 			if(w->matchCnt == 0) break;
 			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
 			break;
 
-		case GrepOpenCmd_Open: {
+		case GrepOpenCmd_OpenFile: {
 			char* path_raw = path_join(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
 			char* path = resolve_path(path_raw);
+			intptr_t line_num = w->matches[w->cursorIndex].line_num;
+			GUIFileOpt opt = {
+				.path = path,
+				.line_num = line_num,
+				.set_focus = 0,
+			};
+			if(w->gs->MainControl_openInPlace) {
+				opt.set_focus = 1;
+			}
 
 			GUIEvent gev2 = {};
 			gev2.type = GUIEVENT_User;
@@ -200,10 +250,10 @@ void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd) {
 			gev2.currentTarget = &w->header;
 			gev2.cancelled = 0;
 			// handlers are responsible for cleanup
-			gev2.userData = path;
-			gev2.userSize = strlen(path);
+			gev2.userData = &opt;
+			gev2.userSize = sizeof(opt);
 
-			gev2.userType = "openFile";
+			gev2.userType = "openFileOpt";
 
 			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
 
@@ -291,7 +341,6 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 	if(n_paths == 0) return;
 
 	candidates = malloc(max_candidates*sizeof(*candidates));
-
 	contents = malloc(sizeof(*contents)*(n_paths+1));
 	stringBuffers = malloc(sizeof(*stringBuffers)*(n_paths+1));
 
@@ -310,8 +359,11 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 			candidates[n_candidates+j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates+j].filepath = stringBuffers[i][j];
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);
-			candidates[n_candidates+j].render_line = sprintfdup("%s:%s",
+			candidates[n_candidates+j].line_num = atol(candidates[n_candidates+j].line);
+			candidates[n_candidates+j].line = cleanup_line(candidates[n_candidates+j].line);
+			candidates[n_candidates+j].render_line = sprintfdup("%s:%lu  %s",
 				candidates[n_candidates+j].filepath,
+				candidates[n_candidates+j].line_num,
 				candidates[n_candidates+j].line
 			);
 		}

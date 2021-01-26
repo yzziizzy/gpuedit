@@ -61,7 +61,7 @@ static void render(GUIHeader* w_, PassFrameParams* pfp) {
 		AABB2 box;
 		box.min.x = tl.x + gutter;
 		box.min.y = tl.y + 30 + (lh * linesDrawn);
-		box.max.x = tl.x + 800;
+		box.max.x = tl.x + w_->size.x - gutter;
 		box.max.y = tl.y + 30 + (lh * (linesDrawn + 1));
 
 
@@ -123,10 +123,6 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 			
 			GUIFuzzyMatchControl_Refresh(w);
 		}
-		else if(0 == strcmp(gev->userType, "enter")) {
-			Cmd found = {.cmd = FuzzyMatcherCmd_Open};
-			GUIFuzzyMatchControl_ProcessCommand(w, &found);				
-		}
 	}
 }
 
@@ -157,14 +153,26 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {
+		case FuzzyMatcherCmd_Exit:
+			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");			
+			break;
+			
 		case FuzzyMatcherCmd_CursorMove:
 			if(w->matchCnt == 0) break;
 			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
 			break;
 			
-		case FuzzyMatcherCmd_Open: {
+		case FuzzyMatcherCmd_OpenFile: {
 			char* path_raw = path_join(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
 			char* path = resolve_path(path_raw);
+			GUIFileOpt opt = {
+				.path = path,
+				.line_num = 1,
+				.set_focus = 0,
+			};
+			if(w->gs->MainControl_openInPlace) {
+				opt.set_focus = 1;
+			}
 		
 			GUIEvent gev2 = {};
 			gev2.type = GUIEVENT_User;
@@ -173,10 +181,10 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			gev2.currentTarget = &w->header;
 			gev2.cancelled = 0;
 			// handlers are responsible for cleanup
-			gev2.userData = path;
-			gev2.userSize = strlen(path);
+			gev2.userData = &opt;
+			gev2.userSize = sizeof(opt);
 			
-			gev2.userType = "openFile";
+			gev2.userType = "openFileOpt";
 		
 			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
 			
@@ -238,9 +246,13 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path) {
 
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	//printf("seearch term: '%s'\n", w->searchTerm);
+	size_t max_candidates = 1024;
+	fcandidate* candidates = NULL;
+	size_t n_candidates = 0;
 
-	if(!w->searchTerm) return;
-	
+	size_t n_filepaths = 0;
+	char** contents = NULL;
+	char*** stringBuffers = NULL;
 	
 	
 	DEBUG("~~ begin fuzzy opener\n");
@@ -250,18 +262,19 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	int i = 0;
 	int j = 0;
 	int n_paths = 0;
+	
+	if(!w->searchTerm) {
+		goto CLEANUP;
+	}
+	
 	while(w->gs->MainControl_searchPaths[n_paths]) {
 		n_paths++;
 	}
 	if(n_paths == 0) return;
 
-	size_t max_candidates = 1024;
-	fcandidate* candidates = malloc(max_candidates*sizeof(*candidates));
-	size_t n_candidates = 0;
-
-	size_t n_filepaths;
-	char** contents = malloc(sizeof(*contents)*(n_paths+1));
-	char*** stringBuffers = malloc(sizeof(*stringBuffers)*(n_paths+1));
+	candidates = malloc(max_candidates*sizeof(*candidates));
+	contents = malloc(sizeof(*contents)*(n_paths+1));
+	stringBuffers = malloc(sizeof(*stringBuffers)*(n_paths+1));
 	
 	i = 0;
 	while(w->gs->MainControl_searchPaths[i]) {
@@ -287,6 +300,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	contents[i] = NULL;
 	stringBuffers[i] = NULL;
 
+CLEANUP:
 	if(w->stringBuffers) {
 		i = 0;
 		while(w->stringBuffers[i]) {

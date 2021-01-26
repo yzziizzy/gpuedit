@@ -198,6 +198,12 @@ static char GUIEventBubbleBehavior[] = {
 #define GUIMODKEY_TUX    (1 << 27)
 
 
+typedef struct GUIFileOpt {
+	char* path;
+	intptr_t line_num;
+	int set_focus;
+} GUIFileOpt;
+
 typedef struct GUIEvent {
 	enum GUIEventType type;
 	char* userType;
