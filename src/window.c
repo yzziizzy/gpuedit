@@ -425,12 +425,12 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 		}
 		else if(xev.type == SelectionClear) {
-			printf("selection clear\n");
+//			printf("selection clear\n");
 // 			xev.xselectionclear
 			continue;
 		}
 		else if(xev.type == xs->XFixes_eventBase + XFixesSelectionNotify) {
-			printf("xfixes selection notify\n");
+//			printf("xfixes selection notify\n");
 			// ignore our own actions
 			if(((XFixesSelectionNotifyEvent*)&xev)->owner == xs->clientWin) continue;
 			
@@ -442,7 +442,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		else if(xev.type == SelectionNotify) {
 // 			xev.xselection
 // 			.property
-			printf("regular selection notify\n");
+//			printf("regular selection notify\n");
 			Atom actualType;
 			unsigned int resultBitsPerItem;
 			unsigned long resultItemCount;
@@ -477,10 +477,11 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 				&result
 			);
 			
+			// yes, this seems backwards but it's correct
 			int which;
-			if(xev.xselection.selection == xs->primaryID) which = CLIP_PRIMARY;
+			if(xev.xselection.selection == xs->primaryID) which = CLIP_SELECTION;
 			else if(xev.xselection.selection == xs->secondaryID) which = CLIP_SECONDARY;
-			else if(xev.xselection.selection == xs->clipboardID) which = CLIP_SELECTION;
+			else if(xev.xselection.selection == xs->clipboardID) which = CLIP_PRIMARY;
 			else {
 // 				printf("wrong buffer\n");
 				continue;
@@ -496,7 +497,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		}
 		else if(xev.type == SelectionRequest) {
 // 			xev.xselectionrequest.selection
- 			printf("selection request\n");
+// 			printf("selection request\n");
 			int which;
 			if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_PRIMARY;
 			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;

@@ -70,6 +70,7 @@
 {cmd: "BufferCmd_Cut", mods: "C", key: "x", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_Copy", mods: "C", key: "c", amt: 0, },
 {cmd: "BufferCmd_Paste", mods: "C", key: "v", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
+{cmd: "BufferCmd_Paste", mods: "S", key: "XK_Insert", amt: 2, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 {cmd: "BufferCmd_SelectAll", mods: "C", key: "a", amt: 0, },
 {cmd: "BufferCmd_SelectNone", mods: "CS", key: "a", amt: 0, },
 {cmd: "BufferCmd_SelectToEOL", mods: "C", key: "l", amt: 0, },

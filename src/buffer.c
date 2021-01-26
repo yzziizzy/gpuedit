@@ -1030,7 +1030,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	}
 	else {
 		// copy only the end
-		blc = BufferLine_FromStr(sel->startLine->buf, sel->startLine->length - sel->startCol);
+		blc = BufferLine_FromStr(sel->startLine->buf + sel->startCol, sel->startLine->length - sel->startCol);
 		LOG_UNDO(printf("copying end of the first line\n"));
 	}
 	
@@ -1122,6 +1122,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 	LOG_UNDO(printf("multi-line buffer insert:\n"));
 
 	BufferLine* t = tline;
+	BufferLine* gbl = graft->first->next;
 	
 	// cutting the remainder of the first line to a temporary buffer
 	if(tline->length && tcol > 0) {
@@ -1141,7 +1142,6 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 	Buffer_LineAppendText(target, t, graft->first->buf, graft->first->length);
 	
 	// copy in the middle lines
-	BufferLine* gbl = graft->first->next;
 	while(gbl && gbl != graft->last) {
 		
 		LOG_UNDO(printf(" > inserting line '%.*s'\n", (int)gbl->length, gbl->buf));
