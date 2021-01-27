@@ -45,6 +45,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		}, &needRehighlight);
 		
 		GUIBufferEditControl_RefreshHighlight(w->ec);
+		GBEC_scrollToCursor(w->ec);
 	}
 	else {
 		// special commands
@@ -71,7 +72,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 			
 			
 			if(found.flags & scrollToCursor) {
-				GUIBufferEditControl_scrollToCursor(w->ec);
+				GBEC_scrollToCursor(w->ec);
 			}
 			
 			if(found.flags & rehighlight) {
@@ -103,7 +104,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 			}
 			
 			if(found.flags & centerOnCursor) {
-				GBEC_scrollToCursorCentered(w->ec);
+				GBEC_scrollToCursorOpt(w->ec, 1);
 			}
 		}
 		
@@ -309,7 +310,7 @@ void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s) {
 
 // makes sure the cursor is on screen, with minimal necessary movement
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
-	GUIBufferEditControl_scrollToCursor(gbe->ec);
+	GBEC_scrollToCursor(gbe->ec);
 }
 
 
@@ -577,28 +578,6 @@ void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t 
 }
 
 
-// event callbacks for the Go To Line edit box
-static void gotoline_onchange(GUIEdit* ed, void* gbe_) {
-	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
-	
-	intptr_t line = GUIEdit_GetDouble(ed);
-	if(line <= 0) return; 
-	
-	GUIBufferEditor_MoveCursorTo(w, line, 0);
-	GUIBufferEditor_scrollToCursor(w);
-}
-
-static void gotoline_onenter(GUIEdit* ed, void* gbe_) {
-	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
-	
-	GUIBufferEditor_CloseTray(w);
-	w->lineNumTypingMode = 0;
-	
-	GUIManager_popFocusedObject(w->header.gm);
-	
-}
-
-
 static void loadfile_onenter(GUIEdit* ed, void* gbe_) {
 	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
 	
@@ -792,7 +771,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				if(bl) {
 					GBEC_MoveCursorTo(w->ec, bl, 0);
-					GBEC_scrollToCursorCentered(w->ec);
+					GBEC_scrollToCursorOpt(w->ec, 1);
 				}
 				
 				GUIBufferEditor_CloseTray(w);

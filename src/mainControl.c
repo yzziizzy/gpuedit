@@ -965,7 +965,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 		BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
 		if(bl) {
 			GBEC_MoveCursorTo(gbe->ec, bl, 0);
-			GBEC_scrollToCursorCentered(gbe->ec);
+			GBEC_scrollToCursorOpt(gbe->ec, 1);
 //			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 		}
 		return;

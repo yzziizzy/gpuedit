@@ -123,10 +123,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	
 	float edh = gbe->header.size.y;
 	
-	// TODO: move to gbe->resize or somewhere appropriate
-	gbe->linesOnScreen = edh / tdp->lineHeight;
-	gbe->colsOnScreen = gbe->header.size.x / tdp->charWidth;
-	
 	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
