@@ -588,8 +588,8 @@ void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b);
 
 void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intptr_t col);
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);
-void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* gbe);
-void GBEC_scrollToCursorCentered(GUIBufferEditControl* w);
+void GBEC_scrollToCursor(GUIBufferEditControl* gbe);
+void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered);
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
 
@@ -610,7 +610,6 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
 int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w);
 
-intptr_t getDisplayColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
 intptr_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
 intptr_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, intptr_t col);
 
