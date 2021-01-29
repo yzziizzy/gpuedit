@@ -371,6 +371,17 @@ typedef struct BufferCmd {
 
 
 
+
+typedef enum FindMask {
+	FM_NONE,
+	FM_SELECTION,
+	FM_SEQUENCE,
+} FindMask_t;
+
+
+
+
+
 struct GUIManager;
 typedef struct GUIManager GUIManager;
 

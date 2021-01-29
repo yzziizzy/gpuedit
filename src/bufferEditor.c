@@ -162,9 +162,10 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	if(w->trayOpen && (GUIEdit*)gev->originalTarget == w->findBox) {
 		if(0 == strcmp(gev->userType, "change")) {
 			// becaus userData is not null terminated from the Edit
-			if(w->findQuery) free(w->findQuery);
+			if(w->findQuery) {
+				free(w->findQuery);
+			}
 			w->findQuery = strndup(gev->userData, gev->userSize);
-			
 			
 			GUIBufferEditor_StopFind(w);
 			
@@ -358,6 +359,64 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern) {
 	w->nextFindLine = w->ec->current;
 	w->nextFindChar = w->ec->curCol;
 	
+	
+	return 0;
+}
+
+
+int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask) {
+	if(w->trayOpen) {
+		GUIBufferEditor_CloseTray(w);
+	}
+	
+	w->findMode = 1;
+	w->trayOpen = 1;
+	w->inputMode = 1;
+	
+	w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
+	GUI_RegisterObject(w, w->trayRoot);
+	w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
+	
+	BufferRange sel = {};
+	Buffer* b = w->ec->buffer;
+	char* str = NULL;
+	if(!str
+		&& (mask & FM_SELECTION)
+		&& w->ec->sel
+		&& (w->ec->sel->startLine == w->ec->sel->endLine)
+		&& (w->ec->sel->endCol - w->ec->sel->startCol > 0)
+	) {
+		str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
+	}
+	if(!str && (mask & FM_SEQUENCE)) {
+		Buffer_GetSequenceUnder(b, w->ec->current, w->ec->curCol, charSet, &sel);
+		if((sel.startLine == sel.endLine) && (sel.endCol - sel.startCol > 0)) {
+			str = Buffer_StringFromSelection(b, &sel, NULL);
+		}
+	}
+					
+	if(str) {
+		if(w->findQuery) {
+			free(w->findQuery);
+		}
+		w->findQuery = str;
+	} else if(!w->findQuery) {
+		w->findQuery = strdup("");
+	}
+	GUIEdit_SetText(w->findBox, w->findQuery);
+	
+	w->findIndex = -1;
+	
+	w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+	w->ec->findSet = w->findSet;
+
+	// locate the match at/after the cursor
+	GUIBufferEditor_NextFindMatch(w);
+		
+//	GUIBufferEditor_scrollToCursor(w);
+	
+	w->ec->cursorBlinkPaused = 1;
+	GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 	
 	return 0;
 }
@@ -578,19 +637,6 @@ void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t 
 }
 
 
-static void loadfile_onenter(GUIEdit* ed, void* gbe_) {
-	GUIBufferEditor* w = (GUIBufferEditor*)gbe_;
-	
-	char* word = GUIEdit_GetText(ed);
-	if(word == 0 || strlen(word) == 0) return; 
-	
-	GUIBufferEditor_CloseTray(w);
-	w->loadTypingMode = 0;
-	GUIManager_popFocusedObject(w->header.gm);
-	
-}
-
-
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
 	GUIEdit* e;
 	struct json_file* jsf;
@@ -764,7 +810,6 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 		
 		case BufferCmd_GoToLineSubmit:
-			printf("goto line submit\n");
 			if(w->lineNumTypingMode) {
 				intptr_t line_num = atol(GUIEdit_GetText(w->lineNumEntryBox));
 				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
@@ -846,171 +891,27 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 			
 		case BufferCmd_FindStartSequenceUnderCursor:
-			if(!w->findMode) {
-				char* preserved = NULL;
-				if(w->trayOpen) {
-					GUIBufferEditor_CloseTray(w);
-				}
-				
-				w->findMode = 1;
-				w->trayOpen = 1;
-				w->inputMode = 1;
-				
-				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
-				GUI_RegisterObject(w, w->trayRoot);
-				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
-				
-				BufferRange sel;
-				Buffer* b = w->ec->buffer;
-				Buffer_GetSequenceUnder(b, w->ec->current, w->ec->curCol, cmd->str, &sel);
-				char* str = Buffer_StringFromSelection(b, &sel, NULL);
-				GUIEdit_SetText(w->findBox, str);
-				
-				
-				w->findIndex = -1;
-				
-				w->findSet = GUIBufferEditor_FindAll(w, str);
-				w->ec->findSet = w->findSet;
-					
-//				GUIBufferEditor_NextFindMatch(w);
-				
-				if(w->findQuery) free(w->findQuery);
-				w->findQuery = str;
-
-				GUIBufferEditor_scrollToCursor(w);
-				
-				w->ec->cursorBlinkPaused = 1;
-				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
-			}
-			else {
-				GUIBufferEditor_CloseTray(w);
-				w->ec->cursorBlinkPaused = 0;
-				GUIManager_popFocusedObject(w->header.gm);
-			}
-			
-		
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
 			break;
 			
 		case BufferCmd_FindStartFromSelection:
-			if(!w->findMode) {
-				char* preserved = NULL;
-				if(w->trayOpen) {
-					GUIBufferEditor_CloseTray(w);
-				}
-				
-				w->findMode = 1;
-				w->trayOpen = 1;
-				w->inputMode = 1;
-				
-				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
-				GUI_RegisterObject(w, w->trayRoot);
-				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
-				
-//				BufferRange sel;
-				Buffer* b = w->ec->buffer;
-//				Buffer_GetSequenceUnder(b, w->ec->current, w->ec->curCol, cmd->str, &sel);
-				char* str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
-				GUIEdit_SetText(w->findBox, str);
-				
-				
-				w->findIndex = -1;
-				
-				w->findSet = GUIBufferEditor_FindAll(w, str);
-				w->ec->findSet = w->findSet;
-					
-//				GUIBufferEditor_NextFindMatch(w);
-				
-				if(w->findQuery) free(w->findQuery);
-				w->findQuery = str;
-
-				GUIBufferEditor_scrollToCursor(w);
-				
-				w->ec->cursorBlinkPaused = 1;
-				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
-			}
-			else {
-				GUIBufferEditor_CloseTray(w);
-				w->ec->cursorBlinkPaused = 0;
-				GUIManager_popFocusedObject(w->header.gm);
-			}
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION);
+			break;
+			
+		case BufferCmd_FindStart:			
+		case BufferCmd_FindResume:
+		GUIBufferEditor_SmartFind(w, cmd->str, FM_NONE);
+			break;
+		case BufferCmd_SmartFind:
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION|FM_SEQUENCE);
 			break;
 		
-		case BufferCmd_FindStart:
-			if(w->findQuery) {
-				free(w->findQuery);
-				w->findQuery = NULL;
-			}
-			
-			w->findIndex = -1;
-			// inetnational fallthrough
-			
-		case BufferCmd_FindResume:
-			
-			
-			if(!w->findMode) {
-				char* preserved = NULL;
-				if(w->trayOpen) {
-					GUIBufferEditor_CloseTray(w);
-				}
-				
-				w->findMode = 1;
-				w->trayOpen = 1;
-				w->inputMode = 1;
-				
-				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
-				GUI_RegisterObject(w, w->trayRoot);
-				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
-				if(w->findQuery) {
-					GUIEdit_SetText(w->findBox, w->findQuery);
-				}
-				
-				w->ec->cursorBlinkPaused = 1;
-				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
-			}
-			else {
-				GUIBufferEditor_CloseTray(w);
-				w->ec->cursorBlinkPaused = 0;
-				GUIManager_popFocusedObject(w->header.gm);
-			}
-			
-			break;
-			
 		case BufferCmd_FindNext:
 			GUIBufferEditor_NextFindMatch(w);
 			break;
 			
 		case BufferCmd_FindPrev:
 			GUIBufferEditor_PrevFindMatch(w);
-			break;
-			
-		case BufferCmd_PromptLoad:
-			GUIBufferEditor_ToggleTray(w, 50);
-			if(!w->loadTypingMode) {
-				w->loadTypingMode = 1;
-				
-				e = GUIEdit_New(w->header.gm, "");
-				GUIResize(&e->header, (Vector2){400, 20});
-				e->header.topleft = (Vector2){0,5};
-				e->header.gravity = GUI_GRAV_TOP_CENTER;
-				e->header.z = 600;
-				
-// 				e->onEnter = find_onenter;
-// 				e->onEnterData = w;
-				
-				w->ec->cursorBlinkPaused = 1;
-				GUI_RegisterObject(w->trayRoot, e);
-				GUIManager_pushFocusedObject(w->header.gm, &e->header);
-				
-				w->loadBox = e;
-			}
-			else {
-				GUIBufferEditor_CloseTray(w);
-				w->loadTypingMode = 0;
-				w->ec->cursorBlinkPaused = 0;
-// 				guiDelete(w->findBox);
-				GUIManager_popFocusedObject(w->header.gm);
-			}
-			
 			break;
 			
 		case BufferCmd_CollapseWhitespace:
