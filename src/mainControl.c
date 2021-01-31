@@ -519,7 +519,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		break;
 		
 	case MainCmd_SaveAndCloseTab:
-		printf("NYI\n");
+		printf("NYI\n"); // see BufferCmd_SaveAndClose and BufferCmd_PromptAndClose
 		break;
 		
 	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;

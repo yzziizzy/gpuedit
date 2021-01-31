@@ -82,6 +82,8 @@
 	X(BufferCmd, ReplaceNext) \
 	X(BufferCmd, ReplaceAll) \
 	X(BufferCmd, Save) \
+	X(BufferCmd, SaveAndClose) \
+	X(BufferCmd, PromptAndClose) \
 	X(BufferCmd, Reload) \
 	X(BufferCmd, CloseTray) \
 	X(BufferCmd, ToggleMenu) \

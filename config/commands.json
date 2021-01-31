@@ -95,6 +95,8 @@
 {cmd: "BufferCmd_Undo", mods: "C", key: "z", amt: 0, flags: ["scrollToCursor", "rehighlight"]},
 {cmd: "BufferCmd_Redo", mods: "CS", key: "z", amt: 0, flags: ["scrollToCursor", "rehighlight"]},
 {cmd: "BufferCmd_Save", mods: "C", key: "s", amt: 0, },
+// {cmd: "BufferCmd_SaveAndClose", mods: "C", key: "w", amt: 0, },
+// {cmd: "BufferCmd_PromptAndClose", mods: "C", key: "w", amt: 0, },
 {cmd: "BufferCmd_Reload", mods: "", key: "XK_F5", amt: 0, flags: ["rehighlight"]},
 //{mode: 0, cmd: "BufferCmd_SmartFind", mods: "C", key: "f", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["centerOnCursor"]},
 {cmd: "BufferCmd_FindResume", mods: "C", key: "f", amt: 0, },

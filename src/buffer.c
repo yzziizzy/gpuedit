@@ -76,7 +76,7 @@ static int undo_avail(Buffer* b) {
 	return b->undoMax - b->undoFill;
 }
 
-static BufferUndo* undo_inc(Buffer* b) {
+static BufferUndo* undo_inc(Buffer* b, int changeCount) {
 	// TODO: adjust size dynamically sometimes
 	BufferUndo* u = b->undoRing + b->undoCurrent;
 	
@@ -99,6 +99,8 @@ static BufferUndo* undo_inc(Buffer* b) {
 	
 	b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
 	b->undoNext = b->undoCurrent;
+	
+	b->changeCounter += changeCount;
 	
 	return u;
 }
@@ -160,7 +162,7 @@ void Buffer_UndoInsertText(
 	
 // 	VEC_INC(&b->undoStack);
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
-	BufferUndo* u = undo_inc(b);
+	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_InsertText;
 	u->lineNum = line;
@@ -179,7 +181,7 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 	
 // 	VEC_INC(&b->undoStack);
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
-	BufferUndo* u = undo_inc(b);
+	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_DeleteText;
 	u->lineNum = bl->lineNum;
@@ -194,7 +196,7 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 
 
 void Buffer_UndoSetSelection(Buffer* b, intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC) {
-	BufferUndo* u = undo_inc(b);
+	BufferUndo* u = undo_inc(b, 0);
 	
 	u->action = UndoAction_SetSelection;
 	u->lineNum = startL;
@@ -216,7 +218,7 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved,
 	
 // 	VEC_INC(&b->undoStack);
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
-	BufferUndo* u = undo_inc(b);
+	BufferUndo* u = undo_inc(b, 0);
 	
 	//printf("saving seq break: %ld:%ld -> %ld->%ld\n",
 	//	startL, startC, endL, endC);
@@ -234,7 +236,7 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved,
 void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
 // 	VEC_INC(&b->undoStack);
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
-	BufferUndo* u = undo_inc(b);
+	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_InsertLineAt;
 	u->lineNum = before ? before->lineNum + 1 : 1; 
@@ -246,7 +248,7 @@ void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
 void Buffer_UndoInsertLineBefore(Buffer* b, BufferLine* after) {
 // 	VEC_INC(&b->undoStack);
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
-	BufferUndo* u = undo_inc(b);
+	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_InsertLineAt;
 	u->lineNum = after->lineNum; 
@@ -259,7 +261,7 @@ void Buffer_UndoInsertLineBefore(Buffer* b, BufferLine* after) {
 void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
 // 	VEC_INC(&b->undoStack);
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
-	BufferUndo* u = undo_inc(b);
+	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_DeleteLine;
 	u->lineNum = bl->lineNum; // null means the first line 
@@ -1724,8 +1726,24 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 		if(ii == b->undoSaveIndex) c  = 's';
 		if(ii == b->undoCurrent) c  = '>';
 		
-		printf("%c%d [%s] {line:%ld:%ld} len:%ld:'%.*s'\n", c, i, names[u->action], 
-			u->lineNum, u->colNum, u->length, (int)u->length, u->text);
+		switch(u->action) {
+			case UndoAction_DeleteText:
+			case UndoAction_InsertText:
+			case UndoAction_DeleteLine:
+			case UndoAction_InsertLineAt:
+				printf("%c%d [%s] {line:%ld:%ld} len:%ld:'%.*s'\n", c, i, names[u->action], 
+					u->lineNum, u->colNum, u->length, (int)u->length, u->text);
+				break;
+				
+			case UndoAction_MoveCursorTo:
+			case UndoAction_SequenceBreak:
+				printf("%c%d [%s] {line:%ld:%ld} len:%ld\n", c, i, names[u->action],
+					u->lineNum, u->colNum, u->length);
+				break;
+				
+			default:
+				fprintf(stderr, "Unknown redo action: %d\n", u->action);
+		}
 	}
 	
 	printf(" Undo save index: %d\n", b->undoSaveIndex);
@@ -1930,6 +1948,8 @@ int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, intptr_t col) {
 
 
 void BufferRangeSet_FreeAll(BufferRangeSet* s) {
+	if(!s) return;
+	
 	VEC_EACH(&s->ranges, i, r) {
 		if(r) free(r);
 	}
@@ -1941,6 +1961,8 @@ void BufferRangeSet_FreeAll(BufferRangeSet* s) {
 long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t col) {
 	BufferLine* bl = line;
 	intptr_t c = col;
+	
+	if(!rs) return -1;
 	
 	if(!VEC_LEN(&rs->ranges)) return -1;
 	

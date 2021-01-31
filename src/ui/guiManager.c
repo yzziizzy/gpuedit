@@ -798,7 +798,7 @@ and removed at run time.
 
 They are NOT for general event handling in GUI elements. Use the vtable for that.
 */
-void GUIHeader_AddHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb) {
+void GUIHeader_AddHandler(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb) {
 	VEC_INC(&h->dynamicHandlers);
 	VEC_TAIL(&h->dynamicHandlers).type = type;
 	VEC_TAIL(&h->dynamicHandlers).cb = cb;

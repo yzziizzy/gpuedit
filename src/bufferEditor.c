@@ -161,7 +161,7 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	
 	if(w->trayOpen && (GUIEdit*)gev->originalTarget == w->findBox) {
 		if(0 == strcmp(gev->userType, "change")) {
-			// becaus userData is not null terminated from the Edit
+			// because userData is not null terminated from the Edit
 			if(w->findQuery) {
 				free(w->findQuery);
 			}
@@ -172,20 +172,22 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
 			w->ec->findSet = w->findSet;
 			
-			w->findIndex = BufferRange_FindNextRangeSet(w->findSet, w->ec->current, w->ec->curCol);
-			if(w->findIndex >= 0) {
-				BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
-				
-				w->ec->selectPivotLine = r->startLine;
-				w->ec->selectPivotCol = r->startCol;
-				GBEC_MoveCursorTo(w->ec, r->endLine, r->endCol);
-				
-				GUIBufferEditControl_SetSelectionFromPivot(w->ec);
-			}
-
-//			GUIBufferEditor_NextFindMatch(w);
-		// 	GUIBufferEditor_FindWord(w, word);
+			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 			GUIBufferEditor_scrollToCursor(w);
+		}
+	} else if(0 == strcmp(gev->userType, "SaveTray_save_click")) {
+		if(!g_DisableSave) {
+			Buffer_SaveToFile(w->buffer, w->sourceFile);
+		}
+		else {
+			printf("Buffer saving disabled.\n");
+		}
+		GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+	} else if(0 == strcmp(gev->userType, "SaveTray_discard_click")) {
+		GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+	} else if(0 == strcmp(gev->userType, "SaveTray_cancel_click")) {
+		if(w->trayOpen) {
+			GUIBufferEditor_CloseTray(w);
 		}
 	}
 }
@@ -317,6 +319,20 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 
 
 
+static void SaveTray_save_click(GUIHeader* w_, GUIEvent* gev) {
+	GUIManager_BubbleUserEvent(w_->gm, w_, "SaveTray_save_click");
+	gev->cancelled = 1;
+}
+
+static void SaveTray_discard_click(GUIHeader* w_, GUIEvent* gev) {
+	GUIManager_BubbleUserEvent(w_->gm, w_, "SaveTray_discard_click");
+	gev->cancelled = 1;
+}
+
+static void SaveTray_cancel_click(GUIHeader* w_, GUIEvent* gev) {
+	GUIManager_BubbleUserEvent(w_->gm, w_, "SaveTray_cancel_click");
+	gev->cancelled = 1;
+}
 
 
 
@@ -376,6 +392,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 	GUI_RegisterObject(w, w->trayRoot);
 	w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
+	w->findResultsText = (GUIText*)GUI_FindChild(w->trayRoot, "results");
 	
 	BufferRange sel = {};
 	Buffer* b = w->ec->buffer;
@@ -411,7 +428,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	w->ec->findSet = w->findSet;
 
 	// locate the match at/after the cursor
-	GUIBufferEditor_NextFindMatch(w);
+	GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 		
 //	GUIBufferEditor_scrollToCursor(w);
 	
@@ -422,29 +439,61 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 }
 
 
-int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w) {
-	if(VEC_LEN(&w->findSet->ranges) == 0) return 1;
-
-	w->findIndex = (w->findIndex + 1 + VEC_LEN(&w->findSet->ranges)) % VEC_LEN(&w->findSet->ranges);
+int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor) {
+	if(VEC_LEN(&w->findSet->ranges) == 0) {
+		GUIText_setString(w->findResultsText, "No results");
+		return 1;
+	}
 	
-	BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
+	if(w->findSet->changeCounter != w->buffer->changeCounter) {
+		GUIBufferEditor_FindAll(w, w->findQuery);
+		w->findIndex = -1;
+		printf("reset find index\n");
+	}
+	
+	BufferRange* r = NULL;
+//	GUIBufferControl* ec = w->ec;
+	intptr_t line = w->ec->current->lineNum;
+	intptr_t col = w->ec->curCol;
+	
+	if(continueFromCursor && (offset > 0)) {
+		VEC_EACH(&w->findSet->ranges, i, range) {
+			if(range->startLine->lineNum < line) {
+				continue;
+			} else if((w->findIndex == i) && (range->startLine->lineNum == line) && (range->startCol == col)) {
+				continue;
+			}
+			
+			w->findIndex = i;
+			r = range;
+			break;
+		}
+	} else if(continueFromCursor && (offset < 0)) {
+		VEC_R_EACH(&w->findSet->ranges, i, range) {
+			if(range->startLine->lineNum > line) {
+				continue;
+			} else if((w->findIndex == i) && (range->startLine->lineNum == line) && (range->startCol == col)) {
+				continue;
+			}
+			
+			w->findIndex = i;
+			r = range;
+			break;
+		}
+	}
+	
+	if(!r) {
+		w->findIndex = (w->findIndex + offset + VEC_LEN(&w->findSet->ranges)) % VEC_LEN(&w->findSet->ranges);
+		
+		r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
+	}
+	char fmt_buffer[420];
+	snprintf(fmt_buffer, 420, "%ld of %ld", w->findIndex + 1, VEC_LEN(&w->findSet->ranges));
+	GUIText_setString(w->findResultsText, fmt_buffer);
 	
 	GBEC_MoveCursorTo(w->ec, r->startLine, r->startCol);
-	GBEC_SetCurrentSelection(w->ec, r->startLine, r->startCol, r->endLine, r->endCol); 
+	GBEC_SetCurrentSelection(w->ec, r->startLine, r->startCol, r->endLine, r->endCol);
 	
-	return 0;
-};
-
-
-int GUIBufferEditor_PrevFindMatch(GUIBufferEditor* w) {
-	if(VEC_LEN(&w->findSet->ranges) == 0) return 1;
-
-	w->findIndex = (w->findIndex - 1 + VEC_LEN(&w->findSet->ranges)) % VEC_LEN(&w->findSet->ranges);
-	
-	BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
-	
-	GBEC_MoveCursorTo(w->ec, r->startLine, r->startCol);
-	GBEC_SetCurrentSelection(w->ec, r->startLine, r->startCol, r->endLine, r->endCol); 
 	
 	return 0;
 };
@@ -506,6 +555,7 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 
 	BufferRangeSet* set = pcalloc(set);
+	set->changeCounter = w->buffer->changeCounter;
 	
 	
 
@@ -533,7 +583,7 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 		pcre2_get_error_message(errno, errbuf, sizeof(errbuf));
 		printf("PCRE find error #1: '%s' \n", errbuf);
 		
-		return 1;
+		return NULL;
 	}
 	
 	// compilation was successful.
@@ -587,7 +637,7 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 				
 				printf("PCRE real error: %p %p %ld '%s'\n", findRE, bl->buf, bl->lineNum, errbuf);
 				
-				return 1;
+				return NULL;
 			}
 			
 			bl = bl->next;
@@ -844,7 +894,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				GBEC_MoveCursorH(ec, len);
 			}
 			
-			GUIBufferEditor_NextFindMatch(w);
+			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 			break;
 		}
 		
@@ -900,18 +950,18 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 		case BufferCmd_FindStart:			
 		case BufferCmd_FindResume:
-		GUIBufferEditor_SmartFind(w, cmd->str, FM_NONE);
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_NONE);
 			break;
 		case BufferCmd_SmartFind:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION|FM_SEQUENCE);
 			break;
 		
 		case BufferCmd_FindNext:
-			GUIBufferEditor_NextFindMatch(w);
+			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 			break;
 			
 		case BufferCmd_FindPrev:
-			GUIBufferEditor_PrevFindMatch(w);
+			GUIBufferEditor_RelativeFindMatch(w, -1, 1);
 			break;
 			
 		case BufferCmd_CollapseWhitespace:
@@ -946,6 +996,48 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			else {
 				printf("Buffer saving disabled.\n");
 			}
+			break;
+		
+		case BufferCmd_SaveAndClose:
+			if(!g_DisableSave) {
+				Buffer_SaveToFile(w->buffer, w->sourceFile);
+			}
+			else {
+				printf("Buffer saving disabled.\n");
+			}
+			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+			break;
+		
+		case BufferCmd_PromptAndClose:
+			// launch save_tray
+			if(w->trayOpen) {
+				GUIBufferEditor_CloseTray(w);
+			}
+			
+			if(w->buffer->undoSaveIndex == w->buffer->undoCurrent) {
+				// changes are saved, so just close
+				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+				break;
+			}
+			
+			w->trayOpen = 1;
+			
+			w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "save_tray");
+			GUI_RegisterObject(w, w->trayRoot);
+			GUIText* saveTrayFilename = (GUIText*)GUI_FindChild(w->trayRoot, "filename");
+			GUIText_setString(saveTrayFilename, w->sourceFile);
+			
+			GUIEdit* btn_save = (GUIEdit*)GUI_FindChild(w->trayRoot, "save");
+			GUIHeader_AddHandler(&btn_save->header, GUIEVENT_Click, SaveTray_save_click);
+			
+			GUIEdit* btn_discard = (GUIEdit*)GUI_FindChild(w->trayRoot, "discard");
+			GUIHeader_AddHandler(&btn_discard->header, GUIEVENT_Click, SaveTray_discard_click);
+			
+			GUIEdit* btn_cancel = (GUIEdit*)GUI_FindChild(w->trayRoot, "cancel");
+			GUIHeader_AddHandler(&btn_cancel->header, GUIEVENT_Click, SaveTray_cancel_click);
+			
+			w->ec->cursorBlinkPaused = 1;
+			
 			break;
 		
 		case BufferCmd_Reload:

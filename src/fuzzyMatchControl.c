@@ -163,6 +163,8 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
 			break;
 			
 		case FuzzyMatcherCmd_OpenFile: {
+			if(w->matchCnt == 0) break;
+			
 			char* path_raw = path_join(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
 			char* path = resolve_path(path_raw);
 			GUIFileOpt opt = {

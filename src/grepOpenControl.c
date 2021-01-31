@@ -231,6 +231,8 @@ void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd) {
 			break;
 
 		case GrepOpenCmd_OpenFile: {
+			if(w->matchCnt == 0) break;
+			
 			char* path_raw = path_join(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
 			char* path = resolve_path(path_raw);
 			intptr_t line_num = w->matches[w->cursorIndex].line_num;
@@ -361,7 +363,7 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);
 			candidates[n_candidates+j].line_num = atol(candidates[n_candidates+j].line);
 			candidates[n_candidates+j].line = cleanup_line(candidates[n_candidates+j].line);
-			candidates[n_candidates+j].render_line = sprintfdup("%s:%lu  %s",
+			candidates[n_candidates+j].render_line = sprintfdup("% 30s:% 5.lu  %s",
 				candidates[n_candidates+j].filepath,
 				candidates[n_candidates+j].line_num,
 				candidates[n_candidates+j].line
