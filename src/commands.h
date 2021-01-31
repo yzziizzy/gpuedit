@@ -75,14 +75,16 @@
 	X(BufferCmd, FindStartFromSelection) \
 	X(BufferCmd, FindStart) \
 	X(BufferCmd, FindResume) \
+	X(BufferCmd, SmartFind) \
 	X(BufferCmd, FindNext) \
 	X(BufferCmd, FindPrev) \
 	X(BufferCmd, ReplaceStart) \
 	X(BufferCmd, ReplaceNext) \
 	X(BufferCmd, ReplaceAll) \
 	X(BufferCmd, Save) \
+	X(BufferCmd, SaveAndClose) \
+	X(BufferCmd, PromptAndClose) \
 	X(BufferCmd, Reload) \
-	X(BufferCmd, PromptLoad) \
 	X(BufferCmd, CloseTray) \
 	X(BufferCmd, ToggleMenu) \
 	X(BufferCmd, ShowDictComplete) \

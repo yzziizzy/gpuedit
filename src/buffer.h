@@ -52,6 +52,7 @@ typedef struct BufferRange {
 
 
 typedef struct BufferRangeSet {
+	int changeCounter;
 	VEC(BufferRange*) ranges;
 } BufferRangeSet;
 
@@ -165,6 +166,7 @@ typedef struct Buffer {
 // 	VEC(BufferUndo) undoStack;
 	int undoSaveIndex; // index of the undo position matching the file on disk
 // 	char isModified;
+	int changeCounter;
 	
 	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
 	
@@ -310,6 +312,7 @@ typedef struct GUIBufferEditor {
 	char* sourceFile; // issues with undo-save
 	
 	unsigned int inputMode;
+//	InputMode_t inputMode;
 	
 	char findMode; 
 	char replaceMode; 
@@ -335,6 +338,7 @@ typedef struct GUIBufferEditor {
 	
 	BufferRangeSet* findSet;
 	long findIndex;
+	GUIText* findResultsText;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
 	void* setBreakpointData;
@@ -368,6 +372,17 @@ typedef struct BufferCmd {
 		char** pstr;
 	};
 } BufferCmd;
+
+
+
+
+typedef enum FindMask {
+	FM_NONE,
+	FM_SELECTION,
+	FM_SEQUENCE,
+} FindMask_t;
+
+
 
 
 
@@ -495,8 +510,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferRange* sel);
 long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t col);
-int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
-int GUIBufferEditor_PrevFindMatch(GUIBufferEditor* w);
+int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
 
 
 void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
@@ -606,8 +620,9 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height); 
 
+
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
-int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
+int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w);
 
 intptr_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
