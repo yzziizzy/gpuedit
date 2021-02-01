@@ -285,7 +285,6 @@ typedef struct GUIBufferEditControl {
 
 	int linesPerScrollWheel;
 	
-	
 	GUIWindow* scrollbar;
 	float sbMinHeight;
 

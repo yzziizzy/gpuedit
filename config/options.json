@@ -17,7 +17,6 @@
 	"Buffer_cursorBlinkEnable": 1,
 	"Buffer_cursorBlinkOffTime": 0.600,
 	"Buffer_cursorBlinkOnTime": 0.600,
-	"Buffer_hideScrollbar": 0,
 	"Buffer_highlightCurrentLine": 1,
 	"Buffer_outlineCurrentLine": 1,
 	"Buffer_outlineCurrentLineYOffset": 0,
@@ -40,6 +39,7 @@
 	GUI_GlobalSettings: {
 		"maxInstances": 16384,
 		"linesPerScrollWheel": 5,
+		"hideScrollbar": 0,
 		
 		"fontList": [
 			"Arial",

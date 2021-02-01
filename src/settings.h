@@ -29,7 +29,6 @@ typedef struct TabSpec {
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, Buffer_cursorBlinkOffTime,   0.600, 0,    300000) \
 	SETTING(float, Buffer_cursorBlinkOnTime,    0.600, 0,    300000) \
-	SETTING(bool,  Buffer_hideScrollbar,        false, NULL, NULL) \
 	SETTING(bool,  Buffer_highlightCurrentLine, true,  NULL, NULL) \
 	SETTING(bool,  Buffer_outlineCurrentLine,   true,  NULL, NULL) \
 	SETTING(float, Buffer_outlineCurrentLineYOffset,   0,     -999, 999) \

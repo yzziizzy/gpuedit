@@ -460,7 +460,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		VEC_EACH(&w->findSet->ranges, i, range) {
 			if(range->startLine->lineNum < line) {
 				continue;
-			} else if((w->findIndex == i) && (range->startLine->lineNum == line) && (range->startCol == col)) {
+			} else if((range->startLine->lineNum == line) && (range->startCol <= col)) {
 				continue;
 			}
 			
@@ -472,7 +472,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		VEC_R_EACH(&w->findSet->ranges, i, range) {
 			if(range->startLine->lineNum > line) {
 				continue;
-			} else if((w->findIndex == i) && (range->startLine->lineNum == line) && (range->startCol == col)) {
+			} else if((range->startLine->lineNum == line) && (range->startCol >= col)) {
 				continue;
 			}
 			

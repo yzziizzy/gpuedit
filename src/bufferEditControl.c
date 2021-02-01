@@ -317,18 +317,20 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	// cursor blink
 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
-	
-	w->sbMinHeight = 20;
-	// scrollbar position calculation
-	// calculate scrollbar height
-	float wh = w->header.size.y;
-	float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
-	
-	// calculate scrollbar offset
-	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
-	
-	GUIResize(&w->scrollbar->header, (Vector2){10, sbh});
-	w->scrollbar->header.topleft.y = sboff;
+		
+	if(w->scrollbar) {
+		w->sbMinHeight = 20;
+		// scrollbar position calculation
+		// calculate scrollbar height
+		float wh = w->header.size.y;
+		float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
+		
+		// calculate scrollbar offset
+		float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
+		
+		GUIResize(&w->scrollbar->header, (Vector2){10, sbh});
+		w->scrollbar->header.topleft.y = sboff;
+	}
 
 	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
@@ -445,13 +447,15 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	w->header.cursor = GUIMOUSECURSOR_TEXT;
 	
 	
-	w->scrollbar = GUIWindow_New(gm);
-	GUIResize(&w->scrollbar->header, (Vector2){10, 50});
-	w->scrollbar->color = (Color4){.9,.9,.9, 1};
-	w->scrollbar->header.z = 100;
-	w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
-	
-	GUI_RegisterObject(w, w->scrollbar);
+	if(!gm->gs->hideScrollbar) {
+		w->scrollbar = GUIWindow_New(gm);
+		GUIResize(&w->scrollbar->header, (Vector2){10, 50});
+		w->scrollbar->color = (Color4){.9,.9,.9, 1};
+		w->scrollbar->header.z = 100;
+		w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
+		
+		GUI_RegisterObject(w, w->scrollbar);
+	}
 	
 	pcalloc(w->selSet);
 	
