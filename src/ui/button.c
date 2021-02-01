@@ -82,7 +82,7 @@ static void render(GUIButton* w, PassFrameParams* pfp) {
 		tx = &gm->defaults.buttonHoverTextColor;
 	}
 	
-	gui_drawBoxBorder(gm, tl, w->header.size, &w->header.absClip, w->header.absZ, bd, 1, bg);
+	gui_drawBoxBorder(gm, tl, w->header.size, &w->header.absClip, w->header.absZ, bg, 1, bd);
 	
 	// draw label
 	float textw = gui_getDefaultUITextWidth(w->header.gm, w->label, strlen(w->label));

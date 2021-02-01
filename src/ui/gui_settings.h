@@ -12,6 +12,7 @@
 	\
 	SETTING(int,   linesPerScrollWheel,           5, 1, 999) \
 	SETTING(bool,  hideScrollbar,                 false,       NULL, NULL) \
+	SETTING(bool,  hideStatusBar,                 false,       NULL, NULL) \
 	\
 	SETTING(bool,  is_dark,                       true,        NULL, NULL) \
 	SETTING(charp, bgColor,                       "#0f0f0fff", NULL, NULL) \
@@ -38,6 +39,7 @@
 	SETTING(charp, buttonDisBorderColor,          "#14147dff", NULL, NULL) \
 	SETTING(charp, editBorderColor,               "#19f519ff", NULL, NULL) \
 	SETTING(charp, editBgColor,                   "#143219ff", NULL, NULL) \
+	SETTING(charp, editTextColor,                 "#c8c8c8ff", NULL, NULL) \
 	SETTING(charp, cursorColor,                   "#f0f0f0ff", NULL, NULL) \
 	SETTING(charp, tabTextColor,                  "#c8c8c8ff", NULL, NULL) \
 	SETTING(charp, tabBorderColor,                "#787878ff", NULL, NULL) \
@@ -56,7 +58,8 @@
 	SETTING(charp, selectBgColor,                 "#140f03ff", NULL, NULL) \
 	SETTING(charp, selectBorderColor,             "#64961eff", NULL, NULL) \
 	SETTING(charp, selectTextColor,               "#96be3cff", NULL, NULL) \
-
+	SETTING(charp, trayBgColor,                   "#373b41ff", NULL, NULL) \
+	
 
 
 

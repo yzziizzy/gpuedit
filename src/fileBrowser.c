@@ -59,16 +59,17 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	float padding = 4;
 	
 	w->fbc->header.size.x = w->header.size.x;
-	w->fbc->header.size.y = w->header.size.y - 60;
+	w->fbc->header.size.y = w->header.size.y - 65;
 // 	w->fbc->header.topleft.y = 20;
 	
+	w->tray->header.size.y = 65;
 	
-	w->newDirBtn->header.topleft.y = 0;
-	w->newFileBtn->header.topleft.y = 0;
+	w->newDirBtn->header.topleft.y = 5;
+	w->newFileBtn->header.topleft.y = 5;
 	w->newFileBtn->header.topleft.x = 120;
 	
-	w->acceptBtn->header.topleft.y = 0;
-	w->cancelBtn->header.topleft.y = 0;
+	w->acceptBtn->header.topleft.y = 5;
+	w->cancelBtn->header.topleft.y = 5;
 	w->cancelBtn->header.topleft.x = 120;
 	
 	w->newDirBtn->header.size = (Vector2){100, 25};
@@ -76,7 +77,7 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	w->acceptBtn->header.size = (Vector2){100, 25};
 	w->cancelBtn->header.size = (Vector2){100, 25};
 	
-	w->filenameBar->header.topleft.y = 30;
+	w->filenameBar->header.topleft.y = 35;
 	w->filenameBar->header.topleft.x = 0;
 	w->filenameBar->header.size.y = 25;
 	
@@ -309,12 +310,17 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	GUIFileBrowser* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	w->header.cursor = GUIMOUSECURSOR_ARROW;
+	w->header.cursor = GUIMOUSECURSOR_ARROW;	
 	
 	w->fbc = GUIFileBrowserControl_New(gm, path);
 	w->fbc->header.flags |= GUI_MAXIMIZE_X;
 
 	w->fbc->linesPerScrollWheel = gm->gs->linesPerScrollWheel;
+	
+	w->tray = GUIWindow_New(gm);
+	w->tray->header.flags |= GUI_MAXIMIZE_X;
+	w->tray->header.gravity = GUI_GRAV_BOTTOM_LEFT;
+	w->tray->color = gm->defaults.trayBgColor;
 	
 	w->filenameBar = GUIEdit_New(gm, "");
 	w->filenameBar->header.flags |= GUI_MAXIMIZE_X;
@@ -332,6 +338,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	w->fbc->header.gravity = GUI_GRAV_TOP_LEFT;
 	
 	GUI_RegisterObject(w, w->fbc);
+	GUI_RegisterObject(w, w->tray);
 	GUI_RegisterObject(w, w->filenameBar);
 	GUI_RegisterObject(w, w->acceptBtn);
 	GUI_RegisterObject(w, w->cancelBtn);

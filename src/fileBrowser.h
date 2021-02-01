@@ -21,6 +21,7 @@ typedef struct GUIFileBrowser {
 	unsigned int noEmptyAccept   : 1;
 	
 	GUIFileBrowserControl* fbc;
+	GUIWindow* tray;
 	GUIEdit* filenameBar;
 	GUIButton* newDirBtn;
 	GUIButton* newFileBtn;

@@ -108,6 +108,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 
 	decodeHexColorNorm(gs->editBorderColor, (float*)&(gm->defaults.editBorderColor));
 	decodeHexColorNorm(gs->editBgColor, (float*)&(gm->defaults.editBgColor));
+	decodeHexColorNorm(gs->editTextColor, (float*)&(gm->defaults.editTextColor));
 	gm->defaults.editWidth = 150;
 	gm->defaults.editHeight = 18;
 
@@ -140,6 +141,8 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	decodeHexColorNorm(gs->selectBgColor, (float*)&(gm->defaults.selectBgColor));
 	decodeHexColorNorm(gs->selectBorderColor, (float*)&(gm->defaults.selectBorderColor));
 	decodeHexColorNorm(gs->selectTextColor, (float*)&(gm->defaults.selectTextColor));
+	
+	decodeHexColorNorm(gs->trayBgColor, (float*)&(gm->defaults.trayBgColor));
 	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;

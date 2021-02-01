@@ -401,6 +401,7 @@ typedef struct GUIManager {
 		struct Color4 textColor;
 		struct Color4 editBgColor;
 		struct Color4 editBorderColor;
+		struct Color4 editTextColor;
 		float         editHeight;
 		float         editWidth;
 		struct Color4 buttonTextColor;
@@ -438,6 +439,7 @@ typedef struct GUIManager {
 		struct Color4 selectBorderColor;
 		struct Color4 selectTextColor;
 		Vector2       selectSize;
+		struct Color4 trayBgColor;
 		// TODO: font name, size 
 	} defaults;
 	

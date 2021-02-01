@@ -134,7 +134,7 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 		sbHeight += w->trayRoot->header.size.y;
 		w->trayRoot->header.topleft.y = wsz.y - sbHeight;
 		
-		w->trayRoot->color = (Color4){.4,.4,.4,1};
+		w->trayRoot->color = w->header.gm->defaults.trayBgColor;
 		w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
 	}
 	
@@ -234,7 +234,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	GUI_RegisterObject(w, w->ec);
 	
 	
-	w->showStatusBar = 1;
+	w->showStatusBar = !gm->gs->hideStatusBar;
 	w->statusBar = GUIStatusBar_New(gm);
 // 	w->statusBar->header.flags = GUI_MAXIMIZE_X;
 	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;

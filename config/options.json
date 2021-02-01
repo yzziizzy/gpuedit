@@ -40,6 +40,7 @@
 		"maxInstances": 16384,
 		"linesPerScrollWheel": 5,
 		"hideScrollbar": 0,
+		"hideStatusBar": 0,
 		
 		"fontList": [
 			"Arial",

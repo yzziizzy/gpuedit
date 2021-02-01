@@ -29,9 +29,9 @@
 		flags: "MAXIMIZE_X|CHILD_TABBING",
 		children: [
 			{type: "text", pos: [5, 5], value: "Find:" },
-			{type: "edit", pos: [65, 5], size: [400, 20] value: "", name: "find", tabStop: 1 },
+			{type: "edit", pos: [75, 5], size: [400, 20] value: "", name: "find", tabStop: 1 },
 			{type: "text", pos: [5, 35], value: "Replace:" },
-			{type: "edit", pos: [65, 35], size: [400, 20] value: "", name: "replace", tabStop: 2 },
+			{type: "edit", pos: [75, 35], size: [400, 20] value: "", name: "replace", tabStop: 2 },
 		],
 	},
 	goto_tray: {
