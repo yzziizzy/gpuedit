@@ -293,7 +293,7 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	
 	Buffer* b = w->buffer;
 	
-	float lineNumWidth = ceil(log10(b->numLines)) * w->bdp->tdp->charWidth + w->bdp->lineNumExtraWidth;
+	float lineNumWidth = ceil(LOGB(w->gs->Buffer_lineNumBase, b->numLines + 0.5)) * w->bdp->tdp->charWidth + w->bdp->lineNumExtraWidth;
 	
 	w->linesOnScreen = w->header.size.y / w->gs->Buffer_lineHeight;
 	w->colsOnScreen = (w->header.size.x - lineNumWidth) / w->gs->Buffer_charWidth;

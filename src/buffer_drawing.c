@@ -141,7 +141,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		.alpha = 1,
 	};
 	
-	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines)) * tdp->charWidth + bdp->lineNumExtraWidth;
+	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 0.5)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	float hsoff = -gbe->scrollCols * tdp->charWidth;
 	
 	Vector2 tl = gbe->header.absTopLeft;

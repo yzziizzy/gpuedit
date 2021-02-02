@@ -33,9 +33,7 @@
 * GUIListControl
 * s/GUIBufferEditControl_*()/GBEC_*()/
 * Highlight all find matches, give total count
-* Center search result in the screen when finding
 * Command: delete lines under selection/cursor
-* Gutter width is wrong for 10 line files
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
 * Open file to some certain line
