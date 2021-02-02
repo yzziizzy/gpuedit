@@ -332,6 +332,8 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 	int i = 0;
 	int j = 0;
 	int n_paths = 0;
+	
+	char lnbuf[32];
 
 	if(!w->searchTerm || strlen(w->searchTerm) < 3) {
 		goto CLEANUP;
@@ -363,9 +365,10 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);
 			candidates[n_candidates+j].line_num = atol(candidates[n_candidates+j].line);
 			candidates[n_candidates+j].line = cleanup_line(candidates[n_candidates+j].line);
-			candidates[n_candidates+j].render_line = sprintfdup("% 30s:% 5.lu  %s",
+			sprintlongb(lnbuf, w->gs->Buffer_lineNumBase, candidates[n_candidates+j].line_num, w->gs->Buffer_lineNumCharset);
+			candidates[n_candidates+j].render_line = sprintfdup("%s:%s  %s",
 				candidates[n_candidates+j].filepath,
-				candidates[n_candidates+j].line_num,
+				lnbuf,
 				candidates[n_candidates+j].line
 			);
 		}

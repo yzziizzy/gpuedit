@@ -34,6 +34,8 @@ typedef struct TabSpec {
 	SETTING(float, Buffer_outlineCurrentLineYOffset,   0,     -999, 999) \
 	SETTING(float, Buffer_lineNumExtraWidth,    10,    0,    1920*16) \
 	SETTING(bool,  Buffer_showLineNums,         true,  NULL, NULL) \
+	SETTING(int,   Buffer_lineNumBase,          10,    2,    36) \
+	SETTING(charp, Buffer_lineNumCharset,       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", NULL, NULL) \
 	SETTING(float, Buffer_charWidth,            10,    1,    1920*16) \
 	SETTING(float, Buffer_lineHeight,           20,    1,    1920*16) \
 	SETTING(int,   Buffer_tabWidth,             4,     0,    INT_MAX) \

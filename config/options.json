@@ -21,6 +21,8 @@
 	"Buffer_outlineCurrentLine": 1,
 	"Buffer_outlineCurrentLineYOffset": 0,
 	"Buffer_lineNumExtraWidth": 10,
+	"Buffer_lineNumBase": 10, // 2-36
+	"Buffer_lineNumCharset": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	"Buffer_showLineNums": 1,
 	"Buffer_charWidth": 8,
 	"Buffer_lineHeight": 17,

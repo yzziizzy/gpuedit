@@ -861,7 +861,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		
 		case BufferCmd_GoToLineSubmit:
 			if(w->lineNumTypingMode) {
-				intptr_t line_num = atol(GUIEdit_GetText(w->lineNumEntryBox));
+				intptr_t line_num = strtol(GUIEdit_GetText(w->lineNumEntryBox), NULL, w->gs->Buffer_lineNumBase);
 				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
 				
 				if(bl) {

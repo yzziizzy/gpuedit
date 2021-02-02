@@ -25,6 +25,6 @@ typedef struct Vertex_PNT {
 	struct { float u, v; } t;
 } Vertex_PNT;
 
-
+#define LOGB(b,x) (log2(x)/log2(b))
 
 #endif // __EACSMB_common_math_h__
