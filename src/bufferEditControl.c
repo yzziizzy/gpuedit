@@ -197,7 +197,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	Vector2 sz = w->header.size;
 	
 	// TODO: reverse calculate cursor position
-	if(gev->pos.x < tl.x + 50 || gev->pos.x > tl.x + sz.x) return;   
+	if(gev->pos.x < tl.x + w->textAreaOffsetX || gev->pos.x > tl.x + sz.x) return;
 	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
 	
 	if(shift && !w->sel) {
