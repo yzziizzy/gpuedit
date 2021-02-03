@@ -989,6 +989,33 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 // 			break;
 // 		}
+		case BufferCmd_SmartBubbleSelection: {
+			GUIBubbleOpt opt = {};
+			GUIEvent gev2 = {};
+			
+			opt.ev = strdup(cmd->str);
+			if(w->ec->sel) {
+				opt.sel = Buffer_StringFromSelection(w->buffer, w->ec->sel, NULL);
+			}
+			
+			gev2.type = GUIEVENT_User;
+			gev2.eventTime = 0;//gev->eventTime;
+			gev2.originalTarget = &w->header;
+			gev2.currentTarget = &w->header;
+			gev2.cancelled = 0;
+			// handlers are responsible for cleanup
+			gev2.userData = &opt;
+			gev2.userSize = sizeof(opt);
+			
+			gev2.userType = "SmartBubble";
+		
+			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+			free(opt.ev);
+			free(opt.sel);
+			break;
+		}
+			
+
 		case BufferCmd_Save: 
 			if(!g_DisableSave) {
 				Buffer_SaveToFile(w->buffer, w->sourceFile);

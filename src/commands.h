@@ -94,6 +94,7 @@
 	X(BufferCmd, ScrollColsH) \
 	X(BufferCmd, ScrollScreenPctH) \
 	X(BufferCmd, NextHighlighter) \
+	X(BufferCmd, SmartBubbleSelection) \
 	\
 	X(FileBrowserCmd, CursorMove) \
 	X(FileBrowserCmd, CursorMoveNoWrap) \

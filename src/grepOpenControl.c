@@ -274,7 +274,7 @@ void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd) {
 }
 
 
-GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path) {
+GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* searchTerm) {
 
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
@@ -305,13 +305,17 @@ GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path) {
 	w->lineHeight = 25;
 	w->leftMargin = 20;
 
-	w->searchBox = GUIEdit_New(gm, "");
+	if(searchTerm) {
+		w->searchTerm = strdup(searchTerm);
+		w->searchBox = GUIEdit_New(gm, searchTerm);
+	} else {
+		w->searchBox = GUIEdit_New(gm, "");
+	}
 	w->searchBox->header.flags |= GUI_MAXIMIZE_X;
 	w->searchBox->header.gravity = GUI_GRAV_TOP_LEFT;
 
 	GUI_RegisterObject(w, w->searchBox);
-
-
+	
 	return w;
 }
 

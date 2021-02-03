@@ -392,13 +392,26 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	} 
 	else if(0 == strcmp(gev->userType, "openFile")) {
 		GUIMainControl_LoadFile(w, gev->userData);
+		gev->cancelled = 1;
 	}
 	else if(0 == strcmp(gev->userType, "openFileOpt")) {
 		GUIMainControl_LoadFileOpt(w, gev->userData);
+		gev->cancelled = 1;
 	}
 	else if(0 == strcmp(gev->userType, "closeMe")) {
 		int i = GUIMainControl_FindTabIndexByHeaderP(w, gev->originalTarget);
-		if(i > -1) GUIMainControl_CloseTab(w, i);
+		if(i > -1) {
+			GUIMainControl_CloseTab(w, i);
+			gev->cancelled = 1;
+		}
+	} else if(0 == strcmp(gev->userType, "SmartBubble")) {
+		GUIBubbleOpt* opt = (GUIBubbleOpt*)gev->userData;
+		if(0 == strcmp(opt->ev, "GrepOpen")) {
+			GUIMainControl_GrepOpen(w, opt->sel);
+			gev->cancelled = 1;
+		} else {
+			printf("MainControl::SmartBubble unknown ev '%s'\n", opt->ev);
+		}
 	}
 }
 
@@ -478,7 +491,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		break;
 	
 	case MainCmd_GrepOpen:
-		GUIMainControl_GrepOpen(w);
+		GUIMainControl_GrepOpen(w, NULL);
 		break;
 
 	case MainCmd_MainMenu:
@@ -858,13 +871,13 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 }
 
 
-void GUIMainControl_GrepOpen(GUIMainControl* w) {
+void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm) {
 	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
 
-	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->header.gm, "./");
+	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->header.gm, searchTerm);
 	goc->gs = w->gs;
 	goc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &goc->header, "grep opener");
@@ -876,6 +889,8 @@ void GUIMainControl_GrepOpen(GUIMainControl* w) {
 	goc->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
+	
+	GUIGrepOpenControl_Refresh(goc);
 }
 
 

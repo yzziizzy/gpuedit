@@ -381,6 +381,16 @@ typedef enum FindMask {
 	FM_SEQUENCE,
 } FindMask_t;
 
+typedef struct GUIFileOpt {
+	char* path;
+	intptr_t line_num;
+	int set_focus;
+} GUIFileOpt;
+
+typedef struct GUIBubbleOpt {
+	char* ev;
+	char* sel;
+} GUIBubbleOpt;
 
 
 

@@ -34,7 +34,7 @@ typedef struct GUIGrepOpenControl {
 } GUIGrepOpenControl;
 
 
-GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path);
+GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* searchTerm);
 void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w);
 
 void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd);

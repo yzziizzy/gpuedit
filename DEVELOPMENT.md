@@ -21,7 +21,6 @@
 * selection deletion to SOL places cursor on wrong line
 * l/r move cursor to start/end of selection
 
-* launch grep opener with selection
 * folder level options file
 
 * ctrl+l/r jumps across tabs
