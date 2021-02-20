@@ -27,9 +27,13 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 // HACK
 // 	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
 	
-	if(w->lineNumTypingMode) {
-		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
-	}
+//	if(w->lineNumTypingMode) {
+//		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
+//	}
+	
+//	char* statusLine = "hello world";
+//	printf("status line: %s\n", statusLine);
+	
 	
 	GUIHeader_renderChildren(&w->header, pfp);
 }
@@ -142,10 +146,12 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 	w->statusBar->header.size = (Vector2){wsz.x, w->statusBarHeight};
 	w->statusBar->header.topleft = (Vector2){0, 0};
 	
+	if(w->showStatusBar) {
+		
+	}
+	
 	w->ec->header.size = (Vector2){wsz.x, wsz.y - sbHeight};
 	w->ec->header.topleft = (Vector2){0, 0};
-	
-	
 	
 	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
@@ -242,9 +248,10 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->statusBar->header.size.x = w->header.size.x;
 	w->statusBar->header.z = 500;
 	
-	w->statusBar->bgColor = (Color4){.1,.1,.1,1};
 	w->statusBar->padding = (AABB2){{5,5}, {5,5}};
 	w->statusBar->spacing = 3;
+	
+	w->statusBar->ec = w->ec;
 	
 	GUI_RegisterObject(w, w->statusBar);
 	

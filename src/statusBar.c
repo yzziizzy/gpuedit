@@ -1,4 +1,6 @@
 
+#include <time.h>
+
 #include "statusBar.h"
 #include "ui/gui_internal.h"
 
@@ -20,32 +22,97 @@ static void render(GUIStatusBar* w, PassFrameParams* pfp) {
 	GUIHeader* h = &w->header;
 	Vector2 tl = h->absTopLeft;
 	
+	GUIFont* font = FontManager_findFont(gm->fm, gm->gs->font_fw);
+	float fontSize = gm->gs->fontSize_fw;
+	float charWidth = gm->gs->charWidth_fw;
+	float lineHeight = gm->gs->lineHeight_fw;
+	struct Color4 bg = gm->defaults.statusBarBgColor;
+	struct Color4 text = gm->defaults.statusBarTextColor;
 	
-	gui_drawBox(gm, h->absTopLeft, h->size, &h->absClip, h->absZ + 0.0001, &w->bgColor); 
-// 	// title
-// 
-// 	AABB2 box;
-// 	box.min.x = tl.x + 5;
-// 	box.min.y = tl.y + 1;
-// 	box.max.x = w->header.size.x - 10;
-// 	box.max.y = tl.y + 20;
-// 	
-// 	gui_drawTextLine(w->header.gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &w->header.absClip, &w->header.gm->defaults.windowTitleTextColor, w->header.absZ+0.1, w->label, strlen(w->label));
+	gui_drawBox(gm, h->absTopLeft, h->size, &h->absClip, h->absZ + 0.0001, &bg); 
+	
+	// draw widgets
+//	Vector2 tl = w->header.absTopLeft;
+//	tl.y -= 500;
+	Vector2 size = { .x=0, .y=lineHeight };
+	Vector2 offset = h->absTopLeft;
+	VEC_EACH(&w->items, i, item) {
+		size.x = item->size * charWidth;
+		offset.x = item->offset;
+//		printf("widget '%s', size: %ld [%.2f,%.2f] at (%.2f, %.2f)\n", item->line, item->size, size.x, size.y, offset.x, offset.y);
+		gui_drawTextLineAdv(
+			h->gm,
+			offset,
+			size,
+			&h->absClip,
+			&text,
+			font,
+			7.2 / fontSize, // magic
+			9001,
+			item->line,
+			strlen(item->line)
+		);
+	}	
 	
 	GUIHeader_renderChildren(h, pfp);
 }
+
 
 static void delete(GUIStatusBar* w) {
 	
 }
 
+
+static void setLine(GUIStatusBar* w, GUIStatusBarItem* item) {
+	switch(item->type) {
+		case MCWID_HELLO:
+			strcpy(item->line, "hello world");
+			break;
+		case MCWID_PING:
+			strcpy(item->line, "ping stats");
+			break;
+		case MCWID_CLOCK: {
+			time_t timer = time(NULL);
+			struct tm* tm = localtime(&timer);
+			strftime(item->line, 100, "%H:%M:%S", tm);
+			break;
+		}
+		case MCWID_BATTERY:
+			strcpy(item->line, "batt: 100%");
+			break;
+		case MCWID_LINECOL:
+			snprintf(item->line, 100, "line: %ld:%ld", w->ec->current->lineNum, w->ec->curCol);
+//			strcpy(item->line, "line/column stats");
+			break;
+		case MCWID_NONE:
+		default:
+			break;
+	}
+}
+
+
 static void updatePos(GUIStatusBar* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIHeader* h = &w->header;
-	
+	float charWidth = h->gm->gs->charWidth_fw;
 	
 	VEC_SORT(&w->left, sort_items_fn);
 	VEC_SORT(&w->center, sort_items_fn);
 	VEC_SORT(&w->right, sort_items_fn);
+	
+	float offset = 0;
+	VEC_EACH(&w->left, i, item) {
+		item->offset = offset;
+		offset += item->size * charWidth;
+		setLine(w, item);
+	}	
+	
+	offset = h->size.x;
+	VEC_EACH(&w->right, i, item) {
+		offset -= item->size * charWidth;
+		item->offset = offset;
+		setLine(w, item);
+	}
+	
 	/*
 	GUIRenderParams grp2 = {
 		.clip = grp->clip,
@@ -86,8 +153,6 @@ static void updatePos(GUIStatusBar* w, GUIRenderParams* grp, PassFrameParams* pf
 }
 
 
-
-
 GUIStatusBar* GUIStatusBar_New(GUIManager* gm) {
 	
 	
@@ -105,22 +170,18 @@ GUIStatusBar* GUIStatusBar_New(GUIManager* gm) {
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
-	
-	
 	return w;
 }
 
 
-
-
-GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, GUIHeader* item, int order, char align, char* name) {
+GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, WidgetType_t type, size_t size, char align, int order) {
 	
 	GUIStatusBarItem* it = pcalloc(it);
 	
-	it->item = item;
-	it->order = order;
+	it->type = type;
+	it->size = size;
 	it->align = align;
-	it->name = strdup(name);
+	it->order = order;
 	
 	it->offset = 0;
 	
@@ -142,6 +203,13 @@ GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, GUIHeader* item, int ord
 	return it;
 }
 
+GUIStatusBar* GUIStatusBar_SetItems(GUIStatusBar* w, WidgetSpec* widgets) {
+	for(int i=0; widgets[i].type;i++) {
+		GUIStatusBar_AddItem(w, widgets[i].type, widgets[i].size, widgets[i].align, i);
+	}
+	
+	return w;
+}
 
 
 

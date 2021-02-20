@@ -98,6 +98,18 @@ void gui_drawTextLine(
 	char* txt, 
 	size_t charCount
 );
+void gui_drawTextLineAdv(
+	GUIManager* gm,
+	Vector2 tl,
+	Vector2 sz,
+	AABB2* clip,
+	struct Color4* color,
+	GUIFont* font,
+	float fontsize,
+	float z,
+	char* txt, 
+	size_t charCount
+);
 
 
 float gui_getDefaultUITextWidth(

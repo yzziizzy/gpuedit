@@ -18,12 +18,28 @@ typedef struct TabSpec {
 	char* path;
 } TabSpec;
 
+typedef enum WidgetType {
+	MCWID_NONE,
+	MCWID_HELLO,
+	MCWID_PING,
+	MCWID_CLOCK,
+	MCWID_BATTERY,
+	MCWID_LINECOL,
+} WidgetType_t;
+
+typedef struct WidgetSpec {
+	WidgetType_t type;
+	size_t size;
+	char align;
+} WidgetSpec;
+
 //          type   name                default value | min | max    
 #define GLOBAL_SETTING_LIST \
 	SETTING(int,   AppState_frameRate,          30,    15,   INT_MAX) \
 	SETTING(bool,  AppState_enableVSync,        false,  NULL, NULL) \
 	SETTING(int,   GUIManager_maxInstances,     8192,  4096, INT_MAX) \
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
+	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l'}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
@@ -76,6 +92,7 @@ typedef struct ThemeSettings ThemeSettings;
 #define bool char
 #define tabsp TabSpec*
 #define themep ThemeSettings*
+#define widsp WidgetSpec*
 #define guisettingsp GUI_GlobalSettings*
 #define SETTING(type, name, val ,min,max) type name;
 
@@ -93,6 +110,7 @@ typedef struct ThemeSettings {
 #undef bool
 #undef tabsp
 #undef themep
+#undef widsp
 #undef guisettingsp
 
 

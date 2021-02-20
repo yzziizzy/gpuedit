@@ -59,8 +59,12 @@
 	SETTING(charp, selectBorderColor,             "#64961eff", NULL, NULL) \
 	SETTING(charp, selectTextColor,               "#96be3cff", NULL, NULL) \
 	SETTING(charp, trayBgColor,                   "#373b41ff", NULL, NULL) \
-	
-
+	SETTING(float, charWidth_fw,                  10,          1,    99) \
+	SETTING(float, lineHeight_fw,                 20,          1,    99) \
+	SETTING(charp, font_fw,                       "Courier New", NULL, NULL) \
+	SETTING(float, fontSize_fw,                   12,          1,    99) \
+	SETTING(charp, statusBarBgColor,              "#282828ff", NULL, NULL) \
+	SETTING(charp, statusBarTextColor,            "#c8c8c8ff", NULL, NULL) \
 
 
 

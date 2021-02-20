@@ -1042,6 +1042,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
+	GUIStatusBar_SetItems(gbe->statusBar, w->gs->MainControl_statusWidgets);
 	
 	// highlighter
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);

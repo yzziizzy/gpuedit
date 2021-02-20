@@ -48,6 +48,8 @@
 			"Arial",
 			"Courier New"
 		],
+		
+		"fontSize_fw": 16,
 	},
 	
 }

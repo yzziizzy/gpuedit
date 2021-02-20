@@ -297,6 +297,8 @@ typedef struct GUIBufferEditControl {
 size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos);
 size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x);
 
+typedef struct GUIStatusBar GUIStatusBar;
+
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
 	GUIHeader header;

@@ -143,6 +143,14 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	decodeHexColorNorm(gs->selectTextColor, (float*)&(gm->defaults.selectTextColor));
 	
 	decodeHexColorNorm(gs->trayBgColor, (float*)&(gm->defaults.trayBgColor));
+	
+	gm->defaults.charWidth_fw = gs->charWidth_fw;
+	gm->defaults.lineHeight_fw = gs->lineHeight_fw;
+	gm->defaults.font_fw = FontManager_findFont(gm->fm, gs->font_fw);;
+	gm->defaults.fontSize_fw = gs->fontSize_fw;
+	decodeHexColorNorm(gs->statusBarBgColor, (float*)&(gm->defaults.statusBarBgColor));
+	decodeHexColorNorm(gs->statusBarTextColor, (float*)&(gm->defaults.statusBarTextColor));
+	
 	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;

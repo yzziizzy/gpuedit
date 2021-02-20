@@ -434,6 +434,14 @@ typedef struct GUIManager {
 		struct Color4 selectTextColor;
 		Vector2       selectSize;
 		struct Color4 trayBgColor;
+		float charWidth_fw;
+		float lineHeight_fw;
+		GUIFont* font_fw;
+		float fontSize_fw;
+		struct Color4 statusBarBgColor;
+		struct Color4 statusBarTextColor;
+		
+		
 		// TODO: font name, size 
 	} defaults;
 	
