@@ -75,11 +75,13 @@ WidgetSpec* widgetspeclistdup(WidgetSpec* old) {
 		new[i].type = old[i].type;
 		new[i].size = old[i].size;
 		new[i].align = old[i].align;
+		new[i].format = strdup(old[i].format);
 	}
 
 	new[i].type = MCWID_NONE;
 	new[i].size = 0;
 	new[i].align = 'l';
+	new[i].format = NULL;
 	return new;
 }
 
@@ -202,16 +204,20 @@ static void grab_widsp(WidgetSpec** out, json_value_t* obj, char* prop) {
 			json_value_t* type_v;
 			json_value_t* size_v;
 			json_value_t* align_v;
+			json_value_t* format_v;
 			char* type_str;
 			char* align_str;
+			char* format_str;
 			for(long i = 0; link; i++) {
 				if(
 					!json_obj_get_key(link->v, "type", &type_v)
 					&& !json_obj_get_key(link->v, "size", &size_v)
 					&& !json_obj_get_key(link->v, "align", &align_v)
+					&& !json_obj_get_key(link->v, "format", &format_v)
 				) {
 					type_str = json_as_strdup(type_v);
 					align_str = json_as_strdup(align_v);
+					format_str = json_as_strdup(format_v);
 					if(!strcasecmp(type_str, "hello_world")) {
 						tmp[i].type = MCWID_HELLO;
 					} else if(!strcasecmp(type_str, "ping")) {
@@ -227,8 +233,10 @@ static void grab_widsp(WidgetSpec** out, json_value_t* obj, char* prop) {
 					}
 					tmp[i].size = json_as_int(size_v);
 					tmp[i].align = align_str[0];
+					tmp[i].format = format_str;
 					free(type_str);
 					free(align_str);
+//					free(format_str);
 				}
 				link = link->next;
 			}

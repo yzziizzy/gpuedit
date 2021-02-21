@@ -146,10 +146,6 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 	w->statusBar->header.size = (Vector2){wsz.x, w->statusBarHeight};
 	w->statusBar->header.topleft = (Vector2){0, 0};
 	
-	if(w->showStatusBar) {
-		
-	}
-	
 	w->ec->header.size = (Vector2){wsz.x, wsz.y - sbHeight};
 	w->ec->header.topleft = (Vector2){0, 0};
 	

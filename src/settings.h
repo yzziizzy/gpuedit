@@ -31,6 +31,7 @@ typedef struct WidgetSpec {
 	WidgetType_t type;
 	size_t size;
 	char align;
+	char* format;
 } WidgetSpec;
 
 //          type   name                default value | min | max    
@@ -39,7 +40,7 @@ typedef struct WidgetSpec {
 	SETTING(bool,  AppState_enableVSync,        false,  NULL, NULL) \
 	SETTING(int,   GUIManager_maxInstances,     8192,  4096, INT_MAX) \
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
-	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l'}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
+	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l', .format="line: %L:%C"}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \

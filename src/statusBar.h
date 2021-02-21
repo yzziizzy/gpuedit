@@ -17,10 +17,10 @@ typedef struct GUIStatusBarItem {
 	WidgetType_t type;
 //	char* name;
 	char line[100];
-	void* data;
 	
 	size_t size;  // width in characters
 	float offset; // pixel offset within left/center/right list
+	char* format;
 } GUIStatusBarItem;
 
 
@@ -46,7 +46,7 @@ typedef struct GUIStatusBar {
 
 
 GUIStatusBar* GUIStatusBar_New(GUIManager* gm);
-GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, WidgetType_t type, size_t size, char align, int order);
+GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, WidgetSpec* spec, int order);
 GUIStatusBar* GUIStatusBar_SetItems(GUIStatusBar* w, WidgetSpec* widgets);
 
 
