@@ -562,6 +562,7 @@ BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
 void GBEC_InsertLinebreak(GUIBufferEditControl* b);
 void GBEC_MoveCursorV(GUIBufferEditControl* w, intptr_t lines);
 void GBEC_MoveCursorH(GUIBufferEditControl* w, intptr_t cols);
+void GBEC_MoveCursorHSel(GUIBufferEditControl* w, ptrdiff_t cols);
 void GBEC_MoveCursor(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
 void GBEC_MoveCursorTo(GUIBufferEditControl* w, BufferLine* bl, intptr_t col); // absolute move
 void GBEC_NextBookmark(GUIBufferEditControl* w);

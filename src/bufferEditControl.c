@@ -699,10 +699,15 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		case BufferCmd_MoveCursorV:
 			GBEC_MoveCursorV(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
-			break;
+			break;		
 		
 		case BufferCmd_MoveCursorH:
 			GBEC_MoveCursorH(w, cmd->amt);
+			GBEC_ClearAllSelections(w);
+			break;
+
+		case BufferCmd_MoveCursorHSel:
+			GBEC_MoveCursorHSel(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
 			break;
 		
@@ -1283,6 +1288,20 @@ void GBEC_MoveCursorH(GUIBufferEditControl* w, ptrdiff_t cols) {
 	
 	GBEC_MoveCursorTo(w, w->current, w->curCol);
 }
+
+
+void GBEC_MoveCursorHSel(GUIBufferEditControl* w, ptrdiff_t cols) {
+	if(w->sel && cols < 0) {
+		GBEC_MoveCursorTo(w, w->sel->startLine, w->sel->startCol);
+		cols++;
+	} else if(w->sel && cols > 0) {
+		GBEC_MoveCursorTo(w, w->sel->endLine, w->sel->endCol);
+		cols--;
+	}
+	
+	GBEC_MoveCursorH(w, cols);
+}
+
 
 // absolute move
 void GBEC_MoveCursorTo(GUIBufferEditControl* w, BufferLine* bl, intptr_t col) {

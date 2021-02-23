@@ -21,7 +21,6 @@
 * find match/ignore case
 
 * selection deletion to SOL places cursor on wrong line
-* l/r move cursor to start/end of selection
 
 * folder level options file
 
@@ -33,8 +32,6 @@
 
 
 == STATUS BAR IDEAS ==
-* total lines, current line, col number
-* clock
 * battery monitor
 * ping / netstat
 
