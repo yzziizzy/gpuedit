@@ -5,7 +5,6 @@
 * Basic autocomplete
 * Reorder tabs
 * Autosort tabs
-* Go to previous search match (refactor search to find all in a list)
 * Resume search is broken
 * Able to refocus on the editor while finding
 * NULL-inserting bug related to line splitting after movign from long line to short
@@ -20,15 +19,16 @@
 * find modes: plain|fuzzy|pcre|escape
 * find match/ignore case
 
-* selection deletion to SOL places cursor on wrong line
-
 * folder level options file
-
 * highlighter/theme colors from system colorX definitions
-
 * ctrl+l/r jumps across tabs
+
 * copy cannot paste to pgadmin3 (INCR? mime type?)
 * undo breaks if selection reaches end of file
+* paste: cursor at start/end of inserted text
+* selection deletion to SOL places cursor on wrong line
+* return to previously active tab if opener is closed without opening
+* python highlighter
 
 
 == STATUS BAR IDEAS ==
@@ -47,7 +47,6 @@
 * Tab long name scrolling
 * Tab Bar scrolling
 * Smart uncomment
-* home: start of text <-> start of line
 * Clipboard ring
 * Proper tabstops
 * Ability to change the highlighter

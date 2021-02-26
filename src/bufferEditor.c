@@ -746,7 +746,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			GBEC_MoveCursorH(w->ec, cmd->amt);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToNextSequence:
@@ -755,7 +755,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
 			GBEC_MoveToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToPrevSequence:
@@ -764,7 +764,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
 			GBEC_MoveToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToSOL:
@@ -772,8 +772,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
-			GBEC_MoveToFirstCharOfLine(w->ec, w->ec->current);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_MoveToFirstCharOrSOL(w->ec, w->ec->current);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToEOL:
@@ -782,7 +782,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
 			GBEC_MoveToLastCharOfLine(w->ec, w->ec->current);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 			
 		
@@ -793,7 +793,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			GBEC_MoveCursorV(w->ec, cmd->amt);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_ClearSelection:

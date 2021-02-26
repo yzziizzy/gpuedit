@@ -21,6 +21,7 @@
 	X(BufferCmd, MovePage) \
 	X(BufferCmd, GoToFirstColOfFile) \
 	X(BufferCmd, GoToLastColOfFile) \
+	X(BufferCmd, GoToFirstCharOrSOL) \
 	X(BufferCmd, GoToFirstCharOfLine) \
 	X(BufferCmd, GoToLastCharOfLine) \
 	X(BufferCmd, DuplicateLine) \

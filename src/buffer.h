@@ -581,6 +581,7 @@ int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 void GBEC_SurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
 void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
+void GBEC_MoveToFirstCharOrSOL(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 
@@ -625,8 +626,8 @@ void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intp
 // move the view by this delta
 void GBEC_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
 
-void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* gbe);
-void GUIBufferEditControl_MoveCursorTo(GUIBufferEditControl* gbe, intptr_t line, intptr_t col);
+void GBEC_SetSelectionFromPivot(GUIBufferEditControl* gbe);
+void GBEC_SelectionChanged(GUIBufferEditControl* gbe);
 
 void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
@@ -643,3 +644,4 @@ intptr_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, intptr
 
 
 #endif // __gpuedit_buffer_h__
+
