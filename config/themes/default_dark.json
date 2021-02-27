@@ -45,6 +45,7 @@
 	
 		"editBorderColor": "#19f519ff",
 		"editBgColor": "#143219ff",
+		"tabTextColor": "#c8c8c8ff",
 	
 		"cursorColor": "#f0f0f0ff",
 	
@@ -70,5 +71,10 @@
 		"selectBgColor": "#140f03ff",
 		"selectBorderColor": "#64961eff",
 		"selectTextColor": "#96be3cff",
+		
+		"trayBgColor": "#373b41ff",
+		
+		"statusBarBgColor": "#282828ff",
+		"statusBarTextColor": "#c8c8c8ff",
 	},
 }

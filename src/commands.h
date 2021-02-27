@@ -11,6 +11,7 @@
 	X(BufferCmd, Debug) \
 	X(BufferCmd, MoveCursorV) \
 	X(BufferCmd, MoveCursorH) \
+	X(BufferCmd, MoveCursorHSel) \
 	X(BufferCmd, InsertChar) \
 	X(BufferCmd, SplitLine) \
 	X(BufferCmd, SplitLineIndent) \
@@ -20,6 +21,7 @@
 	X(BufferCmd, MovePage) \
 	X(BufferCmd, GoToFirstColOfFile) \
 	X(BufferCmd, GoToLastColOfFile) \
+	X(BufferCmd, GoToFirstCharOrSOL) \
 	X(BufferCmd, GoToFirstCharOfLine) \
 	X(BufferCmd, GoToLastCharOfLine) \
 	X(BufferCmd, DuplicateLine) \
@@ -94,6 +96,7 @@
 	X(BufferCmd, ScrollColsH) \
 	X(BufferCmd, ScrollScreenPctH) \
 	X(BufferCmd, NextHighlighter) \
+	X(BufferCmd, SmartBubbleSelection) \
 	\
 	X(FileBrowserCmd, CursorMove) \
 	X(FileBrowserCmd, CursorMoveNoWrap) \

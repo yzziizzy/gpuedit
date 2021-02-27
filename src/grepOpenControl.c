@@ -274,7 +274,7 @@ void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd) {
 }
 
 
-GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path) {
+GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* searchTerm) {
 
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
@@ -305,13 +305,17 @@ GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path) {
 	w->lineHeight = 25;
 	w->leftMargin = 20;
 
-	w->searchBox = GUIEdit_New(gm, "");
+	if(searchTerm) {
+		w->searchTerm = strdup(searchTerm);
+		w->searchBox = GUIEdit_New(gm, searchTerm);
+	} else {
+		w->searchBox = GUIEdit_New(gm, "");
+	}
 	w->searchBox->header.flags |= GUI_MAXIMIZE_X;
 	w->searchBox->header.gravity = GUI_GRAV_TOP_LEFT;
 
 	GUI_RegisterObject(w, w->searchBox);
-
-
+	
 	return w;
 }
 
@@ -332,6 +336,8 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 	int i = 0;
 	int j = 0;
 	int n_paths = 0;
+	
+	char lnbuf[32];
 
 	if(!w->searchTerm || strlen(w->searchTerm) < 3) {
 		goto CLEANUP;
@@ -363,9 +369,10 @@ void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);
 			candidates[n_candidates+j].line_num = atol(candidates[n_candidates+j].line);
 			candidates[n_candidates+j].line = cleanup_line(candidates[n_candidates+j].line);
-			candidates[n_candidates+j].render_line = sprintfdup("% 30s:% 5.lu  %s",
+			sprintlongb(lnbuf, w->gs->Buffer_lineNumBase, candidates[n_candidates+j].line_num, w->gs->Buffer_lineNumCharset);
+			candidates[n_candidates+j].render_line = sprintfdup("%s:%s  %s",
 				candidates[n_candidates+j].filepath,
-				candidates[n_candidates+j].line_num,
+				lnbuf,
 				candidates[n_candidates+j].line
 			);
 		}

@@ -50,6 +50,7 @@ int main(int argc, char* argv[]) {
 	GlobalSettings_LoadDefaults(&app.globalSettings);
 	app.globalSettings.Theme = &app.themeSettings;
 	app.globalSettings.GUI_GlobalSettings = calloc(1, sizeof(*app.globalSettings.GUI_GlobalSettings));
+	GUI_GlobalSettings_LoadDefaults(app.globalSettings.GUI_GlobalSettings);
 	
 	GlobalSettings_LoadFromFile(&app.globalSettings, "/etc/gpuedit/options.json");
 	

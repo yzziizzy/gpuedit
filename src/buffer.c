@@ -744,7 +744,6 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 		}
 		
 	}
-	
 }
 
 

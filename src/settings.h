@@ -18,23 +18,41 @@ typedef struct TabSpec {
 	char* path;
 } TabSpec;
 
+typedef enum WidgetType {
+	MCWID_NONE,
+	MCWID_HELLO,
+	MCWID_PING,
+	MCWID_CLOCK,
+	MCWID_BATTERY,
+	MCWID_LINECOL,
+} WidgetType_t;
+
+typedef struct WidgetSpec {
+	WidgetType_t type;
+	size_t size;
+	char align;
+	char* format;
+} WidgetSpec;
+
 //          type   name                default value | min | max    
 #define GLOBAL_SETTING_LIST \
 	SETTING(int,   AppState_frameRate,          30,    15,   INT_MAX) \
 	SETTING(bool,  AppState_enableVSync,        false,  NULL, NULL) \
 	SETTING(int,   GUIManager_maxInstances,     8192,  4096, INT_MAX) \
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
+	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l', .format="line: %L:%C"}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, Buffer_cursorBlinkOffTime,   0.600, 0,    300000) \
 	SETTING(float, Buffer_cursorBlinkOnTime,    0.600, 0,    300000) \
-	SETTING(bool,  Buffer_hideScrollbar,        false, NULL, NULL) \
 	SETTING(bool,  Buffer_highlightCurrentLine, true,  NULL, NULL) \
 	SETTING(bool,  Buffer_outlineCurrentLine,   true,  NULL, NULL) \
 	SETTING(float, Buffer_outlineCurrentLineYOffset,   0,     -999, 999) \
 	SETTING(float, Buffer_lineNumExtraWidth,    10,    0,    1920*16) \
 	SETTING(bool,  Buffer_showLineNums,         true,  NULL, NULL) \
+	SETTING(int,   Buffer_lineNumBase,          10,    2,    36) \
+	SETTING(charp, Buffer_lineNumCharset,       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", NULL, NULL) \
 	SETTING(float, Buffer_charWidth,            10,    1,    1920*16) \
 	SETTING(float, Buffer_lineHeight,           20,    1,    1920*16) \
 	SETTING(int,   Buffer_tabWidth,             4,     0,    INT_MAX) \
@@ -75,6 +93,7 @@ typedef struct ThemeSettings ThemeSettings;
 #define bool char
 #define tabsp TabSpec*
 #define themep ThemeSettings*
+#define widsp WidgetSpec*
 #define guisettingsp GUI_GlobalSettings*
 #define SETTING(type, name, val ,min,max) type name;
 
@@ -92,6 +111,7 @@ typedef struct ThemeSettings {
 #undef bool
 #undef tabsp
 #undef themep
+#undef widsp
 #undef guisettingsp
 
 

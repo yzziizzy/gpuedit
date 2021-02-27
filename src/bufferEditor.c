@@ -27,9 +27,13 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 // HACK
 // 	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
 	
-	if(w->lineNumTypingMode) {
-		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
-	}
+//	if(w->lineNumTypingMode) {
+//		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
+//	}
+	
+//	char* statusLine = "hello world";
+//	printf("status line: %s\n", statusLine);
+	
 	
 	GUIHeader_renderChildren(&w->header, pfp);
 }
@@ -134,7 +138,7 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 		sbHeight += w->trayRoot->header.size.y;
 		w->trayRoot->header.topleft.y = wsz.y - sbHeight;
 		
-		w->trayRoot->color = (Color4){.4,.4,.4,1};
+		w->trayRoot->color = w->header.gm->defaults.trayBgColor;
 		w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
 	}
 	
@@ -144,8 +148,6 @@ static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams*
 	
 	w->ec->header.size = (Vector2){wsz.x, wsz.y - sbHeight};
 	w->ec->header.topleft = (Vector2){0, 0};
-	
-	
 	
 	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
@@ -234,7 +236,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	GUI_RegisterObject(w, w->ec);
 	
 	
-	w->showStatusBar = 1;
+	w->showStatusBar = !gm->gs->hideStatusBar;
 	w->statusBar = GUIStatusBar_New(gm);
 // 	w->statusBar->header.flags = GUI_MAXIMIZE_X;
 	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;
@@ -242,9 +244,10 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->statusBar->header.size.x = w->header.size.x;
 	w->statusBar->header.z = 500;
 	
-	w->statusBar->bgColor = (Color4){.1,.1,.1,1};
 	w->statusBar->padding = (AABB2){{5,5}, {5,5}};
 	w->statusBar->spacing = 3;
+	
+	w->statusBar->ec = w->ec;
 	
 	GUI_RegisterObject(w, w->statusBar);
 	
@@ -460,7 +463,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		VEC_EACH(&w->findSet->ranges, i, range) {
 			if(range->startLine->lineNum < line) {
 				continue;
-			} else if((w->findIndex == i) && (range->startLine->lineNum == line) && (range->startCol == col)) {
+			} else if((range->startLine->lineNum == line) && (range->startCol <= col)) {
 				continue;
 			}
 			
@@ -472,7 +475,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		VEC_R_EACH(&w->findSet->ranges, i, range) {
 			if(range->startLine->lineNum > line) {
 				continue;
-			} else if((w->findIndex == i) && (range->startLine->lineNum == line) && (range->startCol == col)) {
+			} else if((range->startLine->lineNum == line) && (range->startCol >= col)) {
 				continue;
 			}
 			
@@ -743,7 +746,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			GBEC_MoveCursorH(w->ec, cmd->amt);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToNextSequence:
@@ -752,7 +755,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
 			GBEC_MoveToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToPrevSequence:
@@ -761,7 +764,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
 			GBEC_MoveToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToSOL:
@@ -769,8 +772,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
-			GBEC_MoveToFirstCharOfLine(w->ec, w->ec->current);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_MoveToFirstCharOrSOL(w->ec, w->ec->current);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_GrowSelectionToEOL:
@@ -779,7 +782,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->ec->selectPivotCol = w->ec->curCol;
 			}
 			GBEC_MoveToLastCharOfLine(w->ec, w->ec->current);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 			
 		
@@ -790,7 +793,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			GBEC_MoveCursorV(w->ec, cmd->amt);
-			GUIBufferEditControl_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
 		case BufferCmd_ClearSelection:
@@ -861,7 +864,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		
 		case BufferCmd_GoToLineSubmit:
 			if(w->lineNumTypingMode) {
-				intptr_t line_num = atol(GUIEdit_GetText(w->lineNumEntryBox));
+				intptr_t line_num = strtol(GUIEdit_GetText(w->lineNumEntryBox), NULL, w->gs->Buffer_lineNumBase);
 				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
 				
 				if(bl) {
@@ -989,6 +992,33 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			
 // 			break;
 // 		}
+		case BufferCmd_SmartBubbleSelection: {
+			GUIBubbleOpt opt = {};
+			GUIEvent gev2 = {};
+			
+			opt.ev = strdup(cmd->str);
+			if(w->ec->sel) {
+				opt.sel = Buffer_StringFromSelection(w->buffer, w->ec->sel, NULL);
+			}
+			
+			gev2.type = GUIEVENT_User;
+			gev2.eventTime = 0;//gev->eventTime;
+			gev2.originalTarget = &w->header;
+			gev2.currentTarget = &w->header;
+			gev2.cancelled = 0;
+			// handlers are responsible for cleanup
+			gev2.userData = &opt;
+			gev2.userSize = sizeof(opt);
+			
+			gev2.userType = "SmartBubble";
+		
+			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+			free(opt.ev);
+			free(opt.sel);
+			break;
+		}
+			
+
 		case BufferCmd_Save: 
 			if(!g_DisableSave) {
 				Buffer_SaveToFile(w->buffer, w->sourceFile);
