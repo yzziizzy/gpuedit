@@ -585,6 +585,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	HighlighterManager_Init(&w->hm);
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/c.so");
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/js.so");
+	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/py.so");
 	
 	
 	// TODO: resize
