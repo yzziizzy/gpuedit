@@ -58,7 +58,15 @@ int main(int argc, char* argv[]) {
 	char* tmp = path_join(homedir, ".gpuedit/options.json");
 	GlobalSettings_LoadFromFile(&app.globalSettings, tmp);
 	free(tmp);
-	
+
+	char* curdir = getenv("PWD");
+	if(curdir) {
+		tmp = path_join(curdir, ".gpuedit.json");
+		GlobalSettings_LoadFromFile(&app.globalSettings, tmp);
+		free(tmp);
+	}
+
+
 	ThemeSettings_LoadDefaults(&app.themeSettings);
 	tmp = path_join(homedir, "/.gpuedit/themes/", app.globalSettings.Theme_path);
 	GlobalSettings_LoadFromFile(&app.globalSettings, tmp);
