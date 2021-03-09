@@ -68,7 +68,7 @@ static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 static void scrollDown(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	if(gev->originalTarget != (void*)w) return;
-	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
+	w->scrollLines = MIN(MAX(0, w->buffer->numLines - w->linesOnScreen), w->scrollLines + w->linesPerScrollWheel);
 }
 
 static void dragStart(GUIObject* w_, GUIEvent* gev) {
@@ -774,11 +774,10 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 				w->current = w->sel->startLine;
 				w->curCol = w->sel->startCol;
 				Buffer_UndoSequenceBreak(b, 0, w->sel->startLine->lineNum, w->sel->startCol, 
-				 w->sel->endLine->lineNum, w->sel->endCol, 0);
+				w->sel->endLine->lineNum, w->sel->endCol, 0);
 				Buffer_DeleteSelectionContents(b, w->sel);
 				
 				GBEC_ClearAllSelections(w);
-				
 			}
 			else {
 				BufferLine* bl = w->current;
@@ -1186,7 +1185,6 @@ void GBEC_SetCurrentSelectionRange(GUIBufferEditControl* w, BufferRange* r) {
 }
 
 
-
 void GBEC_InsertLinebreak(GUIBufferEditControl* w) {
 	BufferLine* l = w->current;
 	Buffer* b = w->buffer;
@@ -1195,9 +1193,7 @@ void GBEC_InsertLinebreak(GUIBufferEditControl* w) {
 		Buffer_InsertEmptyLineBefore(b, w->current);
 	}
 	else {
-		// BUG length is fucked up
-		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + w->curCol, 
-			MAX( ((intptr_t)strlen(l->buf + w->curCol - 1)) - 1, 0));
+		BufferLine* n = Buffer_InsertLineAfter(b, l, l->buf + w->curCol, MAX(l->length - w->curCol, 0));
 		Buffer_LineTruncateAfter(b, l, w->curCol);
 		
 		w->current = w->current->next;

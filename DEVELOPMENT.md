@@ -21,19 +21,19 @@
 
 * folder level options file
 * highlighter/theme colors from system colorX definitions
-* ctrl+l/r jumps across tabs
+* ctrl+l/r jumps across tabs (sequence break on newline)
 
 * copy cannot paste to pgadmin3 (INCR? mime type?)
 * undo breaks if selection reaches end of file
 * paste: cursor at start/end of inserted text
-* selection deletion to SOL places cursor on wrong line
 * return to previously active tab if opener is closed without opening
-* python highlighter
+* undo system selection not recreated based on selection direction?
 
 
 == STATUS BAR IDEAS ==
 * battery monitor
 * ping / netstat
+* unsaved changes/time
 
 
 == TODO ==
@@ -166,7 +166,6 @@
 * Sequence cursor moves don't clear the current selection or change it
 * GUIManager should pop focus stack if focused control is deleted
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
-* Mouse scroll on files with fewer lines than the screen
 * Should not be able to delete the last line
 * Check all column usage for correct 1/0 basing
 * Mouse drag start params need tuning 

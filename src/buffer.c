@@ -705,23 +705,14 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 		LOG_UNDO(printf(" > non-single-line selection deletion\n"));
 	
 		// truncate start line after selection start
+		LOG_UNDO(printf(" > truncating line '%.*s'\n", (int)s.startLine->length - (int)s.startCol, s.startLine->buf));
+		Buffer_LineTruncateAfter(b, s.startLine, s.startCol);			
 		
-		if(s.startCol > 0) {
-			LOG_UNDO(printf(" > truncating line '%.*s'\n", (int)s.startLine->length - (int)s.startCol, s.startLine->buf));
-			Buffer_LineTruncateAfter(b, s.startLine, s.startCol);
-			
-			// append end line after selection ends to first line
-			char* elb = s.endLine->buf + s.endCol;
-			
-			LOG_UNDO(printf(" > append text '%.*s'\n", (int)s.endLine->length - (int)s.endCol, elb));
-			
-			Buffer_LineAppendText(b, s.startLine, elb, s.endLine->length - s.endCol);
-		}
-		else {
-			LOG_UNDO(printf(" > delete first line %.*s\n", (int)s.startLine->length, s.startLine->buf));
-			Buffer_DeleteLine(b, s.startLine);
-		}
+		// append end line after selection ends to first line
+		char* elb = s.endLine->buf + s.endCol;
 		
+		LOG_UNDO(printf(" > append text '%.*s'\n", (int)s.endLine->length - (int)s.endCol, elb));
+		Buffer_LineAppendText(b, s.startLine, elb, s.endLine->length - s.endCol);
 		
 		// delete lines 1-n
 		BufferLine* bl = s.startLine->next;
@@ -736,13 +727,8 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 			bl = next;
 		}
 		
-		
-		if(s.startCol > 0 || s.endCol == s.endLine->length) {
-			LOG_UNDO(printf(" > delete last line %.*s\n", (int)s.endLine->length, s.endLine->buf));
-			
-			Buffer_DeleteLine(b, s.endLine);
-		}
-		
+		LOG_UNDO(printf(" > delete last line %.*s\n", (int)s.endLine->length, s.endLine->buf));
+		Buffer_DeleteLine(b, s.endLine);
 	}
 }
 

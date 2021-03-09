@@ -585,6 +585,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	HighlighterManager_Init(&w->hm);
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/c.so");
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/js.so");
+	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/py.so");
 	
 	
 	// TODO: resize
@@ -986,6 +987,12 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 		return;
 	}
 	
+	Buffer* buf = Buffer_New();
+	int status = Buffer_LoadFromFile(buf, opt->path);
+	if(status) {
+		Buffer_Delete(buf);
+		return;
+	}
 	
 	// HACK: these structures should be looked up from elsewhere
 	EditorParams* ep = pcalloc(ep);
@@ -1023,7 +1030,6 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	
 	
 	// buffer and editor creation
-	Buffer* buf = Buffer_New();
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
@@ -1054,7 +1060,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 //	Highlighter_LoadStyles(gbe->h, tmp);
 //	free(tmp);
 
-	Buffer_LoadFromFile(buf, opt->path);
+	
 	GUIBufferEditor_SetBuffer(gbe, buf);
 //	GUIBufferEditControl_RefreshHighlight(gbe->ec);
 	GUIBufferEditor_ProbeHighlighter(gbe);
