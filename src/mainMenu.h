@@ -2,7 +2,6 @@
 #define __gpuedit_mainMenu_h__
 
 #include "ui/gui.h"
-#include "commands.h"
 
 #include "sti/sti.h"
 

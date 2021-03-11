@@ -334,42 +334,6 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 }
 
 
-static void keyDown(GUIHeader* w_, GUIEvent* gev) {
-	GUIMainControl* w = (GUIMainControl*)w_;
-	
-	// special commands
-	unsigned int S = GUIMODKEY_SHIFT;
-	unsigned int C = GUIMODKEY_CTRL;
-	unsigned int A = GUIMODKEY_ALT;
-	unsigned int T = GUIMODKEY_TUX;
-	
-// 	unsigned int scrollToCursor   = 1 << 0;
-	/*
-	Cmd cmds[] = {
-		{A,    XK_Right,     MainCmd_NextTab,         1, 0},
-		{A,    XK_Left,      MainCmd_PrevTab,         1, 0},
-		{C|S,  'q',          MainCmd_QuitWithoutSave, 0, 0},
-		{0,0,0,0,0},
-	};
-	*/
-	
-	Cmd found;
-	unsigned int iter = 0;
-	while(Commands_ProbeCommand(gev, w->commands, 0, &found, &iter)) {
-		// GUIBufferEditor will pass on commands to the buffer
-		GUIMainControl_ProcessCommand(w, &(MainCmd){
-			.type = found.cmd, 
-			.n = found.amt,
-			.path = NULL,
-		});
-		
-		
-// 		if(found.flags & scrollToCursor) {
-// 			GUIBufferEditor_scrollToCursor(w);
-// 		}
-		
-	}
-}
 
 
 
@@ -406,7 +370,7 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 void* args[4];
 
-void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
+void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 	GUISimpleWindow* sw;
 	GUITextF* textf;
 	
@@ -415,11 +379,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 
 	//args[0] = &bb->buffer->numLines;
 	
-	switch(cmd->type) {
-	case Cmd_NULL:
-		// do nothing
-		break;
-		
+	switch(cmd->cmd) {
 	case MainCmd_SimpleWindowTest:
 	{
 /* 		sw = GUISimpleWindow_New(w->header.gm);
@@ -507,7 +467,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		break;
 		
 	case MainCmd_LoadFile:
-		GUIMainControl_LoadFile(w, cmd->path);
+		GUIMainControl_LoadFile(w, cmd->str);
 		break;
 		
 	case MainCmd_NewEmptyBuffer:
@@ -524,10 +484,20 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd) {
 		
 	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;
 	case MainCmd_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n*/); break;
-	case MainCmd_GoToTab: GUIMainControl_GoToTab(w, cmd->n); break;
+	case MainCmd_GoToTab: GUIMainControl_GoToTab(w, cmd->amt); break;
 	
 	}
 }
+
+
+
+static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUIMainControl* w = (GUIMainControl*)w_;
+	int needRehighlight = 0;
+	
+	GUIMainControl_ProcessCommand(w, cmd);
+}
+
 
 
 GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
@@ -536,10 +506,11 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
 		.HitTest = (void*)hitTest,
+		.HandleCommand = (void*)handleCommand,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyDown = keyDown,
+//		.KeyDown = keyDown,
 // 		.Click = click,
 // 		.ScrollUp = scrollUp,
 // 		.ScrollDown = scrollDown,
@@ -560,7 +531,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	GUIMainControl* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	
+	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Main;
 	w->gs = gs;
 	w->tabHeight = gs->MainControl_tabHeight;
 	

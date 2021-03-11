@@ -97,7 +97,7 @@ typedef struct AppState {
 	Buffer* currentBuffer;
 	GUIMainControl* mc;
 	
-	Cmd* commands;
+	GUI_Cmd* commands;
 	
 	
 } AppState;

@@ -8,6 +8,7 @@
 
 #include "buffer.h"
 #include "ui/gui.h"
+#include "commands.h"
 #include "ui/gui_internal.h"
 #include "clipboard.h"
 
@@ -233,6 +234,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		
 		GUIBufferEditControl_RefreshHighlight(w);
 	}
+	/*
 	else {
 		// special commands
 		unsigned int S = GUIMODKEY_SHIFT;
@@ -439,7 +441,7 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
 	w->header.cursor = GUIMOUSECURSOR_TEXT;
-	
+	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Buffer;
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(&w->scrollbar->header, (Vector2){10, 50});

@@ -15,7 +15,6 @@
 #include "ui/gui_internal.h"
 
 #include "grepOpenControl.h"
-#include "commands.h"
 #include "app.h" // for execProcess*
 
 
@@ -198,7 +197,7 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIGrepOpenControl* w = (GUIGrepOpenControl*)w_;
-
+/*
 	Cmd found;
 	unsigned int iter = 0;
 	while(Commands_ProbeCommand(gev, w->commands, 0, &found, &iter)) {
@@ -206,7 +205,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		GUIGrepOpenControl_ProcessCommand(w, &found);
 
 	}
-
+*/
 }
 
 
@@ -217,7 +216,8 @@ static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 }
 
 
-void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd) {
+void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUIGrepOpenControl* w = (GUIGrepOpenControl*)w_;
 	long amt;
 
 	switch(cmd->cmd) {
@@ -277,6 +277,7 @@ GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path) {
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
+		.HandleCommand = (void*)handleCommand,
 	};
 
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -299,6 +300,7 @@ GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path) {
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+	w->header.cmdElementType = CUSTOM_ELEM_TYPE_GrepOpen;
 
 	w->lineHeight = 25;
 	w->leftMargin = 20;

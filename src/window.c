@@ -231,6 +231,7 @@ int initXWindow(XStuff* xs) {
 	XFixesSelectSelectionInput(xs->display, xs->clientWin, xs->primaryID, XFixesSetSelectionOwnerNotifyMask);
 	XFixesSelectSelectionInput(xs->display, xs->clientWin, xs->secondaryID, XFixesSetSelectionOwnerNotifyMask);
 
+	//Bool XkbSetDetectableAutoRepeat (Display *display, Bool detectable, Bool *supported_rtrn); 
 	
 	// figure out the X server's time
 	XEvent xev;

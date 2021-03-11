@@ -35,6 +35,7 @@
 #include "texture.h"
 #include "window.h"
 #include "app.h"
+#include "commands.h"
 #include "ui/gui.h"
 
 
@@ -79,13 +80,6 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		NULL,
 	};
 	
-	char* homedir = getenv("HOME");
-	char* tmp = path_join(homedir, ".gpuedit/commands.json");
-
-	// as->commands = CommandList_loadJSONFile("/etc/gpuedit/commands.json");
-	as->commands = CommandList_loadJSONFile(tmp);
-	free(tmp);
-
 	as->lastFrameTime = getCurrentTime();
 	as->lastFrameDrawTime = 0;
 	/*
@@ -131,12 +125,56 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->mouseCursorSetFn = (void*)XStuff_SetMouseCursor;
 	as->gui->mouseCursorSetData = xs;
 	
+	char* flag_names[] = {
+		"scrollToCursor",
+		"rehighlight",
+		"resetCursorBlink",
+		"undoSeqBreak",
+		"hideMouse",
+		"centerOnCursor",
+		NULL,
+	};
+	
+	for(int i = 0; flag_names[i]; i++) 
+		GUIManager_AddCommandFlag(as->gui, flag_names[i]);
+	
+	
+	
+	struct {char* n; uint16_t id;} elem_names[] = {
+	#define X(a) { #a, CUSTOM_ELEM_TYPE_##a },
+	COMMANDELEMTYPE_LIST
+		{NULL, 0},
+	#undef X
+	};
+	
+	for(int i = 0; elem_names[i].n; i++) 
+		GUIManager_AddCommandElement(as->gui, elem_names[i].n, elem_names[i].id);
+	
+	
+	struct {char* en; char* n; uint32_t id;} cmd_names[] = {
+	#define X(a, b) { #a, #b, a##Cmd_##b },
+	COMMANDTYPE_LIST
+		{NULL, NULL, 0},
+	#undef X
+	};
+	
+	for(int i = 0; cmd_names[i].n; i++) 
+		GUIManager_AddCommand(as->gui, cmd_names[i].en, cmd_names[i].n, cmd_names[i].id);
+	
+	
+	char* homedir = getenv("HOME");
+	char* tmp = path_join(homedir, ".gpuedit/commands.json");
+
+//	CommandList_loadJSONFile(as->gui, "/home/steve/projects/gpuedit/config/commands_new.json");
+	CommandList_loadJSONFile(as->gui, tmp);
+	free(tmp);
+
+	
+	
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
 	as->mc->as = as;
 	as->mc->commands = as->commands;
 	GUIHeader_RegisterObject(as->gui->root, &as->mc->header);
-
-	
 	
 	// command line args
 	for(int i = 1; i < argc; i++) {

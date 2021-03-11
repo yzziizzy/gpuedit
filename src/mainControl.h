@@ -13,7 +13,7 @@
 
 
 typedef struct MainCmd {
-	enum CmdType type;
+	int type;
 	int n;
 	char* path;
 } MainCmd;
@@ -68,7 +68,7 @@ typedef struct GUIMainControl {
 	GUIMainMenu* menu; // there is only one main menu
 	HighlighterManager hm;
 	
-	Cmd* commands;
+	GUI_Cmd* commands;
 	
 	GlobalSettings* gs;
 	
@@ -97,7 +97,7 @@ GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, TabType_t type, int n)
 
 
 
-void GUIMainControl_ProcessCommand(GUIMainControl* w, MainCmd* cmd);
+void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd);
 
 
 void GUIMainControl_OpenMainMenu(GUIMainControl* w);

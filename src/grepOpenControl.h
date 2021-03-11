@@ -2,7 +2,6 @@
 #define __gpuedit_grepOpenControl_h__
 
 #include "ui/gui.h"
-#include "commands.h"
 
 
 typedef struct {
@@ -29,7 +28,7 @@ typedef struct GUIGrepOpenControl {
 	float leftMargin;
 	
 	GlobalSettings* gs;
-	Cmd* commands;
+	GUI_Cmd* commands;
 	
 } GUIGrepOpenControl;
 
@@ -37,7 +36,7 @@ typedef struct GUIGrepOpenControl {
 GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* path);
 void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w);
 
-void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, Cmd* cmd);
+void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, GUI_Cmd* cmd);
 
 
 

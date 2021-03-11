@@ -114,19 +114,19 @@ static char* getParentDir(char* child) {
 
 static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
-
-	Cmd found;
+/*
+	GUI_Cmd found;
 	unsigned int iter = 0;
 	while(Commands_ProbeCommand(gev, w->commands, 0, &found, &iter)) {
 		// GUIBufferEditor will pass on commands to the buffer
 		GUIFileBrowser_ProcessCommand(w, &found);		
 		
 	}
-
+*/
 }
 
 
-void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd) {
+void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, GUI_Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {

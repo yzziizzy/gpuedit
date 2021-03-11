@@ -92,6 +92,13 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	RING_PUSH(&gm->focusStack, gm->root);
 	
+	gm->nextCmdFlagBit = 0;
+	HT_init(&gm->cmdElementLookup, 32);
+	HT_init(&gm->cmdModeLookup, 32);
+//	HT_init(&gm->cmdNameLookup, 256);
+	HT_init(&gm->cmdFlagLookup, 32);
+	VEC_INIT(&gm->cmdList);
+	
 	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
 	gm->defaults.fontSize = .45;
 	decodeHexColorNorm(gs->textColor, (float*)&(gm->defaults.textColor));
@@ -673,6 +680,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 		return; // TODO ???
 	}
 	
+	
 	GUIEvent gev = {
 		.type = type,
 		.originalTarget = t,
@@ -686,6 +694,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 		.requestRedraw = 0,
 	};
 	
+		
 	GUIManager_BubbleEvent(gm, t, &gev);
 }
 
@@ -749,6 +758,24 @@ void GUIManager_BubbleUserEvent(GUIManager* gm, GUIHeader* target, char* ev) {
 // lowest level of event triggering
 // does not do bubbling
 void GUIHeader_TriggerEvent(GUIHeader* o, GUIEvent* gev) {
+	
+	
+	if(o && o->vt && o->vt->HandleCommand && gev->type == GUIEVENT_KeyDown) {
+		
+		int mode = 0;
+		GUI_Cmd* cmd = Commands_ProbeCommand(o, gev, mode);
+		
+		if(cmd) {	
+//			printf("handling command\n");	
+			o->vt->HandleCommand(o, cmd);
+		
+			// todo: check no-suppress flag
+			return;
+		}
+	}
+	
+	
+	
 	
 	if(o && o->event_vt) {
 		

@@ -16,7 +16,6 @@
 
 #include "fuzzyMatch.h"
 #include "fuzzyMatchControl.h"
-#include "commands.h"
 #include "app.h" // for execProcess*
 
 
@@ -130,7 +129,7 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
-
+/*
 	Cmd found;
 	unsigned int iter = 0;
 	while(Commands_ProbeCommand(gev, w->commands, 0, &found, &iter)) {
@@ -138,7 +137,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		GUIFuzzyMatchControl_ProcessCommand(w, &found);		
 		
 	}
-
+*/
 }
 
 
@@ -149,7 +148,16 @@ static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 }
 
 
-void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd) {
+
+static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
+	int needRehighlight = 0;
+	
+	GUIFuzzyMatchControl_ProcessCommand(w, cmd);
+}
+
+
+void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {
@@ -208,6 +216,7 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path) {
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
+		.HandleCommand = (void*)handleCommand,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -230,6 +239,7 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path) {
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;
 	
 	w->lineHeight = 25;
 	w->leftMargin = 20;

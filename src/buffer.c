@@ -10,6 +10,8 @@
 #include "ui/gui_internal.h"
 #include "clipboard.h"
 
+#include "commands.h"
+
 
 
 //#define LOG_UNDO(...) __VA_ARGS__
@@ -99,6 +101,8 @@ static BufferUndo* undo_inc(Buffer* b) {
 	
 	b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
 	b->undoNext = b->undoCurrent;
+	
+	memset(u, 0, sizeof(*u));
 	
 	return u;
 }

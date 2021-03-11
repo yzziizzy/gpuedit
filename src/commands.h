@@ -1,132 +1,148 @@
 #ifndef __gpuedit_commands_h__
 #define __gpuedit_commands_h__
 
-#include "c_json/json.h"
+
+
+
+
+
+
+
+#define COMMANDELEMTYPE_LIST \
+	X(Buffer) \
+	X(Main) \
+	X(FileBrowser) \
+	X(FuzzyMatcher) \
+	X(GrepOpen) \
+	X(Debug) \
+
+
+
 
 // EOL = End of Line
 // SOL = Start of Line
 
 #define COMMANDTYPE_LIST \
-	X(Cmd, NULL) \
-	X(BufferCmd, Debug) \
-	X(BufferCmd, MoveCursorV) \
-	X(BufferCmd, MoveCursorH) \
-	X(BufferCmd, InsertChar) \
-	X(BufferCmd, SplitLine) \
-	X(BufferCmd, SplitLineIndent) \
-	X(BufferCmd, Backspace) \
-	X(BufferCmd, Delete) \
-	X(BufferCmd, DeleteCurLine) \
-	X(BufferCmd, MovePage) \
-	X(BufferCmd, GoToFirstColOfFile) \
-	X(BufferCmd, GoToLastColOfFile) \
-	X(BufferCmd, GoToFirstCharOfLine) \
-	X(BufferCmd, GoToLastCharOfLine) \
-	X(BufferCmd, DuplicateLine) \
-	X(BufferCmd, SelectNone) \
-	X(BufferCmd, SelectAll) \
-	X(BufferCmd, SelectLine) \
-	X(BufferCmd, SelectToEOL) \
-	X(BufferCmd, SelectFromSOL) \
-	X(BufferCmd, GoToLineLaunch) \
-	X(BufferCmd, GoToLineSubmit) \
-	X(BufferCmd, GoToLineCancel) \
-	X(BufferCmd, GoToEOL) \
-	X(BufferCmd, GoToSOL) \
-	X(BufferCmd, GoToAfterIndent) \
-	X(BufferCmd, RehilightWholeBuffer) \
-	X(BufferCmd, Cut) \
-	X(BufferCmd, SmartCut) \
-	X(BufferCmd, Copy) \
-	X(BufferCmd, Paste) \
-	X(BufferCmd, SetBookmark) \
-	X(BufferCmd, RemoveBookmark) \
-	X(BufferCmd, ToggleBookmark) \
-	X(BufferCmd, GoToNextBookmark) \
-	X(BufferCmd, GoToPrevBookmark) \
-	X(BufferCmd, GoToFirstBookmark) \
-	X(BufferCmd, GoToLastBookmark) \
-	X(BufferCmd, Undo) \
-	X(BufferCmd, Redo) \
-	X(BufferCmd, GrowSelectionH) \
-	X(BufferCmd, GrowSelectionV) \
-	X(BufferCmd, ClearSelection) \
-	X(BufferCmd, SelectSequenceUnder) \
-	X(BufferCmd, MoveToNextSequence) \
-	X(BufferCmd, MoveToPrevSequence) \
-	X(BufferCmd, DeleteToNextSequence) \
-	X(BufferCmd, DeleteToPrevSequence) \
-	X(BufferCmd, GrowSelectionToNextSequence) \
-	X(BufferCmd, GrowSelectionToPrevSequence) \
-	X(BufferCmd, GrowSelectionToSOL) \
-	X(BufferCmd, GrowSelectionToEOL) \
-	X(BufferCmd, Indent) \
-	X(BufferCmd, SmartIndent) \
-	X(BufferCmd, Unindent) \
-	X(BufferCmd, LinePrependText) \
-	X(BufferCmd, LineUnprependText) \
-	X(BufferCmd, SurroundSelection) \
-	X(BufferCmd, UnsurroundSelection) \
-	X(BufferCmd, SmartComment) \
-	X(BufferCmd, StrictUncomment) \
-	X(BufferCmd, SmartUncomment) \
-	X(BufferCmd, CollapseWhitespace) \
-	X(BufferCmd, FindStartSequenceUnderCursor) \
-	X(BufferCmd, FindStartFromSelection) \
-	X(BufferCmd, FindStart) \
-	X(BufferCmd, FindResume) \
-	X(BufferCmd, FindNext) \
-	X(BufferCmd, FindPrev) \
-	X(BufferCmd, ReplaceStart) \
-	X(BufferCmd, ReplaceNext) \
-	X(BufferCmd, ReplaceAll) \
-	X(BufferCmd, Save) \
-	X(BufferCmd, Reload) \
-	X(BufferCmd, PromptLoad) \
-	X(BufferCmd, CloseTray) \
-	X(BufferCmd, ToggleMenu) \
-	X(BufferCmd, ShowDictComplete) \
-	X(BufferCmd, ToggleGDBBreakpoint) \
-	X(BufferCmd, ScrollLinesV) \
-	X(BufferCmd, ScrollScreenPctV) \
-	X(BufferCmd, ScrollColsH) \
-	X(BufferCmd, ScrollScreenPctH) \
-	X(BufferCmd, NextHighlighter) \
+	X(Buffer, Debug) \
+	X(Buffer, KeyStroke) \
+	X(Buffer, MoveCursorV) \
+	X(Buffer, MoveCursorH) \
+	X(Buffer, InsertChar) \
+	X(Buffer, SplitLine) \
+	X(Buffer, SplitLineIndent) \
+	X(Buffer, Backspace) \
+	X(Buffer, Delete) \
+	X(Buffer, DeleteCurLine) \
+	X(Buffer, MovePage) \
+	X(Buffer, GoToFirstColOfFile) \
+	X(Buffer, GoToLastColOfFile) \
+	X(Buffer, GoToFirstCharOfLine) \
+	X(Buffer, GoToLastCharOfLine) \
+	X(Buffer, DuplicateLine) \
+	X(Buffer, SelectNone) \
+	X(Buffer, SelectAll) \
+	X(Buffer, SelectLine) \
+	X(Buffer, SelectToEOL) \
+	X(Buffer, SelectFromSOL) \
+	X(Buffer, GoToLineLaunch) \
+	X(Buffer, GoToLineSubmit) \
+	X(Buffer, GoToLineCancel) \
+	X(Buffer, GoToEOL) \
+	X(Buffer, GoToSOL) \
+	X(Buffer, GoToAfterIndent) \
+	X(Buffer, RehilightWholeBuffer) \
+	X(Buffer, Cut) \
+	X(Buffer, SmartCut) \
+	X(Buffer, Copy) \
+	X(Buffer, Paste) \
+	X(Buffer, SetBookmark) \
+	X(Buffer, RemoveBookmark) \
+	X(Buffer, ToggleBookmark) \
+	X(Buffer, GoToNextBookmark) \
+	X(Buffer, GoToPrevBookmark) \
+	X(Buffer, GoToFirstBookmark) \
+	X(Buffer, GoToLastBookmark) \
+	X(Buffer, Undo) \
+	X(Buffer, Redo) \
+	X(Buffer, GrowSelectionH) \
+	X(Buffer, GrowSelectionV) \
+	X(Buffer, ClearSelection) \
+	X(Buffer, SelectSequenceUnder) \
+	X(Buffer, MoveToNextSequence) \
+	X(Buffer, MoveToPrevSequence) \
+	X(Buffer, DeleteToNextSequence) \
+	X(Buffer, DeleteToPrevSequence) \
+	X(Buffer, GrowSelectionToNextSequence) \
+	X(Buffer, GrowSelectionToPrevSequence) \
+	X(Buffer, GrowSelectionToSOL) \
+	X(Buffer, GrowSelectionToEOL) \
+	X(Buffer, Indent) \
+	X(Buffer, SmartIndent) \
+	X(Buffer, Unindent) \
+	X(Buffer, LinePrependText) \
+	X(Buffer, LineUnprependText) \
+	X(Buffer, SurroundSelection) \
+	X(Buffer, UnsurroundSelection) \
+	X(Buffer, SmartComment) \
+	X(Buffer, StrictUncomment) \
+	X(Buffer, SmartUncomment) \
+	X(Buffer, CollapseWhitespace) \
+	X(Buffer, FindStartSequenceUnderCursor) \
+	X(Buffer, FindStartFromSelection) \
+	X(Buffer, FindStart) \
+	X(Buffer, FindResume) \
+	X(Buffer, FindNext) \
+	X(Buffer, FindPrev) \
+	X(Buffer, ReplaceStart) \
+	X(Buffer, ReplaceNext) \
+	X(Buffer, ReplaceAll) \
+	X(Buffer, Save) \
+	X(Buffer, Reload) \
+	X(Buffer, PromptLoad) \
+	X(Buffer, CloseTray) \
+	X(Buffer, ToggleMenu) \
+	X(Buffer, ShowDictComplete) \
+	X(Buffer, ToggleGDBBreakpoint) \
+	X(Buffer, ScrollLinesV) \
+	X(Buffer, ScrollScreenPctV) \
+	X(Buffer, ScrollColsH) \
+	X(Buffer, ScrollScreenPctH) \
+	X(Buffer, NextHighlighter) \
 	\
-	X(FileBrowserCmd, CursorMove) \
-	X(FileBrowserCmd, CursorMoveNoWrap) \
-	X(FileBrowserCmd, UpDir) \
-	X(FileBrowserCmd, SmartOpen) \
-	X(FileBrowserCmd, ToggleSelect) \
-	X(FileBrowserCmd, JumpToLetter) \
+	X(FileBrowser, CursorMove) \
+	X(FileBrowser, CursorMoveNoWrap) \
+	X(FileBrowser, UpDir) \
+	X(FileBrowser, SmartOpen) \
+	X(FileBrowser, ToggleSelect) \
+	X(FileBrowser, JumpToLetter) \
 	\
-	X(FuzzyMatcherCmd, Exit) \
-	X(FuzzyMatcherCmd, CursorMove) \
-	X(FuzzyMatcherCmd, OpenFile) \
+	X(FuzzyMatcher, Exit) \
+	X(FuzzyMatcher, CursorMove) \
+	X(FuzzyMatcher, OpenFile) \
 	\
-	X(GrepOpenCmd, Exit) \
-	X(GrepOpenCmd, CursorMove) \
-	X(GrepOpenCmd, OpenFile) \
+	X(GrepOpen, Exit) \
+	X(GrepOpen, CursorMove) \
+	X(GrepOpen, OpenFile) \
 	\
-	X(MainCmd, SimpleWindowTest) \
-	X(MainCmd, OpenFileBrowser) \
-	X(MainCmd, FuzzyOpener) \
-	X(MainCmd, GrepOpen) \
-	X(MainCmd, SaveActiveTab) \
-	X(MainCmd, SaveAll) \
-	X(MainCmd, Quit) \
-	X(MainCmd, SaveQuit) \
-	X(MainCmd, QuitWithoutSave) \
-	X(MainCmd, LoadFile) \
-	X(MainCmd, NewEmptyBuffer) \
-	X(MainCmd, ReloadTab) \
-	X(MainCmd, CloseTab) \
-	X(MainCmd, SaveAndCloseTab) \
-	X(MainCmd, NextTab) \
-	X(MainCmd, PrevTab) \
-	X(MainCmd, GoToTab) \
-	X(MainCmd, MainMenu) \
-	X(MainCmd, ToggleGDBBreakpoint) \
+	X(Main, SimpleWindowTest) \
+	X(Main, OpenFileBrowser) \
+	X(Main, FuzzyOpener) \
+	X(Main, GrepOpen) \
+	X(Main, SaveActiveTab) \
+	X(Main, SaveAll) \
+	X(Main, Quit) \
+	X(Main, SaveQuit) \
+	X(Main, QuitWithoutSave) \
+	X(Main, LoadFile) \
+	X(Main, NewEmptyBuffer) \
+	X(Main, ReloadTab) \
+	X(Main, CloseTab) \
+	X(Main, SaveAndCloseTab) \
+	X(Main, NextTab) \
+	X(Main, PrevTab) \
+	X(Main, GoToTab) \
+	X(Main, MainMenu) \
+	X(Main, ToggleGDBBreakpoint) \
 	
 	
 	/*
@@ -144,9 +160,31 @@
 	BufferCmd_MoveCursorToSOLT, // start of line text, ignoring leading whitespace
 */
 
-#define X(a, b) a##_##b,
-enum CmdType {
+
+
+#define COMMANDFLAG_LIST \
+	X(scrollToCursor) \
+	X(rehighlight) \
+	X(resetCursorBlink) \
+	X(undoSeqBreak) \
+	X(hideMouse) \
+	X(centerOnCursor) \
+
+
+#define X(a, b) a##Cmd_##b,
+enum  {
+	CUSTOMCMD_STARTVALUE = GUICMD_MAXVALUE,
 	COMMANDTYPE_LIST
+	CUSTOMCMD_MAXVALUE,
+};
+#undef X
+
+
+#define X(a) CUSTOM_ELEM_TYPE_##a,
+enum  {
+	CUSTOMCMDELEM_STARTVALUE = 10000,
+	COMMANDELEMTYPE_LIST
+	CUSTOMCMDELEM_MAXVALUE,
 };
 #undef X
 
@@ -154,36 +192,20 @@ enum CmdType {
 
 
 
-typedef struct Cmd {
-	unsigned int mode;
-	unsigned int mods;
-	int keysym;
-	enum CmdType cmd;
-	unsigned int flags;
-	union {
-		long amt;
-		char* str;
-		char** pstr;
-	};
-} Cmd;
+#define X(a) CMD_FLAG_ORD_##a,
+enum {
+	COMMANDFLAG_FIRSTVALUE = GUICMD_FLAG_ORD_MAXVALUE - 1,
+	COMMANDFLAG_LIST
+};
+#undef X
+
+#define X(a) CMD_FLAG_##a = 1 << CMD_FLAG_ORD_##a,
+enum {
+	COMMANDFLAG_LIST
+};
+#undef X
 
 
-typedef struct CmdList {
-	Cmd* mods[16]; // ctl, alt, shift, tux
-} CmdList;
 
 
-struct GUIEvent;
-typedef struct GUIEvent GUIEvent;
-
-
-int Commands_ProbeCommand(GUIEvent* gev, Cmd* list, unsigned int mode, Cmd* out, unsigned int* iter);
-
-CmdList* Commands_SeparateCommands(Cmd* in);
-
-
-Cmd* CommandList_loadJSON(json_value_t* root);
-Cmd* CommandList_loadJSONFile(char* path);
-
-
-#endif //__gpuedit_commands_h__
+#endif // __gpuedit_commands_h__

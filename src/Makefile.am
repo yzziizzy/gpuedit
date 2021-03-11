@@ -16,7 +16,6 @@ gpuedit_SOURCES = main.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
 	clipboard.c \
-	commands.c \
 	dumpImage.c \
 	fbo.c \
 	fcfg.c \
@@ -43,6 +42,7 @@ gpuedit_SOURCES = main.c \
 	ui/animations/pulse.c \
 	ui/button.c \
 	ui/columnLayout.c \
+	ui/commands.c \
 	ui/configLoader.c \
 	ui/debugAdjuster.c \
 	ui/edit.c \

@@ -6,6 +6,7 @@
 
 
 #include "buffer.h"
+#include "commands.h"
 #include "ui/gui.h"
 #include "ui/gui_internal.h"
 #include "clipboard.h"
@@ -38,7 +39,7 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
-	
+
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		GUIBufferEditControl_ProcessCommand(w->ec, &(BufferCmd){
 			BufferCmd_InsertChar, gev->character
@@ -46,12 +47,26 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		
 		GUIBufferEditControl_RefreshHighlight(w->ec);
 	}
-	else {
+	
+}
+
+static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+	int needRehighlight = 0;
+//static void keyDown(GUIHeader* w_, GUIEvent* gev) {
+//	GUIBufferEditor* w = (GUIBufferEditor*)w_;
+//	int needRehighlight = 0;
+	/*
+	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
+		GUIBufferEditControl_ProcessCommand(w->ec, &(BufferCmd){
+			BufferCmd_InsertChar, gev->character
+		}, &needRehighlight);
+		
+		GUIBufferEditControl_RefreshHighlight(w->ec);
+	}
+	else {*/
 		// special commands
-		unsigned int S = GUIMODKEY_SHIFT;
-		unsigned int C = GUIMODKEY_CTRL;
-		unsigned int A = GUIMODKEY_ALT;
-		unsigned int T = GUIMODKEY_TUX;
+	
 		
 		unsigned int scrollToCursor   = 1 << 0;
 		unsigned int rehighlight      = 1 << 1;
@@ -59,55 +74,50 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		unsigned int undoSeqBreak     = 1 << 3;
 		unsigned int hideMouse        = 1 << 4;
 		unsigned int centerOnCursor   = 1 << 5;
+	
+		// GUIBufferEditor will pass on commands to the buffer
+		GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
+			.type = cmd->cmd, .str = cmd->str 
+		}, &needRehighlight);
+	
 		
+		if(cmd->flags & scrollToCursor) {
+			GUIBufferEditControl_scrollToCursor(w->ec);
+		}
 		
-		Cmd found;
-		unsigned int iter = 0;
-		while(Commands_ProbeCommand(gev, w->commands, w->inputMode, &found, &iter)) {
-			// GUIBufferEditor will pass on commands to the buffer
-			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
-				.type = found.cmd, .str = found.str 
-			}, &needRehighlight);
-			
-			
-			if(found.flags & scrollToCursor) {
-				GUIBufferEditControl_scrollToCursor(w->ec);
-			}
-			
-			if(found.flags & rehighlight) {
-				GUIBufferEditControl_RefreshHighlight(w->ec);
-			}
-			
-			if(found.flags & resetCursorBlink) {
-				w->ec->cursorBlinkTimer = 0;
-			}
-			
-			if(found.flags & undoSeqBreak) {
-				if(!w->ec->sel) {
+		if(cmd->flags & rehighlight) {
+			GUIBufferEditControl_RefreshHighlight(w->ec);
+		}
+		
+		if(cmd->flags & resetCursorBlink) {
+			w->ec->cursorBlinkTimer = 0;
+		}
+		
+		if(cmd->flags & undoSeqBreak) {
+			if(!w->ec->sel) {
 //					printf("seq break without selection\n");
-					Buffer_UndoSequenceBreak(
-						w->buffer, 0, 
-						w->ec->current->lineNum, w->ec->curCol,
-						0, 0, 0
-					);
-				}
-				else {
-//					printf("seq break with selection\n");
-					Buffer_UndoSequenceBreak(
-						w->buffer, 0, 
-						w->ec->sel->startLine->lineNum, w->ec->sel->startCol,
-						w->ec->sel->endLine->lineNum, w->ec->sel->endCol,
-						1 // TODO check pivot locations
-					);
-				}
+				Buffer_UndoSequenceBreak(
+					w->buffer, 0, 
+					w->ec->current->lineNum, w->ec->curCol,
+					0, 0, 0
+				);
 			}
-			
-			if(found.flags & centerOnCursor) {
-				GBEC_scrollToCursorCentered(w->ec);
+			else {
+//					printf("seq break with selection\n");
+				Buffer_UndoSequenceBreak(
+					w->buffer, 0, 
+					w->ec->sel->startLine->lineNum, w->ec->sel->startCol,
+					w->ec->sel->endLine->lineNum, w->ec->sel->endCol,
+					1 // TODO check pivot locations
+				);
 			}
 		}
 		
-	}
+		if(cmd->flags & centerOnCursor) {
+			GBEC_scrollToCursorCentered(w->ec);
+		}
+	
+		
 	
 }
 
@@ -196,12 +206,12 @@ static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 	}
 }
 
-
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
+		.HandleCommand = (void*)handleCommand,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -223,7 +233,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
 	w->header.cursor = GUIMOUSECURSOR_TEXT;
-	
+	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Buffer;
 	
 	w->ec = GUIBufferEditControl_New(gm);
 // 	w->ec->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;

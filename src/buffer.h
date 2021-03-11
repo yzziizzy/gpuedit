@@ -8,7 +8,6 @@
 #include "ui/gui.h"
 #include "font.h"
 #include "highlight.h"
-#include "commands.h"
 
 #include "statusBar.h"
 
@@ -352,7 +351,7 @@ typedef struct GUIBufferEditor {
 	GUISimpleWindow* menu;
 	
 	GlobalSettings* gs;
-	Cmd* commands;
+	GUI_Cmd* commands;
 
 } GUIBufferEditor;
 
@@ -361,7 +360,7 @@ typedef struct GUIBufferEditor {
 
 
 typedef struct BufferCmd {
-	enum CmdType type;
+	int type;
 	union {
 		long amt;
 		char* str;

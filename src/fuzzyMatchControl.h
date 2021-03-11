@@ -2,7 +2,6 @@
 #define __gpuedit_fuzzyMatchControl_h__
 
 #include "ui/gui.h"
-#include "commands.h"
 #include "fuzzyMatch.h"
 
 
@@ -22,7 +21,7 @@ typedef struct GUIFuzzyMatchControl {
 	float leftMargin;
 	
 	GlobalSettings* gs;
-	Cmd* commands;
+	GUI_Cmd* commands;
 	
 } GUIFuzzyMatchControl;
 
@@ -30,7 +29,7 @@ typedef struct GUIFuzzyMatchControl {
 GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path);
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w);
 
-void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, Cmd* cmd);
+void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd);
 
 
 

@@ -2,7 +2,6 @@
 #define __gpuedit_fileBrowser_h__
 
 #include "ui/gui.h"
-#include "commands.h"
 
 
 
@@ -32,7 +31,7 @@ typedef struct GUIFileBrowser {
 	GlobalSettings* gs;
 	char* acceptButtonLabel;
 	
-	Cmd* commands;
+	GUI_Cmd* commands;
 	
 } GUIFileBrowser;
 
@@ -40,7 +39,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path);
 void GUIFileBrowser_Destroy(GUIFileBrowser* w);
 void GUIFileBrowser_UnselectAll(GUIFileBrowser* w);
 
-void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, Cmd* cmd);
+void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, GUI_Cmd* cmd);
 
 void GUIFileBrowser_Refresh(GUIFileBrowser* w);
 

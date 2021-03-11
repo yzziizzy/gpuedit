@@ -6,7 +6,7 @@
 #include "../gui_deps.h"
 
 #include "gui_settings.h"
-
+#include "commands.h"
 
 struct GameState;
 typedef struct GameState GameState;
@@ -111,6 +111,8 @@ struct gui_vtbl {
 	void (*RemoveClient)(GUIHeader* parent, GUIHeader* child);
 	Vector2 (*SetScrollPct)(GUIHeader* go, Vector2 pct); // returns the final value
 	Vector2 (*SetScrollAbs)(GUIHeader* go, Vector2 absPos);
+	
+	int (*HandleCommand)(GUIHeader* h, GUI_Cmd* cmd);
 };
 
 
@@ -292,6 +294,8 @@ struct GUIHeader {
 	unsigned int hidden  :  1;
 	unsigned int deleted :  1;
 	
+	uint16_t cmdElementType; // which category of commands this element should respond to
+	
 	int cursor;
 	int tabStop; // the tab stop of this element within its parent hierarchy
 	
@@ -331,8 +335,6 @@ struct GUIHeader {
 #include "structAdjuster.h"
 #include "performanceGraph.h"
 #include "fileBrowser.h"
-
-
 
 
 /*
@@ -395,6 +397,16 @@ typedef struct GUIManager {
 	
 	RING(GUIHeader*) focusStack;
 	
+	char nextCmdFlagBit;
+	VEC(GUI_CmdElementInfo) cmdElements;
+	HT(int) cmdElementLookup;
+	HT(uint16_t) cmdModeLookup;
+//	HT(uint32_t) cmdNameLookup;
+	HT(uint32_t) cmdFlagLookup;
+	
+	VEC(GUI_Cmd) cmdList; // temporary, until a struct-keyed hash table is added to sti
+	
+		
 	struct {
 		GUIFont* font;
 		float fontSize;
