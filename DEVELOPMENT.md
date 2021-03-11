@@ -5,7 +5,6 @@
 * Basic autocomplete
 * Reorder tabs
 * Autosort tabs
-* Go to previous search match (refactor search to find all in a list)
 * Resume search is broken
 * Able to refocus on the editor while finding
 * NULL-inserting bug related to line splitting after movign from long line to short
@@ -14,42 +13,46 @@
 * clicking out of find switches input to edit buffer
 * old find term highlighted on findreplace resume
 * sequence commands in findreplace input box
-* find sequence from last selection on findreplace resume
 * cursor/focus rendering in findreplace needs help
-* findreplace does not search again on reopen
-* start findreplace on next match from cursor position
+* highlight findset while valid even if find tray closes (opt)
+* no centeroncursor for selection/sequence matches (opt?)
+* find modes: plain|fuzzy|pcre|escape
+* find match/ignore case
 
-* launch grep opener with selection
 * folder level options file
+* highlighter/theme colors from system colorX definitions
+* ctrl+l/r jumps across tabs (sequence break on newline)
 
-* full Pascal string conversion
-* ctrl+l/r jumps across tabs
 * copy cannot paste to pgadmin3 (INCR? mime type?)
 * undo breaks if selection reaches end of file
+* paste: cursor at start/end of inserted text
+* return to previously active tab if opener is closed without opening
+* undo system selection not recreated based on selection direction?
+
+
+== STATUS BAR IDEAS ==
+* battery monitor
+* ping / netstat
+* unsaved changes/time
+
 
 == TODO ==
 * grep matcher
 * GUIListControl
 * s/GUIBufferEditControl_*()/GBEC_*()/
-* Highlight all find matches, give total count
-* Center search result in the screen when finding
 * Command: delete lines under selection/cursor
-* Gutter width is wrong for 10 line files
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
-* Open file to some certain line
 * Multiple MC tab rows
 * Tab long name scrolling
 * Tab Bar scrolling
 * Smart uncomment
-* home: start of text <-> start of line
 * Clipboard ring
 * Proper tabstops
 * Ability to change the highlighter
 * Open file command
-* Replace All
 * RAT_ parsing in commnds.json
-* Save Changes? close hook buffer integration 
+* Save Changes? close hook buffer integration
 * Shortcut config presets
 * Slide-out windows
 * Outline box style of highlighting
@@ -74,7 +77,7 @@
 * Save-as and save dialog
 * Breadcrumbs/path in file browser
 * Wire all the settings updates through the app
-* Folder-local config file
+* Folder-local config filef
 * Split windows
 * Adjustable scroll lines in fileBrowser, get from OS if possible
 * MIME type probing of some sort
@@ -106,7 +109,6 @@
 * Speed scrolling with ctrl
 * Escape sequences and regex references in search and replace
 * Grammar-driven move by words
-* Double click to select whole word
 * Comment chars located before or after tabs
 * Bulk comment and uncomment 
 * Duplicate selection
@@ -152,13 +154,11 @@
 * Option: rendering of selection on tabs and empty lines (and trailing spaces?)
 * Option: Render selection pivot marker
 * Option: automatically scroll so that the cursor has n lines of padding on the top and bottom.
-* Option: don't scroll to end cursor when ctrl-a
 * Comment hint to hilighter to treat a certain identifier as a certain type, for use with macros
 * Increment/decrement numbers in identifiers on this line. Combo with Dup Line.
 * Increase value of number under cursor by: 1, order of mag, power of 2
 * File browser gives SLOC/git/etc stats in detail mode
 * Jump to line of last edit
-* File-summoning fuzzy search interface
 * Notify when semicolons appear to be missing
 * Algorithm to detect indent width then convert all spaces to tabs
 
@@ -166,7 +166,6 @@
 * Sequence cursor moves don't clear the current selection or change it
 * GUIManager should pop focus stack if focused control is deleted
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
-* Mouse scroll on files with fewer lines than the screen
 * Should not be able to delete the last line
 * Check all column usage for correct 1/0 basing
 * Mouse drag start params need tuning 

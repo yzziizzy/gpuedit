@@ -115,6 +115,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 
 	decodeHexColorNorm(gs->editBorderColor, (float*)&(gm->defaults.editBorderColor));
 	decodeHexColorNorm(gs->editBgColor, (float*)&(gm->defaults.editBgColor));
+	decodeHexColorNorm(gs->editTextColor, (float*)&(gm->defaults.editTextColor));
 	gm->defaults.editWidth = 150;
 	gm->defaults.editHeight = 18;
 
@@ -147,6 +148,16 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	decodeHexColorNorm(gs->selectBgColor, (float*)&(gm->defaults.selectBgColor));
 	decodeHexColorNorm(gs->selectBorderColor, (float*)&(gm->defaults.selectBorderColor));
 	decodeHexColorNorm(gs->selectTextColor, (float*)&(gm->defaults.selectTextColor));
+	
+	decodeHexColorNorm(gs->trayBgColor, (float*)&(gm->defaults.trayBgColor));
+	
+	gm->defaults.charWidth_fw = gs->charWidth_fw;
+	gm->defaults.lineHeight_fw = gs->lineHeight_fw;
+	gm->defaults.font_fw = FontManager_findFont(gm->fm, gs->font_fw);;
+	gm->defaults.fontSize_fw = gs->fontSize_fw;
+	decodeHexColorNorm(gs->statusBarBgColor, (float*)&(gm->defaults.statusBarBgColor));
+	decodeHexColorNorm(gs->statusBarTextColor, (float*)&(gm->defaults.statusBarTextColor));
+	
 	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
@@ -825,7 +836,7 @@ and removed at run time.
 
 They are NOT for general event handling in GUI elements. Use the vtable for that.
 */
-void GUIHeader_AddHandler_(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb) {
+void GUIHeader_AddHandler(GUIHeader* h, enum GUIEventType type, GUI_EventHandlerFn cb) {
 	VEC_INC(&h->dynamicHandlers);
 	VEC_TAIL(&h->dynamicHandlers).type = type;
 	VEC_TAIL(&h->dynamicHandlers).cb = cb;

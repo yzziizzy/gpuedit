@@ -56,6 +56,36 @@ TabSpec* tabspeclistdup(TabSpec* old) {
 }
 
 
+size_t widgetspeclistlen(WidgetSpec* a) {
+	size_t n = 0;
+	for(; a[n].type; n++);
+	return n;
+}
+
+
+WidgetSpec* widgetspeclistdup(WidgetSpec* old) {
+	size_t i;
+	WidgetSpec* new;
+
+	if(!old) return NULL;
+	
+	new = malloc(sizeof(*new) * (widgetspeclistlen(old) + 1));
+	
+	for(i = 0; old[i].type; i++) {
+		new[i].type = old[i].type;
+		new[i].size = old[i].size;
+		new[i].align = old[i].align;
+		new[i].format = strdup(old[i].format);
+	}
+
+	new[i].type = MCWID_NONE;
+	new[i].size = 0;
+	new[i].align = 'l';
+	new[i].format = NULL;
+	return new;
+}
+
+
 void freeptrlist(void* _p) {
 	void** p = (void**)_p;
 	void** q = p;
@@ -76,6 +106,7 @@ void freeptrlist(void* _p) {
 #define set_charp(x) strdup(x);
 #define set_charpp(x) strlistdup(x);
 #define set_tabsp(x) tabspeclistdup(x);
+#define set_widsp(x) widgetspeclistdup(x);
 #define set_themep(x) x;
 #define set_guisettingsp(x) x;
 void GlobalSettings_LoadDefaults(GlobalSettings* s) {
@@ -152,6 +183,60 @@ static void grab_tabsp(TabSpec** out, json_value_t* obj, char* prop) {
 					}
 					tmp[i].path = json_as_strdup(path_v);
 					free(type_str);
+				}
+				link = link->next;
+			}
+
+			*out = tmp;
+		}
+	}
+}
+
+
+static void grab_widsp(WidgetSpec** out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		if(v->type == JSON_TYPE_ARRAY) {
+			if(*out) free(*out);
+			WidgetSpec* tmp = calloc(1, sizeof(*tmp) * (v->len + 1));
+
+			json_link_t* link = v->arr.head;
+			json_value_t* type_v;
+			json_value_t* size_v;
+			json_value_t* align_v;
+			json_value_t* format_v;
+			char* type_str;
+			char* align_str;
+			char* format_str;
+			for(long i = 0; link; i++) {
+				if(
+					!json_obj_get_key(link->v, "type", &type_v)
+					&& !json_obj_get_key(link->v, "size", &size_v)
+					&& !json_obj_get_key(link->v, "align", &align_v)
+					&& !json_obj_get_key(link->v, "format", &format_v)
+				) {
+					type_str = json_as_strdup(type_v);
+					align_str = json_as_strdup(align_v);
+					format_str = json_as_strdup(format_v);
+					if(!strcasecmp(type_str, "hello_world")) {
+						tmp[i].type = MCWID_HELLO;
+					} else if(!strcasecmp(type_str, "ping")) {
+						tmp[i].type = MCWID_PING;
+					} else if(!strcasecmp(type_str, "clock")) {
+						tmp[i].type = MCWID_CLOCK;
+					} else if(!strcasecmp(type_str, "battery")) {
+						tmp[i].type = MCWID_BATTERY;
+					} else if(!strcasecmp(type_str, "linecol")) {
+						tmp[i].type = MCWID_LINECOL;
+					} else {
+						tmp[i].type = MCWID_NONE;
+					}
+					tmp[i].size = json_as_int(size_v);
+					tmp[i].align = align_str[0];
+					tmp[i].format = format_str;
+					free(type_str);
+					free(align_str);
+//					free(format_str);
 				}
 				link = link->next;
 			}

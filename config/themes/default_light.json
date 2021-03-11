@@ -70,5 +70,10 @@
 		"selectBgColor": "#ccccffff",
 		"selectBorderColor": "#64961eff",
 		"selectTextColor": "#ccccffff",
+		
+		"trayBgColor": "#ddddddff",
+		
+		"statusBarBgColor": "#eeeeeeff",
+		"statusBarTextColor": "#333333ff",
 	},
 }

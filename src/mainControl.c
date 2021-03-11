@@ -356,13 +356,26 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	} 
 	else if(0 == strcmp(gev->userType, "openFile")) {
 		GUIMainControl_LoadFile(w, gev->userData);
+		gev->cancelled = 1;
 	}
 	else if(0 == strcmp(gev->userType, "openFileOpt")) {
 		GUIMainControl_LoadFileOpt(w, gev->userData);
+		gev->cancelled = 1;
 	}
 	else if(0 == strcmp(gev->userType, "closeMe")) {
 		int i = GUIMainControl_FindTabIndexByHeaderP(w, gev->originalTarget);
-		if(i > -1) GUIMainControl_CloseTab(w, i);
+		if(i > -1) {
+			GUIMainControl_CloseTab(w, i);
+			gev->cancelled = 1;
+		}
+	} else if(0 == strcmp(gev->userType, "SmartBubble")) {
+		GUIBubbleOpt* opt = (GUIBubbleOpt*)gev->userData;
+		if(0 == strcmp(opt->ev, "GrepOpen")) {
+			GUIMainControl_GrepOpen(w, opt->sel);
+			gev->cancelled = 1;
+		} else {
+			printf("MainControl::SmartBubble unknown ev '%s'\n", opt->ev);
+		}
 	}
 }
 
@@ -438,7 +451,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		break;
 	
 	case MainCmd_GrepOpen:
-		GUIMainControl_GrepOpen(w);
+		GUIMainControl_GrepOpen(w, NULL);
 		break;
 
 	case MainCmd_MainMenu:
@@ -479,7 +492,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		break;
 		
 	case MainCmd_SaveAndCloseTab:
-		printf("NYI\n");
+		printf("NYI\n"); // see BufferCmd_SaveAndClose and BufferCmd_PromptAndClose
 		break;
 		
 	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;
@@ -543,6 +556,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	HighlighterManager_Init(&w->hm);
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/c.so");
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/js.so");
+	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/py.so");
 	
 	
 	// TODO: resize
@@ -829,13 +843,13 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 }
 
 
-void GUIMainControl_GrepOpen(GUIMainControl* w) {
+void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm) {
 	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
 
-	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->header.gm, "./");
+	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->header.gm, searchTerm);
 	goc->gs = w->gs;
 	goc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &goc->header, "grep opener");
@@ -847,6 +861,8 @@ void GUIMainControl_GrepOpen(GUIMainControl* w) {
 	goc->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
+	
+	GUIGrepOpenControl_Refresh(goc);
 }
 
 
@@ -936,12 +952,18 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 		BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
 		if(bl) {
 			GBEC_MoveCursorTo(gbe->ec, bl, 0);
-			GBEC_scrollToCursorCentered(gbe->ec);
+			GBEC_scrollToCursorOpt(gbe->ec, 1);
 //			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 		}
 		return;
 	}
 	
+	Buffer* buf = Buffer_New();
+	int status = Buffer_LoadFromFile(buf, opt->path);
+	if(status) {
+		Buffer_Delete(buf);
+		return;
+	}
 	
 	// HACK: these structures should be looked up from elsewhere
 	EditorParams* ep = pcalloc(ep);
@@ -979,7 +1001,6 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	
 	
 	// buffer and editor creation
-	Buffer* buf = Buffer_New();
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
@@ -998,6 +1019,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
+	GUIStatusBar_SetItems(gbe->statusBar, w->gs->MainControl_statusWidgets);
 	
 	// highlighter
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
@@ -1009,7 +1031,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 //	Highlighter_LoadStyles(gbe->h, tmp);
 //	free(tmp);
 
-	Buffer_LoadFromFile(buf, opt->path);
+	
 	GUIBufferEditor_SetBuffer(gbe, buf);
 //	GUIBufferEditControl_RefreshHighlight(gbe->ec);
 	GUIBufferEditor_ProbeHighlighter(gbe);

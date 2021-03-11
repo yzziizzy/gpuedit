@@ -27,6 +27,7 @@
 	X(Buffer, KeyStroke) \
 	X(Buffer, MoveCursorV) \
 	X(Buffer, MoveCursorH) \
+	X(Buffer, MoveCursorHSel) \
 	X(Buffer, InsertChar) \
 	X(Buffer, SplitLine) \
 	X(Buffer, SplitLineIndent) \
@@ -36,6 +37,7 @@
 	X(Buffer, MovePage) \
 	X(Buffer, GoToFirstColOfFile) \
 	X(Buffer, GoToLastColOfFile) \
+	X(Buffer, GoToFirstCharOrSOL) \
 	X(Buffer, GoToFirstCharOfLine) \
 	X(Buffer, GoToLastCharOfLine) \
 	X(Buffer, DuplicateLine) \
@@ -90,6 +92,7 @@
 	X(Buffer, FindStartSequenceUnderCursor) \
 	X(Buffer, FindStartFromSelection) \
 	X(Buffer, FindStart) \
+	X(Buffer, SmartFind) \
 	X(Buffer, FindResume) \
 	X(Buffer, FindNext) \
 	X(Buffer, FindPrev) \
@@ -97,6 +100,8 @@
 	X(Buffer, ReplaceNext) \
 	X(Buffer, ReplaceAll) \
 	X(Buffer, Save) \
+	X(Buffer, SaveAndClose) \
+	X(Buffer, PromptAndClose) \
 	X(Buffer, Reload) \
 	X(Buffer, PromptLoad) \
 	X(Buffer, CloseTray) \
@@ -108,6 +113,7 @@
 	X(Buffer, ScrollColsH) \
 	X(Buffer, ScrollScreenPctH) \
 	X(Buffer, NextHighlighter) \
+	X(Buffer, SmartBubbleSelection) \
 	\
 	X(FileBrowser, CursorMove) \
 	X(FileBrowser, CursorMoveNoWrap) \

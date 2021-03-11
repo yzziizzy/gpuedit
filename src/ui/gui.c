@@ -495,7 +495,6 @@ void gui_drawTriangleBorder(
 }
 
 
-// stops on linebreak
 void gui_drawTextLine(
 	GUIManager* gm,
 	Vector2 tl,
@@ -506,15 +505,32 @@ void gui_drawTextLine(
 	char* txt, 
 	size_t charCount
 ) {
+	gui_drawTextLineAdv(gm, tl, sz, clip, color, NULL, 0, z, txt, charCount);
+}
+
+
+// stops on linebreak
+void gui_drawTextLineAdv(
+	GUIManager* gm,
+	Vector2 tl,
+	Vector2 sz,
+	AABB2* clip,
+	struct Color4* color,
+	GUIFont* font,
+	float fontsize,
+	float z,
+	char* txt, 
+	size_t charCount
+) {
 	
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
 	
 	int charsDrawn = 0;
-	GUIFont* f = gm->defaults.font;
-	float size = gm->defaults.fontSize; // HACK
-	float hoff = size * f->ascender;
+	if(!font) font = gm->defaults.font;
+	if(!fontsize) fontsize = gm->defaults.fontSize; // HACK
+	float hoff = fontsize * font->ascender;
 	float adv = 0;
 	if(!color) color = &gm->defaults.textColor;
 	
@@ -522,12 +538,12 @@ void gui_drawTextLine(
 	float maxAdv = sz.x;
 	
 	
-	float spaceadv = f->regular[' '].advance;
+	float spaceadv = font->regular[' '].advance * fontsize;
 	
 	for(size_t n = 0; txt[n] != 0 && adv < maxAdv && n < charCount; n++) {
 		char c = txt[n];
 		
-		struct charInfo* ci = &f->regular[(int)c];
+		struct charInfo* ci = &font->regular[(int)c];
 		
 		if(c == '\t') {
 			adv += spaceadv * 4; // hardcoded to annoy you
@@ -542,10 +558,10 @@ void gui_drawTextLine(
 			float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
 			float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
 			
-			v->pos.t = off.y + hoff - ci->topLeftOffset.y * size;
-			v->pos.l = off.x + adv + ci->topLeftOffset.x * size;
-			v->pos.b = off.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size;
-			v->pos.r = off.x + adv + ci->size.x * size + ci->topLeftOffset.x * size;
+			v->pos.t = off.y + hoff - ci->topLeftOffset.y * fontsize;
+			v->pos.l = off.x + adv + ci->topLeftOffset.x * fontsize;
+			v->pos.b = off.y + hoff + ci->size.y * fontsize - ci->topLeftOffset.y * fontsize;
+			v->pos.r = off.x + adv + ci->size.x * fontsize + ci->topLeftOffset.x * fontsize;
 			
 			v->guiType = 1; // text
 			
@@ -562,7 +578,7 @@ void gui_drawTextLine(
 			v->fg = GUI_COLOR4_TO_SHADER(*color);
 			v->z = z;
 			
-			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+			adv += ci->advance * fontsize; // BUG: needs sdfDataSize added in?
 			//v++;
 // 			gm->elementCount++;
 			charsDrawn++;
@@ -591,7 +607,7 @@ float gui_getDefaultUITextWidth(
 	float adv = 0;
 	
 	
-	float spaceadv = f->regular[' '].advance;
+	float spaceadv = f->regular[' '].advance * size;
 	
 	for(size_t n = 0; txt[n] != 0 && n < maxChars; n++) {
 		char c = txt[n];

@@ -18,8 +18,9 @@
 		size: [0, 40],
 		flags: "MAXIMIZE_X",
 		children: [
-			{type: "text", pos: [5, 10], value: "Find:" },
-			{type: "edit", pos: [50, 10], size: [400, 20] value: "", name: "find" },
+			{ type: "text", pos: [5, 10],   size: [40, 20],  value: "Find:" },
+			{ type: "edit", pos: [50, 10],  size: [400, 20], value: "", name: "find" },
+			{ type: "text", pos: [455, 10], size: [80, 20],  value: "X of Y", name: "results" },
 		],
 	},
 	replace_tray: {
@@ -28,9 +29,9 @@
 		flags: "MAXIMIZE_X|CHILD_TABBING",
 		children: [
 			{type: "text", pos: [5, 5], value: "Find:" },
-			{type: "edit", pos: [65, 5], size: [400, 20] value: "", name: "find", tabStop: 1 },
+			{type: "edit", pos: [75, 5], size: [400, 20] value: "", name: "find", tabStop: 1 },
 			{type: "text", pos: [5, 35], value: "Replace:" },
-			{type: "edit", pos: [65, 35], size: [400, 20] value: "", name: "replace", tabStop: 2 },
+			{type: "edit", pos: [75, 35], size: [400, 20] value: "", name: "replace", tabStop: 2 },
 		],
 	},
 	goto_tray: {
@@ -40,6 +41,18 @@
 		children: [
 			{type: "text", pos: [5, 10], value: "Line:" },
 			{type: "edit", pos: [50, 10], size: [400, 20] value: "", name: "goto_line" },
+		],
+	},
+	save_tray: {
+		type: "window",
+		size: [0, 80],
+		flags: "MAXIMIZE_X",
+		children: [
+			{ type: "text",   pos: [10, 10],  size: [200, 20], value: "Save file before closing?" },
+			{ type: "text",   pos: [210, 10], size: [300, 20], value: "",        name: "filename" },
+			{ type: "button", pos: [10, 35],  size: [90, 30],  value: "Save",    name: "save" },
+			{ type: "button", pos: [110, 35], size: [90, 30],  value: "Discard", name: "discard" },
+			{ type: "button", pos: [210, 35], size: [90, 30],  value: "Cancel",  name: "cancel" },
 		],
 	},
 }

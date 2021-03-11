@@ -51,6 +51,7 @@ typedef struct BufferRange {
 
 
 typedef struct BufferRangeSet {
+	int changeCounter;
 	VEC(BufferRange*) ranges;
 } BufferRangeSet;
 
@@ -164,6 +165,7 @@ typedef struct Buffer {
 // 	VEC(BufferUndo) undoStack;
 	int undoSaveIndex; // index of the undo position matching the file on disk
 // 	char isModified;
+	int changeCounter;
 	
 	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
 	
@@ -282,7 +284,6 @@ typedef struct GUIBufferEditControl {
 
 	int linesPerScrollWheel;
 	
-	
 	GUIWindow* scrollbar;
 	float sbMinHeight;
 
@@ -294,6 +295,8 @@ typedef struct GUIBufferEditControl {
 
 size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos);
 size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x);
+
+typedef struct GUIStatusBar GUIStatusBar;
 
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
@@ -309,6 +312,7 @@ typedef struct GUIBufferEditor {
 	char* sourceFile; // issues with undo-save
 	
 	unsigned int inputMode;
+//	InputMode_t inputMode;
 	
 	char findMode; 
 	char replaceMode; 
@@ -334,6 +338,7 @@ typedef struct GUIBufferEditor {
 	
 	BufferRangeSet* findSet;
 	long findIndex;
+	GUIText* findResultsText;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
 	void* setBreakpointData;
@@ -367,6 +372,27 @@ typedef struct BufferCmd {
 		char** pstr;
 	};
 } BufferCmd;
+
+
+
+
+typedef enum FindMask {
+	FM_NONE,
+	FM_SELECTION,
+	FM_SEQUENCE,
+} FindMask_t;
+
+typedef struct GUIFileOpt {
+	char* path;
+	intptr_t line_num;
+	int set_focus;
+} GUIFileOpt;
+
+typedef struct GUIBubbleOpt {
+	char* ev;
+	char* sel;
+} GUIBubbleOpt;
+
 
 
 
@@ -494,8 +520,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, int
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferRange* sel);
 long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t col);
-int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
-int GUIBufferEditor_PrevFindMatch(GUIBufferEditor* w);
+int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
 
 
 void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
@@ -536,6 +561,7 @@ BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
 void GBEC_InsertLinebreak(GUIBufferEditControl* b);
 void GBEC_MoveCursorV(GUIBufferEditControl* w, intptr_t lines);
 void GBEC_MoveCursorH(GUIBufferEditControl* w, intptr_t cols);
+void GBEC_MoveCursorHSel(GUIBufferEditControl* w, ptrdiff_t cols);
 void GBEC_MoveCursor(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
 void GBEC_MoveCursorTo(GUIBufferEditControl* w, BufferLine* bl, intptr_t col); // absolute move
 void GBEC_NextBookmark(GUIBufferEditControl* w);
@@ -554,6 +580,7 @@ int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet);
 void GBEC_SurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
 void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
+void GBEC_MoveToFirstCharOrSOL(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 
@@ -587,8 +614,8 @@ void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b);
 
 void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intptr_t col);
 void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);
-void GUIBufferEditControl_scrollToCursor(GUIBufferEditControl* gbe);
-void GBEC_scrollToCursorCentered(GUIBufferEditControl* w);
+void GBEC_scrollToCursor(GUIBufferEditControl* gbe);
+void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered);
 
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
 
@@ -598,21 +625,22 @@ void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intp
 // move the view by this delta
 void GBEC_ScrollDir(GUIBufferEditControl* w, intptr_t lines, intptr_t cols);
 
-void GUIBufferEditControl_SetSelectionFromPivot(GUIBufferEditControl* gbe);
-void GUIBufferEditControl_MoveCursorTo(GUIBufferEditControl* gbe, intptr_t line, intptr_t col);
+void GBEC_SetSelectionFromPivot(GUIBufferEditControl* gbe);
+void GBEC_SelectionChanged(GUIBufferEditControl* gbe);
 
 void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height); 
 
+
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
-int GUIBufferEditor_NextFindMatch(GUIBufferEditor* w);
+int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w);
 
-intptr_t getDisplayColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
 intptr_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
 intptr_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, intptr_t col);
 
 
 
 #endif // __gpuedit_buffer_h__
+

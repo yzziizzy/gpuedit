@@ -104,6 +104,7 @@ size_t drawCharacter(
 	return 0;
 }
 
+
 // draws the editor's text area and line numbers
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	 int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp) {
@@ -123,10 +124,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	
 	float edh = gbe->header.size.y;
 	
-	// TODO: move to gbe->resize or somewhere appropriate
-	gbe->linesOnScreen = edh / tdp->lineHeight;
-	gbe->colsOnScreen = gbe->header.size.x / tdp->charWidth;
-	
 	// draw general background
 	v = GUIManager_reserveElements(gm, 1);
 	*v = (GUIUnifiedVertex){
@@ -144,7 +141,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		.alpha = 1,
 	};
 	
-	float lineNumWidth = ceil(log10(b->numLines)) * tdp->charWidth + bdp->lineNumExtraWidth;
+	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 0.5)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	float hsoff = -gbe->scrollCols * tdp->charWidth;
 	
 	Vector2 tl = gbe->header.absTopLeft;
@@ -201,8 +198,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		
 		// line numbers
 		if(bdp->showLineNums) {
-			sprintf(lnbuf, "%ld", bl->lineNum);
-			float nw = (floor(log10(bl->lineNum)) + 1) * tdp->charWidth;
+			sprintlongb(lnbuf, gbe->gs->Buffer_lineNumBase, bl->lineNum, gbe->gs->Buffer_lineNumCharset);
+			float nw = (floor(LOGB(gbe->gs->Buffer_lineNumBase, bl->lineNum)) + 1) * tdp->charWidth;
 
 			Color4* lnc = &lineColors[0];
 			if(bl->flags & BL_BOOKMARK_FLAG) lnc = &lnc[1];

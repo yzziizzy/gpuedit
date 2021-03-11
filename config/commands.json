@@ -24,7 +24,6 @@
 			{elem: "Main", cmd: "OpenFileBrowser", mods: "", key: "XK_F2", amt: 0},
 			{elem: "Main", cmd: "FuzzyOpener", mods: "", key: "XK_F4", amt: 0},
 			{elem: "Main", cmd: "GrepOpener", mods: "CS", key: "p", amt: 0},
-			{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
 			{elem: "Main", cmd: "SimpleWindowTest", mods: "C", key: "u", amt: 0},
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
 			
@@ -81,6 +80,7 @@
 			{elem: "Buffer", cmd: "Unindent", mods: "S", key: "XK_ISO_Left_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
 			//{elem: "Buffer", cmd: "LinePrependText", mods: "CAST", key: "XK_F1", amt: "//", flags: ["rehighlight", "undoSeqBreak"]},
 			//{elem: "Buffer", cmd: "SurroundSelection", mods: "CAST", key: "XK_F1", amt: ["/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "p", amt: "GrepOpen", },{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
 			{elem: "Buffer", cmd: "SmartComment", mods: "C", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "StrictUncomment", mods: "CS", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "DeleteCurLine", mods: "C", key: "k", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
@@ -145,3 +145,4 @@
 		],
 	},
 }
+

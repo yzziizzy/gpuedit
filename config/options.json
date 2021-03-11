@@ -17,11 +17,12 @@
 	"Buffer_cursorBlinkEnable": 1,
 	"Buffer_cursorBlinkOffTime": 0.600,
 	"Buffer_cursorBlinkOnTime": 0.600,
-	"Buffer_hideScrollbar": 0,
 	"Buffer_highlightCurrentLine": 1,
 	"Buffer_outlineCurrentLine": 1,
 	"Buffer_outlineCurrentLineYOffset": 0,
 	"Buffer_lineNumExtraWidth": 10,
+	"Buffer_lineNumBase": 10, // 2-36
+	"Buffer_lineNumCharset": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	"Buffer_showLineNums": 1,
 	"Buffer_charWidth": 8,
 	"Buffer_lineHeight": 17,
@@ -40,11 +41,15 @@
 	GUI_GlobalSettings: {
 		"maxInstances": 16384,
 		"linesPerScrollWheel": 5,
+		"hideScrollbar": 0,
+		"hideStatusBar": 0,
 		
 		"fontList": [
 			"Arial",
 			"Courier New"
 		],
+		
+		"fontSize_fw": 16,
 	},
 	
 }
