@@ -127,6 +127,13 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 }
 
 
+static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUIFileBrowser* w = (GUIFileBrowser*)w_;
+	
+	GUIFileBrowser_ProcessCommand(w, cmd);
+}
+
+
 void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, GUI_Cmd* cmd) {
 	long amt;
 
@@ -292,6 +299,7 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
+		.HandleCommand = (void*)handleCommand,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -311,7 +319,8 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	w->header.cursor = GUIMOUSECURSOR_ARROW;	
-	
+	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FileBrowser;
+		
 	w->fbc = GUIFileBrowserControl_New(gm, path);
 	w->fbc->header.flags |= GUI_MAXIMIZE_X;
 

@@ -130,18 +130,19 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 static void updatePos(GUIFileBrowserControl* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	gui_defaultUpdatePos(&w->header, grp, pfp);
 	
+	float wh = w->header.size.y;
+	int linesOnScreen = wh / w->lineHeight;
+	
+	w->sbMinHeight = 20;
+	float sbh = w->sbMinHeight;
+	
+	// calculate scrollbar offset
+	float max_scroll = VEC_LEN(&w->entries) - linesOnScreen;
+	float scroll_pct = w->scrollOffset / max_scroll;
+	float sboff = scroll_pct * (wh - sbh);
 
-// 	w->sbMinHeight = 20;
-// 	// scrollbar position calculation
-// 	// calculate scrollbar height
-// 	float wh = w->header.size.y;
-// 	float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
-// 	
-// 	// calculate scrollbar offset
-// 	float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
-// 	
-// 	GUIResize(w->scrollbar, (Vector2){10, sbh});
-// 	w->scrollbar->header.topleft.y = sboff;
+//	GUIResize(w->scrollbar, (Vector2){10, sbh});
+	w->scrollbar->header.topleft.y = sboff;
 }
 
 
