@@ -20,7 +20,8 @@ typedef struct GUIFileBrowserEntry {
 	
 	
 	
-	unsigned int type : 4; // unknown, reg, dir, symlink
+	unsigned int type : 4; // target type: unknown, reg, dir
+	unsigned int isSymlink : 1;
 	unsigned int hasStats: 1;
 	unsigned int isAlreadyOpen : 1;
 	unsigned int isSelected : 1;

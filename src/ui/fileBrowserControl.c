@@ -450,18 +450,38 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 // 			if(flags & FSU_EXCLUDE_HIDDEN) continue;
 		}
 		
-		switch(result->d_type) {
-			case DT_REG: type = 1; break;
-			case DT_DIR: type = 2; break;
-			case DT_LNK: type = 3; break;
-			default: type = 0;
-		}
 		
 		VEC_INC(&w->entries);
 		GUIFileBrowserEntry* e = &VEC_TAIL(&w->entries);
 		*e = (GUIFileBrowserEntry){};
 		
 		e->type = type;
+		e->isSymlink = 0; 
+		
+		e->name = strdup(result->d_name);	
+		
+		switch(result->d_type) {
+			case DT_REG: e->type = 1; break;
+			case DT_DIR: e->type = 2; break;
+			case DT_LNK: 
+				e->isSymlink = 1; 
+				
+				char* tmp = path_join(w->curDir, result->d_name);
+				struct stat sb;
+				
+				stat(tmp, &sb);
+				switch(sb.st_mode & S_IFMT) {
+					case S_IFREG: e->type = 1; break;
+					case S_IFDIR: e->type = 2; break;
+					default: e->type = 0;
+				}
+				
+				free(tmp);
+				
+				break;
+			default: type = 0;
+		}
+		
 		
 		// TODO: async stat
 // 	struct stat st;
@@ -469,7 +489,7 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 	
 		
 // 		e->name = path_join(w->curDir, result->d_name);
-		e->name = strdup(result->d_name);
+		
 		
 	}
 	
