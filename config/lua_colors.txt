@@ -1,0 +1,16 @@
+# dark theme colors
+d Identifier = #22aabb
+d Operator = #ff0000
+d Number = #ff8811
+d String = #bbbbdd
+d Comment = #bb0000
+d Keyword = #33FF11
+
+# light theme colors
+l Identifier = #000000
+l Operator = #990000
+l Number = #006666
+l String = #cc0000
+l Comment = #008800
+l Keyword = #0000ff
+
