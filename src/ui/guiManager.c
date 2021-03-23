@@ -303,6 +303,11 @@ void GUIManager_Reap(GUIManager* gm) {
 	check_nullfiy(dragStartTarget)
 	#undef check_nullify
 	
+	
+	if(gm->modalBackdrop && gm->modalBackdrop->header.deleted) {
+		gm->modalBackdrop = NULL;
+	}
+	
 	GUIHeader* head = GUIManager_getFocusedObject(gm);
 	
 	
@@ -1118,9 +1123,29 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 
 
 
-void GUIManager_SpawnModal(GUIManager* gm, GUIHeader* obj) {
+int GUIManager_SpawnModal(GUIManager* gm, GUIHeader* obj) {
+	if(gm->modalRoot || gm->modalRoot) return 1;
 	
+	GUIWindow* bd  = GUIWindow_New(gm);
+	bd->color = (struct Color4){0,0,0,.7};
+	gm->modalBackdrop = bd;
+	bd->header.flags |= GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+	bd->header.z = 999999999; // nine nines
+		
+	GUIHeader_RegisterObject(gm->root, &gm->modalBackdrop->header);
+	GUIHeader_RegisterObject(&gm->modalBackdrop->header, obj);
+	
+	GUIManager_pushFocusedObject(gm, obj);
+	
+	return 0;
 }
+
+
+int GUIManager_DestroyModal(GUIManager* gm) {
+	GUI_Delete(gm->modalBackdrop);
+	return 0;
+}
+
 
 
 GUIHeader* GUIManager_SpawnTemplate(GUIManager* gm, char* name) {

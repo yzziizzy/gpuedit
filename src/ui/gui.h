@@ -390,6 +390,9 @@ typedef struct GUIManager {
 	Vector2 softCursorSize;
 	
 	RING(GUIHeader*) focusStack;
+
+	GUIWindow* modalBackdrop;
+	GUIWindow* modalRoot;
 	
 	char nextCmdFlagBit;
 	VEC(GUI_CmdElementInfo) cmdElements;
@@ -595,6 +598,9 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev);
 
 GUIHeader* GUIManager_SpawnTemplate(GUIManager* gm, char* name);
 
+
+int GUIManager_DestroyModal(GUIManager* gm);
+int GUIManager_SpawnModal(GUIManager* gm, GUIHeader* obj);
 
 
 void guiSetClientSize(GUIHeader* go, Vector2 cSize);

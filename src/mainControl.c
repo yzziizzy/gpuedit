@@ -539,7 +539,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 		.GainedFocus = gainedFocus,
 		.User = userEvent,
 	};
-	
+		
 	
 	GUIMainControl* w = pcalloc(w);
 	
@@ -559,6 +559,13 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/py.so");
 	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/lua.so");
 	
+	/*
+	GUIWindow* test = GUIWindow_New(gm);
+	test->borderColor = (struct Color4){1,0,0,1};
+	test->color = (struct Color4){0,1,0,1};
+	test->header.size = (Vector2){200, 100};
+	GUIManager_SpawnModal(gm, &test->header);
+	*/
 	
 	// TODO: resize
 	
