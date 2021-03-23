@@ -289,7 +289,8 @@ struct GUIHeader {
 	unsigned int deleted :  1;
 	
 	uint16_t cmdElementType; // which category of commands this element should respond to
-	
+	uint16_t cmdMode;
+		
 	int cursor;
 	int tabStop; // the tab stop of this element within its parent hierarchy
 	

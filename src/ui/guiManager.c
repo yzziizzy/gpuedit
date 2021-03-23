@@ -778,8 +778,7 @@ void GUIHeader_TriggerEvent(GUIHeader* o, GUIEvent* gev) {
 	
 	if(o && o->vt && o->vt->HandleCommand && gev->type == GUIEVENT_KeyDown) {
 		
-		int mode = 0;
-		GUI_Cmd* cmd = Commands_ProbeCommand(o, gev, mode);
+		GUI_Cmd* cmd = Commands_ProbeCommand(o, gev);
 		
 		if(cmd) {	
 //			printf("handling command\n");	

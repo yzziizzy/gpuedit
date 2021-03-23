@@ -311,7 +311,7 @@ typedef struct GUIBufferEditor {
 	
 	char* sourceFile; // issues with undo-save
 	
-	unsigned int inputMode;
+//	unsigned int inputMode;
 //	InputMode_t inputMode;
 	
 	char findMode; 

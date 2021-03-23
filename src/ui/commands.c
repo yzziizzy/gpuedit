@@ -104,7 +104,7 @@ static unsigned int get_index(unsigned int mods) {
 	return o;
 }
 
-GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev, unsigned int mode) {
+GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev) {
 	GUIManager* gm = gh->gm;
 //	printf("probing\n");
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
@@ -115,7 +115,7 @@ GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev, unsigned int mode) 
 	VEC_EACHP(&gm->cmdList, i, cp) {
  			//printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
 		if(cp->element != gh->cmdElementType) { continue; }
-		if(cp->mode != mode) { continue; }
+		if(cp->mode != gh->cmdMode) { continue; }
 		if(cp->keysym != tolower(gev->keycode)) { continue; }
 		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
 		// TODO: specific mods

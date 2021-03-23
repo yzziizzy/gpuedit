@@ -98,7 +98,7 @@ struct GUIHeader;
 typedef struct GUIHeader GUIHeader;
 
 
-GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev, unsigned int mode);
+GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);
 

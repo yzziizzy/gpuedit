@@ -400,7 +400,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	
 	w->findMode = 1;
 	w->trayOpen = 1;
-	w->inputMode = 1;
+	w->header.cmdMode = 1;
 	
 	w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 	GUI_RegisterObject(w, w->trayRoot);
@@ -855,7 +855,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				w->lineNumTypingMode = 1;
 				w->trayOpen = 1;
-				w->inputMode = 3;
+				w->header.cmdMode = 3;
 				
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "goto_tray");
 				GUI_RegisterObject(w, w->trayRoot);
@@ -932,7 +932,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				w->replaceMode = 1;
 				w->trayOpen = 1;
-				w->inputMode = 2;
+				w->header.cmdMode = 2;
 		
 				
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
@@ -987,6 +987,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->lineNumTypingMode = 0;
 				w->findMode = 0;
 				w->loadTypingMode = 0;
+				w->header.cmdMode = 0;
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 				
@@ -1117,7 +1118,7 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 	w->findMode = 0;
 	w->replaceMode = 0;
 	
-	w->inputMode = 0;
+	w->header.cmdMode = 0;
 	
 	GUI_Delete(w->trayRoot);
 	w->trayRoot = NULL;
