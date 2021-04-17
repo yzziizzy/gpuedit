@@ -11,6 +11,7 @@
 	],
 	
 	"MainControl_openInPlace": 0,
+	"MainControl_autoSortTabs": 0,
 	
 
 	"Buffer_linesPerScrollWheel": 3,

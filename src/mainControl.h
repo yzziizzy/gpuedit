@@ -59,6 +59,7 @@ typedef struct GUIMainControl {
 	float tabHeight;
 	int currentIndex;
 	VEC(MainControlTab*) tabs;
+	char tabAutoSortDirty;
 	
 	float editorOffset;
 	float editorHeight;

@@ -42,6 +42,7 @@ typedef struct WidgetSpec {
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
 	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l', .format="line: %L:%C"}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
+	SETTING(bool,  MainControl_autoSortTabs,    false, NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, Buffer_cursorBlinkOffTime,   0.600, 0,    300000) \

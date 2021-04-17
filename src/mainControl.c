@@ -163,6 +163,11 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 	GUIHeader* h = &w->header;
 	
 	
+	if(w->gs->MainControl_autoSortTabs && w->tabAutoSortDirty) {
+		GUIMainControl_SortTabs(w);
+	} 
+	
+	
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	
 	h->absTopLeft = tl;
@@ -622,6 +627,8 @@ MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* clien
 		GUIManager_SetMainWindowTitle(w->header.gm, title);
 	}
 	
+	w->tabAutoSortDirty = 1;
+	
 	return t;
 }
 
@@ -729,6 +736,7 @@ void GUIMainControl_SortTabs(GUIMainControl* w) {
 
 	VEC_SORT(&w->tabs, tab_sort_fn);
 	
+	// fix currentIndex
 	w->currentIndex = VEC_FIND(&w->tabs, &cur);
 }
 
