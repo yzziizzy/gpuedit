@@ -6,7 +6,7 @@
 
 
 typedef enum TabType {
-	MCTAB_NONE,
+	MCTAB_NONE = 0,
 	MCTAB_EDIT,
 	MCTAB_FILEOPEN,
 	MCTAB_FUZZYOPEN,

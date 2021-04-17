@@ -495,6 +495,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		printf("NYI\n"); // see BufferCmd_SaveAndClose and BufferCmd_PromptAndClose
 		break;
 		
+	case MainCmd_SortTabs: GUIMainControl_SortTabs(w); break;
 	case MainCmd_MoveTabR: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex + 1); break;
 	case MainCmd_MoveTabL: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex - 1); break;
 	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;
@@ -684,6 +685,51 @@ int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path) {
 	}
 
 	return -1;
+}
+
+
+static int tab_sort_priorities[] = {
+	[MCTAB_NONE] = 0,
+	[MCTAB_EDIT] = 4,
+	[MCTAB_FILEOPEN] = 2,
+	[MCTAB_FUZZYOPEN] = 1,
+	[MCTAB_GREPOPEN] = 3,
+};
+
+
+static int tab_sort_fn(void* _a, void* _b) {
+	MainControlTab* a = *((MainControlTab**)_a);
+	MainControlTab* b = *((MainControlTab**)_b);
+	
+	if(a->type != b->type) {
+		return tab_sort_priorities[a->type] - tab_sort_priorities[b->type]; 
+	}
+	
+	// types are the same
+	switch(a->type) {
+		default:
+		case MCTAB_NONE:
+		case MCTAB_FUZZYOPEN:
+		case MCTAB_GREPOPEN:
+			return (intptr_t)b - (intptr_t)a; // order has no meaning, just be consistent
+		
+		case MCTAB_EDIT:
+		case MCTAB_FILEOPEN:
+			return strcmp(a->title, b->title);
+	}
+}
+
+
+void GUIMainControl_SortTabs(GUIMainControl* w) {
+	int len = VEC_LEN(&w->tabs);
+	if(len < 2) return; // already sorted
+	
+	// cache the value of the current index since the indices will change
+	MainControlTab* cur = VEC_ITEM(&w->tabs, w->currentIndex);
+
+	VEC_SORT(&w->tabs, tab_sort_fn);
+	
+	w->currentIndex = VEC_FIND(&w->tabs, &cur);
 }
 
 

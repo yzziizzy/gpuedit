@@ -148,6 +148,7 @@
 	X(Main, PrevTab) \
 	X(Main, MoveTabR) \
 	X(Main, MoveTabL) \
+	X(Main, SortTabs) \
 	X(Main, GoToTab) \
 	X(Main, MainMenu) \
 	X(Main, ToggleGDBBreakpoint) \
