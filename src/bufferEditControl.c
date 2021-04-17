@@ -813,13 +813,40 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		
 		case BufferCmd_DeleteCurLine: {
 			// preserve proper cursor position
-			BufferLine* cur = w->current->next;
-			if(!cur) cur = w->current->prev;
-			intptr_t col = w->curCol;
-			
-			Buffer_DeleteLine(b, w->current);
-			
-			if(cur) GBEC_MoveCursorTo(w, cur, col);
+			if(w->sel) {
+				BufferLine* cur = w->sel->startLine->prev;
+				if(!cur) cur = w->sel->endLine->next;
+				intptr_t col = w->curCol;
+				
+				BufferLine* bl = w->sel->startLine;
+				BufferLine* next = bl->next;
+				BufferLine* last = w->sel->endLine;
+				if(w->sel->endCol == 0) {
+					last = last->prev;
+					cur = w->sel->endLine;
+				}
+				
+				while(bl) {
+					Buffer_DeleteLine(b, bl);
+					
+					if(bl == last) break;
+					bl = next;
+					next = bl->next;
+				}
+				
+				GBEC_ClearCurrentSelection(w);
+				
+				if(cur) GBEC_MoveCursorTo(w, cur, col);
+			}
+			else {
+				BufferLine* cur = w->current->next;
+				if(!cur) cur = w->current->prev;
+				intptr_t col = w->curCol;
+				
+				Buffer_DeleteLine(b, w->current);
+				
+				if(cur) GBEC_MoveCursorTo(w, cur, col);
+			}
 			break;
 		}
 		

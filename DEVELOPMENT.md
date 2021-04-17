@@ -23,7 +23,7 @@
 * highlighter/theme colors from system colorX definitions
 * ctrl+l/r jumps across tabs (sequence break on newline)
 
-* copy cannot paste to pgadmin3 (INCR? mime type?)
+* copy cannot paste to pgadmin3 (INCR? mime type?), godbolt.org in FF
 * undo breaks if selection reaches end of file
 * paste: cursor at start/end of inserted text
 * return to previously active tab if opener is closed without opening
