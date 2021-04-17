@@ -495,6 +495,8 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		printf("NYI\n"); // see BufferCmd_SaveAndClose and BufferCmd_PromptAndClose
 		break;
 		
+	case MainCmd_MoveTabR: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex + 1); break;
+	case MainCmd_MoveTabL: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex - 1); break;
 	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;
 	case MainCmd_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n*/); break;
 	case MainCmd_GoToTab: GUIMainControl_GoToTab(w, cmd->amt); break;
@@ -684,6 +686,24 @@ int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path) {
 	return -1;
 }
 
+
+void GUIMainControl_SwapTabs(GUIMainControl* w, int ind_a, int ind_b) {
+	int len = VEC_LEN(&w->tabs);
+	if(len < 2) return; // not enough tabs to swap
+
+	// normalize indices
+	ind_a = (ind_a + len) % len;
+	ind_b = (ind_b + len) % len;
+	
+	// swap pointers
+	MainControlTab* a = VEC_ITEM(&w->tabs, ind_a);
+	VEC_ITEM(&w->tabs, ind_a) = VEC_ITEM(&w->tabs, ind_b);
+	VEC_ITEM(&w->tabs, ind_b) = a;
+	
+	// check and fix currentIndex
+	if(w->currentIndex == ind_a) w->currentIndex = ind_b;
+	else if(w->currentIndex == ind_b) w->currentIndex = ind_a;
+}
 
 
 GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {

@@ -34,13 +34,12 @@
 * battery monitor
 * ping / netstat
 * unsaved changes/time
+* sloc
 
 
 == TODO ==
-* grep matcher
 * GUIListControl
 * s/GUIBufferEditControl_*()/GBEC_*()/
-* Command: delete lines under selection/cursor
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
 * Multiple MC tab rows

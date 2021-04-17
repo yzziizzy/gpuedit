@@ -146,6 +146,8 @@
 	X(Main, SaveAndCloseTab) \
 	X(Main, NextTab) \
 	X(Main, PrevTab) \
+	X(Main, MoveTabR) \
+	X(Main, MoveTabL) \
 	X(Main, GoToTab) \
 	X(Main, MainMenu) \
 	X(Main, ToggleGDBBreakpoint) \

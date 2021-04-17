@@ -6,8 +6,10 @@
 		],
 		
 		keyConfig: [
-			{elem: "Main", cmd: "NextTab", mods: "A", key: "XK_Right", amt: 1},
-			{elem: "Main", cmd: "PrevTab", mods: "A", key: "XK_Left", amt: 1},
+			{elem: "Main", cmd: "NextTab",  mods: "A",  key: "XK_Right", amt: 1},
+			{elem: "Main", cmd: "PrevTab",  mods: "A",  key: "XK_Left", amt: 1},
+			{elem: "Main", cmd: "MoveTabR", mods: "AS", key: "XK_Right", amt: 1},
+			{elem: "Main", cmd: "MoveTabL", mods: "AS", key: "XK_Left", amt: 1},
 			
 			{elem: "Main", cmd: "GoToTab", mods: "A", key: "1", amt: 0},
 			{elem: "Main", cmd: "GoToTab", mods: "A", key: "2", amt: 1},

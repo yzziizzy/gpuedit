@@ -90,6 +90,7 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index);
 int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path);
 int GUIMainControl_FindTabIndexByHeaderP(GUIMainControl* w, GUIHeader* h);
 
+void GUIMainControl_SwapTabs(GUIMainControl* w, int ind_a, int ind_b);
 GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic);
 GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic);
 GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i);
