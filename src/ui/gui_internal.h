@@ -112,6 +112,15 @@ void gui_drawTextLineAdv(
 );
 
 
+float gui_getTextLineWidth(
+	GUIManager* gm,
+	GUIFont* font,
+	float fontsize,
+	char* txt, 
+	size_t charCount
+);
+
+
 float gui_getDefaultUITextWidth(
 	GUIManager* gm,
 	char* txt, 

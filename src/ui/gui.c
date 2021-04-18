@@ -495,6 +495,43 @@ void gui_drawTriangleBorder(
 }
 
 
+
+float gui_getTextLineWidth(
+	GUIManager* gm,
+	GUIFont* font,
+	float fontsize,
+	char* txt, 
+	size_t charCount
+) {
+	if(txt == NULL || charCount == 0) return 0;
+	
+	font = gm->defaults.font;
+	if(!fontsize) fontsize = gm->defaults.fontSize; // HACK
+	float hoff = fontsize * font->ascender;
+	float adv = 0;
+	
+	float spaceadv = font->regular[' '].advance * fontsize;
+	
+	for(size_t n = 0; txt[n] != 0 && n < charCount; n++) {
+		char c = txt[n];
+		
+		struct charInfo* ci = &font->regular[(int)c];
+		
+		if(c == '\t') {
+			adv += spaceadv * 4; // hardcoded to annoy you
+		}
+		else if(c != ' ') {
+			adv += ci->advance * fontsize;
+		}
+		else {
+			adv += spaceadv;
+		}
+	}
+	
+	return adv;	
+}
+
+
 void gui_drawTextLine(
 	GUIManager* gm,
 	Vector2 tl,
@@ -527,7 +564,6 @@ void gui_drawTextLineAdv(
 	if(txt == NULL || charCount == 0) return;
 	
 	
-	int charsDrawn = 0;
 	if(!font) font = gm->defaults.font;
 	if(!fontsize) fontsize = gm->defaults.fontSize; // HACK
 	float hoff = fontsize * font->ascender;
@@ -581,11 +617,9 @@ void gui_drawTextLineAdv(
 			adv += ci->advance * fontsize; // BUG: needs sdfDataSize added in?
 			//v++;
 // 			gm->elementCount++;
-			charsDrawn++;
 		}
 		else {
 			adv += spaceadv;
-			charsDrawn++;
 		}
 		
 		

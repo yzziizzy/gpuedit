@@ -28,6 +28,12 @@ typedef struct MainControlTab {
 	unsigned int isStarred : 1;
 	unsigned int isHovered : 1;
 	
+	float titleWidth; // updated every frame
+	TabScrollType scrollType;
+	float lingerStart;
+	float lingerEnd;
+	float scrollSpeed; // time to move from one side to the other
+	
 	int (*beforeClose)(struct MainControlTab*);
 	void (*afterClose)(struct MainControlTab*);
 	void (*onActive)(struct MainControlTab*);

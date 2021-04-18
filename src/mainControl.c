@@ -26,6 +26,95 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 
 
 
+static float tabscroll_fn_None(MainControlTab* tab, float boxw, PassFrameParams* pfp) { return 0; }
+static float tabscroll_fn_Linear(MainControlTab* tab, float boxw, PassFrameParams* pfp) { 
+	float max_xoff = tab->titleWidth - boxw + 2;
+	float phase = fmodf(pfp->appTime,
+		tab->lingerStart + tab->lingerEnd + 2 * tab->scrollSpeed
+	);
+	
+	if(phase > tab->lingerStart + tab->scrollSpeed + tab->lingerEnd) {
+		// scroll backwards
+		float t = phase - (tab->lingerStart + tab->scrollSpeed + tab->lingerEnd);
+		return (1.0 - (t / tab->scrollSpeed)) * max_xoff;
+	}
+	else if(phase > tab->lingerStart + tab->scrollSpeed) {
+		// linger end
+		return 1.0 * max_xoff;
+	}
+	else if(phase > tab->lingerStart) {
+		// scroll forwards
+		float t = phase - tab->lingerStart;
+		return (t / tab->scrollSpeed) * max_xoff;
+	}
+	else {
+		// linger start
+		return 0.0  * max_xoff;
+	}
+}
+
+static float tabscroll_fn_Sinusoidal(MainControlTab* tab, float boxw, PassFrameParams* pfp) { 
+	float max_xoff = tab->titleWidth - boxw + 2;
+	float phase = fmodf(pfp->appTime,
+		tab->lingerStart + tab->lingerEnd + 2 * tab->scrollSpeed
+	);
+	
+	if(phase > tab->lingerStart + tab->scrollSpeed + tab->lingerEnd) {
+		// scroll backwards
+		float t = phase - (tab->lingerStart + tab->scrollSpeed + tab->lingerEnd);
+		return (cos((t / tab->scrollSpeed) * 3.14) * 0.5 + 0.5) * max_xoff;
+	}
+	else if(phase > tab->lingerStart + tab->scrollSpeed) {
+		// linger end
+		return 1.0 * max_xoff;
+	}
+	else if(phase > tab->lingerStart) {
+		// scroll forwards
+		float t = phase - tab->lingerStart;
+		return (1.0 - (cos((t / tab->scrollSpeed) * 3.14) * 0.5 + 0.5)) * max_xoff;
+	}
+	else {
+		// linger start
+		return 0.0 * max_xoff;
+	}
+}
+
+static float tabscroll_fn_Swing(MainControlTab* tab, float boxw, PassFrameParams* pfp) { 
+	float max_xoff = tab->titleWidth - boxw + 2;
+	float phase = fmodf(pfp->appTime,
+		tab->lingerStart + tab->lingerEnd + 2 * tab->scrollSpeed
+	);
+	
+	if(phase > tab->lingerStart + tab->scrollSpeed + tab->lingerEnd) {
+		// scroll backwards
+		float t = phase - (tab->lingerStart + tab->scrollSpeed + tab->lingerEnd);
+		return (1.0 - (1.0 / ( 1.0 + exp((t - .5) * -16)))) * max_xoff;
+	}
+	else if(phase > tab->lingerStart + tab->scrollSpeed) {
+		// linger end
+		return 1.0 * max_xoff;
+	}
+	else if(phase > tab->lingerStart) {
+		// scroll forwards
+		float t = phase - tab->lingerStart;
+		return (1.0 / ( 1.0 + exp((t - .5) * -16))) * max_xoff;
+	}
+	else {
+		// linger start
+		return 0.0 * max_xoff;
+	}
+}
+
+static float tabscroll_fn_Loop(MainControlTab* tab, float boxw, PassFrameParams* pfp) { 
+	float sp = tab->scrollSpeed * 3;
+
+	float w = tab->titleWidth + boxw;
+	float t = fmodf(pfp->appTime, sp);
+	float s = t / sp;
+	
+	return s * w - boxw;
+}
+
 
 
 static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
@@ -75,15 +164,30 @@ static void renderTabs(GUIMainControl* w, PassFrameParams* pfp) {
 	
 	// tab titles
 	VEC_EACH(&w->tabs, i, tab) {
+		float textw = gui_getTextLineWidth(gm, NULL, 0, tab->title, strlen(tab->title));
+		float xoff = 0;
+		
+		tab->titleWidth = textw;
+	
 		AABB2 box;
 		box.min.x = tl.x + tabw * i + i + 1;
 		box.min.y = tl.y + 1;
-		box.max.x = tabw * (i + 1) + i + 1;
+		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + w->tabHeight - 1;
+		
+			
+		if(textw > tabw - 2) {
+			switch(tab->scrollType) {
+				#define X(x) case TABSC_##x: xoff = tabscroll_fn_##x(tab, tabw, pfp); break;
+					TAB_SCROLL_TYPE_LIST
+				#undef X
+			}
+		}
+	
 		
 		AABB2 clip = gui_clipTo(w->header.absClip, box);
 		
-		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &clip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
+		gui_drawTextLine(gm, (Vector2){box.min.x - xoff, box.min.y}, (Vector2){textw+1,0}, &clip, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
 		
 		if(tab->isStarred) {
 			box.min.x = box.max.x - 10; // TODO magic number
@@ -165,6 +269,7 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 	
 	if(w->gs->MainControl_autoSortTabs && w->tabAutoSortDirty) {
 		GUIMainControl_SortTabs(w);
+		w->tabAutoSortDirty = 0;
 	} 
 	
 	
@@ -192,11 +297,9 @@ static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* 
 		if(a) GUIHeader_updatePos(a->client, &grp2, pfp);
 	}
 
-	/*
-	// update all the tabs
-	float tabHeight = w->tabHeight;
-	if(VEC_LEN(&w->tabs) <= 1) tabHeight = 0;
 	
+	// update all the tabs
+	/*
 	VEC_EACH(&w->tabs, i, child) { 
 		
 		GUIRenderParams grp2 = {
@@ -614,10 +717,17 @@ static void switchtab(int index, int btn, GUITabBarTab* t) {
 
 MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* client, char* title) {
 	
+	GlobalSettings* gs = w->gs;
 	
 	MainControlTab* t = pcalloc(t);
 	t->client = (GUIHeader*)client;
 	t->title = strdup(title);
+	
+	// temp
+	t->scrollType = gs->MainControl_tabNameScrollFn;
+	t->scrollSpeed = gs->MainControl_tabNameScrollAnimTime;
+	t->lingerStart = gs->MainControl_tabNameScrollStartLinger;
+	t->lingerEnd = gs->MainControl_tabNameScrollEndLinger;
 	
 	VEC_PUSH(&w->tabs, t);
 	

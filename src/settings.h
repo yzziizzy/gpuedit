@@ -18,6 +18,21 @@ typedef struct TabSpec {
 	char* path;
 } TabSpec;
 
+
+#define TAB_SCROLL_TYPE_LIST \
+	X(None) \
+	X(Linear) \
+	X(Sinusoidal) \
+	X(Swing) \
+	X(Loop) \
+	
+
+typedef enum TabScrollType {
+#define X(x) TABSC_##x,
+	TAB_SCROLL_TYPE_LIST
+#undef X
+} TabScrollType;
+
 typedef enum WidgetType {
 	MCWID_NONE,
 	MCWID_HELLO,
@@ -43,6 +58,11 @@ typedef struct WidgetSpec {
 	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l', .format="line: %L:%C"}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(bool,  MainControl_autoSortTabs,    false, NULL, NULL) \
+	SETTING(bool,  MainControl_scrollTabNames,  true,  NULL, NULL) \
+	SETTING(scrollfn, MainControl_tabNameScrollFn,          2,    NULL, NULL) \
+	SETTING(float,    MainControl_tabNameScrollStartLinger, 2.0,  NULL, NULL) \
+	SETTING(float,    MainControl_tabNameScrollEndLinger,   2.0,  NULL, NULL) \
+	SETTING(float,    MainControl_tabNameScrollAnimTime,    3.0,  NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, Buffer_cursorBlinkOffTime,   0.600, 0,    300000) \
@@ -95,6 +115,7 @@ typedef struct ThemeSettings ThemeSettings;
 #define tabsp TabSpec*
 #define themep ThemeSettings*
 #define widsp WidgetSpec*
+#define scrollfn int
 #define guisettingsp GUI_GlobalSettings*
 #define SETTING(type, name, val ,min,max) type name;
 
@@ -113,6 +134,7 @@ typedef struct ThemeSettings {
 #undef tabsp
 #undef themep
 #undef widsp
+#undef scrollfn
 #undef guisettingsp
 
 

@@ -13,7 +13,11 @@
 	"MainControl_openInPlace": 0,
 	"MainControl_autoSortTabs": 0,
 	
-
+	MainControl_tabNameScrollFn: "sinusoidal", // None, Linear, Sinusoidal, Swing, Loop
+	MainControl_tabNameScrollStartLinger: 2.0,
+	MainControl_tabNameScrollEndLinger: 2.0,
+	MainControl_tabNameScrollAnimTime: 3.0,
+	
 	"Buffer_linesPerScrollWheel": 3,
 	"Buffer_cursorBlinkEnable": 1,
 	"Buffer_cursorBlinkOffTime": 0.600,

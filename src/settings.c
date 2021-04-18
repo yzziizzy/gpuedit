@@ -106,6 +106,7 @@ void freeptrlist(void* _p) {
 #define set_charp(x) strdup(x);
 #define set_charpp(x) strlistdup(x);
 #define set_tabsp(x) tabspeclistdup(x);
+#define set_scrollfn(x) x;
 #define set_widsp(x) widgetspeclistdup(x);
 #define set_themep(x) x;
 #define set_guisettingsp(x) x;
@@ -246,6 +247,28 @@ static void grab_widsp(WidgetSpec** out, json_value_t* obj, char* prop) {
 	}
 }
 
+static char* tab_scroll_fn_name_list[] = { 
+#define X(x) [TABSC_##x] = #x,
+	TAB_SCROLL_TYPE_LIST
+#undef X
+};
+
+static void grab_scrollfn(int* out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL && v->type == JSON_TYPE_STRING) {
+		
+		int len = sizeof(tab_scroll_fn_name_list) / sizeof(tab_scroll_fn_name_list[0]);
+		for(int i = 0; i < len; i++) {
+			
+			if(0 == strcasecmp(tab_scroll_fn_name_list[i], v->s)) {
+				*out = i;
+				return;
+			}
+		}
+		
+	}
+}
 
 static void grab_bool(char* out, json_value_t* obj, char* prop) {
 	json_value_t* v;
