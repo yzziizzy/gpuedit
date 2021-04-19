@@ -62,6 +62,20 @@ GUI_GlobalSettings* GUI_GlobalSettings_Copy(GUI_GlobalSettings* orig) {
 }
 
 
+#define free_int(x)
+#define free_bool(x)
+#define free_float(x)
+#define free_double(x)
+#define free_charp(x) free(x);
+#define free_charpp(x) freeptrlist(x);
+void GUI_GlobalSettings_Free(GUI_GlobalSettings* s) {
+	#define SETTING(type, name, val ,min,max) free_##type(s->name);
+		GUI_SETTING_LIST
+	#undef SETTING
+}
+
+
+
 #define true 1
 #define false 0
 

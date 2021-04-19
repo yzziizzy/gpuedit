@@ -142,6 +142,9 @@ typedef struct ThemeSettings {
 GlobalSettings* GlobalSettings_Copy(GlobalSettings* orig);
 ThemeSettings* ThemeSettings_Copy(ThemeSettings* s);
 
+void GlobalSettings_Free(GlobalSettings* s);
+void ThemeSettings_Free(ThemeSettings* s);
+
 void GlobalSettings_LoadDefaults(GlobalSettings* s);
 
 // returns 0 if the file was read

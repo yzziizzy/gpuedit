@@ -29,6 +29,15 @@ char** strlistdup(char** old) {
 	return new;
 }
 
+static void freeptrlist(void* _p) {
+	void** p = (void**)_p;
+	void** q = p;
+	while(*q) {
+		free(*q);
+		q++;
+	}
+	free(p);
+}
 
 size_t tabspeclistlen(TabSpec* a) {
 	size_t n = 0;
@@ -47,7 +56,7 @@ TabSpec* tabspeclistdup(TabSpec* old) {
 	
 	for(i = 0; old[i].type; i++) {
 		new[i].type = old[i].type;
-		new[i].path = old[i].path;
+		new[i].path = old[i].path ? strdup(old[i].path) : NULL;
 	}
 
 	new[i].type = MCTAB_NONE;
@@ -55,6 +64,13 @@ TabSpec* tabspeclistdup(TabSpec* old) {
 	return new;
 }
 
+
+void freetabspeclist(TabSpec* ts) {
+	for(int i = 0; ts[i].type; i++) 
+		if(ts[i].path) free(ts[i].path);
+		
+	free(ts);
+}
 
 size_t widgetspeclistlen(WidgetSpec* a) {
 	size_t n = 0;
@@ -75,7 +91,7 @@ WidgetSpec* widgetspeclistdup(WidgetSpec* old) {
 		new[i].type = old[i].type;
 		new[i].size = old[i].size;
 		new[i].align = old[i].align;
-		new[i].format = strdup(old[i].format);
+		new[i].format = old[i].format ? strdup(old[i].format) : NULL;
 	}
 
 	new[i].type = MCWID_NONE;
@@ -85,16 +101,14 @@ WidgetSpec* widgetspeclistdup(WidgetSpec* old) {
 	return new;
 }
 
-
-void freeptrlist(void* _p) {
-	void** p = (void**)_p;
-	void** q = p;
-	while(*q) {
-		free(*q);
-		q++;
+void freewidgetspeclist(WidgetSpec* ws) {
+	for(int i = 0; ws[i].type; i++) {
+		if(ws[i].format) free(ws[i].format);
 	}
-	free(p);
+	free(ws);
 }
+
+
 
 #define true 1
 #define false 0
@@ -147,7 +161,6 @@ GlobalSettings* GlobalSettings_Copy(GlobalSettings* orig) {
 	return new;
 }
 
-
 ThemeSettings* ThemeSettings_Copy(ThemeSettings* orig) {
 	ThemeSettings* new = calloc(1, sizeof(*new));
 
@@ -157,6 +170,37 @@ ThemeSettings* ThemeSettings_Copy(ThemeSettings* orig) {
 	
 	return new;
 }
+
+
+#define free_int(x)
+#define free_bool(x)
+#define free_float(x)
+#define free_double(x)
+#define free_charp(x) free(x);
+#define free_charpp(x) freeptrlist(x);
+#define free_tabsp(x) freetabspeclist(x);
+#define free_scrollfn(x)
+#define free_widsp(x) freewidgetspeclist(x);
+#define free_themep(x) ThemeSettings_Free(x);
+#define free_guisettingsp(x) GUI_GlobalSettings_Free(x);
+void GlobalSettings_Free(GlobalSettings* s) {
+	#define SETTING(type, name, val ,min,max) free_##type(s->name);
+		GLOBAL_SETTING_LIST
+	#undef SETTING
+}
+
+void ThemeSettings_Free(ThemeSettings* s) {
+	#define SETTING(type, name, val ,min,max) free_##type(s->name);
+		THEME_SETTING_LIST
+	#undef SETTING
+}
+
+
+
+
+
+
+
 
 
 static void grab_charp(char** out, json_value_t* obj, char* prop) {

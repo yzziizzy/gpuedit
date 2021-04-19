@@ -89,7 +89,7 @@ GUI_GlobalSettings* GUI_GlobalSettings_Copy(GUI_GlobalSettings* orig);
 void GUI_GlobalSettings_LoadDefaults(GUI_GlobalSettings* s);
 void GUI_GlobalSettings_LoadFromFile(GUI_GlobalSettings* s, char* path);
 void GUI_GlobalSettings_LoadFromJSON(GUI_GlobalSettings* s, struct json_value* jsv);
-
+void GUI_GlobalSettings_Free(GUI_GlobalSettings* s);
 
 
 #endif // __gputk_gui_settings_h__
