@@ -1157,38 +1157,47 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 		return;
 	}
 	
+	
+	// read local settings files
+	char* dir = strdup(opt->path);
+	dirname(dir);
+	
+	GlobalSettings* lgs = GlobalSettings_Copy(w->gs);
+	GlobalSettings_ReadDefaultsAt(lgs, dir);
+	free(dir);
+	
 	// HACK: these structures should be looked up from elsewhere
 	EditorParams* ep = pcalloc(ep);
 	ep->lineCommentPrefix = "// ";
 	ep->selectionCommentPrefix = "/*";
 	ep->selectionCommentPostfix= "*/";
-	ep->tabWidth = w->gs->Buffer_tabWidth;
+	ep->tabWidth = lgs->Buffer_tabWidth;
 	
 	TextDrawParams* tdp = pcalloc(tdp);
-	tdp->font = FontManager_findFont(w->header.gm->fm, w->gs->Buffer_font);
-	tdp->fontSize = w->gs->Buffer_fontSize;
-	tdp->charWidth = w->gs->Buffer_charWidth;
-	tdp->lineHeight = w->gs->Buffer_lineHeight;
-	tdp->tabWidth = w->gs->Buffer_tabWidth;
+	tdp->font = FontManager_findFont(w->header.gm->fm, lgs->Buffer_font);
+	tdp->fontSize = lgs->Buffer_fontSize;
+	tdp->charWidth = lgs->Buffer_charWidth;
+	tdp->lineHeight = lgs->Buffer_lineHeight;
+	tdp->tabWidth = lgs->Buffer_tabWidth;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
-	decodeHexColorNorm(w->gs->GUI_GlobalSettings->bgColor, (float*)&(theme->bgColor));
-	decodeHexColorNorm(w->gs->GUI_GlobalSettings->textColor, (float*)&(theme->textColor));
-	decodeHexColorNorm(w->gs->GUI_GlobalSettings->cursorColor, (float*)&(theme->cursorColor));
-	decodeHexColorNorm(w->gs->Theme->lineNumColor, (float*)&(theme->lineNumColor));
-	decodeHexColorNorm(w->gs->Theme->lineNumBgColor, (float*)&(theme->lineNumBgColor));
-	decodeHexColorNorm(w->gs->Theme->lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
-	decodeHexColorNorm(w->gs->Theme->hl_bgColor, (float*)&(theme->hl_bgColor));
-	decodeHexColorNorm(w->gs->Theme->hl_textColor, (float*)&(theme->hl_textColor));
-	decodeHexColorNorm(w->gs->Theme->find_bgColor, (float*)&(theme->find_bgColor));
-	decodeHexColorNorm(w->gs->Theme->find_textColor, (float*)&(theme->find_textColor));
-	decodeHexColorNorm(w->gs->Theme->outlineCurrentLineBorderColor, (float*)&(theme->outlineCurrentLineBorderColor));
+	decodeHexColorNorm(lgs->GUI_GlobalSettings->bgColor, (float*)&(theme->bgColor));
+	decodeHexColorNorm(lgs->GUI_GlobalSettings->textColor, (float*)&(theme->textColor));
+	decodeHexColorNorm(lgs->GUI_GlobalSettings->cursorColor, (float*)&(theme->cursorColor));
+	decodeHexColorNorm(lgs->Theme->lineNumColor, (float*)&(theme->lineNumColor));
+	decodeHexColorNorm(lgs->Theme->lineNumBgColor, (float*)&(theme->lineNumBgColor));
+	decodeHexColorNorm(lgs->Theme->lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
+	decodeHexColorNorm(lgs->Theme->hl_bgColor, (float*)&(theme->hl_bgColor));
+	decodeHexColorNorm(lgs->Theme->hl_textColor, (float*)&(theme->hl_textColor));
+	decodeHexColorNorm(lgs->Theme->find_bgColor, (float*)&(theme->find_bgColor));
+	decodeHexColorNorm(lgs->Theme->find_textColor, (float*)&(theme->find_textColor));
+	decodeHexColorNorm(lgs->Theme->outlineCurrentLineBorderColor, (float*)&(theme->outlineCurrentLineBorderColor));
 	
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;
 	bdp->theme = theme;
-	bdp->showLineNums = w->gs->Buffer_showLineNums;
-	bdp->lineNumExtraWidth = w->gs->Buffer_lineNumExtraWidth;
+	bdp->showLineNums = lgs->Buffer_showLineNums;
+	bdp->lineNumExtraWidth = lgs->Buffer_lineNumExtraWidth;
 	
 	
 	
@@ -1196,7 +1205,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->header.gm);
-	GUIBufferEditor_UpdateSettings(gbe, w->gs);
+	GUIBufferEditor_UpdateSettings(gbe, lgs);
 
 	gbe->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 // 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
@@ -1211,7 +1220,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
-	GUIStatusBar_SetItems(gbe->statusBar, w->gs->MainControl_statusWidgets);
+	GUIStatusBar_SetItems(gbe->statusBar, lgs->MainControl_statusWidgets);
 	
 	// highlighter
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);

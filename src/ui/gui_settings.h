@@ -85,6 +85,7 @@ typedef struct GUI_GlobalSettings {
 
 struct json_value;
 
+GUI_GlobalSettings* GUI_GlobalSettings_Copy(GUI_GlobalSettings* orig);
 void GUI_GlobalSettings_LoadDefaults(GUI_GlobalSettings* s);
 void GUI_GlobalSettings_LoadFromFile(GUI_GlobalSettings* s, char* path);
 void GUI_GlobalSettings_LoadFromJSON(GUI_GlobalSettings* s, struct json_value* jsv);

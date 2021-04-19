@@ -41,6 +41,27 @@ static void freeptrlist(void* _p) {
 	free(p);
 }
 
+
+
+
+
+#define copy_int(x) x;
+#define copy_bool(x) x;
+#define copy_float(x) x;
+#define copy_double(x) x;
+#define copy_charp(x) strdup(x);
+#define copy_charpp(x) strlistdup(x);
+GUI_GlobalSettings* GUI_GlobalSettings_Copy(GUI_GlobalSettings* orig) {
+	GUI_GlobalSettings* new = calloc(1, sizeof(*new));
+	
+	#define SETTING(type, name, val ,min,max) new->name = copy_##type(orig->name);
+		GUI_SETTING_LIST
+	#undef SETTING
+	
+	return new;
+}
+
+
 #define true 1
 #define false 0
 

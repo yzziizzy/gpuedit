@@ -124,6 +124,41 @@ void ThemeSettings_LoadDefaults(ThemeSettings* s) {
 
 
 
+
+
+#define copy_int(x) x;
+#define copy_bool(x) x;
+#define copy_float(x) x;
+#define copy_double(x) x;
+#define copy_charp(x) strdup(x);
+#define copy_charpp(x) strlistdup(x);
+#define copy_tabsp(x) tabspeclistdup(x);
+#define copy_scrollfn(x) x;
+#define copy_widsp(x) widgetspeclistdup(x);
+#define copy_themep(x) ThemeSettings_Copy(x);
+#define copy_guisettingsp(x) GUI_GlobalSettings_Copy(x);
+GlobalSettings* GlobalSettings_Copy(GlobalSettings* orig) {
+	GlobalSettings* new = calloc(1, sizeof(*new));
+	
+	#define SETTING(type, name, val ,min,max) new->name = copy_##type(orig->name);
+		GLOBAL_SETTING_LIST
+	#undef SETTING
+	
+	return new;
+}
+
+
+ThemeSettings* ThemeSettings_Copy(ThemeSettings* orig) {
+	ThemeSettings* new = calloc(1, sizeof(*new));
+
+	#define SETTING(type, name, val ,min,max) new->name = copy_##type(orig->name);
+		THEME_SETTING_LIST
+	#undef SETTING
+	
+	return new;
+}
+
+
 static void grab_charp(char** out, json_value_t* obj, char* prop) {
 	json_value_t* v;
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
@@ -320,13 +355,13 @@ static void grab_guisettingsp(GUI_GlobalSettings** out, json_value_t* obj, char*
 }
 
 
-
-void GlobalSettings_LoadFromFile(GlobalSettings* s, char* path) {
+// returns 0 if the file was read
+int GlobalSettings_LoadFromFile(GlobalSettings* s, char* path) {
 	json_file_t* jsf;
 	json_value_t* obj;
 	
 	jsf = json_load_path(path);
-	if(!jsf) return;
+	if(!jsf) return 1;
 	obj = jsf->root;
 	
 	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, obj, #name);
@@ -334,10 +369,61 @@ void GlobalSettings_LoadFromFile(GlobalSettings* s, char* path) {
 	#undef SETTING
 	
 	json_file_free(jsf);
+	
+	return 0;
 }
 
 void ThemeSettings_LoadFromJSON(ThemeSettings* s, struct json_value* jsv) {
 	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, jsv, #name);
 		THEME_SETTING_LIST
 	#undef SETTING
+}
+
+
+
+// reads path/.gpuedit.json and path/.gpuedit/*.json
+// returns the number of files read
+int GlobalSettings_ReadDefaultsAt(GlobalSettings* gs, char* path) {
+	int files_read = 0;
+	
+	char* path_2 = resolve_path(path);
+	
+	char* single_path = path_join(path_2, ".gpuedit.json");
+	files_read += !GlobalSettings_LoadFromFile(gs, single_path);
+	free(single_path);
+	
+	char* dir_path = path_join(path, ".gpuedit");
+	files_read += GlobalSettings_ReadAllJSONAt(gs, dir_path);
+	free(dir_path);
+	
+	free(path_2);
+
+	return files_read;
+}
+
+
+// reads path/*.json
+// returns the number of files read
+int GlobalSettings_ReadAllJSONAt(GlobalSettings* gs, char* path) {
+	int files_read = 0;
+	
+	char* path_2 = resolve_path(path);
+	if(is_path_a_dir(path_2)) {
+		size_t num_files = 0;
+		char* conf_glob = path_join(path_2, "*.json");
+		char** files;
+		
+		files = multi_wordexp_dup(conf_glob, &num_files);
+		
+		for(size_t i = 0; i < num_files; i++) {
+			files_read += !GlobalSettings_LoadFromFile(gs, files[i]);
+			free(files[i]);
+		}
+		
+		free(conf_glob);
+		free(files);
+	}
+	free(path_2);
+	
+	return files_read;
 }

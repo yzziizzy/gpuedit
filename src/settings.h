@@ -139,8 +139,23 @@ typedef struct ThemeSettings {
 
 
 
+GlobalSettings* GlobalSettings_Copy(GlobalSettings* orig);
+ThemeSettings* ThemeSettings_Copy(ThemeSettings* s);
+
 void GlobalSettings_LoadDefaults(GlobalSettings* s);
-void GlobalSettings_LoadFromFile(GlobalSettings* s, char* path);
+
+// returns 0 if the file was read
+int GlobalSettings_LoadFromFile(GlobalSettings* s, char* path);
+
+// reads path/.gpuedit.json and path/.gpuedit/*.json
+// returns the number of files read
+int GlobalSettings_ReadDefaultsAt(GlobalSettings* gs, char* path);
+
+// reads path/*.json
+// returns the number of files read
+int GlobalSettings_ReadAllJSONAt(GlobalSettings* gs, char* path);
+
+
 void GlobalSettings_LoadFromJSON(GlobalSettings* s, char* path);
 
 void ThemeSettings_LoadDefaults(ThemeSettings* s);
