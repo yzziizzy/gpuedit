@@ -29,6 +29,7 @@
 			{elem: "Main", cmd: "GrepOpener", mods: "CS", key: "p", amt: 0},
 			{elem: "Main", cmd: "SimpleWindowTest", mods: "C", key: "u", amt: 0},
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
+			{elem: "Main", cmd: "NewEmptyBuffer", mods: "CS", key: "n", amt: 0},
 			
 			{elem: "Buffer", cmd: "ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 			
@@ -105,6 +106,7 @@
 			{elem: "Buffer", cmd: "Undo", mods: "C", key: "z", amt: 0, flags: ["scrollToCursor", "rehighlight"]},
 			{elem: "Buffer", cmd: "Redo", mods: "CS", key: "z", amt: 0, flags: ["scrollToCursor", "rehighlight"]},
 			{elem: "Buffer", cmd: "Save", mods: "C", key: "s", amt: 0, },
+			{elem: "Buffer", cmd: "PromptAndClose", mods: "CS", key: "j", amt: 0, },
 			{elem: "Buffer", cmd: "Reload", mods: "", key: "XK_F5", amt: 0, flags: ["rehighlight"]},
 			{elem: "Buffer", cmd: "FindResume", mods: "C", key: "f", amt: 0, },
 			{elem: "Buffer", cmd: "FindNext",     mods: "",  key: "XK_F3", amt: 0, flags: ["scrollToCursor"]},

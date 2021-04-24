@@ -2,6 +2,8 @@
 #define __gputk_gui_H__
 
 #include <stdatomic.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include "../gui_deps.h"
 
@@ -332,6 +334,18 @@ struct GUIHeader {
 #include "fileBrowser.h"
 
 
+typedef void (*GUI_WorkerFn)(GUIHeader* caller, void* data, float* pctComplete);
+
+typedef struct GUIWorkerJob { 
+	GUIHeader* owner;
+	GUI_WorkerFn fn;
+	void* data;
+	float pctCompleteHint;
+	atomic_flag done;
+	
+	struct GUIWorkerJob* next;
+} GUIWorkerJob;
+
 /*
 The general idea is this:
 The gui is held in a big tree. The tree is walked depth-first from the bottom up, resulting in
@@ -353,6 +367,12 @@ typedef struct GUIManager {
 	
 	GUIHeader* root;
 	VEC(GUIHeader*) reapQueue; 
+	
+	pthread_t workerThread;
+	sem_t workerWhip; // the worker thread waits on this
+	pthread_mutex_t workerQueueMutex;
+	GUIWorkerJob* workerQueueHead;
+	GUIWorkerJob* workerQueueTail;
 	
 	FontManager* fm;
 	TextureAtlas* ta;
@@ -607,6 +627,12 @@ int GUIManager_SpawnModal(GUIManager* gm, GUIHeader* obj);
 void guiSetClientSize(GUIHeader* go, Vector2 cSize);
 Vector2 guiGetClientSize(GUIHeader* go);
 Vector2 guiRecalcClientSize(GUIHeader* go);
+
+
+// returns a pointer to the status float;
+float* GUIManager_EnqueueJob(GUIManager* gm, GUIHeader* owner, GUI_WorkerFn fn, void* data);
+GUIWorkerJob* GUIManager_PopJob(GUIManager* gm);
+void GUIManager_StartWorkerThread(GUIManager* gm);
 
 
 // debugging

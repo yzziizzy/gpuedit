@@ -67,6 +67,8 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	gm->gs = gs;
 	
+	GUIManager_StartWorkerThread(gm);
+	
 //	gm->useSoftCursor = 1;
 //	gm->softCursorName = "icon/folder";
 //	gm->softCursorSize = (Vector2){50,50};
@@ -1156,3 +1158,101 @@ GUIHeader* GUIManager_SpawnTemplate(GUIManager* gm, char* name) {
 	return GUICL_CreateFromConfig(gm, v);
 }
 
+
+static void* gui_worker_thread_fn(void* _gm) {
+	GUIManager* gm = (GUIManager*)_gm;
+	GUIWorkerJob* job;
+	
+	
+	while(1) {
+		if(sem_wait(&gm->workerWhip)) {
+//			printf("worker semaphore debug: wait continue\n");
+			continue;
+		}
+		
+//		printf("worker running: ");
+		job = GUIManager_PopJob(gm);
+		if(job) {
+//			printf("got job\n");
+			
+			job->fn(job->owner, job->data, &job->pctCompleteHint);
+		}
+//		else {
+//			printf("no job available\n");
+//		}
+	}
+	
+	return NULL;
+}
+
+void GUIManager_StartWorkerThread(GUIManager* gm) {
+	
+	pthread_attr_t attr;
+
+	// set up the support stuctures
+	pthread_mutex_init(&gm->workerQueueMutex, NULL);
+	sem_init(&gm->workerWhip, 0, 0);
+	
+	// start the thread
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	int ret = pthread_create(&gm->workerThread, &attr, gui_worker_thread_fn, gm);
+	if(ret) {
+		fprintf(stderr, "Failed to create GUI worker thread\n");
+		
+		return;
+	}
+	
+}
+
+float* GUIManager_EnqueueJob(GUIManager* gm, GUIHeader* owner, GUI_WorkerFn fn, void* data) {
+	
+	GUIWorkerJob* job = pcalloc(job);
+	job->owner = owner;
+	job->fn = fn;
+	job->data = data;
+	atomic_flag_clear(&job->done);
+	
+	
+	pthread_mutex_lock(&gm->workerQueueMutex);
+	
+	if(gm->workerQueueHead == NULL) {
+		gm->workerQueueHead = job;
+		gm->workerQueueTail = job;
+	}
+	else {
+		gm->workerQueueTail->next = job;
+		gm->workerQueueTail = job;
+	}
+	
+	pthread_mutex_unlock(&gm->workerQueueMutex);
+	
+	sem_post(&gm->workerWhip);
+	
+	return &job->pctCompleteHint;
+}
+
+
+GUIWorkerJob* GUIManager_PopJob(GUIManager* gm) {
+	GUIWorkerJob* job = NULL;
+	
+	pthread_mutex_lock(&gm->workerQueueMutex);
+	
+	if(gm->workerQueueHead != NULL) {
+		job = gm->workerQueueHead;
+		
+		// last item
+		if(gm->workerQueueHead == gm->workerQueueTail) {
+			gm->workerQueueHead = NULL;
+			gm->workerQueueTail = NULL;
+		}
+		else {
+			gm->workerQueueHead = job->next;
+		}
+	}
+	
+	pthread_mutex_unlock(&gm->workerQueueMutex);
+	
+	return job;
+}

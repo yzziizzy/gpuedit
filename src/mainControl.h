@@ -111,6 +111,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd);
 
 void GUIMainControl_OpenMainMenu(GUIMainControl* w);
 
+void GUIMainControl_NewEmptyBuffer(GUIMainControl* w);
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path);
 void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt);
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);

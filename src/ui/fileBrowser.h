@@ -17,6 +17,7 @@ typedef struct GUIFileBrowserEntry {
 	gid_t groupID;
 	
 	uint64_t size;
+	uint64_t sizeOnDisk;
 	
 	
 	

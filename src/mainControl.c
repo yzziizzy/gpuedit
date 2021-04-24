@@ -592,7 +592,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		break;
 		
 	case MainCmd_NewEmptyBuffer:
-		printf("NYI\n");
+		GUIMainControl_NewEmptyBuffer(w);
 		break;
 		
 	case MainCmd_CloseTab:
@@ -665,10 +665,8 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	// ----
 	
 	HighlighterManager_Init(&w->hm);
-	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/c.so");
-	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/js.so");
-	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/py.so");
-	Highlighter_LoadModule(&w->hm, "/usr/lib64/gpuedit/highlighters/lua.so");
+	Highlighter_ScanDirForModules(&w->hm, "/usr/lib64/gpuedit/highlighters/");
+	Highlighter_ScanDirForModules(&w->hm, "~/.gpuedit/highlighters/");
 	
 	/*
 	GUIWindow* test = GUIWindow_New(gm);
@@ -1129,6 +1127,16 @@ static void setBreakpoint(char* file, intptr_t line, GUIMainControl* w) {
 	writeBreakpoints(w);
 }
 
+
+void GUIMainControl_NewEmptyBuffer(GUIMainControl* w) {
+	GUIFileOpt opt = {
+		.path = NULL,
+		.line_num = 1,
+		.set_focus = 1,
+	};
+	GUIMainControl_LoadFileOpt(w, &opt);
+}
+
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 	GUIFileOpt opt = {
 		.path = path,
@@ -1138,34 +1146,43 @@ void GUIMainControl_LoadFile(GUIMainControl* w, char* path) {
 }
 
 void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
-	int index = GUIMainControl_FindTabIndexByBufferPath(w, opt->path);
-	if(index > -1) {
-		GUIHeader* header = GUIMainControl_GoToTab(w, index);
-		GUIBufferEditor* gbe = (GUIBufferEditor*)header;
-		BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
-		if(bl) {
-			GBEC_MoveCursorTo(gbe->ec, bl, 0);
-			GBEC_scrollToCursorOpt(gbe->ec, 1);
-//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
+	if(opt->path) {
+		int index = GUIMainControl_FindTabIndexByBufferPath(w, opt->path);
+		if(index > -1) {
+			GUIHeader* header = GUIMainControl_GoToTab(w, index);
+			GUIBufferEditor* gbe = (GUIBufferEditor*)header;
+			BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
+			if(bl) {
+				GBEC_MoveCursorTo(gbe->ec, bl, 0);
+				GBEC_scrollToCursorOpt(gbe->ec, 1);
+	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
+			}
+			return;
 		}
-		return;
 	}
 	
 	Buffer* buf = Buffer_New();
-	int status = Buffer_LoadFromFile(buf, opt->path);
-	if(status) {
-		Buffer_Delete(buf);
-		return;
+	
+	if(opt->path) {
+		int status = Buffer_LoadFromFile(buf, opt->path);
+		if(status) {
+			Buffer_Delete(buf);
+			return;
+		}
+	}
+	else {
+		Buffer_raw_InsertLineAfter(buf, NULL);
 	}
 	
+	GlobalSettings* lgs = GlobalSettings_Copy(w->gs);
 	
 	// read local settings files
-	char* dir = strdup(opt->path);
-	dirname(dir);
-	
-	GlobalSettings* lgs = GlobalSettings_Copy(w->gs);
-	GlobalSettings_ReadDefaultsAt(lgs, dir);
-	free(dir);
+	if(opt->path) {
+		char* dir = strdup(opt->path);
+		dirname(dir);
+		GlobalSettings_ReadDefaultsAt(lgs, dir);
+		free(dir);
+	}
 	
 	// HACK: these structures should be looked up from elsewhere
 	EditorParams* ep = pcalloc(ep);
@@ -1215,9 +1232,9 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	gbe->bdp = bdp;
 	gbe->ec->bdp = bdp;
 	gbe->hm = &w->hm;
-	gbe->header.name = strdup(opt->path);
+	gbe->header.name = opt->path ? strdup(opt->path) : strdup("<new buffer>");
 	gbe->header.parent = (GUIHeader*)w; // important for bubbling
-	gbe->sourceFile = strdup(opt->path);
+	gbe->sourceFile = opt->path ? strdup(opt->path) : NULL;
 	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
@@ -1236,14 +1253,15 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	
 	GUIBufferEditor_SetBuffer(gbe, buf);
 //	GUIBufferEditControl_RefreshHighlight(gbe->ec);
-	GUIBufferEditor_ProbeHighlighter(gbe);
+	if(opt->path) GUIBufferEditor_ProbeHighlighter(gbe);
 	
 	VEC_PUSH(&w->editors, gbe);
 	VEC_PUSH(&w->buffers, buf);
 	
-	char* shortname = strdup(opt->path);
+	// prolly leaks
+	char* shortname = opt->path ? basename(strdup(opt->path)) : strdup("<New File>"); 
 	
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &gbe->header, basename(shortname));
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &gbe->header, shortname);
 	tab->type = MCTAB_EDIT;
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;

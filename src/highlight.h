@@ -64,6 +64,10 @@ void HighlighterManager_Init(HighlighterManager* hm);
 void HighlighterManager_Destroy(HighlighterManager* hm);
 
 HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path);
+
+// returns number of .so's loaded
+int Highlighter_ScanDirForModules(HighlighterManager* hm, char* dir);
+
 void Highlighter_LoadStyles(Highlighter* h, char* path);
 void Highlighter_PrintStyles(Highlighter* h);
 

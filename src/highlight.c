@@ -130,6 +130,31 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 	return mod;
 }
 
+// returns number of .so's loaded
+int Highlighter_ScanDirForModules(HighlighterManager* hm, char* dir) {
+	int files_read = 0;
+	
+	char* path_2 = resolve_path(dir);
+	if(is_path_a_dir(path_2)) {
+		size_t num_files = 0;
+		char* so_glob = path_join(path_2, "*.so");
+		char** files;
+		
+		files = multi_wordexp_dup(so_glob, &num_files);
+		
+		for(size_t i = 0; i < num_files; i++) {
+			files_read += !!Highlighter_LoadModule(hm, files[i]);
+			free(files[i]);
+		}
+		
+		free(so_glob);
+		free(files);
+	}
+	free(path_2);
+	
+	return files_read;
+}
+
 
 
 

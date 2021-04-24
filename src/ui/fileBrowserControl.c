@@ -409,7 +409,11 @@ static int entry_cmp_fn(void* a_, void* b_) {
 }
 
 
+
+static void fill_info_job(GUIHeader* h, void* _e, float* pctDone);
+
 void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
+	GUIManager* gm = w->header.gm;
 	
 	w->cursorIndex = 0;
 	w->numSelected = 0;
@@ -451,6 +455,8 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 		}
 		
 		
+		char* tmp = path_join(w->curDir, result->d_name);
+		
 		VEC_INC(&w->entries);
 		GUIFileBrowserEntry* e = &VEC_TAIL(&w->entries);
 		*e = (GUIFileBrowserEntry){};
@@ -458,7 +464,8 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 		e->type = type;
 		e->isSymlink = 0; 
 		
-		e->name = strdup(result->d_name);	
+		e->name = strdup(result->d_name);
+		e->fullPath = realpath(tmp, NULL);
 		
 		switch(result->d_type) {
 			case DT_REG: e->type = 1; break;
@@ -466,7 +473,6 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 			case DT_LNK: 
 				e->isSymlink = 1; 
 				
-				char* tmp = path_join(w->curDir, result->d_name);
 				struct stat sb;
 				
 				stat(tmp, &sb);
@@ -476,12 +482,14 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 					default: e->type = 0;
 				}
 				
-				free(tmp);
-				
 				break;
 			default: type = 0;
 		}
 		
+		
+		free(tmp);
+		
+		GUIManager_EnqueueJob(gm, &w->header, fill_info_job, e);
 		
 		// TODO: async stat
 // 	struct stat st;
@@ -506,4 +514,29 @@ void GUIFileBrowserControl_SetDir(GUIFileBrowserControl* w, char* dir) {
 	
 	GUIFileBrowserControl_Refresh(w);
 }
+
+
+
+static void fill_info_job(GUIHeader* h, void* _e, float* pctDone) {
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)h;
+	GUIFileBrowserEntry* e = _e;
+	struct stat sb;
+	
+	printf("processing '%s'\n", e->fullPath);
+	
+	stat(e->fullPath, &sb);
+	
+	e->perms = sb.st_mode;
+	
+	e->size = sb.st_size;	
+	e->sizeOnDisk = sb.st_blocks * 512;	
+
+	*pctDone = 1.0;
+}
+
+
+
+
+
+
 

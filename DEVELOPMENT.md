@@ -1,10 +1,8 @@
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
-* WantedCol is broken, especially across tabs
+* WantedCol is broken, especially across tabs, pastes, line deletes
 * Basic autocomplete
-* Reorder tabs
-* Autosort tabs
 * Resume search is broken
 * Able to refocus on the editor while finding
 * NULL-inserting bug related to line splitting after movign from long line to short
@@ -19,7 +17,6 @@
 * find modes: plain|fuzzy|pcre|escape
 * find match/ignore case
 
-* folder level options file
 * highlighter/theme colors from system colorX definitions
 * ctrl+l/r jumps across tabs (sequence break on newline)
 
@@ -43,7 +40,6 @@
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
 * Multiple MC tab rows
-* Tab long name scrolling
 * Tab Bar scrolling
 * Smart uncomment
 * Clipboard ring
@@ -51,7 +47,6 @@
 * Ability to change the highlighter
 * Open file command
 * RAT_ parsing in commnds.json
-* Save Changes? close hook buffer integration
 * Shortcut config presets
 * Slide-out windows
 * Outline box style of highlighting
@@ -76,7 +71,6 @@
 * Save-as and save dialog
 * Breadcrumbs/path in file browser
 * Wire all the settings updates through the app
-* Folder-local config filef
 * Split windows
 * Adjustable scroll lines in fileBrowser, get from OS if possible
 * MIME type probing of some sort
@@ -110,7 +104,6 @@
 * Grammar-driven move by words
 * Comment chars located before or after tabs
 * Bulk comment and uncomment 
-* Duplicate selection
 * Option: Autocomplete recurse into #include 
 * Option: always use ML comments
 * Mode to surround selected text with some other text (adding html tags around a word)
