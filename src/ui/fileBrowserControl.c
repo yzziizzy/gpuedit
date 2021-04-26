@@ -15,12 +15,58 @@
 #include "gui_internal.h"
 
 
+//    name, width, label
+#define COLUMN_TYPE_LIST \
+	X(icon, 20, NULL) \
+	X(name, 400, "Name") \
+	X(mime, 50, "Type") \
+	X(size, 100, "Size") \
+	X(sizeOnDisk, 50, "Size On Disk") \
+	X(owner, 50, "Owner") \
+	X(group, 50, "Group") \
+	X(mode, 50, "Mode") \
+	X(atime, 140, "Accessed") \
+	X(mtime, 140, "Modified") \
+	X(ctime, 140, "Created") \
+	
+
+enum {
+	#define X(a, b, c) GUIFB_CT_##a,
+		COLUMN_TYPE_LIST
+	#undef X
+	GUIFB_CT_MAXVALUE
+};
+
+char* col_type_names[] = {
+	#define X(a, b, c) [GUIFB_CT_##a] = #a,
+		COLUMN_TYPE_LIST
+	#undef X
+	[GUIFB_CT_MAXVALUE] = NULL,
+};
+
+char* col_type_labels[] = {
+	#define X(a, b, c) [GUIFB_CT_##a] = c,
+		COLUMN_TYPE_LIST
+	#undef X
+	[GUIFB_CT_MAXVALUE] = NULL,
+};
+
+float col_type_widths[] = {
+	#define X(a, b, c) [GUIFB_CT_##a] = b,
+		COLUMN_TYPE_LIST
+	#undef X
+	[GUIFB_CT_MAXVALUE] = 0,
+};
+
+
 
 static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 	GUIManager* gm = w->header.gm;
-	
-	Vector2 tl = w->header.absTopLeft;
-	
+	GUIHeader* gh = &w->header;
+	Vector2 tl = gh->absTopLeft;
+	char buffer[256];
+	struct tm tm = {};
+	time_t time = 0;
 	
 // 	drawTextLine();
 	float lh = w->lineHeight;
@@ -28,98 +74,142 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 	
 	int linesDrawn = 0;
 	
+	// draw column header
+	float xoff = tl.x + w->leftMargin;
+	
+	VEC_EACH(&w->columnInfo, i, ci) {
+		
+		gui_drawBoxBorder(gm, 
+			(Vector2){xoff, tl.y},
+			(Vector2){ci.width, lh},
+			&gh->absClip, gh->absZ,
+			&(Color4){0,0,0,0},
+			1,
+			&gm->defaults.outlineCurrentLineBorderColor
+		);
+		
+		if(col_type_labels[ci.type]) {
+			gui_drawVCenteredTextLine(gm,
+				(Vector2){xoff + 1, tl.y + 1}, 
+				(Vector2){ci.width - 2, lh - 2},
+				&gh->absClip, 
+				&gm->defaults.selectedItemTextColor,
+				gh->absZ,
+				col_type_labels[ci.type],
+				strlen(col_type_labels[ci.type])
+			);
+		}
+		
+		xoff += col_type_widths[ci.type];
+	}
+	
+	linesDrawn++;
+	
+	
+	// draw file line items
 	for(intptr_t i = w->scrollOffset; i < (intptr_t)VEC_LEN(&w->entries); i++) {
 		if(lh * linesDrawn > w->header.size.y) break; // stop at the bottom of the window
-		
-		// TODO stop drawing at end of window properly
-		
+			
 		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
-		AABB2 box;
-		box.min.x = tl.x + gutter;
-		box.min.y = tl.y + (lh * linesDrawn);
-		box.max.x = tl.x + 800;
-		box.max.y = tl.y + (lh * (linesDrawn + 1));
-		
+
 		
 		if(e->isSelected) { // backgrounds for selected items
-			struct Color4* color = &gm->defaults.selectedItemBgColor;
+			gui_drawBox(gm, 
+				(Vector2){tl.x + w->leftMargin, tl.y + (lh * linesDrawn)}, 
+				(Vector2){800, lh}, 
+				&gh->absClip, gh->absZ, 
+				&gm->defaults.selectedItemBgColor
+			);
+		}
+		
+		
+		xoff = tl.x + w->leftMargin;
+		VEC_EACH(&w->columnInfo, i, ci) {
+			AABB2 box;
+			box.min.x = xoff;
+			box.min.y = tl.y + (lh * linesDrawn);
+			box.max.x = xoff + col_type_widths[ci.type];
+			box.max.y = tl.y + (lh * (linesDrawn + 1));
 			
-			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-			*v = (GUIUnifiedVertex){
-				.pos = {box.min.x, box.min.y, box.max.x, box.max.y},
-				.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
+			
+			switch(ci.type) {
 				
-				.guiType = 0, // window (just a box)
+				case GUIFB_CT_icon: {
+					char* iconame;
+					if(e->type == 1) iconame = "icon/document";
+					else /*if(e->type == 2)*/ iconame = "icon/folder"; // todo: resolve symlinks
+					
+					gui_win_drawImg(gm, gh, iconame, (Vector2){tl.x +10, box.min.y}, (Vector2){20,20});
+					break;
+				}
 				
-				.fg = GUI_COLOR4_TO_SHADER(*color),
-				.bg = GUI_COLOR4_TO_SHADER(*color),
+				case GUIFB_CT_name:
+					gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor, gh->absZ+0.1, e->name, strlen(e->name));
+					break;
+					
+				case GUIFB_CT_size:
+					if(e->type != 2 && e->humanSize) {
+						gui_drawTextLineAdv(gm, 
+							(Vector2){box.min.x, box.min.y}, 
+							(Vector2){box.max.x - box.min.x - 10,0}, 
+							&w->header.absClip, 
+							&gm->defaults.selectedItemTextColor, 
+							NULL, 0,
+							GUI_TEXT_ALIGN_RIGHT,
+							gh->absZ + 0.1, 
+							e->humanSize, strlen(e->humanSize)
+						);
+					}
+					break;
+					
+				case GUIFB_CT_sizeOnDisk:
+					if(e->type != 2 && e->humanSizeOnDisk) {
+						gui_drawTextLineAdv(gm, 
+							(Vector2){box.min.x, box.min.y}, 
+							(Vector2){box.max.x - box.min.x - 10,0}, 
+							&w->header.absClip, 
+							&gm->defaults.selectedItemTextColor, 
+							NULL, 0,
+							GUI_TEXT_ALIGN_RIGHT,
+							gh->absZ + 0.1, 
+							e->humanSizeOnDisk, strlen(e->humanSizeOnDisk)
+						);
+					}
+					break;
 				
-				.z = w->header.absZ,
-				.alpha = 1,
-			};
+				case GUIFB_CT_atime:
+					if(e->atimeStr)
+						gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor, gh->absZ+0.1, e->atimeStr, strlen(e->atimeStr));
+					break;
+					
+				case GUIFB_CT_mtime:
+					if(e->mtimeStr)
+						gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor, gh->absZ+0.1, e->mtimeStr, strlen(e->mtimeStr));
+					break;
+					
+				case GUIFB_CT_ctime:
+					if(e->ctimeStr)
+						gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor, gh->absZ+0.1, e->ctimeStr, strlen(e->ctimeStr));
+					break;
+				
+			}
+		
+			xoff += col_type_widths[ci.type];
 		}
-		
-		
-		char* iconame;
-		if(e->type == 1) iconame = "icon/document";
-		else /*if(e->type == 2)*/ iconame = "icon/folder"; // todo: resolve symlinks
-		
-		TextureAtlasItem* it;
-		if(HT_get(&gm->ta->items, iconame, &it)) {
-			printf("could not find gui image '%s' \n", iconame);
-		}
-		else {
-			// icon
-			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-			*v = (GUIUnifiedVertex){
-				.pos = {tl.x +10, box.min.y, tl.x +10+20, box.min.y + 20},
-				.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-				
-				.texIndex1 = it->index,
-				.texIndex2 = 0,
-				.texFade = .5,
-				
-				.guiType = 2, // simple image
-				
-				.texOffset1 = { it->offsetNorm.x * 65535, it->offsetNorm.y * 65535 },
-		// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
-				.texOffset2 = 0,
-				.texSize1 = { it->sizeNorm.x * 65535, it->sizeNorm.y * 65535 },
-		// 		.texSize1 = { .5 * 65535, .5 * 65535 },
-				.texSize2 = 0,
-				
-				.fg = {255,255,255,255},
-				.bg = {255,255,255,255},
-				
-				.z = w->header.absZ,
-				.alpha = 1,
-			};
-		}
-		
-		// the file name
-		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor , 10000000, e->name, strlen(e->name));
-		
+			
 		linesDrawn++;
 	}
-
+	
 	// cursor
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-	*v = (GUIUnifiedVertex){
-		.pos = {
-			tl.x + gutter, 
-			tl.y + (w->cursorIndex - w->scrollOffset) * lh, 
-			tl.x + 800,
-			tl.y + (w->cursorIndex - w->scrollOffset + 1) * lh
-		},
-		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-		.texIndex1 = 1, // order width
-		.guiType = 4, // bordered window (just a box)
-		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.outlineCurrentLineBorderColor), // border color
-		.bg = {0,0,0,0},
-		.z = w->header.absZ + 0.75,
-		.alpha = 1.0,
-	};
+	gui_drawBoxBorder(gm, 
+		(Vector2){tl.x + gutter, tl.y + (w->cursorIndex + 1 - w->scrollOffset) * lh},
+		(Vector2){800, lh},
+		&gh->absClip, gh->absZ,
+		&(Color4){0,0,0,0},
+		1,
+		&gm->defaults.outlineCurrentLineBorderColor
+	);
 
 	
 	GUIHeader_renderChildren(&w->header, pfp);
@@ -289,11 +379,21 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 void GUIFileBrowserControl_FreeEntryList(GUIFileBrowserEntry* e, intptr_t sz) {
 	GUIFileBrowserEntry* p = e;
 	
+	#define safe_free(x) if(e->x) { free(e->x); e->x = NULL; }
 	for(intptr_t i = 0; i < sz && e->name; i++) {
 		if(e->name) free(e->name);
 		if(e->fullPath) free(e->fullPath);
 		e->name = NULL;
 		e->fullPath = NULL;
+		
+		safe_free(name);
+		safe_free(fullPath);
+		safe_free(atimeStr);
+		safe_free(mtimeStr);
+		safe_free(ctimeStr);
+		safe_free(humanSize);
+		safe_free(humanSizeOnDisk);
+		
 		p++;
 	}
 	
@@ -327,6 +427,7 @@ GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl
 
 
 GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
+	GUI_GlobalSettings* gs = gm->gs;
 
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
@@ -365,6 +466,20 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 	GUI_RegisterObject(w, w->scrollbar);
 	
 	w->curDir = realpath(path, NULL);
+	
+	for(int i = 0; gs->fileBrowserColumnOrder[i]; i++) {
+		char* name = gs->fileBrowserColumnOrder[i];
+		
+		for(int id = 0; col_type_names[id]; id++) {
+			if(0 == strcasecmp(col_type_names[id], name)) {
+				VEC_PUSH(&w->columnInfo, ((GUIFileBrowserColumnInfo){
+					.type = id,
+					.width = col_type_widths[id],
+				}));
+			}
+		}
+		
+	}
 	
 	GUIFileBrowserControl_Refresh(w);
 	
@@ -489,16 +604,17 @@ void GUIFileBrowserControl_Refresh(GUIFileBrowserControl* w) {
 		
 		free(tmp);
 		
-		GUIManager_EnqueueJob(gm, &w->header, fill_info_job, e);
 		
 		// TODO: async stat
 // 	struct stat st;
 // 	lstat(e->name, &st);
 	
 		
-// 		e->name = path_join(w->curDir, result->d_name);
-		
-		
+// 		e->name = path_join(w->curDir, result->d_name);		
+	}
+
+	VEC_EACHP(&w->entries, i, e) {
+		GUIManager_EnqueueJob(gm, &w->header, fill_info_job, e);
 	}
 	
 	closedir(derp);
@@ -517,19 +633,70 @@ void GUIFileBrowserControl_SetDir(GUIFileBrowserControl* w, char* dir) {
 
 
 
+
+static char* format_byte_amt(uint64_t sz) {
+	
+	if(sz < 1024l) {
+		return sprintfdup("%ld B", sz);
+	}
+	else if(sz < 1024l*1024l) {
+		return sprintfdup("%ld KB", sz / 1024l);
+	}
+	else if(sz < 1024l*1024l*1024l) {
+		return sprintfdup("%ld MB", sz / (1024l*1024l));
+	}
+	else if(sz < 1024l*1024l*1024l*1024l) {
+		return sprintfdup("%ld GB", sz / (1024l*1024l*1024l));
+	}
+	else /* if(sz < 1024*1024*1024*1024*1024) */ { 
+		return sprintfdup("%ld TB", sz / (1024l*1024l*1024l*1024l));
+	}
+	
+}
+
+
+
 static void fill_info_job(GUIHeader* h, void* _e, float* pctDone) {
 	GUIFileBrowserControl* w = (GUIFileBrowserControl*)h;
 	GUIFileBrowserEntry* e = _e;
+	
 	struct stat sb;
 	
-	printf("processing '%s'\n", e->fullPath);
+	char buffer[256];
+	struct tm tm = {};
+	time_t time = 0;
+	
 	
 	stat(e->fullPath, &sb);
 	
 	e->perms = sb.st_mode;
 	
 	e->size = sb.st_size;	
-	e->sizeOnDisk = sb.st_blocks * 512;	
+	e->sizeOnDisk = sb.st_blocks * 512;
+	e->ownerID = sb.st_uid;	
+	e->groupID = sb.st_gid;	
+	
+	e->atime = sb.st_atim.tv_sec;
+	e->mtime = sb.st_mtim.tv_sec;
+	e->ctime = sb.st_ctim.tv_sec;
+
+	e->humanSize = format_byte_amt(e->size);
+	e->humanSizeOnDisk = format_byte_amt(e->sizeOnDisk);
+
+	time = e->atime;
+	localtime_r(&time, &tm);
+	strftime(buffer, 256, h->gm->gs->fileBrowserATimeFmt, &tm); 
+	e->atimeStr = strdup(buffer);
+
+	time = e->mtime;
+	localtime_r(&time, &tm);
+	strftime(buffer, 256, h->gm->gs->fileBrowserMTimeFmt, &tm); 
+	e->mtimeStr = strdup(buffer);
+
+	time = e->ctime;
+	localtime_r(&time, &tm);
+	strftime(buffer, 256, h->gm->gs->fileBrowserCTimeFmt, &tm); 
+	e->ctimeStr = strdup(buffer);
 
 	*pctDone = 1.0;
 }

@@ -79,6 +79,7 @@
 * Horizontal scrollbar
 * Clean up C highlighter with provided allocators
 * Warn about duplicate key bindings
+* stdatomic types in C highlighter
 
 == GUI Improvements ==
 * Garbage collection in GUI
@@ -111,6 +112,10 @@
 * Color sequence for vertical indentation helper lines
 * Select/replace/do to all other instances visible on screen
 * Middle-click scroll coasting
+* Macro to create typedef'd structs: Select name then wrap
+* Macro to add ; to end of line
+* Normalize all non-leading whitespace
+* Context menu for macros like above
 * Language sensitive auto-complete and type/param hints (low priority)
 * Delete contents of line but leave indentation
 * Create new line after, indented, and jump to the end 
