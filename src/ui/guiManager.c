@@ -1163,23 +1163,11 @@ static void* gui_worker_thread_fn(void* _gm) {
 	GUIManager* gm = (GUIManager*)_gm;
 	GUIWorkerJob* job;
 	
-	
 	while(1) {
-		if(sem_wait(&gm->workerWhip)) {
-//			printf("worker semaphore debug: wait continue\n");
-			continue;
-		}
-		
-//		printf("worker running: ");
 		job = GUIManager_PopJob(gm);
 		if(job) {
-//			printf("got job\n");
-			
 			job->fn(job->owner, job->data, &job->pctCompleteHint);
 		}
-//		else {
-//			printf("no job available\n");
-//		}
 	}
 	
 	return NULL;
@@ -1236,6 +1224,8 @@ float* GUIManager_EnqueueJob(GUIManager* gm, GUIHeader* owner, GUI_WorkerFn fn, 
 
 GUIWorkerJob* GUIManager_PopJob(GUIManager* gm) {
 	GUIWorkerJob* job = NULL;
+	
+	sem_wait(&gm->workerWhip);
 	
 	pthread_mutex_lock(&gm->workerQueueMutex);
 	

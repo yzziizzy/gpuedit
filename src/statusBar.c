@@ -48,6 +48,7 @@ static void render(GUIStatusBar* w, PassFrameParams* pfp) {
 			&text,
 			font,
 			7.2 / fontSize, // magic
+			GUI_TEXT_ALIGN_LEFT,
 			9001,
 			item->line,
 			strlen(item->line)

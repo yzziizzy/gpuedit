@@ -48,6 +48,10 @@ static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {
 }
 
 
+#define GUI_TEXT_ALIGN_LEFT 0x00
+#define GUI_TEXT_ALIGN_RIGHT 0x01
+#define GUI_TEXT_ALIGN_CENTER 0x02
+
 
 void gui_drawBox(GUIManager* gm, Vector2 tl, Vector2 sz, AABB2* clip, float z, Color4* color);
 
@@ -87,6 +91,24 @@ void gui_drawTriangleBorder(
 	Color4* borderColor
 );
 
+void gui_drawImg(
+	GUIManager* gm, 
+	char* name, 
+	Vector2 tl, 
+	Vector2 sz, 
+	AABB2* clip, 
+	float z
+);
+
+void gui_win_drawImg(
+	GUIManager* gm, 
+	GUIHeader* h, 
+	char* name, 
+	Vector2 tl, 
+	Vector2 sz
+);
+
+
 // stops on linebreak
 void gui_drawTextLine(
 	GUIManager* gm,
@@ -106,6 +128,7 @@ void gui_drawTextLineAdv(
 	struct Color4* color,
 	GUIFont* font,
 	float fontsize,
+	int align,
 	float z,
 	char* txt, 
 	size_t charCount
@@ -137,5 +160,8 @@ void gui_drawVCenteredTextLine(
 	char* txt, 
 	size_t charCount
 );
+
+
+
 
 #endif // __EACSMB_gui_internal_h__

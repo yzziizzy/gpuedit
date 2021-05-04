@@ -65,6 +65,12 @@
 	SETTING(float, fontSize_fw,                   12,          1,    99) \
 	SETTING(charp, statusBarBgColor,              "#282828ff", NULL, NULL) \
 	SETTING(charp, statusBarTextColor,            "#c8c8c8ff", NULL, NULL) \
+	\
+	SETTING(charpp,fileBrowserColumnOrder,        ((char*[]){"icon","name","size","mtime", NULL}), NULL, NULL) \
+	SETTING(charp, fileBrowserATimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
+	SETTING(charp, fileBrowserMTimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
+	SETTING(charp, fileBrowserCTimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
+
 
 
 

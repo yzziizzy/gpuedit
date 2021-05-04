@@ -496,6 +496,44 @@ void gui_drawTriangleBorder(
 
 
 
+void gui_win_drawImg(GUIManager* gm, GUIHeader* h, char* name, Vector2 tl, Vector2 sz) {
+	gui_drawImg(gm, name, tl, sz, &h->absClip, h->absZ);
+}
+
+void gui_drawImg(GUIManager* gm, char* name, Vector2 tl, Vector2 sz, AABB2* clip, float z) {
+	
+	TextureAtlasItem* it;
+	if(HT_get(&gm->ta->items, name, &it)) {
+		fprintf(stderr, "Could not find gui image '%s' \n", name);
+	}
+	else {
+		// icon
+		GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+		*v = (GUIUnifiedVertex){
+			.pos = {tl.x, tl.y, tl.x + sz.x, tl.y + sz.y},
+			.clip = GUI_AABB2_TO_SHADER(*clip),
+			
+			.texIndex1 = it->index,
+			.texIndex2 = 0,
+			.texFade = 0,
+			
+			.guiType = 2, // simple image
+			
+			.texOffset1 = { it->offsetNorm.x * 65535, it->offsetNorm.y * 65535 },
+			.texOffset2 = 0,
+			.texSize1 = { it->sizeNorm.x * 65535, it->sizeNorm.y * 65535 },
+			.texSize2 = 0,
+			
+			.fg = {255,255,255,255},
+			.bg = {255,255,255,255},
+			
+			.z = z,
+			.alpha = 1,
+		};
+	}
+}
+
+
 float gui_getTextLineWidth(
 	GUIManager* gm,
 	GUIFont* font,
@@ -542,7 +580,7 @@ void gui_drawTextLine(
 	char* txt, 
 	size_t charCount
 ) {
-	gui_drawTextLineAdv(gm, tl, sz, clip, color, NULL, 0, z, txt, charCount);
+	gui_drawTextLineAdv(gm, tl, sz, clip, color, NULL, 0, GUI_TEXT_ALIGN_LEFT, z, txt, charCount);
 }
 
 
@@ -555,6 +593,7 @@ void gui_drawTextLineAdv(
 	struct Color4* color,
 	GUIFont* font,
 	float fontsize,
+	int align,
 	float z,
 	char* txt, 
 	size_t charCount
@@ -569,6 +608,12 @@ void gui_drawTextLineAdv(
 	float hoff = fontsize * font->ascender;
 	float adv = 0;
 	if(!color) color = &gm->defaults.textColor;
+	
+	float alignoff = 0;
+	if(align == GUI_TEXT_ALIGN_RIGHT) {
+		float txtw = gui_getTextLineWidth(gm, font, fontsize, txt, charCount);
+		alignoff = -(txtw - sz.x);
+	}
 	
 	// BUG: the problem is (Vector2){0,0} here
 	float maxAdv = sz.x;
@@ -595,9 +640,9 @@ void gui_drawTextLineAdv(
 			float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
 			
 			v->pos.t = off.y + hoff - ci->topLeftOffset.y * fontsize;
-			v->pos.l = off.x + adv + ci->topLeftOffset.x * fontsize;
+			v->pos.l = off.x + alignoff + adv + ci->topLeftOffset.x * fontsize;
 			v->pos.b = off.y + hoff + ci->size.y * fontsize - ci->topLeftOffset.y * fontsize;
-			v->pos.r = off.x + adv + ci->size.x * fontsize + ci->topLeftOffset.x * fontsize;
+			v->pos.r = off.x + alignoff + adv + ci->size.x * fontsize + ci->topLeftOffset.x * fontsize;
 			
 			v->guiType = 1; // text
 			

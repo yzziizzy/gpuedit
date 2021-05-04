@@ -2,8 +2,7 @@
 #define __gputk_fileBrowser_h__
 
 #include <sys/stat.h>
-
-
+#include <stdatomic.h>
 
 typedef struct GUIFileBrowserEntry {
 	char* name;
@@ -11,16 +10,30 @@ typedef struct GUIFileBrowserEntry {
 // 	int type;
 	mode_t perms;
 	
-	char* owner;
 	uid_t ownerID;
-	char* group;
 	gid_t groupID;
+	
+	int64_t atime; // unix timestamps
+	int64_t mtime;
+	int64_t ctime;
 	
 	uint64_t size;
 	uint64_t sizeOnDisk;
 	
+	// ext/mime
 	
-	
+	// dup'd
+	char* humanSize;
+	char* humanSizeOnDisk;
+	char* atimeStr;
+	char* mtimeStr;
+	char* ctimeStr;
+
+	// externally owned strings
+	char* ownerName;
+	char* groupName;
+
+		
 	unsigned int type : 4; // target type: unknown, reg, dir
 	unsigned int isSymlink : 1;
 	unsigned int hasStats: 1;
@@ -31,6 +44,14 @@ typedef struct GUIFileBrowserEntry {
 } GUIFileBrowserEntry;
 
 
+
+
+typedef struct GUIFileBrowserColumnInfo {
+	int type;
+	float width;
+} GUIFileBrowserColumnInfo;
+
+
 // just the bare file/folder tree.
 typedef struct GUIFileBrowserControl {
 	GUIHeader header;
@@ -38,6 +59,8 @@ typedef struct GUIFileBrowserControl {
 	float lineHeight;
 	float leftMargin;
 	// iconsize, font params, etc
+	
+	VEC(GUIFileBrowserColumnInfo) columnInfo;
 	
 	GUIWindow* scrollbar;
 	float sbMinHeight;
