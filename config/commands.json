@@ -30,6 +30,7 @@
 			{elem: "Main", cmd: "SimpleWindowTest", mods: "C", key: "u", amt: 0},
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
 			{elem: "Main", cmd: "NewEmptyBuffer", mods: "CS", key: "n", amt: 0},
+			{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
 			
 			{elem: "Buffer", cmd: "ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 			
@@ -86,7 +87,9 @@
 			//{elem: "Buffer", cmd: "SurroundSelection", mods: "CAST", key: "XK_F1", amt: ["/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "ReplaceLineWithSelectionTransform", mods: "AT", key: "s", 
 				amt: ["%s", "%c", "typedef struct %s {\n\t%c\n} %s;"], flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "p", amt: "GrepOpen", },{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
+			{elem: "Buffer", cmd: "LineEnsureEnding", mods: "C", key: ";", amt: ";", flags: ["rehighlight", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "LineEnsureEnding", mods: "CS", key: "{", amt: "{", flags: ["rehighlight", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "p", amt: "GrepOpen", },
 			{elem: "Buffer", cmd: "SmartComment", mods: "C", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "StrictUncomment", mods: "CS", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "DeleteCurLine", mods: "C", key: "k", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},

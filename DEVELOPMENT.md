@@ -64,7 +64,6 @@
 * Unsaved changes crash recovery
 * New Buffer/file
 * FB: new file/folder, delete, rename
-* Re-order MC tabs
 * User-specified automatic sorting for MC tabs
 * Command to jump to certain control
 * Drag and drop from the WM
@@ -107,15 +106,12 @@
 * Bulk comment and uncomment 
 * Option: Autocomplete recurse into #include 
 * Option: always use ML comments
-* Mode to surround selected text with some other text (adding html tags around a word)
 * Smart merge of overlapping ml comments
 * Color sequence for vertical indentation helper lines
 * Select/replace/do to all other instances visible on screen
 * Middle-click scroll coasting
-* Macro to create typedef'd structs: Select name then wrap
-* Macro to add ; to end of line
 * Normalize all non-leading whitespace
-* Context menu for macros like above
+* Context menu for helper macros
 * Language sensitive auto-complete and type/param hints (low priority)
 * Delete contents of line but leave indentation
 * Create new line after, indented, and jump to the end 
