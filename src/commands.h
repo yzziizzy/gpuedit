@@ -119,6 +119,7 @@
 	X(Buffer, NextHighlighter) \
 	X(Buffer, SmartBubbleSelection) \
 	\
+	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \
 	X(FileBrowser, CursorMoveNoWrap) \
 	X(FileBrowser, UpDir) \

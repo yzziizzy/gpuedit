@@ -791,7 +791,7 @@ void GUIHeader_TriggerEvent(GUIHeader* o, GUIEvent* gev) {
 		if(cmd) {	
 //			printf("handling command\n");	
 			o->vt->HandleCommand(o, cmd);
-		
+			gev->cancelled = 1;
 			// todo: check no-suppress flag
 			return;
 		}

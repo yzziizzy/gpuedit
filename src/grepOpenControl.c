@@ -221,7 +221,7 @@ void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {
-		case FuzzyMatcherCmd_Exit:
+		case GrepOpenCmd_Exit:
 			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
 			break;
 			

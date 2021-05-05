@@ -25,13 +25,14 @@
 	},
 	replace_tray: {
 		type: "window",
-		size: [0, 60],
+		size: [0, 70],
 		flags: "MAXIMIZE_X|CHILD_TABBING",
 		children: [
-			{type: "text", pos: [5, 5], value: "Find:" },
-			{type: "edit", pos: [75, 5], size: [400, 20] value: "", name: "find", tabStop: 1 },
-			{type: "text", pos: [5, 35], value: "Replace:" },
-			{type: "edit", pos: [75, 35], size: [400, 20] value: "", name: "replace", tabStop: 2 },
+			{ type: "text", pos: [5, 10],   size: [40, 20],  value: "Find:" },
+			{ type: "edit", pos: [75, 10],  size: [400, 20], value: "", name: "find", tabStop: 1 },
+			{ type: "text", pos: [480, 10], size: [80, 20],  value: "X of Y", name: "results" },
+			{ type: "text", pos: [5, 40],   size: [65, 20],  value: "Replace:" },
+			{ type: "edit", pos: [75, 40],  size: [400, 20], value: "", name: "replace", tabStop: 2 },
 		],
 	},
 	goto_tray: {
