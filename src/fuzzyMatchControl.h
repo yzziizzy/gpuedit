@@ -26,7 +26,7 @@ typedef struct GUIFuzzyMatchControl {
 } GUIFuzzyMatchControl;
 
 
-GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path);
+GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char* searchTerm);
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w);
 
 void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd);

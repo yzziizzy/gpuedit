@@ -215,7 +215,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 				GUIMainControl_OpenFileBrowser(as->mc, ts[i].path);
 				break;
 			case MCTAB_FUZZYOPEN:
-				GUIMainControl_FuzzyOpener(as->mc);
+				GUIMainControl_FuzzyOpener(as->mc, NULL);
 				break;
 			case MCTAB_GREPOPEN:
 				GUIMainControl_GrepOpen(as->mc, NULL);

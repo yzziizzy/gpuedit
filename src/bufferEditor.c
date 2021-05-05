@@ -453,13 +453,13 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 
 
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor) {
-	if(VEC_LEN(&w->findSet->ranges) == 0) {
+	if(!w->findSet || w->findSet && !VEC_LEN(&w->findSet->ranges)) {
 		GUIText_setString(w->findResultsText, "No results");
 		return 1;
 	}
 	
 	if(w->findSet->changeCounter != w->buffer->changeCounter) {
-		GUIBufferEditor_FindAll(w, w->findQuery);
+		w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
 		w->findIndex = -1;
 		printf("reset find index\n");
 	}
@@ -682,7 +682,7 @@ void GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* 
 	GUIBufferEditControl* ec = w->ec;
 	size_t len = strlen(text);
 			
-	VEC_EACH(&rset->ranges, i, r) {		
+	VEC_R_EACH(&rset->ranges, i, r) {
 		if(r) {
 			Buffer_DeleteSelectionContents(b, r);
 			Buffer_LineInsertChars(b, r->startLine, text, r->startCol, len);
@@ -892,7 +892,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			Buffer* b = w->ec->buffer;
 			GUIBufferEditControl* ec = w->ec;
 			
-			if(!VEC_LEN(&w->findSet->ranges)) break;
+			if(!w->findSet || w->findSet && !VEC_LEN(&w->findSet->ranges)) break;
 			
 			BufferRange* r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
 			
@@ -938,6 +938,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
 				GUI_RegisterObject(w, w->trayRoot);
 				w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
+				w->findResultsText = (GUIText*)GUI_FindChild(w->trayRoot, "results");
 				w->replaceBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "replace");
 				if(w->findQuery) {
 					GUIEdit_SetText(w->findBox, w->findQuery);
@@ -945,6 +946,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				
 				w->ec->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
+
+				GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
