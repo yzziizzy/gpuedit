@@ -402,6 +402,7 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 			if(!w->current) {		
 				w->current = note->sel.endLine->next;		
 			}
+			w->curCol = MIN(w->curCol, w->current->length);
 		}
 		
 		if(BufferLine_IsInRange(w->selectPivotLine, &note->sel)) {
@@ -863,6 +864,11 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			if(w->sel)
 				GBEC_SurroundCurrentSelection(w, cmd->pstr[0], cmd->pstr[1]);
 			break;
+			
+		case BufferCmd_ReplaceLineWithSelectionTransform:
+			if(w->sel)
+				GBEC_ReplaceLineWithSelectionTransform(w, cmd->pstr[0], cmd->pstr[1], cmd->pstr[2]);
+			break;
 		
 		case BufferCmd_SmartComment:
 			if(!cmd->pstr[0] || !cmd->pstr[1] || !cmd->pstr[2]) break;
@@ -1298,6 +1304,49 @@ void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char*
 	}
 
 }
+
+
+
+void GBEC_ReplaceLineWithSelectionTransform(
+	GUIBufferEditControl* w, 
+	char* selectionToken,
+	char* cursorToken,
+	char* format
+) {
+	BufferRange cursor;
+	
+	Buffer* f = Buffer_New();
+	Buffer_AppendRawText(f, format, strlen(format));
+	
+	// find first cursor token and remove it
+	int haveCursor = !Buffer_strstr(f, cursorToken, &cursor);
+	if(haveCursor) {
+		// delete the token itself; start l/c still hold the cursor pos
+		Buffer_DeleteSelectionContents(f, &cursor);
+	}
+	
+	BufferRange sel = *w->sel;
+	GBEC_ClearCurrentSelection(w);
+	GBEC_MoveCursorTo(w, sel.startLine, sel.startCol);
+	
+	Buffer* sb = Buffer_FromSelection(w->buffer, &sel);
+	
+	Buffer_ReplaceAllString(f, selectionToken, sb);
+	
+	sel.startCol = 0;
+	sel.endCol = sel.endLine->length;
+	Buffer_DeleteSelectionContents(w->buffer, &sel);
+	Buffer_InsertBufferAt(w->buffer, f, w->current, w->curCol, NULL);
+	
+	if(haveCursor) {
+		GBEC_MoveCursorTo(w, w->current, 0);
+		GBEC_MoveCursorV(w, cursor.startLine->lineNum - 1);
+		GBEC_MoveCursorH(w, cursor.startCol);
+		
+	}
+	
+}
+
 
 
 intptr_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted) {

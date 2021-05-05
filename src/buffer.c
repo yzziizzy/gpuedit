@@ -1426,6 +1426,8 @@ int Buffer_UnsurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* e
 }
 
 
+
+
 /*
 void Buffer_AddCurrentSelectionToRing(Buffer* b) {
 	if(!b->selectionRing->first) {
@@ -1969,4 +1971,96 @@ long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t
 	
 	return 0;
 }
+
+
+static char* strnstrn(char* hay, size_t hlen, char* needle, size_t nlen, char** end_out) {
+	if(nlen > hlen) return NULL;
+	
+	size_t maxlen = hlen - nlen;
+	
+	for(size_t h = 0; h <= maxlen; h++) {
+		for(size_t n = 0; n < nlen; n++) {
+			if(hay[h + n] != needle[n]) goto NOPE;
+		}
+		
+		// found match
+		*end_out = hay + h + nlen;
+		return hay + h;
+		
+	NOPE:
+		continue;
+	}
+	
+	return NULL; // match failed
+}
+
+
+// returns 0 on success
+// finds first match only
+// no support for newlines in needle
+int Buffer_strstr(Buffer* b, char* needle, BufferRange* out) {
+	
+	BufferLine* bl;
+	
+	char* nlen = strlen(needle);
+	
+	bl = b->first;
+	while(bl) {
+		char* start, *end;
+	
+		start = strnstrn(bl->buf, bl->length, needle, nlen, &end);
+		if(start) {
+			out->startLine = bl;
+			out->endLine = bl;
+			out->startCol = start - bl->buf;
+			out->endCol = end - bl->buf;
+			
+			return 0;
+		}
+		
+		
+		bl = bl->next;
+	}
+	
+	return 1;
+}
+
+
+
+int Buffer_ReplaceAllString(Buffer* dst, char* needle, Buffer* src) {
+	
+	BufferRange r;
+	BufferLine* dbl;
+	size_t nlen = strlen(needle);
+	
+	dbl = dst->first;
+		
+	while(dbl) {
+		size_t scol = 0;
+		
+		while(1) {
+			char* start, *end;
+			
+			start = strnstrn(dbl->buf + scol, dbl->length - scol, needle, nlen, &end);
+			if(!start) break;
+			
+			r.startLine = dbl;
+			r.endLine = dbl;
+			r.startCol = start - dbl->buf;
+			r.endCol = end - dbl->buf;
+			
+			Buffer_DeleteSelectionContents(dst, &r);
+			Buffer_InsertBufferAt(dst, src, dbl, r.startCol, &r);
+			
+			dbl = r.endLine;
+			scol = r.endCol;
+		}
+		
+		
+		dbl = dbl->next;
+	}
+	
+	return 0;
+}
+
 	
