@@ -91,8 +91,14 @@ static BufferUndo* undo_inc(Buffer* b, int changeCount) {
 	
 	if(undo_avail(b) <= 0) {
 		// clean up the old data
-		if(u->text) free(u->text);
-		u->text = NULL;
+		switch(u->action) {
+			case UndoAction_DeleteText:
+			case UndoAction_InsertText:
+			case UndoAction_DeleteLine:
+			case UndoAction_InsertLineAt:
+				if(u->text) free(u->text);
+				u->text = NULL;
+		}
 		b->undoOldest = (b->undoOldest + 1) % b->undoMax;
 	}
 	else {
