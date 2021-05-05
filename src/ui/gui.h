@@ -108,6 +108,7 @@ struct gui_vtbl {
 	Vector2 (*RecalcClientSize)(GUIHeader* go); // recalc client size from the client children and call SetClientSize
 	GUIHeader* (*HitTest)(GUIHeader* go, Vector2 testPos);
 	GUIHeader* (*FindChild)(GUIHeader* h, char* name);
+	int (*ChooseCursor)(GUIHeader* h, Vector2 testPos);
 	
 	void (*AddClient)(GUIHeader* parent, GUIHeader* child);
 	void (*RemoveClient)(GUIHeader* parent, GUIHeader* child);
@@ -240,9 +241,12 @@ typedef void (*GUI_OnMouseEnterFn)(GUIEvent* e);
 typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 
 
-#define GUIMOUSECURSOR_ARROW 0x01
-#define GUIMOUSECURSOR_TEXT  0x02
-#define GUIMOUSECURSOR_WAIT  0x03
+#define GUIMOUSECURSOR_DYNAMIC   -1
+#define GUIMOUSECURSOR_ARROW   0x01
+#define GUIMOUSECURSOR_TEXT    0x02
+#define GUIMOUSECURSOR_WAIT    0x03
+#define GUIMOUSECURSOR_H_MOVE  0x04
+#define GUIMOUSECURSOR_V_MOVE  0x05
 
 #define GUI_MAXIMIZE_X      0x0001
 #define GUI_MAXIMIZE_Y      0x0002
@@ -476,6 +480,9 @@ typedef struct GUIManager {
 		float fontSize_fw;
 		struct Color4 statusBarBgColor;
 		struct Color4 statusBarTextColor;
+		struct Color4 fileBrowserHeaderTextColor;
+		struct Color4 fileBrowserHeaderBorderColor;
+		struct Color4 fileBrowserHeaderBgColor;
 		
 		
 		// TODO: font name, size 
@@ -579,6 +586,8 @@ Vector2 GUIHeader_SetScrollAbs(GUIHeader* go, Vector2 absPos);
 
 #define GUI_FindChild(p, n) GUIHeader_FindChild((p) ? &((p)->header) : NULL, n)
 GUIHeader* GUIHeader_FindChild(GUIHeader* obj, char* name);
+
+int GUIHeader_ChooseCursor(GUIHeader* obj, Vector2 testPos);
 
 
 

@@ -159,6 +159,9 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	gm->defaults.fontSize_fw = gs->fontSize_fw;
 	decodeHexColorNorm(gs->statusBarBgColor, (float*)&(gm->defaults.statusBarBgColor));
 	decodeHexColorNorm(gs->statusBarTextColor, (float*)&(gm->defaults.statusBarTextColor));
+	decodeHexColorNorm(gs->fileBrowserHeaderTextColor, (float*)&(gm->defaults.fileBrowserHeaderTextColor));
+	decodeHexColorNorm(gs->fileBrowserHeaderBorderColor, (float*)&(gm->defaults.fileBrowserHeaderBorderColor));
+	decodeHexColorNorm(gs->fileBrowserHeaderBgColor, (float*)&(gm->defaults.fileBrowserHeaderBgColor));
 	
 	gm->defaults.selectSize = (Vector2){80, 25};
 	
@@ -452,7 +455,10 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	
 	
 	// set the cursor, maybe
-	int cur = t->cursor; 
+	int cur = t->cursor;
+	if(cur == GUIMOUSECURSOR_DYNAMIC) {
+		cur = GUIHeader_ChooseCursor(t, newPos);
+	}
 	GUIManager_SetCursor(gm, cur);
 
 	// mouse enter/leave

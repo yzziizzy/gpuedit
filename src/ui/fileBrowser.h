@@ -58,6 +58,7 @@ typedef struct GUIFileBrowserControl {
 	
 	float lineHeight;
 	float leftMargin;
+	float headerHeight;
 	// iconsize, font params, etc
 	
 	VEC(GUIFileBrowserColumnInfo) columnInfo;
