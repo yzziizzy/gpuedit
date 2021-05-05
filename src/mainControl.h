@@ -115,7 +115,7 @@ void GUIMainControl_NewEmptyBuffer(GUIMainControl* w);
 void GUIMainControl_LoadFile(GUIMainControl* w, char* path);
 void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt);
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);
-void GUIMainControl_FuzzyOpener(GUIMainControl* w);
+void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm);
 void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm);
 void GUIMainControl_CloseBuffer(GUIMainControl* w, int index);
 void GUIMainControl_CloseAllBufferPtr(GUIMainControl* w, Buffer* p);

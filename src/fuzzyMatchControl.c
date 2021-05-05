@@ -213,7 +213,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 }
 
 
-GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path) {
+GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char* searchTerm) {
 
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
@@ -246,12 +246,16 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path) {
 	w->lineHeight = 25;
 	w->leftMargin = 20;
 	
-	w->searchBox = GUIEdit_New(gm, "");
+	if(searchTerm) {
+		w->searchTerm = strdup(searchTerm);
+		w->searchBox = GUIEdit_New(gm, searchTerm);
+	} else {
+		w->searchBox = GUIEdit_New(gm, "");
+	}
 	w->searchBox->header.flags |= GUI_MAXIMIZE_X;
 	w->searchBox->header.gravity = GUI_GRAV_TOP_LEFT;
 	
 	GUI_RegisterObject(w, w->searchBox);
-	
 	
 	return w;
 }
@@ -344,8 +348,10 @@ CLEANUP:
 	int n_matches = 0;
 	int err = 0;
 
-	err = fuzzy_match_fcandidate(candidates, n_candidates, &matches, &n_matches, input, 0);
-	// printf("fuzzy match exit code: %d\n", err);
+	if(input) {
+		err = fuzzy_match_fcandidate(candidates, n_candidates, &matches, &n_matches, input, 0);
+		// printf("fuzzy match exit code: %d\n", err);
+	}
 
 	if(w->matches) free(w->matches);
 	if(!err) {

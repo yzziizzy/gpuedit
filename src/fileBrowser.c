@@ -138,6 +138,10 @@ void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, GUI_Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {
+		case FileBrowserCmd_Exit:
+			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+			break;
+
 		case FileBrowserCmd_CursorMove:
 			amt = (cmd->amt >= 0) ? cmd->amt : VEC_LEN(&w->fbc->entries) + cmd->amt;
 			w->fbc->cursorIndex = (w->fbc->cursorIndex + cmd->amt) % VEC_LEN(&w->fbc->entries);

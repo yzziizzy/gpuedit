@@ -478,7 +478,10 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 		}
 	} else if(0 == strcmp(gev->userType, "SmartBubble")) {
 		GUIBubbleOpt* opt = (GUIBubbleOpt*)gev->userData;
-		if(0 == strcmp(opt->ev, "GrepOpen")) {
+		if(0 == strcmp(opt->ev, "FuzzyOpen")) {
+			GUIMainControl_FuzzyOpener(w, opt->sel);
+			gev->cancelled = 1;
+		} else if(0 == strcmp(opt->ev, "GrepOpen")) {
 			GUIMainControl_GrepOpen(w, opt->sel);
 			gev->cancelled = 1;
 		} else {
@@ -555,7 +558,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		break;
 
 	case MainCmd_FuzzyOpener:
-		GUIMainControl_FuzzyOpener(w);
+		GUIMainControl_FuzzyOpener(w, NULL);
 		break;
 	
 	case MainCmd_GrepOpen:
@@ -1012,13 +1015,13 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 }
 
 
-void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
+void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm) {
 	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
 
-	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->header.gm, "./");
+	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->header.gm, "./", searchTerm);
 	fmc->gs = w->gs;
 	fmc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fmc->header, "fuzzy matcher");
@@ -1030,6 +1033,8 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w) {
 	fmc->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
+
+	GUIFuzzyMatchControl_Refresh(fmc);
 }
 
 
