@@ -521,6 +521,13 @@ void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferRange* sel);
 long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t col);
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
+int Buffer_ReplaceAllString(Buffer* dst, char* needle, Buffer* src);
+
+
+// returns 0 on success
+// finds first match only
+// no support for newlines in needle
+int Buffer_strstr(Buffer* b, char* needle, BufferRange* out);
 
 
 void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
@@ -584,6 +591,12 @@ void GBEC_MoveToFirstCharOrSOL(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 
+void GBEC_ReplaceLineWithSelectionTransform(
+	GUIBufferEditControl* w, 
+	char* selectionToken,
+	char* cursorToken,
+	char* format
+);
 
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);

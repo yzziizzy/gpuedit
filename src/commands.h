@@ -85,6 +85,7 @@
 	X(Buffer, LineUnprependText) \
 	X(Buffer, SurroundSelection) \
 	X(Buffer, UnsurroundSelection) \
+	X(Buffer, ReplaceLineWithSelectionTransform) \
 	X(Buffer, SmartComment) \
 	X(Buffer, StrictUncomment) \
 	X(Buffer, SmartUncomment) \
