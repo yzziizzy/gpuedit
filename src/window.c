@@ -323,6 +323,8 @@ int initXWindow(XStuff* xs) {
 	xs->arrowCursor = XCreateFontCursor(xs->display, XC_left_ptr);
 	xs->textCursor = XCreateFontCursor(xs->display, XC_xterm);
 	xs->waitCursor = XCreateFontCursor(xs->display,  XC_watch);// XC_coffee_mug
+	xs->hMoveCursor = XCreateFontCursor(xs->display,  XC_sb_h_double_arrow);// XC_coffee_mug
+	xs->vMoveCursor = XCreateFontCursor(xs->display,  XC_sb_v_double_arrow);// XC_coffee_mug
 	
 	return 0;
 }
@@ -722,6 +724,8 @@ void XStuff_SetMouseCursor(XStuff* xs, int index) {
 			break;
 		case 2: c = xs->textCursor; break;
 		case 3: c = xs->waitCursor; break;
+		case 4: c = xs->hMoveCursor; break;
+		case 5: c = xs->vMoveCursor; break;
 	}
 	
 	XDefineCursor(xs->display, xs->clientWin, c);

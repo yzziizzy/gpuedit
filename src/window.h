@@ -25,6 +25,8 @@ typedef struct XStuff {
 	Cursor arrowCursor;
 	Cursor textCursor;
 	Cursor waitCursor;
+	Cursor hMoveCursor;
+	Cursor vMoveCursor;
 	
 	Vector2i winSize;
 	

@@ -890,6 +890,16 @@ GUIHeader* GUIHeader_NextTabStop(GUIHeader* h) {
 }
 
 
+int GUIHeader_ChooseCursor(GUIHeader* gh, Vector2 testPos) {
+	if(gh->vt && gh->vt->ChooseCursor)
+		return gh->vt->ChooseCursor(gh, testPos);
+	else
+		printf("Object does not have a ChooseCursor function.");
+	
+	return 0;
+}
+
+
 static void tab_regen(GUIHeader* trunk, GUIHeader* parent) {
 	if(parent->tabStop > 0) {
 		VEC_PUSH(&trunk->tabStopCache, parent);

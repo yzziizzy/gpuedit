@@ -860,6 +860,24 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 			}
 			break;
 			
+		case BufferCmd_LineAppendText:
+			if(w->sel) {
+				Buffer_LineAppendTextSelection(b, w->sel, cmd->str, strlen(cmd->str));
+			}
+			else {
+				Buffer_LineAppendText(b, w->current, cmd->str, strlen(cmd->str));
+			}
+			break;
+			
+		case BufferCmd_LineEnsureEnding:
+			if(w->sel) {
+				Buffer_LineEnsureEndingSelection(b, w->sel, cmd->str, strlen(cmd->str));
+			}
+			else {
+				Buffer_LineEnsureEnding(b, w->current, cmd->str, strlen(cmd->str));
+			}
+			break;
+			
 		case BufferCmd_SurroundSelection:
 			if(w->sel)
 				GBEC_SurroundCurrentSelection(w, cmd->pstr[0], cmd->pstr[1]);

@@ -83,6 +83,9 @@
 	X(Buffer, Unindent) \
 	X(Buffer, LinePrependText) \
 	X(Buffer, LineUnprependText) \
+	X(Buffer, LineAppendText) \
+	X(Buffer, LineUnappendText) \
+	X(Buffer, LineEnsureEnding) \
 	X(Buffer, SurroundSelection) \
 	X(Buffer, UnsurroundSelection) \
 	X(Buffer, ReplaceLineWithSelectionTransform) \

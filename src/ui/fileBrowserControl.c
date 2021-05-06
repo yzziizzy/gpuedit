@@ -62,6 +62,7 @@ float col_type_widths[] = {
 
 static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 	GUIManager* gm = w->header.gm;
+	GUI_GlobalSettings* gs = gm->gs;
 	GUIHeader* gh = &w->header;
 	Vector2 tl = gh->absTopLeft;
 	char buffer[256];
@@ -81,20 +82,20 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		
 		gui_drawBoxBorder(gm, 
 			(Vector2){xoff, tl.y},
-			(Vector2){ci.width, lh},
+			(Vector2){ci.width, w->headerHeight},
 			&gh->absClip, gh->absZ,
-			&(Color4){0,0,0,0},
+			&gm->defaults.fileBrowserHeaderBgColor,
 			1,
-			&gm->defaults.outlineCurrentLineBorderColor
+			&gm->defaults.fileBrowserHeaderBorderColor
 		);
 		
 		if(col_type_labels[ci.type]) {
 			gui_drawVCenteredTextLine(gm,
 				(Vector2){xoff + 1, tl.y + 1}, 
-				(Vector2){ci.width - 2, lh - 2},
+				(Vector2){ci.width - 2, w->headerHeight - 2},
 				&gh->absClip, 
-				&gm->defaults.selectedItemTextColor,
-				gh->absZ,
+				&gm->defaults.fileBrowserHeaderTextColor,
+				gh->absZ + 0.01,
 				col_type_labels[ci.type],
 				strlen(col_type_labels[ci.type])
 			);
@@ -103,7 +104,6 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		xoff += col_type_widths[ci.type];
 	}
 	
-	linesDrawn++;
 	
 	
 	// draw file line items
@@ -116,7 +116,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		
 		if(e->isSelected) { // backgrounds for selected items
 			gui_drawBox(gm, 
-				(Vector2){tl.x + w->leftMargin, tl.y + (lh * linesDrawn)}, 
+				(Vector2){tl.x + w->leftMargin, tl.y + (lh * linesDrawn) + w->headerHeight}, 
 				(Vector2){800, lh}, 
 				&gh->absClip, gh->absZ, 
 				&gm->defaults.selectedItemBgColor
@@ -128,9 +128,9 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 		VEC_EACH(&w->columnInfo, i, ci) {
 			AABB2 box;
 			box.min.x = xoff;
-			box.min.y = tl.y + (lh * linesDrawn);
+			box.min.y = tl.y + (lh * linesDrawn) + w->headerHeight;
 			box.max.x = xoff + col_type_widths[ci.type];
-			box.max.y = tl.y + (lh * (linesDrawn + 1));
+			box.max.y = tl.y + (lh * (linesDrawn + 1)) + w->headerHeight;
 			
 			
 			switch(ci.type) {
@@ -203,7 +203,7 @@ static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 	
 	// cursor
 	gui_drawBoxBorder(gm, 
-		(Vector2){tl.x + gutter, tl.y + (w->cursorIndex + 1 - w->scrollOffset) * lh},
+		(Vector2){tl.x + gutter, tl.y + w->headerHeight + (w->cursorIndex - w->scrollOffset) * lh},
 		(Vector2){800, lh},
 		&gh->absClip, gh->absZ,
 		&(Color4){0,0,0,0},
@@ -425,6 +425,33 @@ GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl
 	return files;
 }
 
+static int chooseCursor(GUIHeader* _w, Vector2 testPos) {
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)_w;
+	/*
+	if(testPos.y > _w->absTopLeft.y + w->headerHeight) {
+		return GUIMOUSECURSOR_ARROW;
+	}	
+	
+	
+	// draw column header
+	float xoff = tl.x + w->leftMargin;
+	
+	VEC_EACH(&w->columnInfo, i, ci) {
+		xoff += col_type_widths[ci.type];
+		
+		if() {
+			
+		}
+			
+		
+	}
+	
+		*/
+//		return GUIMOUSECURSOR_H_MOVE;
+	
+	return GUIMOUSECURSOR_ARROW;
+}
+
 
 GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 	GUI_GlobalSettings* gs = gm->gs;
@@ -432,6 +459,7 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
+		.ChooseCursor = chooseCursor,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -454,8 +482,9 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 	// TODO: from config
 	w->lineHeight = 22;
 	w->leftMargin = 10;
+	w->headerHeight = gm->gs->fileBrowserHeaderHeight;
 	
-	w->header.cursor = GUIMOUSECURSOR_ARROW;
+	w->header.cursor = GUIMOUSECURSOR_DYNAMIC;
 	
 	w->scrollbar = GUIWindow_New(gm);
 	GUIResize(&w->scrollbar->header, (Vector2){10, 50});

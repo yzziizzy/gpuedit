@@ -1332,6 +1332,30 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 }
 
 
+void Buffer_LineEnsureEnding(Buffer* b, BufferLine* bl, char* text, intptr_t length) {
+	if(!text) return;
+	if(!length) return;
+	
+	if(bl->length >= length) {
+		if(0 == strncmp(bl->buf + bl->length - length, text, length)) return;
+	}
+	
+	Buffer_LineAppendText(b, bl, text, length);
+}
+
+void Buffer_LineEnsureEndingSelection(Buffer* b, BufferRange* sel, char* text, intptr_t length) {
+	if(!text) return;
+	if(!length) return;
+
+	BufferLine* bl = sel->startLine;
+	while(bl) {
+		Buffer_LineEnsureEnding(b, bl, text, length);
+		
+		if(bl == sel->endLine) break;
+		bl = bl->next;
+	}
+}
+
 
 void Buffer_LinePrependText(Buffer* b, BufferLine* bl, char* text) {
 	if(!text) return;
@@ -1349,6 +1373,19 @@ void Buffer_LinePrependTextSelection(Buffer* b, BufferRange* sel, char* text) {
 	BufferLine* bl = sel->startLine;
 	while(bl) {
 		Buffer_LinePrependText(b, bl, text);
+		
+		if(bl == sel->endLine) break;
+		bl = bl->next;
+	}
+}
+	
+void Buffer_LineAppendTextSelection(Buffer* b, BufferRange* sel, char* text, intptr_t length) {
+	if(!text) return;
+	if(!length) return;
+
+	BufferLine* bl = sel->startLine;
+	while(bl) {
+		Buffer_LineAppendText(b, bl, text, length);
 		
 		if(bl == sel->endLine) break;
 		bl = bl->next;

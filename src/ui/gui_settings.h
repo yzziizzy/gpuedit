@@ -70,7 +70,11 @@
 	SETTING(charp, fileBrowserATimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
 	SETTING(charp, fileBrowserMTimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
 	SETTING(charp, fileBrowserCTimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
-
+	SETTING(float, fileBrowserHeaderHeight,       25,          10,   9999) \
+	SETTING(charp, fileBrowserHeaderTextColor,    "#ff00ffff", NULL, NULL) \
+	SETTING(charp, fileBrowserHeaderBgColor,      "#fff00fff", NULL, NULL) \
+	SETTING(charp, fileBrowserHeaderBorderColor,  "#ffff00ff", NULL, NULL) \
+	
 
 
 
