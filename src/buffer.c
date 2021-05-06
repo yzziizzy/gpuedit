@@ -1846,6 +1846,8 @@ int Buffer_RemoveDictWord(Buffer* b, char* word) {
 }
 
 void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
+	return;
+	
 	size_t n;
 	char* s = l->buf;
 	

@@ -205,7 +205,7 @@ static void render(GUIMainControl* w, PassFrameParams* pfp) {
 	// only render the active tab
 	if(w->currentIndex > -1) {
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a) GUIHeader_render((GUIHeader*)a->client, pfp);
+		if(a && a->client) GUIHeader_render(a->client, pfp);
 	}
 	
 	GUIHeader_renderChildren(&w->header, pfp);
