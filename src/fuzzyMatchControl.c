@@ -344,9 +344,9 @@ CLEANUP:
 
 	char* input = w->searchTerm;
 
-	fcandidate* matches;
+	fcandidate* matches = NULL;
 	int n_matches = 0;
-	int err = 0;
+	int err = -1;
 
 	if(input) {
 		err = fuzzy_match_fcandidate(candidates, n_candidates, &matches, &n_matches, input, 0);
