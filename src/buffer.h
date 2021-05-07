@@ -405,6 +405,7 @@ typedef struct GUIManager GUIManager;
 // they are internal functions used by Buffer_raw_ operations
 BufferLine* BufferLine_New();
 void BufferLine_Delete(BufferLine* l);
+void Buffer_InitEmpty(Buffer* b);
 BufferLine* BufferLine_FromStr(char* text, intptr_t len);
 BufferLine* BufferLine_Copy(BufferLine* orig);
 void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len);

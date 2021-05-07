@@ -67,6 +67,11 @@ void Buffer_Delete(Buffer* b) {
 	Buffer_FreeAllUndo(b);
 }
 
+void Buffer_InitEmpty(Buffer* b) {
+	b->first = BufferLine_New();
+	b->last = b->first;
+	b->first->lineNum = 1;
+}
 
 
 //

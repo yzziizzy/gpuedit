@@ -1175,9 +1175,11 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 			return;
 		}
 	}
-	else {
-		Buffer_raw_InsertLineAfter(buf, NULL);
+	
+	if(buf->numLines == 0) {
+		Buffer_InitEmpty(buf);
 	}
+	
 	
 	GlobalSettings* lgs = GlobalSettings_Copy(w->gs);
 	
