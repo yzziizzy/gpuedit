@@ -101,6 +101,42 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	HT_init(&gm->cmdFlagLookup, 32);
 	VEC_INIT(&gm->cmdList);
 	
+	
+	// set up commands
+	
+	char* flag_names[] = {
+		"resetCursorBlink",
+		NULL,
+	};
+	
+	for(int i = 0; flag_names[i]; i++) 
+		GUIManager_AddCommandFlag(gm, flag_names[i]);
+	
+	
+	struct {char* n; uint16_t id;} elem_names[] = {
+	#define X(a) { #a, GUIELEMENT_##a },
+	GUI_ELEMENT_LIST
+		{NULL, 0},
+	#undef X
+	};
+	
+	for(int i = 0; elem_names[i].n; i++) 
+		GUIManager_AddCommandElement(gm, elem_names[i].n, elem_names[i].id);
+	
+	
+	struct {char* en; char* n; uint32_t id;} cmd_names[] = {
+	#define X(a, b) { #a, #b, GUICMD_##a##_##b },
+	GUI_COMMAND_LIST
+		{NULL, NULL, 0},
+	#undef X
+	};
+	
+	for(int i = 0; cmd_names[i].n; i++) 
+		GUIManager_AddCommand(gm, cmd_names[i].en, cmd_names[i].n, cmd_names[i].id);
+	
+	
+	
+	
 	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
 	gm->defaults.fontSize = .45;
 	decodeHexColorNorm(gs->textColor, (float*)&(gm->defaults.textColor));
@@ -118,6 +154,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	decodeHexColorNorm(gs->editBorderColor, (float*)&(gm->defaults.editBorderColor));
 	decodeHexColorNorm(gs->editBgColor, (float*)&(gm->defaults.editBgColor));
 	decodeHexColorNorm(gs->editTextColor, (float*)&(gm->defaults.editTextColor));
+	decodeHexColorNorm(gs->editSelBgColor, (float*)&(gm->defaults.editSelBgColor));
 	gm->defaults.editWidth = 150;
 	gm->defaults.editHeight = 18;
 

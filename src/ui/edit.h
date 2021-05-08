@@ -3,7 +3,7 @@
 
 
 
-
+// single-line only
 typedef struct GUIEdit {
 	GUIHeader header;
 	
@@ -12,11 +12,14 @@ typedef struct GUIEdit {
 	int textlen;
 	int cursorpos; // in characters
 	
+	int selEnd; // other side of the selection from the cursor. may be higher or lower.
+	
 	char numType; // 0 = text, 1 = int, 2 = float
 	double numVal;
 	
 // 	float fontSize;
 	float blinkRate;
+	float blinkTimer;
 	float cursorOffset; // in pixels
 	int hasFocus : 1;
 	int rightJustify : 1;

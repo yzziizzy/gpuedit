@@ -3,26 +3,35 @@
 #include "gui.h"
 #include "gui_internal.h"
 
+// temp hack
+#include "../clipboard.h"
 
 
 
 static void insertChar(GUIEdit* ed, char c);
+static void insertString(GUIEdit* w, int where, char* text, size_t len);
 static void updateTextControl(GUIEdit* ed);
 static void setText(GUIEdit* ed, char* s);
 static void fireOnchange(GUIEdit* ed);
 static void fireOnEnter(GUIEdit* ed);
 
 
-static void moveCursor(GUIEdit* w, int delta) {
-	w->cursorpos = MIN(w->textlen + 1, MAX(0, w->cursorpos + delta));
+static void setCursor(GUIEdit* w, int pos) {
+	w->cursorpos = MIN(w->textlen + 1, MAX(0, pos));
 	w->cursorOffset = gui_getDefaultUITextWidth(w->header.gm, w->buf, w->cursorpos);
 }
+
+static void moveCursor(GUIEdit* w, int delta) {
+	setCursor(w, w->cursorpos + delta);
+}
+
 
 
 static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 	GUIManager* gm = w->header.gm;
 	Vector2 tl = w->header.absTopLeft;
+	GUIHeader* h = &w->header;
 	
 	float textOffset = 0;
 	float textWidth = gui_getDefaultUITextWidth(gm, w->buf, w->textlen);
@@ -39,66 +48,63 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	int cursorAlpha = 0;
 	float cursorOff = 0;
 	
-	if(w->hasFocus && fmod(pfp->wallTime, 1.0) > .5) {
+	w->blinkTimer += pfp->timeElapsed;
+	
+	if(w->hasFocus && w->blinkTimer < 0.7) {
+		
 		cursorOff = textOffset + tl.x + (w->cursorOffset /** w->textControl->fontSize * .01*/);
 		cursorAlpha = 1;
 	}
+	
+	w->blinkTimer = fmodf(w->blinkTimer, 1.4);
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 2);
 	
 // 	printf("tl: %f,%f | %f,%f\n", tl.x, tl.y, w->header.size.x, w->header.size.y);
 	
 	// bg
-	*v++ = (GUIUnifiedVertex){
-		.pos = {tl.x, tl.y, tl.x + w->header.size.x, tl.y + w->header.size.y},
-		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-		
-		.guiType = 4, // bordered window 
-		
-		.texIndex1 = 1, .texIndex2 = 0, .texFade = 0,
-		.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
-		
-		.fg = GUI_COLOR4_TO_SHADER(gm->defaults.editBorderColor),
-		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.editBgColor),
-		
-		.z = w->header.absZ + .1,
-		.alpha = 1,
-	};
+	gui_drawBoxBorder(gm, tl, h->size, &h->absClip, h->absZ, &gm->defaults.editBgColor, 1, &gm->defaults.editBorderColor);
 	
+	// selection background
+	if(w->cursorpos != w->selEnd) {
+		int mincp = MIN(w->cursorpos, w->selEnd);
+		int maxcp = MAX(w->cursorpos, w->selEnd);
+		
+		// get text pixel offsets
+		float mincpx = gui_getDefaultUITextWidth(gm, w->buf, mincp);
+		float maxcpx = gui_getDefaultUITextWidth(gm, w->buf, maxcp);
+		
+		// TODO: find weird problem ith 2x voodoo offset
+		gui_drawBox(gm, 
+			(Vector2){tl.x + textOffset + mincpx, tl.y + 1},
+			(Vector2){maxcpx - mincpx + 2, h->size.y - 2},
+			&h->absClip, h->absZ + 0.1, 
+			&gm->defaults.editSelBgColor
+		);
+	
+	}
 	
 	struct Color4 cc = gm->defaults.cursorColor;
 	cc.a = 1.0; //cursorAlpha;
 	
-	
 	// cursor
 	if(cursorAlpha > 0) {
-		*v = (GUIUnifiedVertex){
-			.pos = {cursorOff, tl.y, cursorOff + 2, tl.y + w->header.size.y},
-			.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-			
-			.guiType = 0, // window 
-			
-			.texIndex1 = 0, .texIndex2 = 0, .texFade = 0,
-			.texOffset1 = 0, .texOffset2 = 0, .texSize1 = 0, .texSize2 = 0,
-			
-			.fg = GUI_COLOR4_TO_SHADER(cc), 
-			.bg = GUI_COLOR4_TO_SHADER(cc), 
-			
-			.z = w->header.absZ + .25,
-			.alpha = cursorAlpha,
-		};
+		gui_drawBox(gm,
+			(Vector2){cursorOff + textOffset, tl.y + 1},
+			(Vector2){2, h->size.y - 2},
+			&h->absClip, h->absZ + .25, 
+			&cc
+		);
 	}
 	
-	AABB2 box;
-	box.min.x = tl.x + textOffset;
-	box.min.y = tl.y;
-	box.max.x = 3000;
-	box.max.y = tl.y + 30;
+	gui_drawVCenteredTextLine(gm, 
+		(Vector2){tl.x + textOffset, tl.y}, 
+		h->size, &h->absClip, 
+		&gm->defaults.editTextColor, 
+		h->absZ + .2, 
+		w->buf, w->textlen
+	);
 	
-	gui_drawTextLine(w->header.gm, (Vector2){box.min.x, box.min.y}, (Vector2){3000,0}, &w->header.absClip, &gm->defaults.editTextColor , w->header.absZ + .2, w->buf, w->textlen);
-// 	printf("%s %f,%f\n", w->buf, tl.x, tl.y);
-	
-// 	GUIHeader_renderChildren(&w->header, pfp);
 	
 	
 
@@ -109,7 +115,7 @@ static void delete(GUIEdit* w) {
 	free(w->buf);
 }
 
-void removeChar(GUIEdit* ed, int index) {
+static void removeChar(GUIEdit* ed, int index) {
 	if(index >= ed->textlen || index < 0) return;
 	
 	char* e = ed->buf + index;
@@ -121,12 +127,15 @@ void removeChar(GUIEdit* ed, int index) {
 	ed->textlen--;
 }
 
-
-void backspace(GUIEdit* ed) {
-	if(ed->cursorpos <= 0) return;
+static void removeRange(GUIEdit* w, int a, int b) {
+	int min = MIN(a, b);
+	int max = MAX(a, b);
 	
+	memmove(w->buf + min, w->buf + max, w->textlen + 1 - max);
 	
+	w->textlen -= max - min;
 }
+
 
 
 static int recieveText(InputEvent* ev, GUIEdit* ed) {
@@ -158,48 +167,13 @@ static void lostFocus(GUIHeader* w_, GUIEvent* gev) {
 static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	GUIEdit* w = (GUIEdit*)w_;
 	
-	if((gev->modifiers == GUIMODKEY_CTRL) && (gev->keycode == XK_BackSpace)) {
-		setText(w, "");
-		
-		fireOnchange(w);
-		
-		gev->cancelled = 1;
-	}
-	
-	// NOTE: paste will be an event type
 	if(gev->modifiers & (GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX)) return;
 	
-	if(gev->keycode == XK_Left) {
-		moveCursor(w, -1);
-		gev->cancelled = 1;
-	}
-	else if(gev->keycode == XK_Right) {
-		moveCursor(w, 1);
-		gev->cancelled = 1;
-	}
-	/*else if(gev->keycode == XK_Return) {
-		fireOnEnter(w);
-		gev->cancelled = 1;
-	}*/
-	else if(gev->keycode == XK_BackSpace) {
-		removeChar(w, w->cursorpos - 1);
-		moveCursor(w, -1);
-		
-		fireOnchange(w);
-		
-		gev->cancelled = 1;
-	}
-	else if(gev->keycode == XK_Delete) {
-		removeChar(w, w->cursorpos);
-		
-		fireOnchange(w);
-		
-		gev->cancelled = 1;
-	}
-	else if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		printf("char: %d\n", gev->character);
+	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		insertChar(w, gev->character);
 		w->cursorpos++;
+		w->selEnd = w->cursorpos;
+		w->blinkTimer = 0.0;
 		
 		fireOnchange(w);
 		
@@ -213,6 +187,79 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 
 
 
+
+static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUIEdit* w = (GUIEdit*)w_;
+	
+	switch(cmd->cmd) {
+		case GUICMD_Edit_MoveCursorH:
+			moveCursor(w, cmd->amt);
+			w->selEnd = w->cursorpos;
+			w->blinkTimer = 0.0;
+			break;
+			
+		case GUICMD_Edit_GrowSelectionH:
+			moveCursor(w, cmd->amt);
+			w->blinkTimer = 0.0;
+			break;
+			
+		case GUICMD_Edit_Backspace:
+			if(w->cursorpos != w->selEnd) {
+				removeRange(w, w->cursorpos, w->selEnd);
+				setCursor(w, MIN(w->cursorpos, w->selEnd));
+			}
+			else {
+				removeChar(w, w->cursorpos - 1);
+				moveCursor(w, -1);
+			}
+			w->selEnd = w->cursorpos;
+			w->blinkTimer = 0.0;
+			break;
+			
+		case GUICMD_Edit_Delete:
+			if(w->cursorpos != w->selEnd) {
+				removeRange(w, w->cursorpos, w->selEnd);
+				setCursor(w, MIN(w->cursorpos, w->selEnd));
+			}
+			else {
+				removeChar(w, w->cursorpos);
+			}
+			w->selEnd = w->cursorpos;
+			w->blinkTimer = 0.0;
+			break;
+			
+		case GUICMD_Edit_Copy:
+			printf("edit copy nyi\n");
+			w->blinkTimer = 0.0;
+			break;
+			
+		case GUICMD_Edit_Paste: {
+			char* tmp;
+			size_t tmplen;
+			
+			if(w->cursorpos != w->selEnd) {
+				removeRange(w, w->cursorpos, w->selEnd);
+				setCursor(w, MIN(w->cursorpos, w->selEnd));
+			}
+			
+			Clipboard_PeekRawText(cmd->amt, &tmp, &tmplen);
+			if(tmplen == 0) break;
+			
+			insertString(w, w->cursorpos, tmp, tmplen);
+			
+			moveCursor(w, tmplen);
+			w->selEnd = w->cursorpos;
+
+			w->blinkTimer = 0.0;
+			break;
+		}
+	}
+	
+	updateTextControl(w);
+}
+
+
+
 GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	
 	GUIEdit* w;
@@ -221,6 +268,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
 		.Delete = (void*)delete,
+		.HandleCommand = (void*)handleCommand,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
@@ -239,7 +287,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 	pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	
+	w->header.cmdElementType = GUIELEMENT_Edit;
 	
 	w->header.size.x = gm->defaults.editWidth;
 	w->header.size.y = gm->defaults.editHeight;
@@ -304,6 +352,21 @@ static void insertChar(GUIEdit* ed, char c) {
 	
 	ed->textlen++;
 	*(e) = c;
+}
+
+static void insertString(GUIEdit* w, int where, char* text, size_t len) {
+	if(where > w->textlen) where = w->textlen;
+	
+	checkBuffer(w, len + w->textlen);
+	
+	if(where != w->textlen) {
+		memmove(w->buf + where + len, w->buf + where, w->textlen - where);
+	}
+	
+	// move the latter chunk down
+	memcpy(w->buf + where, text, len);
+	w->textlen += len;
+	w->buf[w->textlen] = 0;
 }
 
 static void updateTextControl(GUIEdit* ed) {

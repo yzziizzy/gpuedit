@@ -40,6 +40,7 @@
 	SETTING(charp, editBorderColor,               "#19f519ff", NULL, NULL) \
 	SETTING(charp, editBgColor,                   "#143219ff", NULL, NULL) \
 	SETTING(charp, editTextColor,                 "#c8c8c8ff", NULL, NULL) \
+	SETTING(charp, editSelBgColor,                "#a0a0ccff", NULL, NULL) \
 	SETTING(charp, cursorColor,                   "#f0f0f0ff", NULL, NULL) \
 	SETTING(charp, tabTextColor,                  "#c8c8c8ff", NULL, NULL) \
 	SETTING(charp, tabBorderColor,                "#787878ff", NULL, NULL) \

@@ -15,6 +15,7 @@
 #include "fileBrowser.h"
 #include "fuzzyMatchControl.h"
 #include "grepOpenControl.h"
+#include "calcControl.h"
 
 // temporary, should be separated
 #include "window.h"
@@ -565,6 +566,10 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		GUIMainControl_GrepOpen(w, NULL);
 		break;
 
+	case MainCmd_Calculator:
+		GUIMainControl_Calculator(w);
+		break;
+
 	case MainCmd_MainMenu:
 		GUIMainControl_OpenMainMenu(w);
 		break;
@@ -1058,6 +1063,22 @@ void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm) {
 	GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 	
 	GUIGrepOpenControl_Refresh(goc);
+}
+
+
+void GUIMainControl_Calculator(GUIMainControl* w) {
+	
+
+	GUICalculatorControl* c = GUICalculatorControl_New(w->header.gm);
+	c->gs = w->gs;
+	c->commands = w->commands;
+	
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &c->header, "calculator");
+	tab->type = MCTAB_CALCULATOR;
+	
+	c->header.parent = (GUIHeader*)w;
+
+	GUIMainControl_nthTabOfType(w, MCTAB_CALCULATOR, 1);
 }
 
 

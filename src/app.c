@@ -128,7 +128,6 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	char* flag_names[] = {
 		"scrollToCursor",
 		"rehighlight",
-		"resetCursorBlink",
 		"undoSeqBreak",
 		"hideMouse",
 		"centerOnCursor",

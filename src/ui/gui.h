@@ -436,6 +436,7 @@ typedef struct GUIManager {
 		struct Color4 editBgColor;
 		struct Color4 editBorderColor;
 		struct Color4 editTextColor;
+		struct Color4 editSelBgColor;
 		float         editHeight;
 		float         editWidth;
 		struct Color4 buttonTextColor;

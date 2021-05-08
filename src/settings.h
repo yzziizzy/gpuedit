@@ -11,6 +11,7 @@ typedef enum TabType {
 	MCTAB_FILEOPEN,
 	MCTAB_FUZZYOPEN,
 	MCTAB_GREPOPEN,
+	MCTAB_CALCULATOR,
 } TabType_t;
 
 typedef struct TabSpec {

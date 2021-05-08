@@ -11,13 +11,13 @@
 #include "commands.h"
 #include "highlight.h"
 
-
+/*
 typedef struct MainCmd {
 	int type;
 	int n;
 	char* path;
 } MainCmd;
-
+*/
 
 typedef struct MainControlTab {
 	GUIHeader* client;
@@ -117,6 +117,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt);
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);
 void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm);
 void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm);
+void GUIMainControl_Calculator(GUIMainControl* w);
 void GUIMainControl_CloseBuffer(GUIMainControl* w, int index);
 void GUIMainControl_CloseAllBufferPtr(GUIMainControl* w, Buffer* p);
 

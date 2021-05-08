@@ -15,8 +15,8 @@
 	X(Edit, Copy) \
 	X(Edit, Cut) \
 	X(Edit, Paste) \
-	X(Edit, MoveCursorV) \
 	X(Edit, MoveCursorH) \
+	X(Edit, GrowSelectionH) \
 	X(Edit, InsertChar) \
 	X(Edit, Delete) \
 	X(Edit, Backspace) \

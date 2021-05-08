@@ -76,6 +76,22 @@ void Clipboard_PushRawText(int which, char* raw, size_t len) {
 }
 
 
+void Clipboard_PeekRawText(int which, char** rawOut, size_t* lenOut) {
+	if(!clipboard) return;
+	
+	if(RING_LEN(&clipboard->stack[which]) == 0) {
+		*rawOut = NULL;
+		*lenOut = 0;
+		return;
+	}
+	
+	ClipboardClip* cc = RING_TAIL(&clipboard->stack[which]);
+	
+	*lenOut = cc->flatTextLen;
+	*rawOut = cc->flatText;
+}
+
+
 Buffer* Clipboard_PeekBuffer(int which) {
 	return RING_TAIL(&clipboard->stack[which])->b;
 }

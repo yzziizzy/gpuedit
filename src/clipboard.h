@@ -38,6 +38,7 @@ void Clipboard_Init();
 
 void Clipboard_PushBuffer(int which, Buffer* b);
 void Clipboard_PushRawText(int which, char* raw, size_t len);
+void Clipboard_PeekRawText(int which, char** rawOut, size_t* lenOut);
 Buffer* Clipboard_PeekBuffer(int which);
 Buffer* Clipboard_PopBuffer(int which);
 

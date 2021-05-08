@@ -15,6 +15,7 @@ gpuedit_SOURCES = main.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
+	calcControl.c \
 	clipboard.c \
 	dumpImage.c \
 	fbo.c \

@@ -14,6 +14,7 @@
 	X(FileBrowser) \
 	X(FuzzyMatcher) \
 	X(GrepOpen) \
+	X(Calc) \
 	X(Debug) \
 
 
@@ -139,6 +140,7 @@
 	X(Main, OpenFileBrowser) \
 	X(Main, FuzzyOpener) \
 	X(Main, GrepOpen) \
+	X(Main, Calculator) \
 	X(Main, SaveActiveTab) \
 	X(Main, SaveAll) \
 	X(Main, Quit) \
