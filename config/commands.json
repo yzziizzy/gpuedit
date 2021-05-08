@@ -162,6 +162,9 @@
 			{elem: "Edit", cmd: "Delete", mods: "", key: "XK_Delete", amt: 1, flags: ['resetCursorBlink']},
 			{elem: "Edit", cmd: "Paste", mods: "C", key: "v", amt: 0, flags: ['resetCursorBlink']},
 			{elem: "Edit", cmd: "Copy", mods: "C", key: "c", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Cut", mods: "C", key: "x", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Undo", mods: "C", key: "z", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Redo", mods: "CS", key: "z", amt: 0, flags: ['resetCursorBlink']},
 		],
 	},
 }

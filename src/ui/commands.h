@@ -20,6 +20,8 @@
 	X(Edit, InsertChar) \
 	X(Edit, Delete) \
 	X(Edit, Backspace) \
+	X(Edit, Undo) \
+	X(Edit, Redo) \
 	
 	
 #define GUI_COMMAND_FLAG_LIST \
