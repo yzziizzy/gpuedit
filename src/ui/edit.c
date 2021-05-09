@@ -380,7 +380,7 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 static void checkUndo(GUIEdit* w, int c) {
 	int t = classifyChar(c);
 	
-	if(w->lastTypedClass != t) {
+	if(w->lastTypedClass != t && t != CCLASS_WS) {
 		undoTakeSnapshot(w);
 	}
 	
