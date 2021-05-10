@@ -1,15 +1,34 @@
 
+#include <ctype.h>
+
 #include "calcControl.h" 
 #include "ui/gui_internal.h"
 
-	
+#include "sti/rpn.h"
+
+
+
+
+static size_t parse(char* input, char*** output);
+static void setAnswer(GUICalculatorControl* w, double d);
+
+
 
 static void render(GUIHeader* w_, PassFrameParams* pfp) {
 	GUICalculatorControl* w = (GUICalculatorControl*)w_;
-	GUIManager* gm = w->header.gm;
-	GUIUnifiedVertex* v;
-
-
+	GUIHeader* h = &w->header;
+	GUIManager* gm = h->gm;
+	
+	Vector2 tl = h->absTopLeft;	
+	
+	gui_drawTextLine(gm, 
+		(Vector2){tl.x + 20, tl.y + h->size.y - 50}, 
+		(Vector2){h->size.x - 20, 20}, 
+		&h->absClip, 
+		&gm->defaults.selectedItemTextColor, h->absZ + 0.1, 
+		w->answer, strlen(w->answer)
+	);
+	
 
 	
 	GUIHeader_renderChildren(&w->header, pfp);
@@ -27,6 +46,15 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 
 
 
+
+
+static void reap(GUIHeader* w_) {
+	GUICalculatorControl* w = (GUICalculatorControl*)w_;
+	if(w->answer) {
+		free(w->answer);
+		w->answer = NULL;
+	}
+}
 
 
 static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
@@ -67,12 +95,11 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	
 	if((GUIEdit*)gev->originalTarget == w->inputBox) {
 		if(0 == strcmp(gev->userType, "change")) {
-//			w->cursorIndex = 0;
 						
 //			if(w->searchTerm) free(w->searchTerm);
 //			w->searchTerm = strndup(gev->userData, gev->userSize);
 			
-//			GUICalculatorControl_Refresh(w);
+			GUICalculatorControl_Refresh(w);
 		}
 	}
 }
@@ -82,6 +109,7 @@ GUICalculatorControl* GUICalculatorControl_New(GUIManager* gm) {
 
 	static struct gui_vtbl static_vt = {
 		.Render = (void*)render,
+		.Reap = reap,
 		.UpdatePos = (void*)updatePos,
 		.HandleCommand = (void*)handleCommand,
 	};
@@ -117,10 +145,138 @@ GUICalculatorControl* GUICalculatorControl_New(GUIManager* gm) {
 	w->inputBox->header.topleft.x = 0;
 	w->inputBox->header.size.y = 25;
 	
+	w->ansalloc = 64;
+	w->answer = calloc(1, sizeof(*w->answer) * w->ansalloc);
 	
 	
 	GUI_RegisterObject(w, w->inputBox);
 	
 	return w;
 }
+
+
+
+static void setAnswer(GUICalculatorControl* w, double d) {
+	snprintf(w->answer, w->ansalloc, "%f", d);
+}
+
+
+
+
+
+
+static size_t parse(char* input, char*** output) {
+	char* s = input;
+	size_t alloc = 32;
+	size_t len = 0;
+	char** out = malloc(alloc * sizeof(*out));
+	
+	
+	for(; *s; ) {
+		if(len >= alloc) {
+			alloc *= 2;
+			out = realloc(out, alloc * sizeof(*out));
+		}
+		
+		if(isalnum(*s) || *s == '.') {
+			char* e = s;
+			while(*e && (isalnum(*e) || *e == '.')) e++;
+			
+			out[len] = strndup(s, e - s);
+			len++;
+			
+			s = e;
+			continue;
+		}
+		
+		switch(*s) {
+			case '*':
+			case '/':
+			case '+':
+			case '-':
+			case '(':
+			case ')':
+			case '[':
+			case ']':
+			case ',':
+			case ';':
+				out[len] = strndup(s, 1);
+				len++;
+				s++;
+				break;
+				
+			case ' ':
+			case '\r':
+			case '\n':
+			default:
+				s++;
+				continue;
+		}
+	}
+	
+	// null-terminate the list
+	if(len >= alloc) {
+		out = realloc(out, (alloc+1) * sizeof(*out));
+	}
+	out[len] = NULL;
+		
+	*output = out;
+	
+	return len;
+}
+
+
+
+
+
+static void freeptrlist(void* _p) {
+	void** p = (void**)_p;
+	void** q = p;
+	while(*q) {
+		free(*q);
+		q++;
+	}
+	free(p);
+}
+
+void GUICalculatorControl_Refresh(GUICalculatorControl* w) {
+	
+	char* q = GUIEdit_GetText(w->inputBox);
+	
+	
+	char** tokens;
+	size_t qlen = parse(q, &tokens);
+	
+	
+
+	sti_op_prec_rule rules[] = {
+		{"",   0, STI_OP_ASSOC_NONE,  0},
+		{"+",  1, STI_OP_ASSOC_LEFT,  2},
+		{"-",  1, STI_OP_ASSOC_LEFT,  2},
+		{"*",  2, STI_OP_ASSOC_LEFT,  2},
+//		{"**", 3, STI_OP_ASSOC_LEFT,  2},
+		{"/",  2, STI_OP_ASSOC_LEFT,  2},
+		{"(",  8, STI_OP_OPEN_PAREN,  0},
+		{")",  8, STI_OP_CLOSE_PAREN, 0},
+		{"[",  9, STI_OP_OPEN_PAREN,  0},
+		{"]",  9, STI_OP_CLOSE_PAREN, 0},
+		{NULL, 0, 0, 0},
+	};
+
+
+
+	char** rpn;
+	size_t rlen = 0;
+	int ret = 0;
+	
+	ret = infix_to_rpn(rules, tokens, &rpn, &rlen);
+	if(!ret) {
+		setAnswer(w, rpn_eval_double_str(rpn));
+		free(rpn);
+	}
+	
+	// rpn is a list of the same strings from tokens
+	freeptrlist(tokens);
+}
+
 
