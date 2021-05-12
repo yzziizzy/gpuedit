@@ -39,6 +39,7 @@ static void render(GUIHeader* w_, PassFrameParams* pfp) {
 static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUICalculatorControl* w = (GUICalculatorControl*)w_;
 
+	w->history->header.size.y = w_->size.y - (w->inputBox->header.size.y * 2);
 
 	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
@@ -145,11 +146,18 @@ GUICalculatorControl* GUICalculatorControl_New(GUIManager* gm) {
 	w->inputBox->header.topleft.x = 0;
 	w->inputBox->header.size.y = 25;
 	
-	w->ansalloc = 64;
+	
+	w->history = GUIStringList_New(gm);
+	w->history->header.flags |= GUI_MAXIMIZE_X;
+	w->history->header.size.y = 200;
+	w->history->maxItems = 20;
+	
+	w->ansalloc = 128;
 	w->answer = calloc(1, sizeof(*w->answer) * w->ansalloc);
 	
 	
 	GUI_RegisterObject(w, w->inputBox);
+	GUI_RegisterObject(w, w->history);
 	
 	return w;
 }
@@ -158,6 +166,7 @@ GUICalculatorControl* GUICalculatorControl_New(GUIManager* gm) {
 
 static void setAnswer(GUICalculatorControl* w, double d) {
 	snprintf(w->answer, w->ansalloc, "%f", d);
+	GUIStringList_PrependItem(w->history, w->answer);
 }
 
 

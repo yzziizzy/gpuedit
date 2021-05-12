@@ -19,6 +19,7 @@ typedef struct GUICalculatorControl {
 	size_t ansalloc;
 	
 	GUIEdit* inputBox;
+	GUIStringList* history;
 	
 	GlobalSettings* gs;
 	GUI_Cmd* commands;
