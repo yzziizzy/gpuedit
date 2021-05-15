@@ -38,6 +38,7 @@ gpuedit_SOURCES = main.c \
 	shader.c \
 	statusBar.c \
 	sti/sti.c \
+	terminal.c \
 	texture.c \
 	textureAtlas.c \
 	ui/animations/pulse.c \

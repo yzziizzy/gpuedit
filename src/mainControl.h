@@ -118,6 +118,7 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);
 void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm);
 void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm);
 void GUIMainControl_Calculator(GUIMainControl* w);
+void GUIMainControl_Terminal(GUIMainControl* w);
 void GUIMainControl_CloseBuffer(GUIMainControl* w, int index);
 void GUIMainControl_CloseAllBufferPtr(GUIMainControl* w, Buffer* p);
 

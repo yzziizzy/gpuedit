@@ -32,6 +32,7 @@
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
 			{elem: "Main", cmd: "NewEmptyBuffer", mods: "CS", key: "n", amt: 0},
 			{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
+			{elem: "Main", cmd: "Terminal", mods: "T", key: "t", amt: 0},
 			
 			{elem: "Buffer", cmd: "ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 			

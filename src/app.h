@@ -119,7 +119,7 @@ struct child_process_info {
 
 
 void AppState_ExecProcess(AppState* as, char* execPath, char* args[]);
-struct child_process_info* AppState_ExecProcessPipe(AppState* as, char* execPath, char* args[]);
+struct child_process_info* AppState_ExecProcessPipe(char* execPath, char* args[]);
 struct child_pty_info* AppState_ExecProcessPTY(AppState* as, char* execPath, char* args[]);
 
 
