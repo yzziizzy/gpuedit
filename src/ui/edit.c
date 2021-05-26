@@ -17,7 +17,7 @@ static void fireOnEnter(GUIEdit* ed);
 
 
 static void setCursor(GUIEdit* w, int pos) {
-	w->cursorpos = MIN(w->textlen + 1, MAX(0, pos));
+	w->cursorpos = MIN(w->textlen, MAX(0, pos));
 	w->cursorOffset = gui_getDefaultUITextWidth(w->header.gm, w->buf, w->cursorpos);
 }
 
@@ -202,7 +202,29 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 			moveCursor(w, cmd->amt);
 			w->blinkTimer = 0.0;
 			break;
+		
+		case GUICMD_Edit_GoToStart:
+			setCursor(w, 0);
+			w->selEnd = w->cursorpos;
+			w->blinkTimer = 0.0;
+			break;
 			
+		case GUICMD_Edit_GoToEnd:
+			setCursor(w, w->textlen);
+			w->selEnd = w->cursorpos;
+			w->blinkTimer = 0.0;
+			break;
+			
+		case GUICMD_Edit_GrowSelToStart:
+			setCursor(w, 0);
+			w->blinkTimer = 0.0;
+			break;
+			
+		case GUICMD_Edit_GrowSelToEnd:
+			setCursor(w, w->textlen);
+			w->blinkTimer = 0.0;
+			break;
+		
 		case GUICMD_Edit_Backspace:
 			if(w->cursorpos != w->selEnd) {
 				removeRange(w, w->cursorpos, w->selEnd);
@@ -215,7 +237,11 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 			w->selEnd = w->cursorpos;
 			w->blinkTimer = 0.0;
 			break;
-			
+		
+		case GUICMD_Edit_Clear:
+			setText(w, "");
+			break;
+		
 		case GUICMD_Edit_Delete:
 			if(w->cursorpos != w->selEnd) {
 				removeRange(w, w->cursorpos, w->selEnd);

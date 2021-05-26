@@ -17,9 +17,15 @@
 	X(Edit, Paste) \
 	X(Edit, MoveCursorH) \
 	X(Edit, GrowSelectionH) \
+	X(Edit, GoToStart) \
+	X(Edit, GoToEnd) \
+	X(Edit, GrowSelToStart) \
+	X(Edit, GrowSelToEnd) \
 	X(Edit, InsertChar) \
 	X(Edit, Delete) \
 	X(Edit, Backspace) \
+	X(Edit, Clear) \
+	
 	
 	
 #define GUI_COMMAND_FLAG_LIST \
