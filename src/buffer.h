@@ -298,6 +298,28 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x);
 
 typedef struct GUIStatusBar GUIStatusBar;
 
+
+
+typedef enum FindMask {
+	FM_NONE,
+	FM_SELECTION,
+	FM_SEQUENCE,
+} FindMask_t;
+
+typedef enum MatchMode {
+	GFMM_NONE,
+	GFMM_PLAIN,
+	GFMM_PCRE,
+	GFMM_FUZZY,
+} MatchMode_t;
+
+typedef struct GUIFindOpt {
+	char case_cmp;
+	MatchMode_t match_mode;
+} GUIFindOpt;
+
+
+
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
 	GUIHeader header;
@@ -325,6 +347,7 @@ typedef struct GUIBufferEditor {
 	GUIEdit* loadBox;
 	
 	char* findQuery;
+	GUIFindOpt find_opt;
 	pcre2_code* findRE;
 	pcre2_match_data* findMatch;
 	BufferLine* findLine;
@@ -374,13 +397,6 @@ typedef struct BufferCmd {
 } BufferCmd;
 
 
-
-
-typedef enum FindMask {
-	FM_NONE,
-	FM_SELECTION,
-	FM_SEQUENCE,
-} FindMask_t;
 
 typedef struct GUIFileOpt {
 	char* path;
@@ -506,7 +522,9 @@ void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, intptr_t c
 void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet, BufferRange* out);
 
 
-BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern);
+BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
+BufferRangeSet* GUIBufferEditor_FindAll_Fuzzy(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
+BufferRangeSet* GUIBufferEditor_FindAll_PCRE(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
 int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, intptr_t col);
 void BufferRangeSet_FreeAll(BufferRangeSet* s);
 

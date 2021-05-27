@@ -181,7 +181,7 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 			
 			GUIBufferEditor_StopFind(w);
 			
-			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
 			w->ec->findSet = w->findSet;
 			
 			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
@@ -437,7 +437,8 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	
 	w->findIndex = -1;
 	
-	w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+	w->find_opt.match_mode = GFMM_PCRE;
+	w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
 	w->ec->findSet = w->findSet;
 
 	// locate the match at/after the cursor
@@ -459,7 +460,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 	}
 	
 	if(w->findSet->changeCounter != w->buffer->changeCounter) {
-		w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+		w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
 		w->findIndex = -1;
 		printf("reset find index\n");
 	}
@@ -565,7 +566,29 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 
 
 
-BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
+BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt) {
+
+	switch(find_opt->match_mode) {
+		case GFMM_PLAIN:
+		case GFMM_PCRE:
+			return GUIBufferEditor_FindAll_PCRE(w, pattern, find_opt);
+			break;
+		case GFMM_FUZZY:
+			return GUIBufferEditor_FindAll_Fuzzy(w, pattern, find_opt);
+			break;
+		default:
+			return NULL;
+	}
+
+}
+
+
+BufferRangeSet* GUIBufferEditor_FindAll_Fuzzy(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt) {
+	return NULL;
+}
+
+
+BufferRangeSet* GUIBufferEditor_FindAll_PCRE(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt) {
 
 	BufferRangeSet* set = pcalloc(set);
 	set->changeCounter = w->buffer->changeCounter;
@@ -589,7 +612,14 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 	
 	
 	
-	uint32_t options = PCRE2_CASELESS;
+	uint32_t options = 0;
+	if(!find_opt->case_cmp) {
+		options |= PCRE2_CASELESS;
+	}
+	
+	if(find_opt->match_mode == GFMM_PLAIN) {
+		options |= PCRE2_LITERAL;
+	}
 	
 	findRE = pcre2_compile((PCRE2_SPTR)pattern, PCRE2_ZERO_TERMINATED, options, &errno, &erroff, NULL);
 	if(!findRE) {
