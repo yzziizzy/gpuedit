@@ -300,6 +300,42 @@ typedef struct GUIStatusBar GUIStatusBar;
 
 
 
+#define INPUT_MODE_LIST \
+	X(Buffer, 0, NULL,         NONE) \
+	X(Find,   1, find_tray,    FIND) \
+	X(Replace,2, replace_tray, REPLACE) \
+	X(GoTo,   3, goto_tray,    GOTO) \
+	X(Save,   4, save_tray,    SAVE) \
+
+
+#define X(mode, mode_num, template, tray_type) BIM_ ## mode = mode_num,
+typedef enum BufferInputMode { 
+	INPUT_MODE_LIST
+} BufferInputMode_t;
+#undef X
+
+//#define X(mode, mode_num, template, tray_type) GBT_ ## tray_type,
+//typedef enum TrayType {
+//	INPUT_MODE_LIST
+//} TrayType_t;
+//#undef X
+//
+//
+//typedef struct GUIBufferInputMode {
+//	BufferInputMode_t mode;
+//	TrayType_t type;
+//	char* template;
+//} GUIBufferInputMode;
+//
+//
+//typedef struct GUIBufferTray {
+//	TrayType_t type;
+//} GUIBufferTray;
+
+
+
+
+
 typedef enum FindMask {
 	FM_NONE,
 	FM_SELECTION,
@@ -333,13 +369,7 @@ typedef struct GUIBufferEditor {
 	
 	char* sourceFile; // issues with undo-save
 	
-//	unsigned int inputMode;
-//	InputMode_t inputMode;
-	
-	char findMode; 
-	char replaceMode; 
-	char lineNumTypingMode; // flag for GoToLine being active
-	char loadTypingMode; 
+	BufferInputMode_t inputMode; 
 	
 	GUIEdit* lineNumEntryBox;
 	GUIEdit* findBox;
