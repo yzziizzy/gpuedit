@@ -32,6 +32,7 @@
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
 			{elem: "Main", cmd: "NewEmptyBuffer", mods: "CS", key: "n", amt: 0},
 			{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
+			{elem: "Main", cmd: "Terminal", mods: "T", key: "t", amt: 0},
 			
 			{elem: "Buffer", cmd: "ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 			
@@ -167,6 +168,9 @@
 			{elem: "Edit", cmd: "Delete", mods: "", key: "XK_Delete", amt: 1, flags: ['resetCursorBlink']},
 			{elem: "Edit", cmd: "Paste", mods: "C", key: "v", amt: 0, flags: ['resetCursorBlink']},
 			{elem: "Edit", cmd: "Copy", mods: "C", key: "c", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Cut", mods: "C", key: "x", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Undo", mods: "C", key: "z", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Redo", mods: "CS", key: "z", amt: 0, flags: ['resetCursorBlink']},
 		],
 	},
 }

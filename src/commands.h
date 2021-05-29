@@ -141,6 +141,7 @@
 	X(Main, FuzzyOpener) \
 	X(Main, GrepOpen) \
 	X(Main, Calculator) \
+	X(Main, Terminal) \
 	X(Main, SaveActiveTab) \
 	X(Main, SaveAll) \
 	X(Main, Quit) \

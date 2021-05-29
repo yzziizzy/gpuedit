@@ -25,7 +25,8 @@
 	X(Edit, Delete) \
 	X(Edit, Backspace) \
 	X(Edit, Clear) \
-	
+	X(Edit, Undo) \
+	X(Edit, Redo) \
 	
 	
 #define GUI_COMMAND_FLAG_LIST \

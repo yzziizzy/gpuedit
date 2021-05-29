@@ -7,6 +7,21 @@
 #include "../clipboard.h"
 
 
+enum {
+	CCLASS_NONE,
+	CCLASS_ALNUM,
+	CCLASS_SYM,
+	CCLASS_WS,
+};
+
+typedef struct GUIEditUndo {
+	char* buf;
+	size_t len;
+	int cursorPos;
+	int selEnd;
+} GUIEditUndo; 
+
+
 
 static void insertChar(GUIEdit* ed, char c);
 static void insertString(GUIEdit* w, int where, char* text, size_t len);
@@ -14,15 +29,32 @@ static void updateTextControl(GUIEdit* ed);
 static void setText(GUIEdit* ed, char* s);
 static void fireOnchange(GUIEdit* ed);
 static void fireOnEnter(GUIEdit* ed);
+static void checkBuffer(GUIEdit* w, int minlen) ;
 
+static void undoTakeSnapshot(GUIEdit* w);
+static void undoRestore(GUIEdit* w);
+static void checkUndo(GUIEdit* w, int c);
+
+
+
+static int classifyChar(int c) {
+	if(isalnum(c)) {
+		return CCLASS_ALNUM;
+	}
+	else if(isspace(c)) {
+		return CCLASS_WS;
+	}
+	
+	return CCLASS_SYM;
+}
 
 static void setCursor(GUIEdit* w, int pos) {
-	w->cursorpos = MIN(w->textlen, MAX(0, pos));
-	w->cursorOffset = gui_getDefaultUITextWidth(w->header.gm, w->buf, w->cursorpos);
+	w->cursorPos = MIN(w->textlen, MAX(0, pos));
+	w->cursorOffset = gui_getDefaultUITextWidth(w->header.gm, w->buf, w->cursorPos);
 }
 
 static void moveCursor(GUIEdit* w, int delta) {
-	setCursor(w, w->cursorpos + delta);
+	setCursor(w, w->cursorPos + delta);
 }
 
 
@@ -66,9 +98,9 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	gui_drawBoxBorder(gm, tl, h->size, &h->absClip, h->absZ, &gm->defaults.editBgColor, 1, &gm->defaults.editBorderColor);
 	
 	// selection background
-	if(w->cursorpos != w->selEnd) {
-		int mincp = MIN(w->cursorpos, w->selEnd);
-		int maxcp = MAX(w->cursorpos, w->selEnd);
+	if(w->cursorPos != w->selEnd) {
+		int mincp = MIN(w->cursorPos, w->selEnd);
+		int maxcp = MAX(w->cursorPos, w->selEnd);
 		
 		// get text pixel offsets
 		float mincpx = gui_getDefaultUITextWidth(gm, w->buf, mincp);
@@ -140,7 +172,7 @@ static void removeRange(GUIEdit* w, int a, int b) {
 
 static int recieveText(InputEvent* ev, GUIEdit* ed) {
 	insertChar(ed, ev->character);
-	ed->cursorpos++;
+	ed->cursorPos++;
 	updateTextControl(ed);
 	
 	return 0;
@@ -170,10 +202,14 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	if(gev->modifiers & (GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX)) return;
 	
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
+		
+		checkUndo(w, gev->character);
+		
 		insertChar(w, gev->character);
-		w->cursorpos++;
-		w->selEnd = w->cursorpos;
+		w->cursorPos++;
+		w->selEnd = w->cursorPos;
 		w->blinkTimer = 0.0;
+		
 		
 		fireOnchange(w);
 		
@@ -194,7 +230,7 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 	switch(cmd->cmd) {
 		case GUICMD_Edit_MoveCursorH:
 			moveCursor(w, cmd->amt);
-			w->selEnd = w->cursorpos;
+			w->selEnd = w->cursorPos;
 			w->blinkTimer = 0.0;
 			break;
 			
@@ -205,13 +241,13 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 		
 		case GUICMD_Edit_GoToStart:
 			setCursor(w, 0);
-			w->selEnd = w->cursorpos;
+			w->selEnd = w->cursorPos;
 			w->blinkTimer = 0.0;
 			break;
 			
 		case GUICMD_Edit_GoToEnd:
 			setCursor(w, w->textlen);
-			w->selEnd = w->cursorpos;
+			w->selEnd = w->cursorPos;
 			w->blinkTimer = 0.0;
 			break;
 			
@@ -226,15 +262,15 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 			break;
 		
 		case GUICMD_Edit_Backspace:
-			if(w->cursorpos != w->selEnd) {
-				removeRange(w, w->cursorpos, w->selEnd);
-				setCursor(w, MIN(w->cursorpos, w->selEnd));
+			if(w->cursorPos != w->selEnd) {
+				removeRange(w, w->cursorPos, w->selEnd);
+				setCursor(w, MIN(w->cursorPos, w->selEnd));
 			}
 			else {
-				removeChar(w, w->cursorpos - 1);
+				removeChar(w, w->cursorPos - 1);
 				moveCursor(w, -1);
 			}
-			w->selEnd = w->cursorpos;
+			w->selEnd = w->cursorPos;
 			w->blinkTimer = 0.0;
 			break;
 		
@@ -243,42 +279,60 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 			break;
 		
 		case GUICMD_Edit_Delete:
-			if(w->cursorpos != w->selEnd) {
-				removeRange(w, w->cursorpos, w->selEnd);
-				setCursor(w, MIN(w->cursorpos, w->selEnd));
+			if(w->cursorPos != w->selEnd) {
+				removeRange(w, w->cursorPos, w->selEnd);
+				setCursor(w, MIN(w->cursorPos, w->selEnd));
 			}
 			else {
-				removeChar(w, w->cursorpos);
+				removeChar(w, w->cursorPos);
 			}
-			w->selEnd = w->cursorpos;
+			w->selEnd = w->cursorPos;
 			w->blinkTimer = 0.0;
 			break;
 			
+		case GUICMD_Edit_Cut:
+			if(w->cursorPos != w->selEnd) {
+				Clipboard_PushRawText(w, w->buf, w->textlen);
+				
+				removeRange(w, w->cursorPos, w->selEnd);
+				setCursor(w, MIN(w->cursorPos, w->selEnd));
+				
+				w->blinkTimer = 0.0;
+			}
+			break;
+			
 		case GUICMD_Edit_Copy:
-			printf("edit copy nyi\n");
-			w->blinkTimer = 0.0;
+			if(w->cursorPos != w->selEnd) {
+				Clipboard_PushRawText(w, w->buf, w->textlen);
+			}
 			break;
 			
 		case GUICMD_Edit_Paste: {
 			char* tmp;
 			size_t tmplen;
 			
-			if(w->cursorpos != w->selEnd) {
-				removeRange(w, w->cursorpos, w->selEnd);
-				setCursor(w, MIN(w->cursorpos, w->selEnd));
+			if(w->cursorPos != w->selEnd) {
+				removeRange(w, w->cursorPos, w->selEnd);
+				setCursor(w, MIN(w->cursorPos, w->selEnd));
 			}
 			
 			Clipboard_PeekRawText(cmd->amt, &tmp, &tmplen);
 			if(tmplen == 0) break;
 			
-			insertString(w, w->cursorpos, tmp, tmplen);
+			insertString(w, w->cursorPos, tmp, tmplen);
 			
 			moveCursor(w, tmplen);
-			w->selEnd = w->cursorpos;
+			w->selEnd = w->cursorPos;
 
 			w->blinkTimer = 0.0;
 			break;
 		}
+		
+		case GUICMD_Edit_Undo: 
+			undoRestore(w);
+			w->blinkTimer = 0.0;
+			break;
+		
 	}
 	
 	updateTextControl(w);
@@ -333,50 +387,98 @@ GUIEdit* GUIEdit_New(GUIManager* gm, char* initialValue) {
 		w->buf[0] = 0;
 	}
 	
-	w->cursorpos = w->textlen;
+	w->cursorPos = w->textlen;
+	w->selEnd = w->cursorPos;
 	
 // 	w->textControl = GUIText_new(gm, initialValue, "Arial", 6.0f);
 // 	w->textControl->header.z = 10000.5;
 // 	GUI_RegisterObject(&w->header, w->textControl);
 
-// 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorpos);
+// 	w->cursorOffset = guiTextGetTextWidth(w->textControl, w->cursorPos);
 	w->cursorOffset = gui_getDefaultUITextWidth(gm, initialValue, 9999999);
 	
-	
-	
-// 	w->textControl->header.onClick = (GUI_OnClickFn)click;
+	RING_INIT(&w->undo, 32);
+	w->lastTypedClass = CCLASS_NONE;
 	
 	return w;
 }
 
+static void checkUndo(GUIEdit* w, int c) {
+	int t = classifyChar(c);
+	
+	if(w->lastTypedClass != t && t != CCLASS_WS) {
+		undoTakeSnapshot(w);
+	}
+	
+	w->lastTypedClass = t;
+}
 
-static void growBuffer(GUIEdit* ed, int extra) {
-	ed->buflen = nextPOT(ed->textlen + extra + 1);
-	if(ed->buf) {
-		ed->buf = realloc(ed->buf, ed->buflen);
+static void undoTakeSnapshot(GUIEdit* w) {
+	GUIEditUndo* u = NULL;
+	
+	u = RING_TAIL(&w->undo);
+	
+	if(u && 0 == strncmp(w->buf, u->buf, MAX(w->textlen, u->len))) {
+		return;
+	}
+
+	u = pcalloc(u);
+	
+	u->buf = strndup(w->buf, w->textlen);
+	u->len = w->textlen;
+	u->cursorPos = w->cursorPos;
+	u->selEnd = w->selEnd;
+	
+	RING_PUSH(&w->undo, u);
+}
+
+static void undoRestore(GUIEdit* w) {
+	GUIEditUndo* u = NULL;
+	
+	RING_POP(&w->undo, u);
+	
+	if(!u) return;
+	
+	checkBuffer(w, u->len);
+	memcpy(w->buf, u->buf, u->len);
+	w->textlen = u->len;
+	
+	w->cursorPos = u->cursorPos;
+	w->selEnd = u->selEnd;
+	
+	free(u->buf);
+	free(u);
+}
+
+
+
+static void growBuffer(GUIEdit* w, int extra) {
+	w->buflen = nextPOT(w->textlen + extra + 1);
+	if(w->buf) {
+		w->buf = realloc(w->buf, w->buflen);
 	}
 	else {
-		ed->buf = calloc(1, ed->buflen);
+		w->buf = calloc(1, w->buflen);
 	}
 }
 
-static void checkBuffer(GUIEdit* ed, int minlen) {
-	if(ed->buflen < minlen + 1) {
-		growBuffer(ed, minlen - ed->buflen + 1);
+static void checkBuffer(GUIEdit* w, int minlen) {
+	if(w->buflen < minlen + 1) {
+		growBuffer(w, minlen - w->buflen + 1);
 	}
 }
 
 // at the cursor. does not move the cursor.
-static void insertChar(GUIEdit* ed, char c) { 
-	checkBuffer(ed, ed->textlen + 1);
+static void insertChar(GUIEdit* w, char c) { 
+	checkBuffer(w, w->textlen + 1);
 	
-	char* e = ed->buf + ed->textlen + 1; // copy the null terminator too
-	while(e >= ed->buf + ed->cursorpos + 1) {
+	char* e = w->buf + w->textlen + 1; // copy the null terminator too
+	while(e >= w->buf + w->cursorPos + 1) {
 		*e = *(e - 1);
 		e--;
 	}
 	
-	ed->textlen++;
+	w->textlen++;
 	*(e) = c;
 }
 
@@ -395,14 +497,14 @@ static void insertString(GUIEdit* w, int where, char* text, size_t len) {
 	w->buf[w->textlen] = 0;
 }
 
-static void updateTextControl(GUIEdit* ed) {
+static void updateTextControl(GUIEdit* w) {
 // 	GUIText_setString(ed->textControl, ed->buf);
 	
 	// get new cursor pos
-// 	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
-	ed->cursorOffset = gui_getDefaultUITextWidth(ed->header.gm, ed->buf, ed->cursorpos);
+// 	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorPos);
+	w->cursorOffset = gui_getDefaultUITextWidth(w->header.gm, w->buf, w->cursorPos);
 	
-	//printf("cursorpos %f\n", ed->cursorOffset); 
+	//printf("cursorPos %f\n", ed->cursorOffset); 
 	
 //	fireOnchange(ed);
 }
@@ -415,9 +517,9 @@ static void setText(GUIEdit* ed, char* s) {
 	strcpy(ed->buf, s);
 	ed->textlen = len;
 	
-	if(len < ed->cursorpos || ed->cursorpos == 0) {
-		ed->cursorpos = len;
-		ed->cursorOffset = gui_getDefaultUITextWidth(ed->header.gm, ed->buf, ed->cursorpos);
+	if(len < ed->cursorPos || ed->cursorPos == 0) {
+		ed->cursorPos = len;
+		ed->cursorOffset = gui_getDefaultUITextWidth(ed->header.gm, ed->buf, ed->cursorPos);
 	}
 	
 }

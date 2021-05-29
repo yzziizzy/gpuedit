@@ -7,11 +7,19 @@
 #include "commands.h"
 
 
+typedef struct CalcHistory {
+	
+} CalcHistory;
+
 
 typedef struct GUICalculatorControl {
 	GUIHeader header;
 	
+	char* answer;
+	size_t ansalloc;
+	
 	GUIEdit* inputBox;
+	GUIStringList* history;
 	
 	GlobalSettings* gs;
 	GUI_Cmd* commands;
@@ -24,5 +32,7 @@ GUICalculatorControl* GUICalculatorControl_New(GUIManager* gm);
 
 void GUICalculatorControl_ProcessCommand(GUICalculatorControl* w, GUI_Cmd* cmd);
 
+
+void GUICalculatorControl_Refresh(GUICalculatorControl* w);
 
 #endif // __gpuedit_calcControl_h__

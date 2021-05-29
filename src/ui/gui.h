@@ -256,6 +256,7 @@ typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 #define GUI_CHILD_TABBING   0x0020 // grab tab events and cycle focused elements
 
 
+
 struct GUIHeader {
 	struct GUIManager* gm;
 	GUIHeader* parent;
@@ -289,7 +290,7 @@ struct GUIHeader {
 	float absZ;
 	
 	
-	unsigned int flags   : 16;
+	unsigned int flags;
 	unsigned int gravity :  8;
 	unsigned int hidden  :  1;
 	unsigned int deleted :  1;
@@ -324,6 +325,7 @@ struct GUIHeader {
 #include "imgButton.h"
 #include "tree.h"
 #include "edit.h"
+#include "list.h"
 #include "selectBox.h"
 #include "slider.h"
 #include "columnLayout.h"

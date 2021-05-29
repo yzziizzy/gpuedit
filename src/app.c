@@ -386,6 +386,7 @@ struct child_pty_info* AppState_ExecProcessPTY(AppState* as, char* execPath, cha
 	else if(childPID == 0) { // child process
 		
 		setsid();
+		
 		// redirect standard fd's to the pipe fd's 
 		if(dup2(slave, fileno(stdin)) == -1) {
 			printf("failed 1\n");
@@ -447,7 +448,7 @@ struct child_pty_info* AppState_ExecProcessPTY(AppState* as, char* execPath, cha
 
 // effectively a better, asynchronous version of system()
 // redirects and captures the child process i/o
-struct child_process_info* AppState_ExecProcessPipe(AppState* as, char* execPath, char* args[]) {
+struct child_process_info* AppState_ExecProcessPipe(char* execPath, char* args[]) {
 	
 	int master, slave; //pty
 	int in[2]; // io pipes
@@ -596,7 +597,6 @@ void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*
 	while(args[i]) {
 		// printf("using search arg: %s\n", args[2]);
 		cc = AppState_ExecProcessPipe(
-			NULL,
 			args[i][0],
 			args[i]
 		);

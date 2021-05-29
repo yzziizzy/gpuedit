@@ -38,6 +38,7 @@ gpuedit_SOURCES = main.c \
 	shader.c \
 	statusBar.c \
 	sti/sti.c \
+	terminal.c \
 	texture.c \
 	textureAtlas.c \
 	ui/animations/pulse.c \
@@ -55,6 +56,7 @@ gpuedit_SOURCES = main.c \
 	ui/guiManager.c \
 	ui/image.c \
 	ui/imgButton.c \
+	ui/list.c \
 	ui/monitors.c \
 	ui/performanceGraph.c \
 	ui/selectBox.c \
