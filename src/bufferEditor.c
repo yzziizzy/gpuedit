@@ -28,10 +28,6 @@ static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
 // HACK
 // 	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
 	
-//	if(w->lineNumTypingMode) {
-//		GUIHeader_render(&w->lineNumEntryBox->header, pfp); 
-//	}
-	
 //	char* statusLine = "hello world";
 //	printf("status line: %s\n", statusLine);
 	
@@ -181,7 +177,7 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 			
 			GUIBufferEditor_StopFind(w);
 			
-			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
 			w->ec->findSet = w->findSet;
 			
 			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
@@ -207,7 +203,7 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	
-	if(w->findMode == 1 || w->replaceMode == 1) {
+	if(w->inputMode == BIM_Find || w->inputMode == BIM_Replace) {
 		GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 	}
 }
@@ -398,9 +394,9 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 		GUIBufferEditor_CloseTray(w);
 	}
 	
-	w->findMode = 1;
+	w->inputMode = BIM_Find;
 	w->trayOpen = 1;
-	w->header.cmdMode = 1;
+	w->header.cmdMode = BIM_Find;
 	
 	w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
 	GUI_RegisterObject(w, w->trayRoot);
@@ -437,7 +433,8 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	
 	w->findIndex = -1;
 	
-	w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+	w->find_opt.match_mode = GFMM_PCRE;
+	w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
 	w->ec->findSet = w->findSet;
 
 	// locate the match at/after the cursor
@@ -459,7 +456,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 	}
 	
 	if(w->findSet->changeCounter != w->buffer->changeCounter) {
-		w->findSet = GUIBufferEditor_FindAll(w, w->findQuery);
+		w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
 		w->findIndex = -1;
 		printf("reset find index\n");
 	}
@@ -565,7 +562,29 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 
 
 
-BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
+BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt) {
+
+	switch(find_opt->match_mode) {
+		case GFMM_PLAIN:
+		case GFMM_PCRE:
+			return GUIBufferEditor_FindAll_PCRE(w, pattern, find_opt);
+			break;
+		case GFMM_FUZZY:
+			return GUIBufferEditor_FindAll_Fuzzy(w, pattern, find_opt);
+			break;
+		default:
+			return NULL;
+	}
+
+}
+
+
+BufferRangeSet* GUIBufferEditor_FindAll_Fuzzy(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt) {
+	return NULL;
+}
+
+
+BufferRangeSet* GUIBufferEditor_FindAll_PCRE(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt) {
 
 	BufferRangeSet* set = pcalloc(set);
 	set->changeCounter = w->buffer->changeCounter;
@@ -589,7 +608,14 @@ BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern) {
 	
 	
 	
-	uint32_t options = PCRE2_CASELESS;
+	uint32_t options = 0;
+	if(!find_opt->case_cmp) {
+		options |= PCRE2_CASELESS;
+	}
+	
+	if(find_opt->match_mode == GFMM_PLAIN) {
+		options |= PCRE2_LITERAL;
+	}
 	
 	findRE = pcre2_compile((PCRE2_SPTR)pattern, PCRE2_ZERO_TERMINATED, options, &errno, &erroff, NULL);
 	if(!findRE) {
@@ -848,14 +874,14 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 			
 		case BufferCmd_GoToLineLaunch:
-			if(!w->lineNumTypingMode) {
+			if(w->inputMode != BIM_GoTo) {
 				if(w->trayOpen) {
 					GUIBufferEditor_CloseTray(w);
 				}
 				
-				w->lineNumTypingMode = 1;
+				w->inputMode = BIM_GoTo;
 				w->trayOpen = 1;
-				w->header.cmdMode = 3;
+				w->header.cmdMode = BIM_GoTo;
 				
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "goto_tray");
 				GUI_RegisterObject(w, w->trayRoot);
@@ -873,7 +899,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 			break;
 		
 		case BufferCmd_GoToLineSubmit:
-			if(w->lineNumTypingMode) {
+			if(w->inputMode == BIM_GoTo) {
 				intptr_t line_num = strtol(GUIEdit_GetText(w->lineNumEntryBox), NULL, w->gs->Buffer_lineNumBase);
 				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
 				
@@ -883,7 +909,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 				}
 				
 				GUIBufferEditor_CloseTray(w);
-				w->lineNumTypingMode = 0;
+				w->inputMode = BIM_Buffer;
 				GUIManager_popFocusedObject(w->header.gm);
 			}
 			break;
@@ -924,15 +950,15 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		}
 		
 		case BufferCmd_ReplaceStart:
-			if(!w->replaceMode) {
+			if(w->inputMode != BIM_Replace) {
 				char* preserved = NULL;
 				if(w->trayOpen) {
 					GUIBufferEditor_CloseTray(w);
 				}
 				
-				w->replaceMode = 1;
+				w->inputMode = BIM_Replace;
 				w->trayOpen = 1;
-				w->header.cmdMode = 2;
+				w->header.cmdMode = BIM_Replace;
 		
 				
 				w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "replace_tray");
@@ -987,10 +1013,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		case BufferCmd_CloseTray:
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);
-				w->lineNumTypingMode = 0;
-				w->findMode = 0;
-				w->loadTypingMode = 0;
-				w->header.cmdMode = 0;
+				w->inputMode = BIM_Buffer;
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 				
@@ -1118,10 +1141,10 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 	if(!w->trayOpen) return;
 // 	
 	w->trayOpen = 0;
-	w->findMode = 0;
-	w->replaceMode = 0;
+	w->inputMode = BIM_Buffer;
 	
-	w->header.cmdMode = 0;
+	
+	w->header.cmdMode = BIM_Buffer;
 	
 	GUI_Delete(w->trayRoot);
 	w->trayRoot = NULL;

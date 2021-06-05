@@ -33,15 +33,15 @@
 
 		"textColor": "#000000ff",
 		
-		"buttonTextColor": "#c8c8e1ff",
-		"buttonHoverTextColor": "#c80202ff",
-		"buttonDisTextColor": "#141414ff",
-		"buttonBgColor": "#0202e1ff",
-		"buttonHoverBgColor": "#c8c802ff",
-		"buttonDisBgColor": "#646464ff",
-		"buttonBorderColor": "#c802e1ff",
-		"buttonHoverBorderColor": "#02c8e1ff",
-		"buttonDisBorderColor": "#14147dff",
+		"buttonTextColor":        "#282a2eff", // color0
+		"buttonHoverTextColor":   "#373b41ff", // color8
+		"buttonDisTextColor":     "#c5c8c6ff", // color15
+		"buttonBgColor":          "#5f819dff", // color4
+		"buttonHoverBgColor":     "#81a2beff", // color12
+		"buttonDisBgColor":       "#282a2eff", // color0
+		"buttonBorderColor":      "#707880ff", // color7
+		"buttonHoverBorderColor": "#707880ff", // color7
+		"buttonDisBorderColor":   "#707880ff", // color7
 	
 		"editBorderColor": "#333333ff",
 		"editBgColor": "#ffffffff",
@@ -75,5 +75,9 @@
 		
 		"statusBarBgColor": "#eeeeeeff",
 		"statusBarTextColor": "#333333ff",
+		
+		"fileBrowserHeaderTextColor":   "#333333ff",
+		"fileBrowserHeaderBgColor":     "#ddddddff",
+		"fileBrowserHeaderBorderColor": "#999999ff",
 	},
 }

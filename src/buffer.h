@@ -298,6 +298,64 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x);
 
 typedef struct GUIStatusBar GUIStatusBar;
 
+
+
+#define INPUT_MODE_LIST \
+	X(Buffer, 0, NULL,         NONE) \
+	X(Find,   1, find_tray,    FIND) \
+	X(Replace,2, replace_tray, REPLACE) \
+	X(GoTo,   3, goto_tray,    GOTO) \
+	X(Save,   4, save_tray,    SAVE) \
+
+
+#define X(mode, mode_num, template, tray_type) BIM_ ## mode = mode_num,
+typedef enum BufferInputMode { 
+	INPUT_MODE_LIST
+} BufferInputMode_t;
+#undef X
+
+//#define X(mode, mode_num, template, tray_type) GBT_ ## tray_type,
+//typedef enum TrayType {
+//	INPUT_MODE_LIST
+//} TrayType_t;
+//#undef X
+//
+//
+//typedef struct GUIBufferInputMode {
+//	BufferInputMode_t mode;
+//	TrayType_t type;
+//	char* template;
+//} GUIBufferInputMode;
+//
+//
+//typedef struct GUIBufferTray {
+//	TrayType_t type;
+//} GUIBufferTray;
+
+
+
+
+
+typedef enum FindMask {
+	FM_NONE,
+	FM_SELECTION,
+	FM_SEQUENCE,
+} FindMask_t;
+
+typedef enum MatchMode {
+	GFMM_NONE,
+	GFMM_PLAIN,
+	GFMM_PCRE,
+	GFMM_FUZZY,
+} MatchMode_t;
+
+typedef struct GUIFindOpt {
+	char case_cmp;
+	MatchMode_t match_mode;
+} GUIFindOpt;
+
+
+
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
 	GUIHeader header;
@@ -311,13 +369,7 @@ typedef struct GUIBufferEditor {
 	
 	char* sourceFile; // issues with undo-save
 	
-//	unsigned int inputMode;
-//	InputMode_t inputMode;
-	
-	char findMode; 
-	char replaceMode; 
-	char lineNumTypingMode; // flag for GoToLine being active
-	char loadTypingMode; 
+	BufferInputMode_t inputMode; 
 	
 	GUIEdit* lineNumEntryBox;
 	GUIEdit* findBox;
@@ -325,6 +377,7 @@ typedef struct GUIBufferEditor {
 	GUIEdit* loadBox;
 	
 	char* findQuery;
+	GUIFindOpt find_opt;
 	pcre2_code* findRE;
 	pcre2_match_data* findMatch;
 	BufferLine* findLine;
@@ -374,13 +427,6 @@ typedef struct BufferCmd {
 } BufferCmd;
 
 
-
-
-typedef enum FindMask {
-	FM_NONE,
-	FM_SELECTION,
-	FM_SEQUENCE,
-} FindMask_t;
 
 typedef struct GUIFileOpt {
 	char* path;
@@ -506,7 +552,9 @@ void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, intptr_t c
 void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet, BufferRange* out);
 
 
-BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern);
+BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
+BufferRangeSet* GUIBufferEditor_FindAll_Fuzzy(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
+BufferRangeSet* GUIBufferEditor_FindAll_PCRE(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
 int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, intptr_t col);
 void BufferRangeSet_FreeAll(BufferRangeSet* s);
 

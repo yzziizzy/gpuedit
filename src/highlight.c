@@ -246,7 +246,10 @@ void Highlighter_LoadStyles(Highlighter* h, char* path) {
 		StyleInfo* style;
 		
 		if(3 != sscanf(*lines2, " %1[dl] %127[_a-zA-Z0-9] = %127s ", prefix, name, value)) {
-			printf("Invalid highlighting color line %s:%d: '%s'\n", path, ln, *lines2);
+			// don't warn about comments and empty lines
+			if(*lines2[0] != '#' && *lines2[0] != '\n' && *lines2[0] != '\0') {
+				printf("Invalid highlighting color line %s:%d: '%s'\n", path, ln, *lines2);
+			}
 			continue;
 		}
 		
