@@ -31,6 +31,7 @@ void gui_default_Delete(GUIHeader* h);
 
 GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm, int count);
 GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count);
+void GUIManager_copyElements(GUIManager* gm, GUIUnifiedVertex* elems, int count);
 
 void GUIHeader_render(GUIHeader* gh, PassFrameParams* pfp);
 void GUIHeader_renderChildren(GUIHeader* gh, PassFrameParams* pfp);
@@ -109,6 +110,18 @@ void gui_win_drawImg(
 );
 
 
+void gui_drawCharacter(
+	GUIManager* gm,
+	Vector2 tl,
+	Vector2 sz,
+	AABB2* clip,
+	float z,
+	int c,
+	struct Color4* color,
+	GUIFont* font,
+	float fontsize
+);
+
 // stops on linebreak
 void gui_drawTextLine(
 	GUIManager* gm,
@@ -120,6 +133,7 @@ void gui_drawTextLine(
 	char* txt, 
 	size_t charCount
 );
+
 void gui_drawTextLineAdv(
 	GUIManager* gm,
 	Vector2 tl,

@@ -409,6 +409,10 @@ GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count) {
 	return v;
 }
 
+void GUIManager_copyElements(GUIManager* gm, GUIUnifiedVertex* elems, int count) {
+	GUIManager_checkElemBuffer(gm, count);
+	memcpy(gm->elemBuffer + gm->elementCount, elems, count * sizeof(*gm->elemBuffer));
+}
 
 
 // Event Handling

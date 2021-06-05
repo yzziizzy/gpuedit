@@ -1090,9 +1090,9 @@ void GUIMainControl_Calculator(GUIMainControl* w) {
 void GUIMainControl_Terminal(GUIMainControl* w) {
 	
 
-	GUITerminalControl* c = GUITerminalControl_New(w->header.gm);
-//	c->gs = w->gs;
-//	c->commands = w->commands;
+	GUITerminal* c = GUITerminal_New(w->header.gm);
+	c->gs = w->gs;
+	c->commands = w->commands;
 	
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &c->header, "terminal");
 	tab->type = MCTAB_CALCULATOR;

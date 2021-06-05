@@ -29,7 +29,212 @@ struct child_process_info {
 };
 */
 
+
+typedef struct CSI {
+	int params[6];
+	int nParams;
+	int final;
+} CSI;
+
+
 static struct child_pty_info* exec_process(char* execPath, char* args[]);
+
+
+static int parseColor(GUITerminal* w, char* s, TermStyle* ts) {
+	
+	
+	return 0;
+}
+
+
+
+static void parseCSI(char** s, int len, CSI* csi) {
+	char* e;
+	long n;
+	
+	csi->nParams = 0;
+	
+	while(1) {
+		int c = **s;
+		
+		if(c == ';' || c == ':') {
+			n = -1;
+			
+			csi->params[csi->nParams] = n;
+			csi->nParams++;
+			(*s)++;
+		}
+		else if(c >= '0' && c <= '9') {
+			n = strtol(*s, &e, 10);
+			*s = e;
+			
+			csi->params[csi->nParams] = n;
+			csi->nParams++;
+		}
+		else if(c >= 0x40 && c <= 0x7e) {
+			csi->final = c;
+			(*s)++;
+			
+//			return 0;
+		}			
+		else {
+//			return 0;
+		}
+		
+	}
+	
+//	return 0;
+}
+
+
+
+enum {
+	HUNGRY = 0,
+	STARVED,
+	READY,
+};
+
+enum {
+	ST_NONE = 0,
+	ST_ESC,
+};
+
+typedef struct ParseState {
+	int state;
+	int c;
+	
+} ParseState;
+
+typedef struct TermBuffer {
+	char* buf;
+	int whead; // last byte written 
+	int rtail; // last byte read
+	int alloc;
+} TermBuffer;
+
+#define BETWEEN(a, c, b) (((a) <= (c)) && ((c) <= (b)))
+
+static int parse(ParseState* st, TermBuffer* b) {
+	
+	if(b->rtail >= b->whead) {
+		return STARVED;
+	} 
+	
+	int c = b->buf[b->rtail++];
+	
+	
+	if(st->state == ST_NONE) {
+		if(isprint(c) || BETWEEN(0x07, c, 0x0d)) {
+			st->c = c;
+			b->rtail++;
+			return READY;
+		}
+	}
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+static void updateScreen(GUITerminal* w, PassFrameParams* pfp) {
+	GUIHeader* h = &w->header;
+	GUIManager* gm = h->gm;
+	GlobalSettings* gs = w->gs;
+	
+	Vector2 tl = h->absTopLeft;
+	
+	
+	float lh = gs->Terminal_lineHeight;
+	float cw = gs->Terminal_colWidth;
+	float fsz = .5;// gs->Terminal_fontSize;
+	GUIFont* font = w->font ? w->font : gm->defaults.font;
+	
+	font = FontManager_findFont(gm->fm, gs->Terminal_fontName);
+	
+	int lnum = 0;
+	int cnum = 0;
+	Vector2 ctl = tl;
+	Vector2 csz = {cw, lh};
+	Color4 color = {1,1,1,1};
+	
+	w->vcLen = 0;
+	
+	VEC_EACH(&w->lines, i, line) {
+		
+		for(int n = 0; n < line->textLen; n++) {
+			int c = line->text[n];
+			
+			if(isprint(c)) {
+				gui_drawCharacter(gm, 
+					ctl, csz,
+					&h->absClip, h->absZ,
+					c,
+					&color,
+					font, fsz
+				);	
+				
+				cnum++;
+				if(cnum >= w->ncols) {
+					ctl.y += lh;
+					ctl.x = tl.x;
+					cnum = 0;
+				}
+				else {
+					ctl.x += cw;
+				}
+			}
+			else {
+				if(c == '\n') {
+					ctl.y += lh;
+					lnum++;
+				}
+				else if(c == '\r') {
+					ctl.x = tl.x;
+					cnum = 0;
+				}
+				
+				
+				else if(c == 0x1b) { // escape
+					c = line->text[++n];
+					if(c == '[') { // terminates with first byte 0x40 <= x <= 0x7e
+						c = line->text[++n];
+						while(c < 0x40 || c > 0x7e)
+							c = line->text[++n];
+						
+					}
+					else if(c == ']') { // operating system command
+						c = line->text[++n];
+						if(c == '0') { // set window title
+							c = line->text[++n];
+							if(c == ';') {
+								c = line->text[++n];
+								while(c != 0x07 /*&& c != 0x9c*/)
+									c = line->text[++n];
+							}
+						}
+						
+					}
+					else {
+						printf("%x ", c);
+					}
+				}
+			}
+			
+			
+			
+		}
+		
+	}
+	
+	
+}
 
 
 
@@ -37,23 +242,44 @@ static struct child_pty_info* exec_process(char* execPath, char* args[]);
 
 
 static void render(GUIHeader* w_, PassFrameParams* pfp) {
-	GUITerminalControl* w = (GUITerminalControl*)w_;
+	GUITerminal* w = (GUITerminal*)w_;
 	GUIManager* gm = w->header.gm;
 	GUIUnifiedVertex* v;
 
 	Vector2 tl = w->header.absTopLeft;
 	
+	//if(w->dirty) {
+		updateScreen(w, pfp);
+	//	w->dirty = 0;
+//	}
 	
+	//if(w->vcLen) {
+	//	GUIManager_copyElements(gm, w->vertexCache, w->vcLen);
+	//}
 	
 	GUIHeader_renderChildren(&w->header, pfp);
 }
 
 
-static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
-	GUITerminalControl* w = (GUITerminalControl*)w_;
+
+static void updatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp) {
+	GUITerminal* w = (GUITerminal*)h;
+	GUIManager* gm = h->gm;
+	GlobalSettings* gs = w->gs;
 	
-	size_t bufferLength = 512;
-	char buffer[512];
+	float lh = gs->Terminal_lineHeight;
+	float cw = gs->Terminal_colWidth;
+	
+	
+	w->ncols = floor(h->size.x / cw);
+	w->nrows = floor(h->size.y / lh);
+	
+	
+	// HACK
+	
+	// read from the pty
+	size_t bufferLength = 2048;
+	char buffer[2048];
 	
 	errno = 0;
 	int n_read = read(w->cpi->pty, buffer, bufferLength);
@@ -76,55 +302,96 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	
 	if(n_read > 0) {
 		for(int i = 0; i < n_read; i++) {
-			if(!isprint(buffer[i])) {
-				printf("%d ", (int)buffer[i]);
+			GUITerminalLine* line = VEC_TAIL(&w->lines);
+			
+			if(line->textLen >= line->textAlloc) {
+				line->textAlloc *= 2;
+				line->text = realloc(line->text, line->textAlloc * sizeof(*line->text));
 			}
-			else {
-				printf("%c", (int)buffer[i]);
+			
+			line->text[line->textLen++] = buffer[i];
+			
+			if(buffer[i] == '\n') {
+				pcalloc(line);
+				line->textAlloc = 128;
+				line->text = malloc(line->textAlloc * sizeof(*line->text));
+				
+				VEC_PUSH(&w->lines, line);
 			}
 		}
-		printf("\n");
+		
+		w->dirty = 1;
 	}
 	
 	
-	/*
-	n_read = fread(buffer, 1, bufferLength, w->cpi->f_stderr);
-	
-	if(n_read > 0) {
-		printf("err: ");
-		for(int i = 0; i < n_read; i++) {
-			printf("%c", (int)buffer[i]);
-		}
-		printf("\n");
-	}
-*/
 	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
 
 
 
-GUITerminalControl* GUITerminalControl_New(GUIManager* gm) {
+static int handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUITerminal* w = (GUITerminal*)w_;
+	GUITerminal_ProcessCommand(w, cmd);
+	
+	return 0;
+}
+
+void GUITerminal_ProcessCommand(GUITerminal* w, GUI_Cmd* cmd) {
+	long amt;
+
+	switch(cmd->cmd) {
+//		case FuzzyMatcherCmd_Exit:
+			
+	}
+	
+}
+
+
+
+
+static void reap(GUIHeader* w_) {
+	GUITerminal* w = (GUITerminal*)w_;
+	
+	
+}
+
+
+static void keyDown(GUIHeader* w_, GUIEvent* gev) {
+	GUITerminal* w = (GUITerminal*)w_;
+	
+	
+}
+
+
+
+
+GUITerminal* GUITerminal_New(GUIManager* gm) {
 
 	static struct gui_vtbl static_vt = {
 		.Render = render,
+		.Reap = reap,
 		.UpdatePos = updatePos,
-//		.HandleCommand = (void*)handleCommand,
+		.HandleCommand = handleCommand,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-//		.KeyDown = keyDown,
+		.KeyDown = keyDown,
 //		.GainedFocus = gainedFocus,
 //		.User = userEvent,
 	};
 	
 	
-	GUITerminalControl* w = pcalloc(w);
+	GUITerminal* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	w->header.cursor = GUIMOUSECURSOR_ARROW;
 	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 //	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;
-	
+
+	GUITerminalLine* line = pcalloc(line);
+	line->textAlloc = 128;
+	line->text = malloc(line->textAlloc * sizeof(*line->text));	
+	VEC_PUSH(&w->lines, line);
 
 	char* args[] = {
 		"/bin/bash",
@@ -223,8 +490,10 @@ static struct child_pty_info* exec_process(char* execPath, char* args[]) {
 		
 		close(slave);
 		
-		char* b = "ls\r";
-		write(master, b, 3);
+		char* b = "ls\r\e[A\e[B\e[A\r";
+//		char* b = "printenv | grep TERM\r";
+//		char* b = "\[A";
+		write(master, b, strlen(b));
 // 		tcsetattr(STDIN_FILENO, TCSANOW, &master);
 // 		fcntl(master, F_SETFL, FNDELAY);
 		
@@ -243,7 +512,9 @@ static struct child_pty_info* exec_process(char* execPath, char* args[]) {
 
 
 
+static void writeChar(GUITerminal* w, int c) {
 
+}
 
 
 

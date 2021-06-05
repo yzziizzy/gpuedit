@@ -5,22 +5,49 @@
 #include "app.h"
 
 
+typedef struct GUITerminalLine {
+	char* text;
+	int textAlloc;
+	int textLen;
+} GUITerminalLine;
 
 
-typedef struct GUITerminalControl {
+typedef struct TermStyle {
+	Color4 fg, bg;
+	char bold;
+	char underline;
+} TermStyle;
+
+
+typedef struct GUITerminal {
 	GUIHeader header;
 	
-	int nrows, ncols;
+	int dirty;
 	
+	int nrows, ncols;
+	GUIFont* font;
+	
+	char* inputBuffer;
+	int ibAlloc;
+	int ibLen;
+	
+	GUIUnifiedVertex* vertexCache;
+	int vcAlloc;
+	int vcLen;
+	
+	VEC(GUITerminalLine*) lines;
 	
 	struct child_pty_info* cpi;
 	
-	
-} GUITerminalControl;
+	GUI_Cmd* commands;
+	GlobalSettings* gs;
+} GUITerminal;
 
 
-GUITerminalControl* GUITerminalControl_New(GUIManager* gm);
+GUITerminal* GUITerminal_New(GUIManager* gm);
 
+
+void GUITerminal_ProcessCommand(GUITerminal* w, GUI_Cmd* cmd);
 
 
 #endif // __gpuedit_terminal_h__

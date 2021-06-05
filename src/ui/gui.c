@@ -570,6 +570,53 @@ float gui_getTextLineWidth(
 }
 
 
+
+void gui_drawCharacter(
+	GUIManager* gm,
+	Vector2 tl,
+	Vector2 sz,
+	AABB2* clip,
+	float z,
+	int c,
+	struct Color4* color,
+	GUIFont* font,
+	float fontsize
+) {
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	struct charInfo* ci = &font->regular[(int)c];
+	float hoff = fontsize * font->ascender;
+			
+	Vector2 off = tl;
+	
+	float offx = ci->texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
+	float offy = ci->texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
+	float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
+	float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
+	
+	v->pos.t = off.y + hoff - ci->topLeftOffset.y * fontsize;
+	v->pos.l = off.x + ci->topLeftOffset.x * fontsize;
+	v->pos.b = off.y + hoff + ci->size.y * fontsize - ci->topLeftOffset.y * fontsize;
+	v->pos.r = off.x + ci->size.x * fontsize + ci->topLeftOffset.x * fontsize;
+	
+	v->guiType = 1; // text
+	
+	v->texOffset1.x = offx * 65535.0;
+	v->texOffset1.y = offy * 65535.0;
+	v->texSize1.x = widx *  65535.0;
+	v->texSize1.y = widy * 65535.0;
+	v->texIndex1 = ci->texIndex;
+	
+	v->clip = GUI_AABB2_TO_SHADER(*clip);
+	v->fg = GUI_COLOR4_TO_SHADER(*color);
+	v->bg = (struct ShaderColor4){0};
+	v->z = z;
+	
+	//v++;
+// 			gm->elementCount++;
+
+
+}
+
 void gui_drawTextLine(
 	GUIManager* gm,
 	Vector2 tl,
@@ -729,6 +776,8 @@ void gui_drawVCenteredTextLine(
 	
 	gui_drawTextLine(gm, (Vector2){tl.x, tl.y + b}, sz, clip, color, z, txt, charCount);
 }
+
+
 
 
 

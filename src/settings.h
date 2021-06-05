@@ -64,6 +64,8 @@ typedef struct WidgetSpec {
 	SETTING(float,    MainControl_tabNameScrollStartLinger, 2.0,  NULL, NULL) \
 	SETTING(float,    MainControl_tabNameScrollEndLinger,   2.0,  NULL, NULL) \
 	SETTING(float,    MainControl_tabNameScrollAnimTime,    3.0,  NULL, NULL) \
+	SETTING(int,      MainControl_tabHeight,                20,    0,    1920*16) \
+	SETTING(charpp,   MainControl_searchPaths,              ((char*[]){"./", NULL}),  NULL, NULL) \
 	SETTING(int,   Buffer_linesPerScrollWheel,  3,     1,    100) \
 	SETTING(bool,  Buffer_cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, Buffer_cursorBlinkOffTime,   0.600, 0,    300000) \
@@ -83,8 +85,10 @@ typedef struct WidgetSpec {
 	SETTING(bool,  Buffer_invertSelection,      true,  NULL,  NULL) \
 	SETTING(int,   Buffer_maxUndo,              4096,  0,    INT_MAX) \
 	SETTING(int,   Buffer_statusBarHeight,      20,    0,    INT_MAX) \
-	SETTING(int,   MainControl_tabHeight,       20,    0,    1920*16) \
-	SETTING(charpp,MainControl_searchPaths,     ((char*[]){"./", NULL}),  NULL, NULL) \
+	SETTING(int,   Terminal_lineHeight,         20,    0,    INT_MAX) \
+	SETTING(int,   Terminal_colWidth,           10,    0,    INT_MAX) \
+	SETTING(charp, Terminal_fontName,           "Courier New", NULL, NULL) \
+	SETTING(int,   Terminal_fontSize,           12,    1,    INT_MAX) \
 	SETTING(charp, Theme_path,                  "default_dark.json", NULL, NULL) \
 	SETTING(themep,Theme,                       NULL,  NULL, NULL) \
 	SETTING(guisettingsp, GUI_GlobalSettings,   NULL,  NULL, NULL) \
