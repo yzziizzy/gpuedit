@@ -400,6 +400,7 @@ void GUIFileBrowserControl_FreeEntryList(GUIFileBrowserEntry* e, intptr_t sz) {
 	free(e);
 }
 
+
 GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl* w, intptr_t* szOut) {
 	
 	
@@ -415,6 +416,12 @@ GUIFileBrowserEntry* GUIFileBrowserControl_CollectSelected(GUIFileBrowserControl
 		files[n] = *e;
 		files[n].name = strdup(e->name);
 		files[n].fullPath = path_join(w->curDir, e->name);
+		
+		files[n].atimeStr = strdup(e->atimeStr);
+		files[n].mtimeStr = strdup(e->mtimeStr);
+		files[n].ctimeStr = strdup(e->ctimeStr);
+		files[n].humanSize = strdup(e->humanSize);
+		files[n].humanSizeOnDisk = strdup(e->humanSizeOnDisk);
 		
 		n++;
 	}
