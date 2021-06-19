@@ -114,6 +114,7 @@ int event_base, error_base;
 
 // called when the user changes a clipboard buffer inside this app
 static void clipNotify(int which, XStuff* xs) {
+
 	Atom a;
 	switch(which) {
 		case CLIP_SELECTION: a = xs->primaryID; break;
@@ -121,8 +122,14 @@ static void clipNotify(int which, XStuff* xs) {
 		case CLIP_PRIMARY: a = xs->clipboardID; break;
 		default: return;
 	}
+	
+	// BUG:
+	// For some unknown reason, calling this fn in rapid succession
+	// (1000x per change when drag-selecting) causes the program,
+	// or perhaps xlib within it, to gobble up a ton of memory which
+	// it never frees. 
 	XSetSelectionOwner(xs->display, a, xs->clientWin, CurrentTime);
-	printf("clipboard is mine\n");
+//	printf("clipboard is mine\n");
 }
 
 // this function will exit() on fatal errors. what good is error handling then?
@@ -433,9 +440,9 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			continue;
 		}
 		else if(xev.type == xs->XFixes_eventBase + XFixesSelectionNotify) {
-//			printf("xfixes selection notify\n");
 			// ignore our own actions
 			if(((XFixesSelectionNotifyEvent*)&xev)->owner == xs->clientWin) continue;
+//			printf("xfixes selection notify\n");
 			
 			Atom buf = ((XFixesSelectionNotifyEvent*)&xev)->selection;
 			XConvertSelection(xs->display, buf, xs->utf8ID, xs->selDataID, xs->clientWin, CurrentTime);
@@ -500,7 +507,19 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 		}
 		else if(xev.type == SelectionRequest) {
 // 			xev.xselectionrequest.selection
-// 			printf("selection request\n");
+//			continue;
+//			printf("selection request ");
+			
+			if(((XSelectionRequestEvent*)&xev)->requestor == xs->clientWin) {
+//				printf("ignored\n");
+				continue;
+			}
+			
+//			printf("RUN requestor: %ld, me: %ld\n",
+//				((XSelectionRequestEvent*)&xev)->requestor,
+//				xs->clientWin 
+//			);
+
 			int which;
 			if(xev.xselectionrequest.selection == xs->clipboardID) which = CLIP_PRIMARY;
 			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;

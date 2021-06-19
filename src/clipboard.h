@@ -49,4 +49,7 @@ void Clipboard_SetFromOS(unsigned int which, char* text, size_t len, int encodin
 void Clipboard_GetFromOS(unsigned int which, char** text, size_t* len, int* encoding);
 void Clipboard_RegisterOnChange(void (*fn)(int,void*), void* data);
 
+
+void ClipboardClip_free(ClipboardClip* clip);
+
 #endif // __gpuedit_clipboard_h__

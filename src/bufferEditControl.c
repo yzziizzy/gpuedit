@@ -1632,6 +1632,7 @@ void GBEC_DeleteToPrevSequence(GUIBufferEditControl* w, BufferLine* l, intptr_t 
 
 
 void GBEC_SelectionChanged(GUIBufferEditControl* w) {
+	
 	Buffer* b = NULL;
 	
 	if(w->sel) {
@@ -1640,8 +1641,8 @@ void GBEC_SelectionChanged(GUIBufferEditControl* w) {
 	
 	if(b) {
 		Clipboard_PushBuffer(CLIP_SELECTION, b);
+		Buffer_Delete(b);
 	}
-	
 	// undo system hook?
 }
 

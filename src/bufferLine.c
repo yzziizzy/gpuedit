@@ -63,8 +63,12 @@ BufferLine* BufferLine_New() {
 
 void BufferLine_Delete(BufferLine* l) {
 	if(l->buf) free(l->buf);
-	if(l->flagBuf) free(l->flagBuf);
+	if(l->flagBuf) {
+		free(l->flagBuf);
+	}
 	VEC_FREE(&l->style);
+	
+	free(l);
 }
 
 BufferLine* BufferLine_FromStr(char* text, intptr_t len) {
@@ -75,14 +79,17 @@ BufferLine* BufferLine_FromStr(char* text, intptr_t len) {
 
 BufferLine* BufferLine_Copy(BufferLine* orig) {
 	BufferLine* l = BufferLine_New();
+	
 	l->length = orig->length;
 	l->allocSz = orig->allocSz;
-	l->buf = calloc(1, sizeof(*l->buf) * l->allocSz);
-	l->flagBuf = calloc(1, sizeof(*l->flagBuf) * l->allocSz);
+	l->buf = realloc(l->buf, sizeof(*l->buf) * l->allocSz);
+	l->flagBuf = realloc(l->flagBuf, sizeof(*l->flagBuf) * l->allocSz);
 	l->flags = orig->flags;
+	
 	memcpy(l->buf, orig->buf, sizeof(*l->buf) * l->length);
 	memcpy(l->flagBuf, orig->flagBuf, sizeof(*l->flagBuf) * l->length); // better than nothing
 	VEC_COPY(&l->style, &orig->style);
+	
 	return l;
 }
 

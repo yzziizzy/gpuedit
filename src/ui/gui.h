@@ -291,9 +291,10 @@ struct GUIHeader {
 	
 	
 	unsigned int flags;
-	unsigned int gravity :  8;
-	unsigned int hidden  :  1;
-	unsigned int deleted :  1;
+	unsigned int gravity   :  8;
+	unsigned int hidden    :  1;
+	unsigned int deleted   :  1;
+	unsigned int hadEvents :  1;
 	
 	uint16_t cmdElementType; // which category of commands this element should respond to
 	uint16_t cmdMode;

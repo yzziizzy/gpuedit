@@ -27,7 +27,6 @@ struct ClipCallback {
 typedef struct Clipboard {
 	RING(ClipboardClip*) stack[3];
 	
-	
 	struct ClipBuffer os[3];
 	
 	char selfOwned[3]; // 1 if this app has ownership of the clipboard, 0 otherwise
@@ -57,6 +56,11 @@ void Clipboard_PushBuffer(int which, Buffer* b) {
 	Buffer_ToRawText(b, &cc->flatText, &cc->flatTextLen);
 	
 	Clipboard_SendToOS(which, cc->flatText, cc->flatTextLen, 0);
+
+	if(RING_LEN(&clipboard->stack[which]) == RING_ALLOC(&clipboard->stack[which])) {
+		ClipboardClip* last = RING_TAIL(&clipboard->stack[which]);
+		ClipboardClip_free(last);
+	}
 	
 	RING_PUSH(&clipboard->stack[which], cc);
 }
@@ -71,6 +75,11 @@ void Clipboard_PushRawText(int which, char* raw, size_t len) {
 	cc->flatTextLen = len;
 	cc->flatText = strndup(raw, len);
 	Buffer_AppendRawText(cc->b, raw, len);
+
+	if(RING_LEN(&clipboard->stack[which]) == RING_ALLOC(&clipboard->stack[which])) {
+		ClipboardClip* last = RING_TAIL(&clipboard->stack[which]);
+		ClipboardClip_free(last);
+	}
 	
 	RING_PUSH(&clipboard->stack[which], cc);
 }
@@ -114,6 +123,9 @@ Buffer* Clipboard_PopBuffer(int which) {
 		
 		Buffer_AppendRawText(b, clipboard->os[which].buf, clipboard->os[which].length);
 	}
+	
+	
+	
 // 	VEC_POP1(&clipboard->stack);
 	
 // 	free(cc->flatText);
@@ -140,6 +152,7 @@ void Clipboard_SetFromOS(unsigned int which, char* text, size_t len, int encodin
 	if(b->allocSize < len + 1) {
 		b->allocSize = nextPOT(len + 1);
 		b->buf = realloc(b->buf, b->allocSize);
+//		printf("clip buffer sz: %ld\n", b->allocSize);
 	}
 //	printf("clip> %d '%.*s'\n", which, (int)len, text);
 	memcpy(b->buf, text, len);
@@ -168,11 +181,18 @@ void Clipboard_RegisterOnChange(void (*fn)(int,void*), void* data) {
 void Clipboard_Init() {
 	pcalloc(clipboard);
 	
-	RING_INIT(&clipboard->stack[0], 16);
-	RING_INIT(&clipboard->stack[1], 16);
-	RING_INIT(&clipboard->stack[2], 16);
+	RING_INIT(&clipboard->stack[0], 1);
+	RING_INIT(&clipboard->stack[1], 1);
+	RING_INIT(&clipboard->stack[2], 1);
 }
 
+void Buffer_Delete(Buffer* b);
+
+void ClipboardClip_free(ClipboardClip* clip) {
+	if(clip->b) Buffer_Delete(clip->b);
+	if(clip->flatText) free(clip->flatText);
+	free(clip);
+}
 
 
 

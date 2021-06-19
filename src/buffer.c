@@ -47,8 +47,8 @@ void Buffer_AddRef(Buffer* b) {
 }
 
 void Buffer_Delete(Buffer* b) {
-	b->refs--;
-	if(b->refs > 0) return;
+//	b->refs--;
+//	if(b->refs > 0) return;
 	
 	if(b->filePath) free(b->filePath);
 	
@@ -60,11 +60,15 @@ void Buffer_Delete(Buffer* b) {
 		bln = bl->next;
 		BufferLine_Delete(bl);
 		bl = bln;
+		
 	}
 	
-	free(b);
+	VEC_FREE(&b->changeListeners);
+	HT_destroy(&b->dict);
 	
 	Buffer_FreeAllUndo(b);
+	
+	free(b);
 }
 
 void Buffer_InitEmpty(Buffer* b) {
@@ -1057,14 +1061,15 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 		bl = bl->next;
 	}
 	
+
 	// copy the beginning of the last line
 	blc = BufferLine_FromStr(sel->endLine->buf, MIN(sel->endCol, sel->endLine->length));
 	blc->prev = blc_prev;
 	blc_prev->next = blc;
-		
+
 	b->numLines++;
 	b->last = blc;
-	
+
 	LOG_UNDO(printf("\n"));
 	
 	return b;
