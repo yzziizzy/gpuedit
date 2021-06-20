@@ -722,13 +722,13 @@ void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b) {
 }
 
 
-void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd, int* needRehighlight) {
+void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighlight) {
 	Buffer* b = w->buffer;
 	Buffer* b2 = NULL;
 	
 	char cc[2] = {cmd->amt, 0};
 	
-	switch(cmd->type) {
+	switch(cmd->cmd) {
 		case BufferCmd_MoveCursorV:
 			GBEC_MoveCursorV(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
@@ -1090,7 +1090,70 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd
 		case BufferCmd_GoToLastBookmark:  GBEC_LastBookmark(w);  break; 
 		default:
 			Buffer_ProcessCommand(w->buffer, cmd, needRehighlight);
+			return;
 	}
+
+	
+	// check flags
+	
+	
+#define flag_setup(x) \
+	static unsigned int x = 9999999; \
+	if(x == 9999999) { \
+		HT_get(&gm->cmdFlagLookup, #x, &x); \
+	}
+	
+	
+	GUIManager* gm = w->header.gm;
+	flag_setup(scrollToCursor)
+	flag_setup(rehighlight)
+	flag_setup(resetCursorBlink)
+	flag_setup(undoSeqBreak)
+	flag_setup(hideMouse)
+	flag_setup(centerOnCursor)
+	
+	
+	if(rehighlight == 9999999) {
+		HT_get(&gm->cmdFlagLookup, "rehighlight", &rehighlight);
+	}
+	
+	
+	if(cmd->flags & scrollToCursor) {
+		GBEC_scrollToCursor(w);
+	}
+	
+	if(cmd->flags & rehighlight) {
+		GUIBufferEditControl_RefreshHighlight(w);
+	}
+	
+	if(cmd->flags & resetCursorBlink) {
+		w->cursorBlinkTimer = 0;
+	}
+	
+	if(cmd->flags & undoSeqBreak) {
+		if(!w->sel) {
+//					printf("seq break without selection\n");
+			Buffer_UndoSequenceBreak(
+				w->buffer, 0, 
+				w->current->lineNum, w->curCol,
+				0, 0, 0
+			);
+		}
+		else {
+//					printf("seq break with selection\n");
+			Buffer_UndoSequenceBreak(
+				w->buffer, 0, 
+				w->sel->startLine->lineNum, w->sel->startCol,
+				w->sel->endLine->lineNum, w->sel->endCol,
+				1 // TODO check pivot locations
+			);
+		}			
+	}
+	
+	if(cmd->flags & centerOnCursor) {
+		GBEC_scrollToCursorOpt(w, 1);
+	}
+	
 	
 }
 

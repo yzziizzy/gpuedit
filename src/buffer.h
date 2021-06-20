@@ -417,15 +417,6 @@ typedef struct GUIBufferEditor {
 
 
 
-typedef struct BufferCmd {
-	int type;
-	union {
-		long amt;
-		char* str;
-		char** pstr;
-	};
-} BufferCmd;
-
 
 
 typedef struct GUIFileOpt {
@@ -508,8 +499,8 @@ int Buffer_RedoReplay(Buffer* b, BufferUndo* u);
 //    and send buffer notifications
 // -----
 
-void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight);
-void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, BufferCmd* cmd, int* needRehighlight);
+void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight);
+void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighlight);
 
 
 
@@ -682,7 +673,7 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);
 void GBEC_scrollToCursor(GUIBufferEditControl* gbe);
 void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered);
 
-void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight);
+void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight);
 
 // set absolute scroll position
 void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, intptr_t line, intptr_t col);

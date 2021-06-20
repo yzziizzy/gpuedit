@@ -930,12 +930,12 @@ void Buffer_LineUnindent(Buffer* b, BufferLine* bl) {
 
 // only undo sequence breaks are handled here; all other undo actions must be 
 //    added by the called functions
-void Buffer_ProcessCommand(Buffer* b, BufferCmd* cmd, int* needRehighlight) {
+void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
 	Buffer* b2;
 	
 	char cc[2] = {cmd->amt, 0};
 	
-	switch(cmd->type) {
+	switch(cmd->cmd) {
 			
 		case BufferCmd_Undo:
 			Buffer_UndoReplayToSeqBreak(b);  

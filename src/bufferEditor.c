@@ -41,8 +41,8 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 	int needRehighlight = 0;
 
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		GUIBufferEditControl_ProcessCommand(w->ec, &(BufferCmd){
-			BufferCmd_InsertChar, gev->character
+		GUIBufferEditControl_ProcessCommand(w->ec, &(GUI_Cmd){
+			.cmd = BufferCmd_InsertChar, .amt = gev->character
 		}, &needRehighlight);
 		
 		GUIBufferEditControl_RefreshHighlight(w->ec);
@@ -68,58 +68,8 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 	else {*/
 		// special commands
 	
-		
-		unsigned int scrollToCursor   = 1 << 0;
-		unsigned int rehighlight      = 1 << 1;
-		unsigned int resetCursorBlink = 1 << 2;
-		unsigned int undoSeqBreak     = 1 << 3;
-		unsigned int hideMouse        = 1 << 4;
-		unsigned int centerOnCursor   = 1 << 5;
-	
 		// GUIBufferEditor will pass on commands to the buffer
-		GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
-			.type = cmd->cmd, .str = cmd->str 
-		}, &needRehighlight);
-	
-		
-		if(cmd->flags & scrollToCursor) {
-			GBEC_scrollToCursor(w->ec);
-		}
-		
-		if(cmd->flags & rehighlight) {
-			GUIBufferEditControl_RefreshHighlight(w->ec);
-		}
-		
-		if(cmd->flags & resetCursorBlink) {
-			w->ec->cursorBlinkTimer = 0;
-		}
-		
-		if(cmd->flags & undoSeqBreak) {
-			if(!w->ec->sel) {
-//					printf("seq break without selection\n");
-				Buffer_UndoSequenceBreak(
-					w->buffer, 0, 
-					w->ec->current->lineNum, w->ec->curCol,
-					0, 0, 0
-				);
-			}
-			else {
-//					printf("seq break with selection\n");
-				Buffer_UndoSequenceBreak(
-					w->buffer, 0, 
-					w->ec->sel->startLine->lineNum, w->ec->sel->startCol,
-					w->ec->sel->endLine->lineNum, w->ec->sel->endCol,
-					1 // TODO check pivot locations
-				);
-			}			
-		}
-		
-		if(cmd->flags & centerOnCursor) {
-			GBEC_scrollToCursorOpt(w->ec, 1);
-		}
-	
-		
-	
+		GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
 }
 
 static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
@@ -726,11 +676,11 @@ void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t 
 }
 
 
-void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* needRehighlight) {
+void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight) {
 	GUIEdit* e;
 	struct json_file* jsf;
 	
-	switch(cmd->type){
+	switch(cmd->cmd){
 		case BufferCmd_ToggleMenu:
 				
 			jsf = json_load_path("/etc/gpuedit/buffer_menu.json");
@@ -1128,8 +1078,64 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, BufferCmd* cmd, int* nee
 		
 		default:
 			GUIBufferEditControl_ProcessCommand(w->ec, cmd, needRehighlight);
+			return;
 			
 	}
+	
+	
+#define flag_setup(x) \
+	static unsigned int x = 9999999; \
+	if(x == 9999999) { \
+		HT_get(&gm->cmdFlagLookup, #x, &x); \
+	}
+	
+	
+	GUIManager* gm = w->header.gm;
+	flag_setup(scrollToCursor)
+	flag_setup(rehighlight)
+	flag_setup(resetCursorBlink)
+	flag_setup(undoSeqBreak)
+	flag_setup(hideMouse)
+	flag_setup(centerOnCursor)
+	
+	
+	
+	if(cmd->flags & scrollToCursor) {
+		GBEC_scrollToCursor(w->ec);
+	}
+	
+	if(cmd->flags & rehighlight) {
+		GUIBufferEditControl_RefreshHighlight(w->ec);
+	}
+	
+	if(cmd->flags & resetCursorBlink) {
+		w->ec->cursorBlinkTimer = 0;
+	}
+	
+	if(cmd->flags & undoSeqBreak) {
+		if(!w->ec->sel) {
+//					printf("seq break without selection\n");
+			Buffer_UndoSequenceBreak(
+				w->buffer, 0, 
+				w->ec->current->lineNum, w->ec->curCol,
+				0, 0, 0
+			);
+		}
+		else {
+//					printf("seq break with selection\n");
+			Buffer_UndoSequenceBreak(
+				w->buffer, 0, 
+				w->ec->sel->startLine->lineNum, w->ec->sel->startCol,
+				w->ec->sel->endLine->lineNum, w->ec->sel->endCol,
+				1 // TODO check pivot locations
+			);
+		}			
+	}
+	
+	if(cmd->flags & centerOnCursor) {
+		GBEC_scrollToCursorOpt(w->ec, 1);
+	}
+	
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
