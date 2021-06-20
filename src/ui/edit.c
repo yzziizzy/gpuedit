@@ -90,8 +90,6 @@ static void render(GUIEdit* w, PassFrameParams* pfp) {
 	
 	w->blinkTimer = fmodf(w->blinkTimer, 1.4);
 	
-	GUIUnifiedVertex* v = GUIManager_reserveElements(w->header.gm, 2);
-	
 // 	printf("tl: %f,%f | %f,%f\n", tl.x, tl.y, w->header.size.x, w->header.size.y);
 	
 	// bg
