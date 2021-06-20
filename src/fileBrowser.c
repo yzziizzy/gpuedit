@@ -113,19 +113,35 @@ static char* getParentDir(char* child) {
 }
 
 
-static void keyDown(GUIHeader* w_, GUIEvent* gev) {
+static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
-/*
-	GUI_Cmd found;
-	unsigned int iter = 0;
-	while(Commands_ProbeCommand(gev, w->commands, 0, &found, &iter)) {
-		// GUIBufferEditor will pass on commands to the buffer
-		GUIFileBrowser_ProcessCommand(w, &found);		
-		
-	}
-*/
-}
 
+	if((GUIFileBrowserControl*)gev->originalTarget == w->fbc) {
+		if(0 == strcmp(gev->userType, "accepted")) {
+			gev->cancelled = 1;
+			
+			GUIFileBrowserEntry* e = gev->userData;
+			while(e->name) {
+			
+				GUIEvent gev2 = {};
+				gev2.type = GUIEVENT_User;
+				gev2.originalTarget = &w->header;
+				gev2.currentTarget = &w->header;
+				// handlers are responsible for cleanup
+				gev2.userData = e->fullPath;
+				gev2.userSize = strlen(e->fullPath);
+				gev2.userType = "openFile";
+			
+				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+			
+				e++;
+			}
+			
+			GUIFileBrowser_UnselectAll(w);
+			GUIFileBrowserControl_FreeEntryList(gev->userData, gev->userSize);
+		}
+	}
+}
 
 static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 	GUIFileBrowser* w = (GUIFileBrowser*)w_;
@@ -136,107 +152,17 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 
 void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, GUI_Cmd* cmd) {
 	long amt;
-
+	
 	switch(cmd->cmd) {
-		case FileBrowserCmd_Exit:
-			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
-			break;
+//		case FileBrowserCmd_Exit:
+//			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+//			break;
 
-		case FileBrowserCmd_CursorMove:
-			amt = (cmd->amt >= 0) ? cmd->amt : VEC_LEN(&w->fbc->entries) + cmd->amt;
-			w->fbc->cursorIndex = (w->fbc->cursorIndex + cmd->amt) % VEC_LEN(&w->fbc->entries);
-			GUIFileBrowserControl_Autoscroll(w->fbc);
-			break;
-
-		case FileBrowserCmd_CursorMoveNoWrap:
-			w->fbc->cursorIndex = MIN(MAX(0, w->fbc->cursorIndex + cmd->amt), VEC_LEN(&w->fbc->entries) - 1);
-			GUIFileBrowserControl_Autoscroll(w->fbc);
-			break;
-
-		case FileBrowserCmd_UpDir: {
-			char* p = getParentDir(w->fbc->curDir);
-			free(w->fbc->curDir);
-			w->fbc->curDir = p;
-			
-			GUIFileBrowser_Refresh(w);
-		
-			break;
-		}
-		case FileBrowserCmd_SmartOpen: {
-			GUIFileBrowserEntry* e = &VEC_ITEM(&w->fbc->entries, w->fbc->cursorIndex);
-			
-			if(e->type == 2) { // enter the directory
-				char* p = path_join(w->fbc->curDir, e->name);
-				free(w->fbc->curDir);
-				w->fbc->curDir = p;
-				
-				GUIFileBrowser_Refresh(w);
+/*	if(w->gs->MainControl_openInPlace) {
+				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
 			}
-			else if(w->fbc->numSelected == 0) {
-				
-				GUIFileBrowserEntry* e = &VEC_ITEM(&w->fbc->entries, w->fbc->cursorIndex);
-				e->isSelected = 1;
-				w->fbc->numSelected++;
-
-				size_t sz;						
-				GUIEvent gev2 = {};
-				gev2.type = GUIEVENT_User;
-				gev2.eventTime = 0;//gev->eventTime;
-				gev2.originalTarget = &w->header;
-				gev2.currentTarget = &w->header;
-				gev2.cancelled = 0;
-				// handlers are responsible for cleanup
-				gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
-				gev2.userSize = sz;
-				
-				gev2.userType = "accepted";
+	*/
 			
-				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
-				if(w->gs->MainControl_openInPlace) {
-					GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
-				}
-		
-				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
-				if(gev2.userData && !gev2.cancelled) {
-					GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
-				}
-	
-				e->isSelected = 0;
-				w->fbc->numSelected = 0;
-			}
-			else { // open selected files
-				size_t sz;						
-				GUIEvent gev2 = {};
-				gev2.type = GUIEVENT_User;
-				gev2.eventTime = 0;//gev->eventTime;
-				gev2.originalTarget = &w->header;
-				gev2.currentTarget = &w->header;
-				gev2.cancelled = 0;
-				// handlers are responsible for cleanup
-				gev2.userData = GUIFileBrowserControl_CollectSelected(w->fbc, &sz);
-				gev2.userSize = sz;
-				
-				gev2.userType = "accepted";
-			
-				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
-				if(w->gs->MainControl_openInPlace) {
-					GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
-				}
-		
-				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
-				if(gev2.userData && !gev2.cancelled) {
-					GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
-				}
-	
-			}
-			break;
-		}
-		case FileBrowserCmd_ToggleSelect: {
-			GUIFileBrowserEntry* e = &VEC_ITEM(&w->fbc->entries, w->fbc->cursorIndex);
-			e->isSelected = !e->isSelected;
-			w->fbc->numSelected += e->isSelected ? 1 : -1;
-			break;
-		}
 	}
 }
 
@@ -296,6 +222,10 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 	gev->cancelled = 1;
 }
 
+static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
+	GUIFileBrowser* w = (GUIFileBrowser*)w_;
+	GUIManager_pushFocusedObject(w_->gm, &w->fbc->header);
+}
 
 
 GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
@@ -307,9 +237,10 @@ GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path) {
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyDown = keyDown,
 		.Click = click,
 		.DoubleClick = click,
+		.GainedFocus = gainedFocus,
+		.User = userEvent,
 // 		.ScrollUp = scrollUp,
 // 		.ScrollDown = scrollDown,
 // 		.DragStart = dragStart,

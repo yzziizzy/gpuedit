@@ -7,10 +7,11 @@
 
 #define GUI_ELEMENT_LIST \
 	X(Edit) \
+	X(FileBrowser) \
 
 
 
-
+// The element name will need a _ prepended in the commands.json file
 #define GUI_COMMAND_LIST \
 	X(Edit, Copy) \
 	X(Edit, Cut) \
@@ -27,6 +28,11 @@
 	X(Edit, Clear) \
 	X(Edit, Undo) \
 	X(Edit, Redo) \
+	X(FileBrowser, MoveCursorV) \
+	X(FileBrowser, ParentDir) \
+	X(FileBrowser, SmartOpen) \
+	X(FileBrowser, ToggleSelect) \
+	X(FileBrowser, OpenUnderCursor) \
 	
 	
 #define GUI_COMMAND_FLAG_LIST \

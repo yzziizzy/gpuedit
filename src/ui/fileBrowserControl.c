@@ -60,6 +60,9 @@ float col_type_widths[] = {
 
 
 
+
+
+
 static void render(GUIFileBrowserControl* w, PassFrameParams* pfp) {
 	GUIManager* gm = w->header.gm;
 	GUI_GlobalSettings* gs = gm->gs;
@@ -288,67 +291,7 @@ static void scrollDown(GUIHeader* w_, GUIEvent* gev) {
 }
 
 
-static void keyUp(GUIHeader* w_, GUIEvent* gev) {
-	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
-	
-	if(gev->keycode == XK_Down) {
-		w->cursorIndex = (w->cursorIndex + 1) % VEC_LEN(&w->entries);
-		GUIFileBrowserControl_Autoscroll(w);
-	}
-	else if(gev->keycode == XK_Up) {
-		w->cursorIndex = (w->cursorIndex - 1 + VEC_LEN(&w->entries)) % (intptr_t)VEC_LEN(&w->entries);
-		GUIFileBrowserControl_Autoscroll(w);
-	}
-	else if(gev->keycode == XK_BackSpace) { // navigate to parent dir
-		char* p = getParentDir(w->curDir);
-		free(w->curDir);
-		w->curDir = p;
-		
-		GUIFileBrowserControl_Refresh(w);
-	}
-	else if(gev->keycode == XK_Return) {
-		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
-		
-		if(e->type == 2) { // enter the directory
-			char* p = path_join(w->curDir, e->name);
-			free(w->curDir);
-			w->curDir = p;
-			
-			GUIFileBrowserControl_Refresh(w);
-		}
-		else { // open selected files
-			
-			// collect a list of files
-			intptr_t n = 0;
-			char** files = malloc(sizeof(*files) * (w->numSelected + 1));
-			for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
-				GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
-				if(!e->isSelected) continue;
-				files[n++] = path_join(w->curDir, e->name);
-				
-				e->isSelected = 0; // unselect them 
-			}
-			files[n] = 0;
-			
-			
-			if(w->onChoose) w->onChoose(w->onChooseData, files, n);
-			
-			// clean up
-			char** ff = files;
-			while(*ff) {
-				free(*ff);
-				ff++;
-			}
-			free(files);
-		}
-	}
-	else if(gev->keycode == XK_space) {
-		GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
-		e->isSelected = !e->isSelected;
-		w->numSelected += e->isSelected ? 1 : -1;
-	}
-	
-}
+
 
 
 static void click(GUIHeader* w_, GUIEvent* gev) {
@@ -372,6 +315,98 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 	else {
 		e->isSelected = !e->isSelected;
 		w->numSelected += e->isSelected ? 1 : -1;
+	}
+}
+
+
+
+
+static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
+	GUIFileBrowserControl* w = (GUIFileBrowserControl*)w_;
+	
+	switch(cmd->cmd) {
+		case GUICMD_FileBrowser_MoveCursorV:
+			w->cursorIndex = (w->cursorIndex + cmd->amt + VEC_LEN(&w->entries)) % (intptr_t)VEC_LEN(&w->entries);
+			GUIFileBrowserControl_Autoscroll(w);
+			break;
+
+		case GUICMD_FileBrowser_ParentDir: {
+			char* p = getParentDir(w->curDir);
+			free(w->curDir);
+			w->curDir = p;
+			
+			GUIFileBrowserControl_Refresh(w);
+			break;
+		}
+		case GUICMD_FileBrowser_ToggleSelect: {
+			GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
+			e->isSelected = !e->isSelected;
+			w->numSelected += e->isSelected ? 1 : -1;
+			break;
+		}
+		
+		case GUICMD_FileBrowser_SmartOpen: {
+			GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
+			
+			if(e->type == 2) { // enter the directory
+				char* p = path_join(w->curDir, e->name);
+				free(w->curDir);
+				w->curDir = p;
+				
+				GUIFileBrowserControl_Refresh(w);
+			}
+			else if(w->numSelected == 0) {
+				
+				GUIFileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
+				e->isSelected = 1;
+				w->numSelected++;
+
+				size_t sz;						
+				GUIEvent gev2 = {};
+				gev2.type = GUIEVENT_User;
+				gev2.eventTime = 0;//gev->eventTime;
+				gev2.originalTarget = &w->header;
+				gev2.currentTarget = &w->header;
+				gev2.cancelled = 0;
+				// handlers are responsible for cleanup
+				gev2.userData = GUIFileBrowserControl_CollectSelected(w, &sz);
+				gev2.userSize = sz;
+				
+				gev2.userType = "accepted";
+			
+				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+		
+				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
+				if(gev2.userData && !gev2.cancelled) {
+					GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
+				}
+	
+				e->isSelected = 0;
+				w->numSelected = 0;
+			}
+			else { // open selected files
+				size_t sz;						
+				GUIEvent gev2 = {};
+				gev2.type = GUIEVENT_User;
+				gev2.eventTime = 0;//gev->eventTime;
+				gev2.originalTarget = &w->header;
+				gev2.currentTarget = &w->header;
+				gev2.cancelled = 0;
+				// handlers are responsible for cleanup
+				gev2.userData = GUIFileBrowserControl_CollectSelected(w, &sz);
+				gev2.userSize = sz;
+				
+				gev2.userType = "accepted";
+			
+				GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+		
+				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
+				if(gev2.userData && !gev2.cancelled) {
+					GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
+				}
+	
+			}
+		}
 	}
 }
 
@@ -467,10 +502,10 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 		.Render = (void*)render,
 		.UpdatePos = (void*)updatePos,
 		.ChooseCursor = chooseCursor,
+		.HandleCommand = (void*)handleCommand,
 	};
 	
 	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyUp = keyUp,
 		.Click = click,
 		.DoubleClick = click,
 		.ScrollUp = scrollUp,
@@ -485,6 +520,7 @@ GUIFileBrowserControl* GUIFileBrowserControl_New(GUIManager* gm, char* path) {
 	GUIFileBrowserControl* w = pcalloc(w);
 	
 	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
+	w->header.cmdElementType = GUIELEMENT_FileBrowser;
 	
 	// TODO: from config
 	w->lineHeight = 22;

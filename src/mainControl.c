@@ -450,21 +450,7 @@ static void click(GUIHeader* w_, GUIEvent* gev) {
 static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	
-	if(0 == strcmp(gev->userType, "accepted")) {
-		
-		GUIFileBrowserEntry* e = gev->userData;
-		while(e->name) {
-			GUIMainControl_LoadFile(w, e->fullPath);
-			e++;
-		}
-		
-		// this is probably a bit sketchy
-		GUIFileBrowser_UnselectAll((GUIFileBrowser*)gev->originalTarget);
-		
-		GUIFileBrowserControl_FreeEntryList(gev->userData, gev->userSize);
-		gev->cancelled = 1;
-	} 
-	else if(0 == strcmp(gev->userType, "openFile")) {
+	if(0 == strcmp(gev->userType, "openFile")) {
 		GUIMainControl_LoadFile(w, gev->userData);
 		gev->cancelled = 1;
 	}

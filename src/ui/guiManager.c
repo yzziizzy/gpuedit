@@ -114,7 +114,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	
 	struct {char* n; uint16_t id;} elem_names[] = {
-	#define X(a) { #a, GUIELEMENT_##a },
+	#define X(a) { "_"#a, GUIELEMENT_##a },
 	GUI_ELEMENT_LIST
 		{NULL, 0},
 	#undef X
@@ -125,7 +125,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	
 	struct {char* en; char* n; uint32_t id;} cmd_names[] = {
-	#define X(a, b) { #a, #b, GUICMD_##a##_##b },
+	#define X(a, b) { "_"#a, #b, GUICMD_##a##_##b },
 	GUI_COMMAND_LIST
 		{NULL, NULL, 0},
 	#undef X
