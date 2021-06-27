@@ -7,11 +7,11 @@
 
 #define GUI_ELEMENT_LIST \
 	X(Edit) \
-	X(FileBrowser) \
+	X(FileViewer) \
+	\
+	X(FileRow) \
 
 
-
-// The element name will need a _ prepended in the commands.json file
 #define GUI_COMMAND_LIST \
 	X(Edit, Copy) \
 	X(Edit, Cut) \
@@ -28,11 +28,11 @@
 	X(Edit, Clear) \
 	X(Edit, Undo) \
 	X(Edit, Redo) \
-	X(FileBrowser, MoveCursorV) \
-	X(FileBrowser, ParentDir) \
-	X(FileBrowser, SmartOpen) \
-	X(FileBrowser, ToggleSelect) \
-	X(FileBrowser, OpenUnderCursor) \
+	X(FileViewer, MoveCursorV) \
+	X(FileViewer, ParentDir) \
+	X(FileViewer, SmartOpen) \
+	X(FileViewer, ToggleSelect) \
+	X(FileViewer, OpenUnderCursor) \
 	
 	
 #define GUI_COMMAND_FLAG_LIST \
@@ -72,14 +72,20 @@ enum {
 #undef X
 
 
-
+enum {
+	GUI_CMD_SRC_NONE,
+	GUI_CMD_SRC_KEY,
+	GUI_CMD_SRC_CLICK,
+};
 
 
 typedef struct GUI_Cmd {
+	uint16_t src_type; // key, mouse, etc
 	uint16_t element;
+	uint16_t sub_elem;
 	uint16_t mode;
 	uint32_t mods;
-	int32_t keysym;
+	int32_t keysym; // or mouse buttons
 	uint32_t cmd;
 	uint32_t flags;
 	union {
@@ -111,7 +117,10 @@ struct GUIHeader;
 typedef struct GUIHeader GUIHeader;
 
 
+#define GUI_CMD_RATSYM(btn, reps) ((1 << 30) | ((reps & 0xff) << 15) | (btn & 0xff))
+
 GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev);
+GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);
 

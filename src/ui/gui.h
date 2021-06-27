@@ -338,7 +338,7 @@ struct GUIHeader {
 #include "debugAdjuster.h"
 #include "structAdjuster.h"
 #include "performanceGraph.h"
-#include "fileBrowser.h"
+#include "fileViewer.h"
 
 
 typedef void (*GUI_WorkerFn)(GUIHeader* caller, void* data, float* pctComplete);
@@ -430,6 +430,7 @@ typedef struct GUIManager {
 	HT(uint32_t) cmdFlagLookup;
 	
 	VEC(GUI_Cmd) cmdList; // temporary, until a struct-keyed hash table is added to sti
+	VEC(GUI_Cmd) cmdListSubElems; // temporary, until a struct-keyed hash table is added to sti
 	
 		
 	struct {

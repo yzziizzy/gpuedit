@@ -968,7 +968,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 				GUIManager_popFocusedObject(w->header.gm);
 				
 				// HACK
-				VEC_TRUNC(&w->findSet->ranges);
+				if(w->findSet) VEC_TRUNC(&w->findSet->ranges);
 			}
 			break;
 			

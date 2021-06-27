@@ -87,6 +87,20 @@ void GUIManager_InitCommands(GUIManager* gm) {
 }
 
 
+static int event_src_cat(GUIEvent* gev) {
+	switch(gev->type) {
+		case GUIEVENT_Click:
+			return GUI_CMD_SRC_CLICK;
+			
+		case GUIEVENT_KeyDown:
+			return GUI_CMD_SRC_KEY;
+			
+		default:
+			return GUI_CMD_SRC_NONE;
+	}
+}
+
+
 enum {
 	has_ctl = 1<<0,
 	has_alt = 1<<1,
@@ -110,18 +124,70 @@ GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev) {
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
 	
-	unsigned int i = 0;
+	uint16_t cat = event_src_cat(gev);
 	
+	unsigned int i = 0;
+//	printf("$$$$\n");
 	VEC_EACHP(&gm->cmdList, i, cp) {
  			//printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+		
+		int c = gev->keycode;
+		if(cat == GUI_CMD_SRC_KEY) {
+			c = tolower(c);
+		}
+		else {
+			c = GUI_CMD_RATSYM(gev->button, gev->multiClick);
+		}
+
+		
+		if(cp->src_type != cat) { continue; }
 		if(cp->element != gh->cmdElementType) { continue; }
 		if(cp->mode != gh->cmdMode) { continue; }
-		if(cp->keysym != tolower(gev->keycode)) { continue; }
+		if(cp->keysym != c) { continue; }
 		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
 		// TODO: specific mods
 		
 		// found
 		//printf("found command: %d, %d, %x\n", cp->element, cp->mode, cp->mods);
+		return cp;
+		
+	}
+//	printf("^^^^\n");
+
+	return NULL; // no match
+}
+
+GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev) {
+	GUIManager* gm = gh->gm;
+//	printf("probing\n");
+	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
+	unsigned int ANY_MASK = ~ANY;
+		
+	uint16_t cat = event_src_cat(gev);
+	
+	unsigned int i = 0;
+	
+	VEC_EACHP(&gm->cmdListSubElems, i, cp) {
+	
+		int c = gev->keycode;
+		if(cat == GUI_CMD_SRC_KEY) {
+			c = tolower(c);
+		}
+		else {
+			c = GUI_CMD_RATSYM(gev->button, gev->multiClick);
+		}
+	
+ 			//printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+		if(cp->sub_elem != sub_elem) { continue; }
+		if(cp->src_type != cat) { continue; }
+		if(cp->element != gh->cmdElementType) { continue; }
+		if(cp->mode != gh->cmdMode) { continue; }
+		if(cp->keysym != c) { continue; }
+		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
+		// TODO: specific mods
+		
+		// found
+		//printf("found sub-command: %d, %d, %x\n", cp->element, cp->mode, cp->mods);
 		return cp;
 		
 	}
@@ -269,9 +335,8 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 	for(;link; link = link->next) {
 		char* s;
 		GUI_Cmd cmd = {0};
-		GUI_CmdElementInfo* inf;
-		int infIndex;
-		
+		GUI_CmdElementInfo* inf, *inf2;
+		int infIndex, infIndex2;
 		
 		// element name
 		s = json_obj_get_str(link->v, "elem");
@@ -289,6 +354,19 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		inf = &VEC_ITEM(&gm->cmdElements, infIndex);
 		cmd.element = inf->id;
 		
+		// sub-element name
+		s = json_obj_get_str(link->v, "sub_elem");
+		if(s != NULL) {
+			char* s1 = strdup(s);
+			
+			if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
+				fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
+				continue;
+			}
+			inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2);
+			cmd.sub_elem = inf2->id;
+		}
+		
 		// command enum
 		s = json_obj_get_str(link->v, "cmd");
 		if(s == NULL) {
@@ -303,6 +381,8 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		cmd.cmd = n32;
 		
 		// key
+		cmd.src_type = GUI_CMD_SRC_KEY;
+		
 		s = json_obj_get_str(link->v, "key");
 		if(s == NULL) {
 			fprintf(stderr, "Command List entry missing key\n");
@@ -319,6 +399,21 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 			}
 			
 			cmd.keysym = n;
+		}
+		else if(*s == 'R' && *(s+1) == 'A' && *(s+2) == 'T' && *(s+3) == '_')  {
+			// Mouse button
+			char* end = NULL;
+			int reps = 1;
+			int btn_num = strtol(s+4, &end, 10);
+			
+			if(*end == 'x') {
+				reps = strtol(end+1, NULL, 10);
+			}
+			
+		//	printf("RAT_%d\n", btn_num);
+			cmd.src_type = GUI_CMD_SRC_CLICK;
+			cmd.keysym = GUI_CMD_RATSYM(btn_num, reps);
+		//	printf("keysym: %x = %dx%d\n", cmd.keysym, btn_num, reps);
 		}
 		else { // regular character literal
 			cmd.keysym = s[0];
@@ -428,10 +523,14 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		}
 		
 		
-		// add the command into the hash table (nyi)
+		// TODO: add the command into the hash table 
 		//printf("pushing cmd: %s %s %s %d %x\n", s1, s2, s3, cmd.mode, cmd.mods);
-		VEC_PUSH(&gm->cmdList, cmd);
+		if(cmd.sub_elem == 0) {
+			VEC_PUSH(&gm->cmdList, cmd);
+		}
+		else {
+			VEC_PUSH(&gm->cmdListSubElems, cmd);
+		}
 	}
-	
 }
 

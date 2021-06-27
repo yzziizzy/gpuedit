@@ -87,7 +87,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 // 	TextureAtlas_finalize(gm->ta);
 	
 	gm->minDragDist = 2;
-	gm->doubleClickTime = 0.300;
+	gm->doubleClickTime = 0.500;
 	
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt, &event_vt); 
@@ -114,7 +114,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	
 	struct {char* n; uint16_t id;} elem_names[] = {
-	#define X(a) { "_"#a, GUIELEMENT_##a },
+	#define X(a) { #a, GUIELEMENT_##a },
 	GUI_ELEMENT_LIST
 		{NULL, 0},
 	#undef X
@@ -125,7 +125,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	
 	struct {char* en; char* n; uint32_t id;} cmd_names[] = {
-	#define X(a, b) { "_"#a, #b, GUICMD_##a##_##b },
+	#define X(a, b) { #a, #b, GUICMD_##a##_##b },
 	GUI_COMMAND_LIST
 		{NULL, NULL, 0},
 	#undef X
@@ -824,18 +824,17 @@ void GUIManager_BubbleUserEvent(GUIManager* gm, GUIHeader* target, char* ev) {
 // does not do bubbling
 void GUIHeader_TriggerEvent(GUIHeader* o, GUIEvent* gev) {
 	
+	if(o && o->vt && o->vt->HandleCommand /*&& gev->type == GUIEVENT_KeyDown*/) {
 	
-	if(o && o->vt && o->vt->HandleCommand && gev->type == GUIEVENT_KeyDown) {
-		
 		GUI_Cmd* cmd = Commands_ProbeCommand(o, gev);
-		
-		if(cmd) {	
+		if(cmd) {
 //			printf("handling command\n");	
 			o->vt->HandleCommand(o, cmd);
 			gev->cancelled = 1;
 			// todo: check no-suppress flag
 			return;
 		}
+		
 	}
 	
 	

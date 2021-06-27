@@ -165,6 +165,7 @@
 * Need warnings and protection against overrunning the persistent gpu vertex buffers
 * Tabbing between edit boxes in the Replace tray causes the buffer to jump to the top.
 * Undo breaks with CollapseWhitespace after deleting a selected word.
+* Fuzzy matcher does not refresh on backspace
 
 == Low Priority ==
 * Built-in terminal
