@@ -72,8 +72,8 @@ void XStuff_showCursor(XStuff* xs);
 void XStuff_SetWindowTitle(XStuff* xs, char* title);
 void XStuff_SetMouseCursor(XStuff* xs, int index);
 
-XErrorEvent* xLastError;
-char xLastErrorStr[1024];
+extern XErrorEvent* xLastError;
+extern char xLastErrorStr[1024];
  
 int initXWindow(XStuff* xs);
 
