@@ -59,13 +59,14 @@ void setupFBOs(AppState* as, int resized);
 void resize_callback(XStuff* xs, void* gm_) {
 	GUIManager* gm = (GUIManager*)gm_;
 	
+	/*
 	GUIEvent gev = {
 		.type = GUIEVENT_ParentResize,
 		.size = {.x = xs->winSize.x, .y = xs->winSize.y},
 		.originalTarget = gm->root,
 	};
-	
-	GUIHeader_TriggerEvent(gm->root, &gev);
+	*/
+//	GUIHeader_TriggerEvent(gm->root, &gev);
 }
 
 static struct child_process_info* cc;
@@ -165,15 +166,16 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	char* tmp = path_join(homedir, ".gpuedit/commands.json");
 
 //	CommandList_loadJSONFile(as->gui, "/home/steve/projects/gpuedit/config/commands_new.json");
-	CommandList_loadJSONFile(as->gui, tmp);
+//	CommandList_loadJSONFile(as->gui, tmp); // TODO IMGUI
 	free(tmp);
 
 	
 	
 	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
 	as->mc->as = as;
+	as->mc->gm = as->gui;
 	as->mc->commands = as->commands;
-	GUIHeader_RegisterObject(as->gui->root, &as->mc->header);
+//	GUIHeader_RegisterObject(as->gui->root, &as->mc->header);
 	
 	// command line args
 	for(int i = 1; i < argc; i++) {
@@ -202,6 +204,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		GUIMainControl_LoadFile(as->mc, a);
 	}
 	
+	GUIMainControl_LoadFile(as->mc, "testfile.h");
+	GUIMainControl_LoadFile(as->mc, "testfile.c");
 	
 	int i = 0;
 	TabSpec* ts = as->globalSettings.MainControl_startupTabs;
@@ -210,7 +214,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 			case MCTAB_EDIT:
 				GUIMainControl_LoadFile(as->mc, ts[i].path);
 				break;
-			case MCTAB_FILEOPEN:
+	/*		case MCTAB_FILEOPEN:
 				GUIMainControl_OpenFileBrowser(as->mc, ts[i].path);
 				break;
 			case MCTAB_FUZZYOPEN:
@@ -218,13 +222,13 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 				break;
 			case MCTAB_GREPOPEN:
 				GUIMainControl_GrepOpen(as->mc, NULL);
-				break;
+				break;*/
 		}
 		i++;
 	}
 	GUIMainControl_GoToTab(as->mc, 0);
 	
-	GUIManager_pushFocusedObject(as->gui, &as->mc->header);
+//	GUIManager_pushFocusedObject(as->gui, &as->mc->header);
 		
 	
 	as->frameCount = 0;
@@ -779,7 +783,7 @@ void SetUpPDP(AppState* as, PassDrawParams* pdp) {
 
 
 
-
+#include "ui/gui_internal.h"
 
 //#define PERF(...) __VA_ARGS__
 #define PERF(...) 
@@ -941,6 +945,11 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		
 		PERF(now = getCurrentTime());
 		RenderPass_preFrameAll(as->guiPass, &pfp);
+		
+		// TODO: new gui code
+//		gui_drawBox(as->gui, (Vector2){10,10},(Vector2){100,100}, &as->gui->curClip, 2, &(Color4){1,1,1,1});
+		GUIMainControl_Render(as->mc, as->gui, &pfp);
+				
 		RenderPass_renderAll(as->guiPass, pfp.dp);
 		RenderPass_postFrameAll(as->guiPass);
 		PERF(printf("gui render time: %fus\n", timeSince(now) * 1000000.0));
@@ -976,7 +985,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 	
 	
 		PERF(now = getCurrentTime());
-		GUIManager_Reap(as->gui);
+//		GUIManager_Reap(as->gui);
 		PERF(printf("GUIManager_Reap: %fus\n", timeSince(now) * 1000000));
 	}
 }

@@ -22,7 +22,7 @@
 // #define DEBUG printf
 #define DEBUG(...)
 
-
+/*
 static void render(GUIHeader* w_, PassFrameParams* pfp) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
 	GUIManager* gm = w->header.gm;
@@ -137,7 +137,7 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 		GUIFuzzyMatchControl_ProcessCommand(w, &found);		
 		
 	}
-*/
+* /
 }
 
 
@@ -155,14 +155,14 @@ static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 	
 	GUIFuzzyMatchControl_ProcessCommand(w, cmd);
 }
-
+*/
 
 void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {
 		case FuzzyMatcherCmd_Exit:
-			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");			
+//			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");			
 			break;
 			
 		case FuzzyMatcherCmd_CursorMove:
@@ -183,7 +183,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 			if(w->gs->MainControl_openInPlace) {
 				opt.set_focus = 1;
 			}
-		
+		/*
 			GUIEvent gev2 = {};
 			gev2.type = GUIEVENT_User;
 			gev2.eventTime = 0;//gev->eventTime;
@@ -197,12 +197,12 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 			gev2.userType = "openFileOpt";
 		
 			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
-			
+			*/
 			free(path_raw);
 			free(path);
 
 			if(w->gs->MainControl_openInPlace) {
-				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+//				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
 			}
 
 			break;
@@ -215,47 +215,24 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 
 GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char* searchTerm) {
 
-	static struct gui_vtbl static_vt = {
-		.Render = (void*)render,
-		.UpdatePos = (void*)updatePos,
-		.HandleCommand = (void*)handleCommand,
-	};
-	
-	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyDown = keyDown,
-		.GainedFocus = gainedFocus,
-		//.Click = click,
-		//.DoubleClick = click,
-// 		.ScrollUp = scrollUp,
-// 		.ScrollDown = scrollDown,
-// 		.DragStart = dragStart,
-// 		.DragStop = dragStop,
-// 		.DragMove = dragMove,
-// 		.ParentResize = parentResize,
-		.User = userEvent,
-	};
 	
 	
 	GUIFuzzyMatchControl* w = pcalloc(w);
 	
-	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	w->header.cursor = GUIMOUSECURSOR_ARROW;
-	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;
+
+//	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
+//	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;
 	
 	w->lineHeight = 25;
 	w->leftMargin = 20;
 	
 	if(searchTerm) {
 		w->searchTerm = strdup(searchTerm);
-		w->searchBox = GUIEdit_New(gm, searchTerm);
+//		w->searchBox = GUIEdit_New(gm, searchTerm);
 	} else {
-		w->searchBox = GUIEdit_New(gm, "");
+//		w->searchBox = GUIEdit_New(gm, "");
 	}
-	w->searchBox->header.flags |= GUI_MAXIMIZE_X;
-	w->searchBox->header.gravity = GUI_GRAV_TOP_LEFT;
 	
-	GUI_RegisterObject(w, w->searchBox);
 	
 	return w;
 }

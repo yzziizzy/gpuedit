@@ -20,7 +20,6 @@ typedef struct MainCmd {
 */
 
 typedef struct MainControlTab {
-	GUIHeader* client;
 	char* title;
 	TabType_t type;
 	
@@ -33,6 +32,9 @@ typedef struct MainControlTab {
 	float lingerStart;
 	float lingerEnd;
 	float scrollSpeed; // time to move from one side to the other
+	
+	void* client;
+	void (*render)(void* /*client*/, GUIManager*, PassFrameParams*);
 	
 	int (*beforeClose)(struct MainControlTab*);
 	void (*afterClose)(struct MainControlTab*);
@@ -48,7 +50,7 @@ struct AppState;
 typedef struct AppState AppState;
 
 typedef struct GUIMainControl {
-	GUIHeader header;
+//	GUIHeader header;
 	
 	AppState* as; 
 	
@@ -77,6 +79,7 @@ typedef struct GUIMainControl {
 	
 	GUI_Cmd* commands;
 	
+	GUIManager* gm;
 	GlobalSettings* gs;
 	
 	// TEMP HACK
@@ -91,7 +94,10 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs);
 void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s);
 
 
-MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, GUIHeader* client, char* title);
+void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, PassFrameParams* pfp);
+
+
+MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, void* client, char* title);
 void GUIMainControl_CloseTab(GUIMainControl* w, int index);
 
 int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path);

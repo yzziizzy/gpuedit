@@ -41,7 +41,7 @@ size_t drawCharacter(
 ) {
 // 		printf("'%s'\n", bl->buf);
 	GUIFont* f = tdp->font;
-	float size = tdp->fontSize / f->height; 
+	float size = tdp->fontSize; 
 	float hoff = size * f->ascender;
 		
 	struct charInfo* ci = &f->regular[c];
@@ -79,10 +79,16 @@ size_t drawCharacter(
 		v = GUIManager_reserveElements(gm, 1);
 		
 		*v = (GUIUnifiedVertex){
-			.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
+		
+			.pos.t = tl.y + ci->topLeftOffset.y * size,
 			.pos.l = tl.x + ci->topLeftOffset.x * size,
-			.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
-			.pos.r = tl.x + ci->size.x * size + ci->topLeftOffset.x * size,
+			.pos.b = tl.y + ci->bottomRightOffset.y * size,
+			.pos.r = tl.x + ci->bottomRightOffset.x * size,
+			
+//			.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
+//			.pos.l = tl.x + ci->topLeftOffset.x * size,
+//			.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
+//			.pos.r = tl.x + ci->size.x * size + ci->topLeftOffset.x * size,
 			
 			.guiType = 1, // text
 			
@@ -105,6 +111,9 @@ size_t drawCharacter(
 }
 
 
+
+#define V(a,b) ((Vector2){.x = (a), .y = (b)})
+
 // draws the editor's text area and line numbers
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	 int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp) {
@@ -122,49 +131,24 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	char lnbuf[32];
 	GUIUnifiedVertex* v;
 	
-	float edh = gbe->header.size.y;
+	float edh = gbe->size.y;
 	
-	// draw general background
-	v = GUIManager_reserveElements(gm, 1);
-	*v = (GUIUnifiedVertex){
-		.pos = {
-			gbe->header.absTopLeft.x, 
-			gbe->header.absTopLeft.y, 
-			gbe->header.absTopLeft.x + gbe->header.size.x, 
-			gbe->header.absTopLeft.y + edh
-		},
-		.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
-		.guiType = 0, // window (just a box)
-		.fg = {0, 0, 255, 255},
-		.bg = GUI_COLOR4_TO_SHADER(theme->bgColor), 
-		.z = gbe->header.absZ,
-		.alpha = 1,
-	};
+	// draw general background	
+	GUI_Rect(V(0,0), gm->curWin->size, &theme->bgColor);
 	
-	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 0.5)) * tdp->charWidth + bdp->lineNumExtraWidth;
+	
+	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	float hsoff = -gbe->scrollCols * tdp->charWidth;
 	
-	Vector2 tl = gbe->header.absTopLeft;
+	Vector2 tl = {0};//gbe->header.absTopLeft; // TODO IMGUI
 	if(bdp->showLineNums) tl.x += lineNumWidth;
 	
 	gbe->textAreaOffsetX = tl.x; // save for other functions
 
 	if(bdp->showLineNums) {
-		v = GUIManager_reserveElements(gm, 1);
-		*v = (GUIUnifiedVertex){
-			.pos = {
-				gbe->header.absTopLeft.x, 
-				gbe->header.absTopLeft.y, 
-				gbe->header.absTopLeft.x + lineNumWidth, 
-				gbe->header.absTopLeft.y + edh
-				},
-			.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
-			.guiType = 0, // window (just a box)
-			.fg = {0, 0, 255, 255},
-			.bg = GUI_COLOR4_TO_SHADER(theme->lineNumBgColor), 
-			.z = gbe->header.absZ + 1.99,
-			.alpha = 1,
-		};
+		gm->curZ += 1;
+		GUI_Rect(V(0,0), V(lineNumWidth, edh), &theme->lineNumBgColor);
+		gm->curZ -= 1;
 	}
 	
 	BufferLine* bl = b->first; // BUG broken 
@@ -212,8 +196,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				lnbuf, 
 				100, 
 				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y},
-				gbe->header.absZ + 2,
-				&gbe->header.absClip
+				gm->curZ + 2,
+				&gm->curClip
 			);
 		}
 		
@@ -223,18 +207,24 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 		if(bl == gbe->current && gbe->outlineCurLine && !gbe->sel) {
 			GUIUnifiedVertex* vv = GUIManager_reserveElements(gm, 1);
 			*vv = (GUIUnifiedVertex){
-				.pos = {
-					tl.x - 1, 
-					tl.y + gbe->gs->Buffer_outlineCurrentLineYOffset, 
-					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
-					tl.y + tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 2, // +1 to not cover underscores
-				},
-				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+//					v->pos.t = off.y + hoff + ci->topLeftOffset.y * fontsize;
+//					v->pos.l = off.x + alignoff + adv + ci->topLeftOffset.x * fontsize;
+//					v->pos.b = off.y + hoff + ci->bottomRightOffset.y * fontsize;
+//					v->pos.r = off.x + alignoff + adv + ci->bottomRightOffset.x * fontsize;
+			
+			// TODO IMGUI
+//				.pos = {
+////					tl.x - 1, 
+//					tl.y + gbe->gs->Buffer_outlineCurrentLineYOffset, 
+//					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
+//					tl.y + tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 2, // +1 to not cover underscores
+//				},
+//				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),// TODO IMGUI
 				.texIndex1 = 1, // order width
 				.guiType = 4, // bordered window (just a box)
 				.fg = GUI_COLOR4_TO_SHADER(theme->outlineCurrentLineBorderColor), // border color 
 				.bg = {0,0,0,0},
-				.z = gbe->header.absZ + 0.1,
+//				.z = gbe->header.absZ + 0.1, // TODO IMGUI
 				.alpha = 1.0,
 			};
 		}
@@ -321,9 +311,10 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 						1
 					};
 					
-					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) 
-						drawCharacter(gm, tdp, &pulseColor, &pulseColorBg, '0', 
-							(Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+					// TODO IMGUI
+//					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) 
+//						drawCharacter(gm, tdp, &pulseColor, &pulseColorBg, '0', 
+//							(Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
 					
 					adv += tdp->charWidth;	
 				}
@@ -339,10 +330,10 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 							.guiType = 0, // box
 							
 							.bg = GUI_COLOR4_TO_SHADER(*bg),
-							.z = gbe->header.absZ,
+//							.z = gbe->header.absZ, // TODO IMGUI
 							
 							// disabled in the shader right now
-							.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+//							.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip), // TODO IMGUI
 							.alpha = 1,
 						};
 					}
@@ -351,8 +342,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				}
 				else { 
 					// normal, non-tab text		
-					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) 
-						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+//					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) // TODO IMGUI
+//						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip); // TODO IMGUI
 					
 					adv += tdp->charWidth;
 				}
@@ -406,10 +397,10 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 				.guiType = 0, // box
 
 				.bg = GUI_COLOR4_TO_SHADER(theme->hl_bgColor),
-				.z = gbe->header.absZ,
+//				.z = gbe->header.absZ, // TODO IMGUI
 
 				// disabled in the shader right now
-				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+//				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip), // TODO IMGUI
 				.alpha = 1,
 			};
 		}
@@ -430,17 +421,17 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	
 	// draw cursor
 	if(gbe->cursorBlinkPaused || gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
-		tl = (Vector2){gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y};
+		tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
 		v = GUIManager_reserveElements(gm, 1);
 		float cursorOff = hsoff + getColOffset(gbe->current->buf, gbe->curCol, tdp->tabWidth) * tdp->charWidth;
 		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		*v = (GUIUnifiedVertex){
 			.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
-			.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),
+//			.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip), // TODO IMGUI
 			.guiType = 0, // window (just a box)
 			.fg = {255, 128, 64, 255}, // TODO: border color
 			.bg = GUI_COLOR4_TO_SHADER(theme->cursorColor), 
-			.z = gbe->header.absZ,
+//			.z = gbe->header.absZ, // TODO IMGUI
 			.alpha = 1,
 		};
 	}
@@ -474,7 +465,7 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 	
 	int charsDrawn = 0;
 	GUIFont* f = tdp->font;
-	float size = tdp->fontSize / f->height; 
+	float size = tdp->fontSize; 
 	float hoff = size * f->ascender;
 	float adv = 0;
 	
@@ -501,10 +492,10 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 			float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
 			float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
 			
-			v->pos.t = off.y + hoff - ci->topLeftOffset.y * size;
+			v->pos.t = off.y + hoff + ci->topLeftOffset.y * size;
 			v->pos.l = off.x + adv + ci->topLeftOffset.x * size;
-			v->pos.b = off.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size;
-			v->pos.r = off.x + adv + ci->size.x * size + ci->topLeftOffset.x * size;
+			v->pos.b = off.y + hoff + ci->bottomRightOffset.y * size;
+			v->pos.r = off.x + adv + ci->bottomRightOffset.x * size;
 			
 			v->guiType = 1; // text
 			

@@ -27,7 +27,7 @@ typedef struct GUIStatusBarItem {
 typedef struct GUIBufferEditControl GUIBufferEditControl;
 
 typedef struct GUIStatusBar {
-	GUIHeader header;
+//	GUIHeader header;
 	
 	float spacing;
 	AABB2 padding;

@@ -21,9 +21,9 @@ typedef struct GUIMainMenuItem {
 		char** str;
 	} data;
 	
-	GUIWindow* base; 
-	GUIText* gLabel;
-	GUIHeader* gControl;
+//	GUIWindow* base; 
+//	GUIText* gLabel;
+//	GUIHeader* gControl;
 } GUIMainMenuItem;
 
 
@@ -32,14 +32,14 @@ struct AppState;
 typedef struct AppState AppState;
 
 typedef struct GUIMainMenu {
-	GUIHeader header;
+//	GUIHeader header;
 	
 	AppState* as; 
 	
-	GUIGridLayout* rows; 
-	GUIWindow* scrollbar;
-	GUIWindow* clientArea;
-	GUIButton* saveBtn;
+//	GUIGridLayout* rows; 
+//	GUIWindow* scrollbar;
+//	GUIWindow* clientArea;
+//	GUIButton* saveBtn;
 	float sbMinHeight;
 	intptr_t scrollOffset;
 	

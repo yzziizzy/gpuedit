@@ -117,7 +117,7 @@ static unsigned int get_index(unsigned int mods) {
 	if(mods & GUIMODKEY_TUX) o |= has_tux;
 	return o;
 }
-
+/*
 GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev) {
 	GUIManager* gm = gh->gm;
 //	printf("probing\n");
@@ -156,8 +156,8 @@ GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev) {
 
 	return NULL; // no match
 }
-
-GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev) {
+/*
+GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev) { 
 	GUIManager* gm = gh->gm;
 //	printf("probing\n");
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
@@ -194,9 +194,9 @@ GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev) {
 
 	return NULL; // no match
 }
+*/
 
-
-int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t id) {
+int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t id) { /*  // TODO IMGUI
 	GUI_CmdElementInfo* inf;
 	int infIndex;
 	
@@ -207,13 +207,13 @@ int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t i
 	inf = &VEC_ITEM(&gm->cmdElements, infIndex);
 	
 	HT_set(&inf->nameLookup, name, id);
-	
+	*/
 	return 0;
 }
 
 
 // returns zero on success
-int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) {
+int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) { /*  // TODO IMGUI
 	GUI_CmdElementInfo inf;
 	int infIndex;
 	
@@ -229,25 +229,27 @@ int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) {
 	infIndex = VEC_LEN(&gm->cmdElements);
 	HT_set(&gm->cmdElementLookup, name, infIndex);
 	VEC_PUSH(&gm->cmdElements, inf);
-	
-	return 0;
+	*/
+	return 0; 
 }
 
 
 uint16_t GUIManager_AddCommandMode(GUIManager* gm, char* name) {
-	uint16_t mode = gm->cmdModeLookup.fill + 1;
+//	uint16_t mode = gm->cmdModeLookup.fill + 1;
 	
-	if(mode > 0xfff0) {
-		printf("GUI: Too many command modes trying to add '%s'\n", name);
-		return 0;
-	}
+//	if(mode > 0xfff0) {
+//		printf("GUI: Too many command modes trying to add '%s'\n", name);
+//		return 0;
+//	}
+//	
+//	HT_set(&gm->cmdModeLookup, name, mode);  // TODO IMGUI
 	
-	HT_set(&gm->cmdModeLookup, name, mode);
-	
-	return mode;
+//	return mode;
+return 0;  // TODO IMGUI
 }
 
 uint32_t GUIManager_AddCommandFlag(GUIManager* gm, char* name) {
+	/*  // TODO IMGUI
 	uint32_t flag = 1 << gm->nextCmdFlagBit;
 	gm->nextCmdFlagBit++;
 	
@@ -256,9 +258,10 @@ uint32_t GUIManager_AddCommandFlag(GUIManager* gm, char* name) {
 		return 0;
 	}
 	
-	HT_set(&gm->cmdFlagLookup, name, flag);
+//	HT_set(&gm->cmdFlagLookup, name, flag);  // TODO IMGUI
 	
 	return flag;
+	*/ return 0;
 }
 
 
@@ -292,11 +295,11 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 			ename = json_obj_get_str(link->v, "elem");
 			if(!ename) continue;
 			
-			if(HT_get(&gm->cmdElementLookup, ename, &infIndex)) {
-				fprintf(stderr, "Unknown element name: '%s'\n", ename);
-				continue;
-			}
-			inf = &VEC_ITEM(&gm->cmdElements, infIndex);
+//			if(HT_get(&gm->cmdElementLookup, ename, &infIndex)) {
+//				fprintf(stderr, "Unknown element name: '%s'\n", ename);
+//				continue;
+//			}
+//			inf = &VEC_ITEM(&gm->cmdElements, infIndex); // TODO IMGUI
 			
 		}
 	}
@@ -347,11 +350,11 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		
 		char* s1 = strdup(s);
 		
-		if(HT_get(&gm->cmdElementLookup, s, &infIndex)) {
-			fprintf(stderr, "Unknown element name: '%s'\n", s);
-			continue;
-		}
-		inf = &VEC_ITEM(&gm->cmdElements, infIndex);
+//		if(HT_get(&gm->cmdElementLookup, s, &infIndex)) {
+//			fprintf(stderr, "Unknown element name: '%s'\n", s);
+//			continue;
+//		}
+//		inf = &VEC_ITEM(&gm->cmdElements, infIndex);  // TODO IMGUI
 		cmd.element = inf->id;
 		
 		// sub-element name
@@ -359,11 +362,11 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		if(s != NULL) {
 			char* s1 = strdup(s);
 			
-			if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
-				fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
-				continue;
-			}
-			inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2);
+//			if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
+//				fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
+//				continue;
+//			}
+//			inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2); // TODO IMGUI
 			cmd.sub_elem = inf2->id;
 		}
 		
@@ -509,9 +512,9 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 					
 					if(l2->v->type == JSON_TYPE_STRING) {
 						uint32_t x;
-						if(!HT_get(&gm->cmdFlagLookup, l2->v->s, &x)) {
-							flags |= x;
-						}
+//						if(!HT_get(&gm->cmdFlagLookup, l2->v->s, &x)) { TODO IMGUI
+//							flags |= x;
+//						}
 					}
 					else {
 						fprintf(stderr, "Invalid flag format in command list.\n");
@@ -522,7 +525,7 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 			}
 		}
 		
-		
+		/* TODO IMGUI
 		// TODO: add the command into the hash table 
 		//printf("pushing cmd: %s %s %s %d %x\n", s1, s2, s3, cmd.mode, cmd.mods);
 		if(cmd.sub_elem == 0) {
@@ -531,6 +534,7 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		else {
 			VEC_PUSH(&gm->cmdListSubElems, cmd);
 		}
+		*/
 	}
 }
 

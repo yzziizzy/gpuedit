@@ -227,7 +227,8 @@ typedef struct BufferDrawParams {
 
 // drawing and mouse controls
 typedef struct GUIBufferEditControl {
-	GUIHeader header;
+//	GUIHeader header;
+	Vector2 size;
 
 	Buffer* buffer;
 	BufferDrawParams* bdp;
@@ -284,7 +285,7 @@ typedef struct GUIBufferEditControl {
 
 	int linesPerScrollWheel;
 	
-	GUIWindow* scrollbar;
+//	GUIWindow* scrollbar;
 	float sbMinHeight;
 
 	GlobalSettings* gs;
@@ -358,7 +359,7 @@ typedef struct GUIFindOpt {
 
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
-	GUIHeader header;
+//	GUIHeader header;
 	
 	
 	GUIBufferEditControl* ec;
@@ -371,10 +372,10 @@ typedef struct GUIBufferEditor {
 	
 	BufferInputMode_t inputMode; 
 	
-	GUIEdit* lineNumEntryBox;
-	GUIEdit* findBox;
-	GUIEdit* replaceBox;
-	GUIEdit* loadBox;
+//	GUIEdit* lineNumEntryBox;
+//	GUIEdit* findBox;
+//	GUIEdit* replaceBox;
+//	GUIEdit* loadBox;
 	
 	char* findQuery;
 	GUIFindOpt find_opt;
@@ -391,13 +392,13 @@ typedef struct GUIBufferEditor {
 	
 	BufferRangeSet* findSet;
 	long findIndex;
-	GUIText* findResultsText;
+//	GUIText* findResultsText;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
 	void* setBreakpointData;
 	
 	char trayOpen;
-	GUIWindow* trayRoot;
+//	GUIWindow* trayRoot;
 	
 	// status bar
 	char showStatusBar;
@@ -406,7 +407,7 @@ typedef struct GUIBufferEditor {
 	
 	HighlighterManager* hm;
 	
-	GUISimpleWindow* menu;
+//	GUISimpleWindow* menu;
 	
 	GlobalSettings* gs;
 	GUI_Cmd* commands;
@@ -654,6 +655,10 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 
 
 // GUIBufferEditor
+
+
+void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, PassFrameParams* pfp);
+void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, PassFrameParams* pfp);
 
 
 void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s);

@@ -19,14 +19,14 @@
 
 
 size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos) {
-	return floor((pos.y - w->header.absTopLeft.y) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines;
+	return floor((pos.y /*- w->header.absTopLeft.y*/) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines; // TODO IMGUI
 }
 
 size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 	if(bl->length == 0) return 0;
 	
 	// must handle tabs
-	float a = (x - w->header.absTopLeft.x - w->textAreaOffsetX) / w->bdp->tdp->charWidth;
+	float a = (x - /*w->header.absTopLeft.x - */w->textAreaOffsetX) / w->bdp->tdp->charWidth; // TODO IMGUI
 	ptrdiff_t screenCol = floor(a + 0) + w->scrollCols;
 	
 	if(screenCol <= 0) return 0;
@@ -49,16 +49,9 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 }
 
 
-static void render(GUIBufferEditControl* w, PassFrameParams* pfp) {
-// HACK
-	GUIBufferEditControl_Draw(w, w->header.gm, w->scrollLines
-		, + w->scrollLines + w->linesOnScreen + 2, 0, 900, pfp);
-	
-	GUIHeader_renderChildren(&w->header, pfp);
-}
 
 
-
+/*
 
 static void scrollUp(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
@@ -113,7 +106,7 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 		
 		float val;
 		
-		val = /*gev->dragStartPos.y -*/ gev->pos.y / w->header.size.y;
+		val = /*gev->dragStartPos.y -* / gev->pos.y / w->header.size.y;
 		
 		
 		w->scrollLines = MIN(MAX(0, b->numLines * val), b->numLines);
@@ -179,7 +172,7 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 			b->sel->startCol = w->selectPivotCol;
 			b->sel->endCol = col;
 		}
-	}*/
+	}* /
 	
 }
 
@@ -307,7 +300,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 		}
 		
 	}
-	*/
+	* /
 }
 
 
@@ -363,7 +356,7 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 
 	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
-
+*/
 
 
 // called by the buffer when things change
@@ -452,41 +445,11 @@ void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel) {
 GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	
 	
-	
-	static struct gui_vtbl static_vt = {
-		.Render = (void*)render,
-		.UpdatePos = (void*)updatePos,
-	};
-	
-	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyDown = (void*)keyDown,
-		.Click = (void*)click,
-		.MiddleClick = (void*)middleClick,
-		.ScrollUp = (void*)scrollUp,
-		.ScrollDown = (void*)scrollDown,
-		.DragStart = (void*)dragStart,
-		.DragStop = (void*)dragStop,
-		.DragMove = (void*)dragMove,
-		.ParentResize = (void*)parentResize,
-	};
-	
-	
 	GUIBufferEditControl* w = pcalloc(w);
 	
-	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
 	
-	w->header.cursor = GUIMOUSECURSOR_TEXT;
-	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Buffer;
+//	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Buffer;
 	
-	if(!gm->gs->hideScrollbar) {
-		w->scrollbar = GUIWindow_New(gm);
-		GUIResize(&w->scrollbar->header, (Vector2){10, 50});
-		w->scrollbar->color = (Color4){.9,.9,.9, 1};
-		w->scrollbar->header.z = 100;
-		w->scrollbar->header.gravity = GUI_GRAV_TOP_RIGHT;
-		
-		GUI_RegisterObject(w, w->scrollbar);
-	}
 	
 	pcalloc(w->selSet);
 	
@@ -1096,7 +1059,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 	
 	// check flags
 	
-	
+	/*
 #define flag_setup(x) \
 	static unsigned int x = 9999999; \
 	if(x == 9999999) { \
@@ -1114,7 +1077,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 	
 	
 	if(rehighlight == 9999999) {
-		HT_get(&gm->cmdFlagLookup, "rehighlight", &rehighlight);
+//		HT_get(&gm->cmdFlagLookup, "rehighlight", &rehighlight);
 	}
 	
 	
@@ -1153,7 +1116,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 	if(cmd->flags & centerOnCursor) {
 		GBEC_scrollToCursorOpt(w, 1);
 	}
-	
+	*/
 	
 }
 

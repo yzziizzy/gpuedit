@@ -6,9 +6,8 @@
 
 
 typedef struct GUIFuzzyMatchControl {
-	GUIHeader header;
 	
-	GUIEdit* searchBox;
+//	GUIEdit* searchBox;
 	char* searchTerm;
 	fcandidate* matches;
 	size_t matchCnt;
