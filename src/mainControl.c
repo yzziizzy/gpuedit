@@ -117,11 +117,19 @@ static float tabscroll_fn_Loop(MainControlTab* tab, float boxw, PassFrameParams*
 #define V(a,b) ((Vector2){.x = (a), .y = (b)})
 
 
-void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, PassFrameParams* pfp) {
+void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	float oZ = gm->curZ;
 	
-	Vector2 tl = {0, 0};
-	Vector2 sz = {gm->curWin->clip.max.x - gm->curWin->clip.min.x, gm->curWin->clip.max.y - gm->curWin->clip.min.y};
+	Vector2 tab_sz = {sz.x, sz.y - w->tabHeight - 1};
+	
+	// only render the active tab
+	if(w->currentIndex > -1) {
+		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+		if(a && a->render) a->render(a->client, gm, V(tl.x, tl.y + w->tabHeight + 1), tab_sz, pfp);
+	}
+	
+	
+	if(!gm->drawMode) return;
 	
 	// background
 	GUI_Rect(tl, V(sz.x, w->tabHeight), &gm->defaults.tabBorderColor);
@@ -177,14 +185,6 @@ void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, PassFrameParams* p
 //			box.min.x = box.max.x - 10; // TODO magic number
 //			gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &box, &gm->defaults.tabTextColor , w->header.absZ + 0.2, "*", 1);
 //		}
-	}
-
-
-	
-	// only render the active tab
-	if(w->currentIndex > -1) {
-		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a && a->render) a->render(a->client, gm, pfp);
 	}
 	
 }

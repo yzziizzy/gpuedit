@@ -170,183 +170,6 @@ static void checkFTlib() {
 	}
 }
 
-/*
-void gen_sdf_test_samples(char* fontName, int code) {
-	printf("\n\n-------------------\nGenerating font samples\n-------------------\n\n");
-				
-	checkFTlib();
-	
-	ShaderProgram* test_shader = loadCombinedProgram("sdfTest");
-	
-	quad_info qd;
-	mk_quad(&qd);			
-	
-	for(int size = 2048; size <= 2048; size += 4) {
-		for(int bold = 0; bold <= 0; bold++) {
-			for(int italic = 0; italic <= 0; italic++) {
-		
-				FT_Error err;
-				FT_Face fontFace;
-				
-				char* fontPath = getFontFile2(fontName, bold, italic);
-				if(!fontPath) {
-					fprintf(stderr, "Could not load font '%s'\n", fontName);
-					return;
-				}
-				printf("font path: %s: %s\n", fontName, fontPath);
-				
-				err = _FT_New_Face(ftLib, fontPath, 0, &fontFace);
-				if(err) {
-					fprintf(stderr, "Could not access font '%s' at '%s'.\n", fontName, fontPath);
-					return;
-				}
-				
-			
-				
-			//	f->ascender = fontFace->ascender >> 6;
-			//	f->descender = fontFace->descender >> 6;
-			//	f->height = fontFace->height >> 6;
-				
-				
-				for(int magnitude = 2; magnitude < 8; magnitude += 2) {
-					
-					//
-					// generate the single sdf image
-					//
-			
-					gpu_calc_info gpu;
-					
-					
-	//     		 printf("calc: '%s':%d:%d %c\n", name, bold, italic, defaultCharset[i]);
-	//	  		gensize is the desired native font size 
-					FontGen* fg = addChar(magnitude , &fontFace, code, size, bold, italic);
-					//fg->font = f;
-					
-					{
-						static char buf[200];
-						sprintf(buf, "raw-glyph-%d-[%d]-%s%s.png", fg->code, size, bold?"b":"", italic?"i":"");
-						writePNG(buf, 1, fg->rawGlyph, fg->rawGlyphSize.x, fg->rawGlyphSize.y);
-					}
-					
-					
-					
-					sdfgen_new(fg);
-					exit(2);
-					
-						
-					init_gpu_sdf(&gpu, magnitude, fg->rawGlyphSize.x, fg->rawGlyphSize.y);
-					
-					printf("gpucalc: '%s':%d:%d %c\n", fontName, fg->bold, fg->italic, fg->code);
-					CalcSDF_GPU(&gpu, fg);
-					
-					{
-						static char buf[200];
-						sprintf(buf, "sdf-test-%d-[%d-%d-%s%s].png", fg->code, size, magnitude, bold?"b":"", italic?"i":"");
-						writePNG(buf, 1, fg->sdfGlyph, fg->sdfGlyphSize.x, fg->sdfGlyphSize.y);
-					}
-					
-					destroy_gpu_sdf(&gpu);
-					
-					
-					//
-					// render some samples
-					//
-					
-					// load the trimmed sdf texture
-					GLuint rawID;
-					glexit("");
-					
-					glGenTextures(1, &rawID);
-					glBindTexture(GL_TEXTURE_2D, rawID);
-					
-					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-					glexit("");
-					
-					glTexImage2D(GL_TEXTURE_2D, // target
-						0,  // level, 0 = base, no minimap,
-						GL_RED, // internalformat
-						fg->rawGlyphSize.x,
-						fg->rawGlyphSize.y,
-						0,  // border
-						GL_RED,  // format
-						GL_UNSIGNED_BYTE, // input type
-						fg->rawGlyph);
-	
-					
-					for(int sampleSize = 8; sampleSize <= 8; sampleSize += 2) {
-						for(int useSmooth = 0; useSmooth <= 1; useSmooth++) {
-							for(float stepLow = 0.4; stepLow <= .7; stepLow += 0.1) {
-								for(float stepHigh = 0.4; stepHigh <= .7; stepHigh += 0.1) {
-						
-									// the fbo
-									fb_info fb;
-									mk_fbo(&fb, fg->sdfGlyphSize.x, fg->sdfGlyphSize.y, GL_RED, GL_UNSIGNED_BYTE);
-									
-									// the shader
-									glUseProgram(test_shader->id);
-									glexit("test shading prog");
-									
-									// the quad
-									glBindVertexArray(qd.vao);
-									glBindBuffer(GL_ARRAY_BUFFER, qd.vbo);
-									glEnableVertexAttribArray(0);
-									glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 8, 0);
-									glexit("");
-									
-									glClear(GL_COLOR_BUFFER_BIT);
-									glexit("");
-									
-								
-									
-									
-									glUniform2iv(glGetUniformLocation(gpu.shader->id, "outSize"), 1, (int*)&fg->sdfGlyphSize);
-									printf("outSize: %d,%d\n", fg->sdfGlyphSize.x, fg->sdfGlyphSize.y);
-									
-									glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-									glexit("quad draw");
-									
-									// fetch the results. this call will flush the pipeline implicitly	
-									fg->sdfGlyph = malloc(fg->sdfGlyphSize.x * fg->sdfGlyphSize.y * sizeof(*fg->sdfGlyph));
-									glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-									glReadPixels(0,0,	
-										fg->sdfGlyphSize.x,
-										fg->sdfGlyphSize.y,
-										GL_RED,
-										GL_UNSIGNED_BYTE,
-										fg->sdfGlyph
-									);
-											
-					
-									{
-										static char buf[200];
-										sprintf(buf, "render-%d-[%d-%d-%s%s]-%0.1f,%0.1f,%s.png", 
-											fg->code, size, magnitude, bold?"b":"", italic?"i":"", 
-											stepLow, stepHigh, useSmooth?"sm":"");
-										writePNG(buf, 1, fg->sdfGlyph, fg->sdfGlyphSize.x, fg->sdfGlyphSize.y);
-									}
-					
-								} // stepHigh
-							} // stepLow
-						} // useSmooth
-					} // sampleSize
-							
-							
-				} // magnitude
-			} // italic
-		} // bold
-	} // size
-	
-}
-
-*/
-
-
-
-
-
 
 
 
@@ -520,9 +343,9 @@ void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic, i
 	
 //	ioRatio = floor(192.0 / 8.0); // HACK
 	
-	f->ascender = (fontFace->ascender >> 6) / genSize;
-	f->descender = fontFace->descender >> 6;
-	f->height = fontFace->height >> 6;
+	f->ascender = (float)(fontFace->ascender) / (float)fontFace->units_per_EM;
+	f->descender = (float)(fontFace->descender) / (float)fontFace->units_per_EM;
+	f->height = (float)(fontFace->height) / (float)fontFace->units_per_EM;
 	
 	for(int i = 0; i < len; i++) {
 // 		printf("calc: '%s':%d:%d %c\n", name, bold, italic, defaultCharset[i]);
@@ -677,7 +500,7 @@ void FontManager_createAtlas(FontManager* fm) {
 
 
 // bump on format changes. there is no backward compatibility. saving is for caching only.
-static uint16_t GUIFONT_ATLAS_FILE_VERSION = 3;
+static uint16_t GUIFONT_ATLAS_FILE_VERSION = 4;
 
 void FontManager_saveAtlas(FontManager* fm, char* path) {
 	FILE* f;

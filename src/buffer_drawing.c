@@ -12,6 +12,7 @@
 
 
 
+static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
 
 
 
@@ -115,7 +116,7 @@ size_t drawCharacter(
 #define V(a,b) ((Vector2){.x = (a), .y = (b)})
 
 // draws the editor's text area and line numbers
-void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
+void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz,
 	 int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp) {
 	Buffer* b = gbe->buffer;
 	
@@ -125,22 +126,21 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	BufferDrawParams* bdp = gbe->bdp;
 	TextDrawParams* tdp = bdp->tdp;
 	ThemeDrawParams* theme = bdp->theme;
+	float fsize = tdp->fontSize; 
 	GUIFont* f = gbe->font;
 	int line = 1;
 	int linesRendered = 0;
 	char lnbuf[32];
 	GUIUnifiedVertex* v;
 	
-	float edh = gbe->size.y;
+	float edh = sz.y;
 	
 	// draw general background	
 	GUI_Rect(V(0,0), gm->curWin->size, &theme->bgColor);
 	
-	
 	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	float hsoff = -gbe->scrollCols * tdp->charWidth;
 	
-	Vector2 tl = {0};//gbe->header.absTopLeft; // TODO IMGUI
 	if(bdp->showLineNums) tl.x += lineNumWidth;
 	
 	gbe->textAreaOffsetX = tl.x; // save for other functions
@@ -177,6 +177,10 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 	}
 	
 	
+	tl.y += f->ascender * fsize;
+//	printf("%f\n", f->ascender);
+	
+	int xx = 0;
 	// draw lines
 	while(bl) {
 		
@@ -189,16 +193,16 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 			if(bl->flags & BL_BOOKMARK_FLAG) lnc = &lnc[1];
 			if(bl->flags & BL_BREAKPOINT_FLAG) lnc = &lnc[2];
 
+			gm->curZ++;
 			drawTextLine(
 				gm, 
 				tdp, 
 				lnc, 
 				lnbuf, 
 				100, 
-				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y},
-				gm->curZ + 2,
-				&gm->curClip
+				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y}
 			);
+			gm->curZ--;
 		}
 		
 		float adv = 0;
@@ -341,6 +345,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
 				else { 
+				
+					GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, tl.y), f, fsize, fg);
 					// normal, non-tab text		
 //					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) // TODO IMGUI
 //						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip); // TODO IMGUI
@@ -459,14 +465,14 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm,
 
 
 // assumes no linebreaks
-void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl, float z, AABB2* clip) {
+void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl) {
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
 	int charsDrawn = 0;
 	GUIFont* f = tdp->font;
 	float size = tdp->fontSize; 
-	float hoff = size * f->ascender;
+	float hoff = 0;//size * f->ascender;
 	float adv = 0;
 	
 	
@@ -483,33 +489,10 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 			charsDrawn += tdp->charWidth * tdp->tabWidth;
 		}
 		else if(c != ' ') {
-			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-			
-			Vector2 off = tl;
-			
-			float offx = ci->texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
-			float offy = ci->texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
-			float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
-			float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
-			
-			v->pos.t = off.y + hoff + ci->topLeftOffset.y * size;
-			v->pos.l = off.x + adv + ci->topLeftOffset.x * size;
-			v->pos.b = off.y + hoff + ci->bottomRightOffset.y * size;
-			v->pos.r = off.x + adv + ci->bottomRightOffset.x * size;
-			
-			v->guiType = 1; // text
-			
-			v->texOffset1.x = offx * 65535.0;
-			v->texOffset1.y = offy * 65535.0;
-			v->texSize1.x = widx *  65535.0;
-			v->texSize1.y = widy * 65535.0;
-			v->texIndex1 = ci->texIndex;
-			
-			v->clip = GUI_AABB2_TO_SHADER(*clip);
-			v->z = z;
+
+			GUI_CharFont_NoGuard(c, V(tl.x + adv, tl.y + hoff), f, size, textColor);
 			
 			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
-			v->fg = GUI_COLOR4_TO_SHADER(*textColor),
 			
 			charsDrawn++;
 		}

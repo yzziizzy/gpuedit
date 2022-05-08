@@ -175,7 +175,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->mc->as = as;
 	as->mc->gm = as->gui;
 	as->mc->commands = as->commands;
-//	GUIHeader_RegisterObject(as->gui->root, &as->mc->header);
+	as->gui->renderRootData = as->mc;
+	as->gui->renderRootFn = (void*)GUIMainControl_Render;
 	
 	// command line args
 	for(int i = 1; i < argc; i++) {
@@ -242,6 +243,7 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->screen.wh.x = (float)ww;
 	as->screen.wh.y = (float)wh;
 	as->gui->screenSize = (Vector2i){ww, wh};
+	as->gui->screenSizef = (Vector2){ww, wh};
 	
 	as->screen.aspect = as->screen.wh.x / as->screen.wh.y;
 	as->screen.resized = 0;
@@ -703,6 +705,7 @@ void checkResize(XStuff* xs, AppState* as) {
 		as->screen.wh.x = (float)xs->winAttr.width;
 		as->screen.wh.y = (float)xs->winAttr.height;
 		as->gui->screenSize = (Vector2i){xs->winAttr.width, xs->winAttr.height};
+		as->gui->screenSizef = (Vector2){xs->winAttr.width, xs->winAttr.height};
 		
 		as->screen.aspect = as->screen.wh.x / as->screen.wh.y;
 		
@@ -713,30 +716,33 @@ void checkResize(XStuff* xs, AppState* as) {
 
 
 
-void handleEvent(AppState* as, InputState* is, InputEvent* ev) {
+void handleEvent(AppState* as, InputState* is, InputEvent* ev, PassFrameParams* pfp) {
 // 	printf("%d %c/* */%d-\n", ev->type, ev->character, ev->keysym);
 	
 	switch(ev->type) {
 		case EVENT_KEYUP:
 		case EVENT_KEYDOWN:
-			GUIManager_HandleKeyInput(as->gui, is, ev);
+			GUIManager_HandleKeyInput(as->gui, is, ev, pfp);
 			break;
 		case EVENT_MOUSEUP:
 		case EVENT_MOUSEDOWN:
-			GUIManager_HandleMouseClick(as->gui, is, ev);
+			GUIManager_HandleMouseClick(as->gui, is, ev, pfp);
 			break;
 		case EVENT_MOUSEMOVE:
-			GUIManager_HandleMouseMove(as->gui, is, ev);
+			GUIManager_HandleMouseMove(as->gui, is, ev, pfp);
 			break;
 	}
+	
 }
 
 
-void prefilterEvent(AppState* as, InputState* is, InputEvent* ev) {
+void prefilterEvent(AppState* as, InputState* is, InputEvent* ev, PassFrameParams* pfp) {
 	// drags, etc
 	
 	// TODO: fix; passthrough atm
-	handleEvent(as, is, ev);
+	handleEvent(as, is, ev, pfp);
+	
+	
 	
 }
 
@@ -838,7 +844,9 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 				
 			if(processEvents(xs, is, &iev, -1)) {
 				// handle the event
-				prefilterEvent(as, is, &iev);
+				
+				prefilterEvent(as, is, &iev, &pfp);
+				
 				PERF(totalEventsTime += timeSince(now));
 			}
 			else { // no events, see if we need to sleep longer
@@ -948,7 +956,7 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		
 		// TODO: new gui code
 //		gui_drawBox(as->gui, (Vector2){10,10},(Vector2){100,100}, &as->gui->curClip, 2, &(Color4){1,1,1,1});
-		GUIMainControl_Render(as->mc, as->gui, &pfp);
+
 				
 		RenderPass_renderAll(as->guiPass, pfp.dp);
 		RenderPass_postFrameAll(as->guiPass);

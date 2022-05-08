@@ -55,6 +55,16 @@ void GUI_BoxFilled_(
 	Color4* bgColor
 );
 
+
+// draws a single character from its font origin point
+void GUI_Char_(GUIManager* gm, int c, Vector2 origin, char* fontName, float size, Color4* color);
+#define GUI_Char(a,b,c,d,e) GUI_Char_(gm, a,b,c,d,e) 
+void GUI_CharFont_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color);
+#define GUI_CharFont(a,b,c,d,e) GUI_CharFont_(gm, a,b,c,d,e) 
+// lacks a drawMode guard
+void GUI_CharFont_NoGuard_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color);
+#define GUI_CharFont_NoGuard(a,b,c,d,e) GUI_CharFont_NoGuard_(gm, a,b,c,d,e) 
+
 // no wrapping
 void GUI_TextLine_(
 	GUIManager* gm, 

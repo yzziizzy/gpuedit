@@ -316,7 +316,7 @@ static unsigned int translateModKeys(GUIManager* gm, InputEvent* iev) {
 }
 
 
-void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev) {
+void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp) {
 	Vector2 newPos = {
 		iev->intPos.x, iev->intPos.y
 	};
@@ -328,22 +328,40 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev)
 	
 }
 
-void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev) {
+void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp) {
+	int type;
 	
-	Vector2 newPos = {
-		iev->intPos.x, iev->intPos.y
-	};
+	// translate event type
+	switch(iev->type) {
+		case EVENT_MOUSEDOWN: type = GUIEVENT_MouseDown; break; 
+		case EVENT_MOUSEUP: type = GUIEVENT_MouseUp; break; 
+		default:
+			fprintf(stderr, "!!! Non-mouse event in GUIManager_HandleMouseClick: %d\n", iev->type);
+			return; // not actually a kb event
+	}
 	
 	if(iev->type == EVENT_MOUSEDOWN) {
-		gm->mouseWentDown[iev->button] = 1;
+//		gm->mouseWentDown[iev->button] = 1;
 		
 	}
 	if(iev->type == EVENT_MOUSEUP) {
-		gm->mouseWentUp[iev->button] = 1;
+//		gm->mouseWentUp[iev->button] = 1;
 		if(iev->button == 4) gm->scrollDist += 1.0;
 		else if(iev->button == 5) gm->scrollDist -= 1.0;
 	}
 	
+
+	gm->curEvent = (GUIEvent){0};
+	gm->curEvent = (GUIEvent){
+		.type = type,
+		.button = iev->button, 
+		.pos = {iev->intPos.x, iev->intPos.y}, 
+		.modifiers = translateModKeys(gm, iev),
+	};
+		
+	
+	gm->drawMode = 0;
+	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
 
 	
 	// buttons: 
@@ -367,7 +385,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 
 }
 
-void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) {
+void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp) {
 	
 	int type;
 	
@@ -380,7 +398,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 			fprintf(stderr, "!!! Non-keyboard event in GUIManager_HandleKeyInput: %d\n", iev->type);
 			return; // not actually a kb event
 	}
-	
+	/*
 	if(type == GUIEVENT_KeyUp) {
 		
 		VEC_PUSH(&gm->keysReleased, ((GUIKeyEvent){
@@ -390,6 +408,18 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev) 
 			.modifiers = translateModKeys(gm, iev),
 		}));
 	}
+	*/
+	gm->curEvent = (GUIEvent){0};
+	gm->curEvent = (GUIEvent){
+		.type = type,
+		.character = iev->character, 
+		.keycode = iev->keysym, 
+		.modifiers = translateModKeys(gm, iev),
+	};
+		
+	
+	gm->drawMode = 0;
+	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
 }
 
 
@@ -463,10 +493,6 @@ void GUIManager_appendWindowVerts(GUIManager* gm, GUIWindow* w) {
 static void preFrame(PassFrameParams* pfp, void* gm_) {
 	GUIManager* gm = (GUIManager*)gm_;
 	
-	
-
-	
-	
 
 	double sort;
 	double time;
@@ -513,6 +539,12 @@ static void preFrame(PassFrameParams* pfp, void* gm_) {
 	gm->defaults.sliderFontSz = 12;
 	gm->time = pfp->appTime;
 	gm->timeElapsed = pfp->timeElapsed;
+	
+	gm->curEvent = (GUIEvent){0};
+	
+	gm->drawMode = 1;
+	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+	gm->drawMode = 0;
 	
 	/* soft cursor needs special handling
 	time = timeSince(sort);
@@ -562,18 +594,18 @@ static void draw(void* gm_, GLuint progID, PassDrawParams* pdp) {
 	GUIManager* gm = (GUIManager*)gm_;
 	size_t offset;
 
+	if(gm->totalVerts >= gm->vertAlloc) {
+		gm->vertAlloc = nextPOT(gm->totalVerts);
+		gm->vertBuffer = realloc(gm->vertBuffer, gm->vertAlloc * sizeof(*gm->vertBuffer));
+	}
+
+	GUIManager_appendWindowVerts(gm, gm->rootWin);
+
 	GUIUnifiedVertex* vmem = PCBuffer_beginWrite(&gm->instVB);
 	if(!vmem) {
 		printf("attempted to update invalid PCBuffer in GUIManager\n");
 		return;
 	}
-
-	if(gm->totalVerts >= gm->vertAlloc) {
-		gm->vertAlloc = nextPOT(gm->totalVerts);
-		gm->vertBuffer = realloc(gm->vertBuffer, gm->vertAlloc * sizeof(*gm->vertBuffer));
-	}
-	
-	GUIManager_appendWindowVerts(gm, gm->rootWin);
 
  //	sort = getCurrentTime();
 	memcpy(vmem, gm->vertBuffer, gm->vertCount * sizeof(*gm->vertBuffer));

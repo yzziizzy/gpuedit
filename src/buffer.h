@@ -227,8 +227,6 @@ typedef struct BufferDrawParams {
 
 // drawing and mouse controls
 typedef struct GUIBufferEditControl {
-//	GUIHeader header;
-	Vector2 size;
 
 	Buffer* buffer;
 	BufferDrawParams* bdp;
@@ -359,8 +357,6 @@ typedef struct GUIFindOpt {
 
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
-//	GUIHeader header;
-	
 	
 	GUIBufferEditControl* ec;
 	
@@ -657,15 +653,15 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 // GUIBufferEditor
 
 
-void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, PassFrameParams* pfp);
-void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, PassFrameParams* pfp);
+void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void GBEC_Update(GUIBufferEditControl* w, Vector2 sz, PassFrameParams* pfp);
 
 
 void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s);
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s);
 
-void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp);
-static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl, float z, AABB2* clip);
+void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz, int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm);
 void GUIBufferEditor_Destroy(GUIBufferEditor* w);

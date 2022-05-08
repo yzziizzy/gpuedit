@@ -97,6 +97,7 @@
 * Drag selection to new place
 * Move selection up/down n lines, shifting existing lines below/above
 * Grow selection by sequence
+* A quick hotkey to save the current cursor pos then another to jump back to it
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
 * Speed scrolling with ctrl

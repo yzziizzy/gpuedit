@@ -35,6 +35,8 @@ int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text) {
 		if(GUI_MouseWentDown(1)) ACTIVE(id);
 	}
 
+	// bail early if not drawing
+	if(!gm->drawMode) return result;
 	
 	if(gm->hotID == id) {
 		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
@@ -73,6 +75,8 @@ int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* te
 		if(GUI_MouseWentDown(1)) ACTIVE(id);
 	}
 
+	// bail early if not drawing
+	if(!gm->drawMode) return *state;
 	
 	if(gm->hotID == id || *state) {
 		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
@@ -116,6 +120,8 @@ int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state)
 		if(GUI_MouseWentDown(1)) ACTIVE(id);
 	}
 
+	// bail early if not drawing
+	if(!gm->drawMode) return *state;
 	
 	if(gm->hotID == id || *state) {
 		GUI_BoxFilled_(gm, tl, boxSz, 2, C(.8,.6,.3), C(.7,.4,.2));
@@ -158,6 +164,9 @@ int GUI_RadioButton_(GUIManager* gm, void* id, Vector2 tl, char* label, void** s
 		if(GUI_MouseWentDown(1)) ACTIVE(id);
 	}
 
+	// bail early if not drawing
+	if(!gm->drawMode) return *state == id;
+	
 	
 	if(gm->hotID == id || *state == id) {
 		GUI_CircleFilled_(gm, tl, bs, 2, C(.8,.6,.3), C(.7,.4,.2));
@@ -227,6 +236,9 @@ int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float mi
 		d->last_value = *value;
 	}
 	
+	// bail early if not drawing
+	if(!gm->drawMode) return *value != oldV;
+		
 	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, C(.9,.6,.6), C(.9,.4,.4));
 	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(width - bw, h), 0, C(.5,.6,.9), C(.4,.4,.9));
 
@@ -288,6 +300,8 @@ int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, float width, long min, 
 		d->last_value = *value;		
 	}
 	
+	if(!gm->drawMode) return *value != oldV;
+	
 	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, C(.9,.6,.6), C(.9,.4,.4));
 	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(width - bw, h), 0, C(.5,.6,.9), C(.4,.4,.9));
 
@@ -331,6 +345,8 @@ int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, float width, char** 
 	
 	CLAMP(0, *selectedOption, cnt - 1);
 	
+	// bail early if not drawing
+	if(!gm->drawMode) return old_opt != *selectedOption;
 	
 	float bw = ((float)(*selectedOption + 1) / (float)cnt) * width;
 	
@@ -381,6 +397,14 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** opti
 		*selectedOption -= GUI_GetScrollDist();
 	}
 
+	// bail early if not drawing
+	if(!gm->drawMode) return ret;
+	
+	float fontSz = gm->fontSize;
+	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
+
+	CLAMP(0, *selectedOption, optsLen - 1);
+	
 	
 	if(gm->hotID == id) {
 		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
@@ -389,10 +413,7 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** opti
 		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
 	}
 	
-	float fontSz = gm->fontSize;
-	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
 
-	CLAMP(0, *selectedOption, optsLen - 1);
 	
 	if(gm->activeID == id) {
 		// draw the dropdown
@@ -646,17 +667,6 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 		}
 	}
 	
-	
-	// draw the border
-	if(gm->activeID == id) {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
-	
-
-
 	// handle input
 	if(gm->activeID == id) {
 		VEC_EACHP(&gm->keysReleased, i, e) {
@@ -665,6 +675,17 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 			}
 			ret |= handle_input(gm, &d->cursor, str, e);
 		}
+	}
+	
+	// bail early if not drawing
+	if(!gm->drawMode) return ret;
+	
+	// draw the border
+	if(gm->activeID == id) {
+		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
+	}
+	else {
+		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
 	}
 	
 	
@@ -752,20 +773,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 		}
 	}
 	
-	if(gm->activeID == id) {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
-	
-	
-	float fontSz = gm->fontSize;
-	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
-	
-	GUIFont* font = GUI_FindFont(gm, "Arial");
-	if(!font) font = gm->defaults.font;
-	
+
 
 	// handle input
 	if(gm->activeID == id) {
@@ -816,13 +824,29 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 		}
 	}
 	
+	// bail early if not drawing
+	if(!gm->drawMode) return ret;
 	
+	if(gm->activeID == id) {
+		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
+	}
+	else {
+		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
+	}
 
 	// refresh the buffer, maybe
 	if(*num != d->lastValue || firstRun) {
 		snprintf(d->buffer, 64, "%ld", *num);
 		d->lastValue = *num;
 	}
+	
+		
+	float fontSz = gm->fontSize;
+	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
+	
+	GUIFont* font = GUI_FindFont(gm, "Arial");
+	if(!font) font = gm->defaults.font;
+	
 	
 	// draw cursor
 	if(gm->activeID == id) {
@@ -916,6 +940,8 @@ void GUI_EndWindow_(GUIManager* gm) {
 
 
 void GUI_Box_(GUIManager* gm, Vector2 tl, Vector2 sz, float width, Color4* borderColor) {
+	if(!gm->drawMode) return; // this function is only for drawing mode
+	
 	Color4 clear = {0,0,0,0};
 	gui_drawBoxBorder(gm, tl, sz, &gm->curClip, gm->curZ, &clear, width, borderColor);
 }
@@ -928,6 +954,7 @@ void GUI_BoxFilled_(
 	Color4* borderColor, 
 	Color4* bgColor
 ) {
+	if(!gm->drawMode) return; // this function is only for drawing mode
 	gui_drawBoxBorder(gm, tl, sz, &gm->curClip, gm->curZ, bgColor, width, borderColor);
 }
 
@@ -939,6 +966,8 @@ void GUI_CircleFilled_(
 	Color4* borderColor, 
 	Color4* bgColor
 ) {
+	if(!gm->drawMode) return; // this function is only for drawing mode
+	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 	
 	*v++ = (GUIUnifiedVertex){
@@ -957,6 +986,49 @@ void GUI_CircleFilled_(
 	};
 }
 
+// draws a single character from its font origin point
+void GUI_Char_(GUIManager* gm, int c, Vector2 origin, char* fontName, float size, Color4* color) {
+	if(!gm->drawMode) return; // this function is only for drawing mode
+	
+	GUIFont* font = GUI_FindFont(gm, fontName);
+	if(!font) font = gm->defaults.font;
+	
+	GUI_CharFont_NoGuard_(gm, c, origin, font, size, color);
+}
+
+// draws a single character from its font origin point
+void GUI_CharFont_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color) {
+	if(!gm->drawMode) return; // this function is only for drawing mode
+	
+	GUI_CharFont_NoGuard_(gm, c, origin, font, size, color);
+}
+
+// draws a single character from its font origin point
+void GUI_CharFont_NoGuard_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color) {
+	
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	struct charInfo* ci = &font->regular[c];
+
+	v->pos.t = origin.y + ci->topLeftOffset.y * size;
+	v->pos.l = origin.x + ci->topLeftOffset.x * size;
+	v->pos.b = origin.y + ci->bottomRightOffset.y * size;
+	v->pos.r = origin.x + ci->bottomRightOffset.x * size;
+			
+	v->guiType = 1; // text
+			
+	v->texOffset1.x = ci->texNormOffset.x * 65535.0;
+	v->texOffset1.y = ci->texNormOffset.y * 65535.0;
+	v->texSize1.x =  ci->texNormSize.x *  65535.0;
+	v->texSize1.y =  ci->texNormSize.y * 65535.0;
+	v->texIndex1 = ci->texIndex;
+			
+	v->clip = GUI_AABB2_TO_SHADER(gm->curClip);
+	v->bg = GUI_COLOR4_TO_SHADER(*color);
+	v->fg = GUI_COLOR4_TO_SHADER(*color);
+	v->z = gm->curZ;
+	v->rot = 0;
+}
+
 // no wrapping
 void GUI_TextLine_(
 	GUIManager* gm, 
@@ -967,6 +1039,8 @@ void GUI_TextLine_(
 	float size, 
 	Color4* color
 ) {
+	if(!gm->drawMode) return; // this function is only for drawing mode
+	
 	GUIFont* font = GUI_FindFont(gm, fontName);
 	if(!font) font = gm->defaults.font;
 	
@@ -992,12 +1066,13 @@ void GUI_TextLineCentered_(
 	float size, 
 	Color4* color
 ) {
+	if(!gm->drawMode) return; // this function is only for drawing mode
+	
 	GUIFont* font = GUI_FindFont(gm, fontName);
 	if(!font) font = gm->defaults.font;
 	
 	
-	float b = sz.y - ((sz.y - size) / 2);
-	
+	float b = (sz.y - (font->ascender * size)) / 2;
 	
 	gui_drawTextLineAdv(gm, (Vector2){tl.x, tl.y + b}, sz, &gm->curClip, color, font, size, GUI_TEXT_ALIGN_CENTER, gm->curZ, text, textLen);
 }
@@ -1035,16 +1110,16 @@ int GUI_MouseInside_(GUIManager* gm, Vector2 tl, Vector2 sz) {
 }
 
 int GUI_MouseWentUp_(GUIManager* gm, int button) {
-	return gm->curWin->id == gm->mouseWinID && gm->mouseWentUp[button];
+	return gm->curWin->id == gm->mouseWinID && gm->curEvent.type == GUIEVENT_MouseUp && gm->curEvent.button == button;
 }
 int GUI_MouseWentDown_(GUIManager* gm, int button) {
-	return gm->curWin->id == gm->mouseWinID && gm->mouseWentDown[button];
+	return gm->curWin->id == gm->mouseWinID && gm->curEvent.type == GUIEVENT_MouseDown && gm->curEvent.button == button;
 }
 int GUI_MouseWentUpAnywhere_(GUIManager* gm, int button) {
-	return gm->mouseWentUp[button];
+	return gm->curEvent.type == GUIEVENT_MouseUp && gm->curEvent.button == button;
 }
 int GUI_MouseWentDownAnywhere_(GUIManager* gm, int button) {
-	return gm->mouseWentDown[button];
+	return gm->curEvent.type == GUIEVENT_MouseDown && gm->curEvent.button == button;
 }
 
 float GUI_GetScrollDist_(GUIManager* gm) {

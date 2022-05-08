@@ -252,17 +252,22 @@ typedef struct GUIManager {
 	GUIUnifiedVertex* vertBuffer;
 	
 	Vector2i screenSize;
+	Vector2 screenSizef;
 	
 	FontManager* fm;
 	TextureAtlas* ta;
 	
 	// immediate mode stuff
+	char drawMode;// only set to 1 when primitives should be written to the draw buffers
+	void* renderRootData;
+	void (*renderRootFn)(void*, GUIManager*, Vector2 /*tl*/, Vector2 /*sz*/, PassFrameParams*);
+	
 	VEC(AABB2) clipStack;
 	AABB2 curClip;
 	float curZ;
 	float fontSize;
 
-	
+	GUIEvent curEvent;
 	float scrollDist;
 	char mouseWentUp[16];
 	char mouseWentDown[16];
@@ -434,9 +439,9 @@ GUIFont* GUI_FindFont(GUIManager* gm, char* name);
 
 
 
-void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev);
-void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev);
-void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev);
+void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp);
+void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp);
+void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp);
 
 
 // debugging

@@ -26,11 +26,17 @@ extern int g_DisableSave;
 
 
 
-void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, PassFrameParams* pfp) {
+void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	// GUI_BeginWindow()
-
-	GUIBufferEditControl_Draw(w->ec, gm, w->ec->scrollLines, + w->ec->scrollLines + w->ec->linesOnScreen + 2, 0, 100, pfp);
 	
+	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
+	
+	GBEC_Update(w->ec, sz, pfp);
+//	printf("%ld\n", w->ec->scrollLines);
+	
+	GUIBufferEditControl_Draw(w->ec, gm, (Vector2){0,0}, sz, w->ec->scrollLines, + w->ec->scrollLines + w->ec->linesOnScreen + 2, 0, 100, pfp);
+	
+	GUI_EndWindow();
 	
 	// GUI_EndWindow()
 }

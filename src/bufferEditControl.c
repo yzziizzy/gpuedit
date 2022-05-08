@@ -308,17 +308,16 @@ static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
 // 	w->header.size = gev->size;
 }
 
-
-
-static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
+*/
+void GBEC_Update(GUIBufferEditControl* w, Vector2 sz, PassFrameParams* pfp) {
+//static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	Buffer* b = w->buffer;
 	
 	float lineNumWidth = ceil(LOGB(w->gs->Buffer_lineNumBase, b->numLines + 0.5)) * w->bdp->tdp->charWidth + w->bdp->lineNumExtraWidth;
 	
-	w->linesOnScreen = w->header.size.y / w->gs->Buffer_lineHeight;
-	w->colsOnScreen = (w->header.size.x - lineNumWidth) / w->gs->Buffer_charWidth;
+	w->linesOnScreen = sz.y / w->gs->Buffer_lineHeight;
+	w->colsOnScreen = (sz.x - lineNumWidth) / w->gs->Buffer_charWidth;
 
 	w->scrollCoastMax = 50;
 	// scroll coasting while selection dragging
@@ -340,23 +339,22 @@ static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp)
 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
 		
-	if(w->scrollbar) {
-		w->sbMinHeight = 20;
+//	if(w->scrollbar) {
+//		w->sbMinHeight = 20;
 		// scrollbar position calculation
 		// calculate scrollbar height
-		float wh = w->header.size.y;
-		float sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
+//		float wh = sz.y;
+//		/*float*/ sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
 		
 		// calculate scrollbar offset
-		float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
+//		float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
 		
-		GUIResize(&w->scrollbar->header, (Vector2){10, sbh});
-		w->scrollbar->header.topleft.y = sboff;
-	}
+//		w->scrollbar->header.topleft.y = sboff;
+//	}
 
-	gui_defaultUpdatePos(&w->header, grp, pfp);
 }
-*/
+
+
 
 
 // called by the buffer when things change

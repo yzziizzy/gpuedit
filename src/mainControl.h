@@ -34,7 +34,7 @@ typedef struct MainControlTab {
 	float scrollSpeed; // time to move from one side to the other
 	
 	void* client;
-	void (*render)(void* /*client*/, GUIManager*, PassFrameParams*);
+	void (*render)(void* /*client*/, GUIManager*, Vector2 /*tl*/, Vector2 /*sz*/, PassFrameParams*);
 	
 	int (*beforeClose)(struct MainControlTab*);
 	void (*afterClose)(struct MainControlTab*);
@@ -94,7 +94,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs);
 void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s);
 
 
-void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, PassFrameParams* pfp);
+void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
 
 MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, void* client, char* title);
