@@ -1,6 +1,8 @@
 #ifndef __gpuedit_fuzzyMatchControl_h__
 #define __gpuedit_fuzzyMatchControl_h__
 
+
+#include "commands.h"
 #include "ui/gui.h"
 #include "fuzzyMatch.h"
 

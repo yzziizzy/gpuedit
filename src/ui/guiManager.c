@@ -35,6 +35,8 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	gm->gs = gs;
 	
+	GUIManager_InitCommands(gm);
+	
 //	gm->useSoftCursor = 1;
 //	gm->softCursorName = "icon/folder";
 //	gm->softCursorSize = (Vector2){50,50};

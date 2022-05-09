@@ -18,12 +18,6 @@
 extern int g_DisableSave;
 
 
-    //////////////////////////////////
-   //                              //
-  //       GUIBufferEditor        //
- //                              //
-//////////////////////////////////
-
 
 
 void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
@@ -31,10 +25,40 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	
 	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
 	
-	GBEC_Update(w->ec, sz, pfp);
+	
+	// TODO: move elsewhere
+	w->ec->tl = tl;
+	w->ec->sz = sz;
+	
+	if(!gm->drawMode) {
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent);
+		int needRehighlight = 0;
+		
+		if(cmd) { 
+			GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
+		
+			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+				GUIBufferEditControl_RefreshHighlight(w->ec);
+			}
+		}
+		else if(isprint(gm->curEvent.character) && (gm->curEvent.modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
+			GUIBufferEditControl_ProcessCommand(w->ec, &(GUI_Cmd){
+				.cmd = GUICMD_Buffer_InsertChar, 
+				.amt = gm->curEvent.character, 
+				.flags = GUICMD_FLAG_resetCursorBlink | GUICMD_FLAG_centerOnCursor
+			}, &needRehighlight);
+		
+			GUIBufferEditControl_RefreshHighlight(w->ec);
+			GBEC_scrollToCursor(w->ec);
+		}
+	}
+	
+	GBEC_Update(w->ec, tl, sz, pfp);
 //	printf("%ld\n", w->ec->scrollLines);
 	
-	GUIBufferEditControl_Draw(w->ec, gm, (Vector2){0,0}, sz, w->ec->scrollLines, + w->ec->scrollLines + w->ec->linesOnScreen + 2, 0, 100, pfp);
+	if(gm->drawMode) {
+		GUIBufferEditControl_Draw(w->ec, gm, (Vector2){0,0}, sz, w->ec->scrollLines, + w->ec->scrollLines + w->ec->linesOnScreen + 2, 0, 100, pfp);
+	}
 	
 	GUI_EndWindow();
 	
@@ -48,36 +72,36 @@ static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		GUIBufferEditControl_ProcessCommand(w->ec, &(GUI_Cmd){
-			.cmd = BufferCmd_InsertChar, .amt = gev->character
+			.cmd = GUICMD_Buffer_InsertChar, .amt = gev->character
 		}, &needRehighlight);
 		
 		GUIBufferEditControl_RefreshHighlight(w->ec);
 	}
 	
 }
-
+*/
 static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
 	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 	int needRehighlight = 0;
 //static void keyDown(GUIHeader* w_, GUIEvent* gev) {
 //	GUIBufferEditor* w = (GUIBufferEditor*)w_;
 //	int needRehighlight = 0;
-	/*
+/*
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		GUIBufferEditControl_ProcessCommand(w->ec, &(BufferCmd){
-			BufferCmd_InsertChar, gev->character
+			GUICMD_Buffer_InsertChar, gev->character
 		}, &needRehighlight);
 		
 		GUIBufferEditControl_RefreshHighlight(w->ec);
 		GBEC_scrollToCursor(w->ec);
 	}
-	else {* /
+	else {*/
 		// special commands
 	
 		// GUIBufferEditor will pass on commands to the buffer
 		GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
 }
-
+/*
 static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
 	w->header.size = gev->size;
 	if(w->trayRoot) {
@@ -648,31 +672,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 	struct json_file* jsf;
 	
 	switch(cmd->cmd){
-		case BufferCmd_ToggleMenu:
-				/*
-			jsf = json_load_path("/etc/gpuedit/buffer_menu.json");
-			w->menu = (GUISimpleWindow*)GUICL_CreateFromConfig(w->header.gm, jsf->root);
-			
-			// TODO: free json 
-			
-			GUI_RegisterObject(w, w->menu);
-			
-			
-			GUISelectBox* hlsel = (GUISelectBox*)GUI_FindChild(w->menu, "highlighter");
-			GUISelectBoxOption opts[] = {
-				{.label = "C", .data = "c"},
-				{.label = "C++", .data = "cpp"},
-				{.label = "JavaScript", .data = "javascript"},
-			};
-			
-			if(hlsel) GUISelectBox_SetOptions(hlsel, opts, 3);
-			
-			
-			*/
-			
+		case GUICMD_Buffer_ToggleMenu:
 			break;
 
-		case BufferCmd_ToggleGDBBreakpoint: {
+		case GUICMD_Buffer_ToggleGDBBreakpoint: {
 			w->ec->current->flags ^= BL_BREAKPOINT_FLAG;
 			
 			//if(w->ec->current->flags & BL_BREAKPOINT_FLAG) {
@@ -683,7 +686,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			
 			break;
 		}
-		case BufferCmd_MovePage:
+		case GUICMD_Buffer_MovePage:
 			GBEC_MoveCursorV(w->ec, cmd->amt * w->ec->linesOnScreen);
 			
 			w->ec->scrollLines = MAX(0, MIN(w->ec->scrollLines + cmd->amt * w->ec->linesOnScreen, w->buffer->numLines - 1));
@@ -691,7 +694,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		
 			
 			// TODO: init selectoin and pivots if no selection active
-		case BufferCmd_GrowSelectionH:
+		case GUICMD_Buffer_GrowSelectionH:
 // 			if(!w->selectPivotLine) {
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
@@ -702,7 +705,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToNextSequence:
+		case GUICMD_Buffer_GrowSelectionToNextSequence:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -711,7 +714,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToPrevSequence:
+		case GUICMD_Buffer_GrowSelectionToPrevSequence:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -720,7 +723,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToSOL:
+		case GUICMD_Buffer_GrowSelectionToSOL:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -729,7 +732,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToEOL:
+		case GUICMD_Buffer_GrowSelectionToEOL:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -739,7 +742,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 			
 		
-		case BufferCmd_GrowSelectionV:
+		case GUICMD_Buffer_GrowSelectionV:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -749,48 +752,48 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_ClearSelection:
+		case GUICMD_Buffer_ClearSelection:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			break;
 			
-		case BufferCmd_SelectSequenceUnder:
+		case GUICMD_Buffer_SelectSequenceUnder:
 			GBEC_SelectSequenceUnder(w->ec, w->ec->current, w->ec->curCol, cmd->str); 
 			w->ec->selectPivotLine = w->ec->sel->startLine;
 			w->ec->selectPivotCol = w->ec->sel->startCol;
 			break;
 			
-		case BufferCmd_MoveToNextSequence:
+		case GUICMD_Buffer_MoveToNextSequence:
 			GBEC_MoveToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_MoveToPrevSequence:
+		case GUICMD_Buffer_MoveToPrevSequence:
 			GBEC_MoveToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_DeleteToNextSequence:
+		case GUICMD_Buffer_DeleteToNextSequence:
 			GBEC_DeleteToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_DeleteToPrevSequence:
+		case GUICMD_Buffer_DeleteToPrevSequence:
 			GBEC_DeleteToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_GoToEOL:
+		case GUICMD_Buffer_GoToEOL:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			w->ec->curCol = w->ec->current->length;
 			break;
 			
-		case BufferCmd_GoToSOL:
+		case GUICMD_Buffer_GoToSOL:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			w->ec->curCol = 0;
 			break;
 		
-		case BufferCmd_GoToAfterIndent:
+		case GUICMD_Buffer_GoToAfterIndent:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			GBEC_MoveCursorTo(w->ec, w->ec->current, BufferLine_GetIndentCol(w->ec->current));
 			break;
 			
-		case BufferCmd_GoToLineLaunch: /*
+		case GUICMD_Buffer_GoToLineLaunch: /*
 			if(w->inputMode != BIM_GoTo) {
 				if(w->trayOpen) {
 					GUIBufferEditor_CloseTray(w);
@@ -815,7 +818,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		// TODO: change hooks
 			break;
 		
-		case BufferCmd_GoToLineSubmit: /*
+		case GUICMD_Buffer_GoToLineSubmit: /*
 			if(w->inputMode == BIM_GoTo) {
 				intptr_t line_num = strtol(GUIEdit_GetText(w->lineNumEntryBox), NULL, w->gs->Buffer_lineNumBase);
 				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
@@ -831,7 +834,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			}*/
 			break;
 		
-		case BufferCmd_ReplaceNext: { // TODO put this all in a better spot
+		case GUICMD_Buffer_ReplaceNext: { // TODO put this all in a better spot
 			Buffer* b = w->ec->buffer;
 			GUIBufferEditControl* ec = w->ec;
 			/*
@@ -855,7 +858,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 		}
 		
-		case BufferCmd_ReplaceAll: {
+		case GUICMD_Buffer_ReplaceAll: {
 //			char* rtext = GUIEdit_GetText(w->replaceBox);
 //			size_t len = strlen(rtext);
 			
@@ -867,7 +870,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 		}
 		
-		case BufferCmd_ReplaceStart:
+		case GUICMD_Buffer_ReplaceStart:
 		/*
 			if(w->inputMode != BIM_Replace) {
 				char* preserved = NULL;
@@ -901,35 +904,35 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			}*/
 			break;
 			
-		case BufferCmd_FindStartSequenceUnderCursor:
+		case GUICMD_Buffer_FindStartSequenceUnderCursor:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
 			break;
 			
-		case BufferCmd_FindStartFromSelection:
+		case GUICMD_Buffer_FindStartFromSelection:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION);
 			break;
 			
-		case BufferCmd_FindStart:			
-		case BufferCmd_FindResume:
+		case GUICMD_Buffer_FindStart:			
+		case GUICMD_Buffer_FindResume:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_NONE);
 			break;
-		case BufferCmd_SmartFind:
+		case GUICMD_Buffer_SmartFind:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION|FM_SEQUENCE);
 			break;
 		
-		case BufferCmd_FindNext:
+		case GUICMD_Buffer_FindNext:
 			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 			break;
 			
-		case BufferCmd_FindPrev:
+		case GUICMD_Buffer_FindPrev:
 			GUIBufferEditor_RelativeFindMatch(w, -1, 1);
 			break;
 			
-		case BufferCmd_CollapseWhitespace:
+		case GUICMD_Buffer_CollapseWhitespace:
 			Buffer_CollapseWhitespace(w->buffer, w->ec->current, w->ec->curCol);
 			break;
 			
-		case BufferCmd_CloseTray:
+		case GUICMD_Buffer_CloseTray:
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);
 				w->inputMode = BIM_Buffer;
@@ -941,14 +944,14 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			}
 			break;
 			
-// 		case BufferCmd_CloseBuffer: {
+// 		case GUICMD_Buffer_CloseBuffer: {
 // 			GUIHeader* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
 // 			GUI_RegisterObject(NULL, oo); // register to root window
 			
 			
 // 			break;
 // 		}
-		case BufferCmd_SmartBubbleSelection: {
+		case GUICMD_Buffer_SmartBubbleSelection: {
 			/*
 			GUIBubbleOpt opt = {};
 			GUIEvent gev2 = {};
@@ -978,7 +981,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		}
 			
 
-		case BufferCmd_Save: 
+		case GUICMD_Buffer_Save: 
 			if(!g_DisableSave) {
 				Buffer_SaveToFile(w->buffer, w->sourceFile);
 			}
@@ -987,7 +990,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			}
 			break;
 		
-		case BufferCmd_SaveAndClose:
+		case GUICMD_Buffer_SaveAndClose:
 			if(!g_DisableSave) {
 				Buffer_SaveToFile(w->buffer, w->sourceFile);
 			}
@@ -997,7 +1000,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 //			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
 			break;
 		
-		case BufferCmd_PromptAndClose:
+		case GUICMD_Buffer_PromptAndClose:
 			// launch save_tray
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);
@@ -1029,7 +1032,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			
 			break;
 		
-		case BufferCmd_Reload:
+		case GUICMD_Buffer_Reload:
 		{
 			struct hlinfo* hl = w->buffer->hl; // preserve the meta info
 			EditorParams* ep = w->buffer->ep;

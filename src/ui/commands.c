@@ -8,16 +8,18 @@
 #include "gui.h"
 
 
-/*
+
 static struct {
+	char* ename;
 	char* name;
-	uint64_t val;
+	int id;
 } enum_table[] = { 
-#define X(a, b) {#a "_" #b, a##_##b},
-	COMMANDTYPE_LIST
+#define X(a, b) {#a, #b, GUICMD_##a##_##b},
+	GUI_COMMAND_LIST
 #undef X
+	{NULL, NULL, 0}
 };
-*/
+
 
 
 static struct {
@@ -29,28 +31,31 @@ static struct {
 };
 
 
-/*
+
 static struct { 
 	char* name;
 	uint64_t key;
 } raw_flags[] = {
-	{"scrollToCursor",   1 << 0},
-	{"rehighlight",      1 << 1},
-	{"resetCursorBlink", 1 << 2},
-	{"undoSeqBreak",     1 << 3},
-	{"hideMouse",        1 << 4},
-	{"centerOnCursor",   1 << 5},
+#define X(a) {#a, GUICMD_FLAG_##a },
+	GUI_COMMAND_FLAG_LIST
+#undef X
 	{NULL, 0},
 };
-*/
+
+#define X(a) { #a, GUIELEMENT_##a},
+static struct{ char* n; int id;} elemList[] = {
+	GUI_ELEMENT_LIST
+	{NULL, 0},
+};
+#undef X
 
 
 static HT(uint64_t) syms;
-//static HT(uint64_t) flag_lookup;
+static HT(uint64_t) flag_lookup;
 //static HT(uint64_t) cmd_enums;
 
 static void init_words() {
-//	HT_init(&flag_lookup, 16);
+	HT_init(&flag_lookup, 64);
 	HT_init(&syms, 2100);
 //	HT_init(&cmd_enums, 120);
 	
@@ -58,32 +63,36 @@ static void init_words() {
 	for(int i = 0; keysym_lookup[i].name != 0; i++) {
 		HT_set(&syms, keysym_lookup[i].name, keysym_lookup[i].val);
 	}
-	/*
-	for(int i = 0; enum_table[i].name != 0; i++) {
-		HT_set(&cmd_enums, enum_table[i].name, enum_table[i].val);
-	}
+	
+//	for(int i = 0; enum_table[i].name != 0; i++) {
+//		HT_set(&cmd_enums, enum_table[i].name, enum_table[i].val);
+//	}
 	
 	for(int i = 0; raw_flags[i].name != 0; i++) {
 		HT_set(&flag_lookup, raw_flags[i].name, raw_flags[i].key);
-	}*/
+	}
 }
 
 
-
-
 void GUIManager_InitCommands(GUIManager* gm) {
-/*
-	#define X(a) { #a, GUIELEMENT_##a},
-	struct{ char* n; uint16_t id;} elemList[] = {
-		GUI_ELEMENT_LIST
-		{NULL, 0},
-	};
-	#undef X
+	
+	static int is_init = 0;
+	if(!is_init) {
+		is_init = 1;
+		init_words();
+	}
+	
+	HT_init(&gm->cmdElementLookup, 2048);
 	
 	for(int i = 0; elemList[i].n; i++) {
-		HT_set(&gm->cmdElementLookup, elemList[i].n, elemList[i].id);
+		GUIManager_AddCommandElement(gm, elemList[i].n, elemList[i].id);
+//		HT_set(&gm->cmdElementLookup, elemList[i].n, elemList[i].id);
 	}
-	*/
+	
+	
+	for(int i = 0; enum_table[i].name; i++) {
+		GUIManager_AddCommand(gm, enum_table[i].ename, enum_table[i].name, enum_table[i].id);
+	}
 }
 
 
@@ -117,9 +126,8 @@ static unsigned int get_index(unsigned int mods) {
 	if(mods & GUIMODKEY_TUX) o |= has_tux;
 	return o;
 }
-/*
-GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev) {
-	GUIManager* gm = gh->gm;
+
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev) {
 //	printf("probing\n");
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
@@ -141,8 +149,8 @@ GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev) {
 
 		
 		if(cp->src_type != cat) { continue; }
-		if(cp->element != gh->cmdElementType) { continue; }
-		if(cp->mode != gh->cmdMode) { continue; }
+		if(cp->element != elemType) { continue; }
+//		if(cp->mode != gh->cmdMode) { continue; }
 		if(cp->keysym != c) { continue; }
 		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
 		// TODO: specific mods
@@ -196,7 +204,7 @@ GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev) {
 }
 */
 
-int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t id) { /*  // TODO IMGUI
+int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t id) {
 	GUI_CmdElementInfo* inf;
 	int infIndex;
 	
@@ -207,13 +215,13 @@ int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t i
 	inf = &VEC_ITEM(&gm->cmdElements, infIndex);
 	
 	HT_set(&inf->nameLookup, name, id);
-	*/
+	
 	return 0;
 }
 
 
 // returns zero on success
-int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) { /*  // TODO IMGUI
+int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) {
 	GUI_CmdElementInfo inf;
 	int infIndex;
 	
@@ -229,7 +237,7 @@ int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) { /*  
 	infIndex = VEC_LEN(&gm->cmdElements);
 	HT_set(&gm->cmdElementLookup, name, infIndex);
 	VEC_PUSH(&gm->cmdElements, inf);
-	*/
+	
 	return 0; 
 }
 
@@ -295,11 +303,11 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 			ename = json_obj_get_str(link->v, "elem");
 			if(!ename) continue;
 			
-//			if(HT_get(&gm->cmdElementLookup, ename, &infIndex)) {
-//				fprintf(stderr, "Unknown element name: '%s'\n", ename);
-//				continue;
-//			}
-//			inf = &VEC_ITEM(&gm->cmdElements, infIndex); // TODO IMGUI
+			if(HT_get(&gm->cmdElementLookup, ename, &infIndex)) {
+				fprintf(stderr, "Unknown element name: '%s'\n", ename);
+				continue;
+			}
+			inf = &VEC_ITEM(&gm->cmdElements, infIndex); // TODO IMGUI
 			
 		}
 	}
@@ -316,11 +324,7 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 
 void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 	
-	static int is_init = 0;
-	if(!is_init) {
-		is_init = 1;
-		init_words();
-	}
+
 	
 	if(root->type != JSON_TYPE_ARRAY) {
 		fprintf(stderr, "Command List json root must be an array.\n");
@@ -350,11 +354,11 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		
 		char* s1 = strdup(s);
 		
-//		if(HT_get(&gm->cmdElementLookup, s, &infIndex)) {
-//			fprintf(stderr, "Unknown element name: '%s'\n", s);
-//			continue;
-//		}
-//		inf = &VEC_ITEM(&gm->cmdElements, infIndex);  // TODO IMGUI
+		if(HT_get(&gm->cmdElementLookup, s, &infIndex)) {
+			fprintf(stderr, "Unknown element name: '%s'\n", s);
+			continue;
+		}
+		inf = &VEC_ITEM(&gm->cmdElements, infIndex);  // TODO IMGUI
 		cmd.element = inf->id;
 		
 		// sub-element name
@@ -362,11 +366,11 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		if(s != NULL) {
 			char* s1 = strdup(s);
 			
-//			if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
-//				fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
-//				continue;
-//			}
-//			inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2); // TODO IMGUI
+			if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
+				fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
+				continue;
+			}
+			inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2); // TODO IMGUI
 			cmd.sub_elem = inf2->id;
 		}
 		
@@ -511,10 +515,11 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 				for(;l2; l2 = l2->next) {
 					
 					if(l2->v->type == JSON_TYPE_STRING) {
-						uint32_t x;
-//						if(!HT_get(&gm->cmdFlagLookup, l2->v->s, &x)) { TODO IMGUI
-//							flags |= x;
-//						}
+						uint64_t x;
+						if(!HT_get(&flag_lookup, l2->v->s, &x)) {
+							printf("flag: %s\n", l2->v->s);
+							flags |= x;
+						}
 					}
 					else {
 						fprintf(stderr, "Invalid flag format in command list.\n");
@@ -525,16 +530,15 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 			}
 		}
 		
-		/* TODO IMGUI
+		
 		// TODO: add the command into the hash table 
 		//printf("pushing cmd: %s %s %s %d %x\n", s1, s2, s3, cmd.mode, cmd.mods);
 		if(cmd.sub_elem == 0) {
 			VEC_PUSH(&gm->cmdList, cmd);
 		}
 		else {
-			VEC_PUSH(&gm->cmdListSubElems, cmd);
+//			VEC_PUSH(&gm->cmdListSubElems, cmd);
 		}
-		*/
 	}
 }
 

@@ -33,10 +33,7 @@
 #include "config.h"
 #include "shader.h"
 #include "texture.h"
-#include "window.h"
 #include "app.h"
-#include "commands.h"
-#include "ui/gui.h"
 
 
 
@@ -126,6 +123,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->mouseCursorSetFn = (void*)XStuff_SetMouseCursor;
 	as->gui->mouseCursorSetData = xs;
 	
+	
+	/*
 	char* flag_names[] = {
 		"scrollToCursor",
 		"rehighlight",
@@ -160,12 +159,12 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	
 	for(int i = 0; cmd_names[i].n; i++) 
 		GUIManager_AddCommand(as->gui, cmd_names[i].en, cmd_names[i].n, cmd_names[i].id);
-	
+	*/
 	
 	char* homedir = getenv("HOME");
 	char* tmp = path_join(homedir, ".gpuedit/commands.json");
 
-//	CommandList_loadJSONFile(as->gui, "/home/steve/projects/gpuedit/config/commands_new.json");
+	CommandList_loadJSONFile(as->gui, "/home/izzy/projects/gpuedit/config/commands.json");
 //	CommandList_loadJSONFile(as->gui, tmp); // TODO IMGUI
 	free(tmp);
 
@@ -205,8 +204,8 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		GUIMainControl_LoadFile(as->mc, a);
 	}
 	
-	GUIMainControl_LoadFile(as->mc, "testfile.h");
-	GUIMainControl_LoadFile(as->mc, "testfile.c");
+//	GUIMainControl_LoadFile(as->mc, "testfile.h");
+//	GUIMainControl_LoadFile(as->mc, "testfile.c");
 	
 	int i = 0;
 	TabSpec* ts = as->globalSettings.MainControl_startupTabs;

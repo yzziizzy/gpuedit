@@ -3,8 +3,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "mainControl.h"
+
 #include "app.h"
+#include "mainControl.h"
 #include "fuzzyMatch.h"
 #include "ui/gui.h"
 #include "ui/gui_internal.h"
@@ -417,7 +418,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 	//args[0] = &bb->buffer->numLines;
 	
 	switch(cmd->cmd) {
-	case MainCmd_SimpleWindowTest:
+	case GUICMD_Main_SimpleWindowTest:
 	{
 /* 		sw = GUISimpleWindow_New(w->header.gm);
 		sw->header.topleft = (Vector2){20, 20};
@@ -464,73 +465,73 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		
 		break;
 	
-	case MainCmd_OpenFileBrowser:
+	case GUICMD_Main_OpenFileBrowser:
 //		GUIMainControl_OpenFileBrowser(w, "./");
 		break;
 
-	case MainCmd_FuzzyOpener:
+	case GUICMD_Main_FuzzyOpener:
 //		GUIMainControl_FuzzyOpener(w, NULL);
 		break;
 	
-	case MainCmd_GrepOpen:
+	case GUICMD_Main_GrepOpen:
 //		GUIMainControl_GrepOpen(w, NULL);
 		break;
 
-	case MainCmd_Calculator:
+	case GUICMD_Main_Calculator:
 //		GUIMainControl_Calculator(w);
 		break;
 		
-	case MainCmd_Terminal:
+	case GUICMD_Main_Terminal:
 //		GUIMainControl_Terminal(w);
 		break;
 
-	case MainCmd_MainMenu:
+	case GUICMD_Main_MainMenu:
 //		GUIMainControl_OpenMainMenu(w);
 		break;
 		
-	case MainCmd_SaveActiveTab:
+	case GUICMD_Main_SaveActiveTab:
 		printf("NYI\n");
 		break;
 		
-	case MainCmd_SaveAll:
+	case GUICMD_Main_SaveAll:
 		printf("NYI\n");
 		break;
 		
-	case MainCmd_Quit:
+	case GUICMD_Main_Quit:
 		printf("NYI\n");
 		break;
 		
-	case MainCmd_SaveQuit:
+	case GUICMD_Main_SaveQuit:
 		printf("NYI\n");
 		break;
 		
-	case MainCmd_QuitWithoutSave:
+	case GUICMD_Main_QuitWithoutSave:
 		// TODO: nicer
 		exit(0);
 		break;
 		
-	case MainCmd_LoadFile:
+	case GUICMD_Main_LoadFile:
 //		GUIMainControl_LoadFile(w, cmd->str);
 		break;
 		
-	case MainCmd_NewEmptyBuffer:
+	case GUICMD_Main_NewEmptyBuffer:
 //		GUIMainControl_NewEmptyBuffer(w);
 		break;
 		
-	case MainCmd_CloseTab:
+	case GUICMD_Main_CloseTab:
 //		GUIMainControl_CloseTab(w, w->currentIndex);
 		break;
 		
-	case MainCmd_SaveAndCloseTab:
+	case GUICMD_Main_SaveAndCloseTab:
 		printf("NYI\n"); // see BufferCmd_SaveAndClose and BufferCmd_PromptAndClose
 		break;
 		/*
-	case MainCmd_SortTabs: GUIMainControl_SortTabs(w); break;
-	case MainCmd_MoveTabR: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex + 1); break;
-	case MainCmd_MoveTabL: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex - 1); break;
-	case MainCmd_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n* /); break;
-	case MainCmd_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n* /); break;
-	case MainCmd_GoToTab: GUIMainControl_GoToTab(w, cmd->amt); break;
+	case GUICMD_Main_SortTabs: GUIMainControl_SortTabs(w); break;
+	case GUICMD_Main_MoveTabR: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex + 1); break;
+	case GUICMD_Main_MoveTabL: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex - 1); break;
+	case GUICMD_Main_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n* /); break;
+	case GUICMD_Main_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n* /); break;
+	case GUICMD_Main_GoToTab: GUIMainControl_GoToTab(w, cmd->amt); break;
 	*/
 	}
 }

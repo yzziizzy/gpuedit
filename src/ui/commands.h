@@ -5,12 +5,28 @@
 // EOL = End of Line
 // SOL = Start of Line
 
+
+// for application-supplied commands
+#include "../commands.h"
+
+
+#ifndef EXTERN_GUI_ELEMENT_LIST
+	#define EXTERN_GUI_ELEMENT_LIST
+#endif
+
 #define GUI_ELEMENT_LIST \
 	X(Edit) \
 	X(FileViewer) \
 	\
 	X(FileRow) \
+	EXTERN_GUI_ELEMENT_LIST
+	
+	
 
+	
+#ifndef EXTERN_GUI_COMMAND_LIST
+	#define EXTERN_GUI_COMMAND_LIST
+#endif
 
 #define GUI_COMMAND_LIST \
 	X(Edit, Copy) \
@@ -33,12 +49,21 @@
 	X(FileViewer, SmartOpen) \
 	X(FileViewer, ToggleSelect) \
 	X(FileViewer, OpenUnderCursor) \
-	
-	
+	EXTERN_GUI_COMMAND_LIST
+
+
+
+
+#ifndef EXTERN_GUI_COMMAND_FLAG_LIST
+	#define EXTERN_GUI_COMMAND_FLAG_LIST
+#endif
+
 #define GUI_COMMAND_FLAG_LIST \
 	X(noSuppressEvent) \
+	EXTERN_GUI_COMMAND_FLAG_LIST
 	
-	
+
+
 
 #define X(a) GUIELEMENT_##a,
 enum GUIElementType {
@@ -119,8 +144,8 @@ typedef struct GUIHeader GUIHeader;
 
 #define GUI_CMD_RATSYM(btn, reps) ((1 << 30) | ((reps & 0xff) << 15) | (btn & 0xff))
 
-GUI_Cmd* Commands_ProbeCommand(GUIHeader* gh, GUIEvent* gev);
-GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev);
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev);
+GUI_Cmd* Commands_ProbeSubCommand(GUIManager* gm, int sub_elem, GUIEvent* gev);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);
 
@@ -134,5 +159,7 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root);
 void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root);
 void CommandList_loadJSONFile(GUIManager* gm, char* path);
 
+
+void GUIManager_InitCommands(GUIManager* gm);
 
 #endif //__gputk_commands_h__

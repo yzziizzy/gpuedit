@@ -177,7 +177,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	}
 	
 	
-	tl.y += f->ascender * fsize;
+	float ytop = tl.y;
+	float yoff = tl.y + f->ascender * fsize;
 //	printf("%f\n", f->ascender);
 	
 	int xx = 0;
@@ -200,7 +201,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 				lnc, 
 				lnbuf, 
 				100, 
-				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, tl.y}
+				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, yoff}
 			);
 			gm->curZ--;
 		}
@@ -346,7 +347,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 				}
 				else { 
 				
-					GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, tl.y), f, fsize, fg);
+					GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, yoff), f, fsize, fg);
 					// normal, non-tab text		
 //					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) // TODO IMGUI
 //						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip); // TODO IMGUI
@@ -411,10 +412,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			};
 		}
 
-		if(tl.y > edh) break; // end of buffer control
+		if(ytop > edh) break; // end of buffer control
 
 		// advance to the next line
-		tl.y += tdp->lineHeight;
+		yoff += tdp->lineHeight;
+		ytop += tdp->lineHeight;
 		bl = bl->next;
 		linesRendered++;
 		if(linesRendered > lineTo - lineFrom) break;
@@ -427,19 +429,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	// draw cursor
 	if(gbe->cursorBlinkPaused || gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
-		tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
-		v = GUIManager_reserveElements(gm, 1);
+		//tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
 		float cursorOff = hsoff + getColOffset(gbe->current->buf, gbe->curCol, tdp->tabWidth) * tdp->charWidth;
 		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
-		*v = (GUIUnifiedVertex){
-			.pos = {tl.x + cursorOff, tl.y + cursory, tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
-//			.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip), // TODO IMGUI
-			.guiType = 0, // window (just a box)
-			.fg = {255, 128, 64, 255}, // TODO: border color
-			.bg = GUI_COLOR4_TO_SHADER(theme->cursorColor), 
-//			.z = gbe->header.absZ, // TODO IMGUI
-			.alpha = 1,
-		};
+		
+		gm->curZ += 100;
+		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, tdp->lineHeight), &theme->cursorColor);
+		gm->curZ -= 100;
 	}
 	
 	

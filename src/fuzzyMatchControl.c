@@ -11,12 +11,14 @@
 //#include <sys/stat.h>
 
 
-#include "ui/gui.h"
-#include "ui/gui_internal.h"
+
 
 #include "fuzzyMatch.h"
 #include "fuzzyMatchControl.h"
 #include "app.h" // for execProcess*
+
+#include "ui/gui_internal.h"
+
 
 
 // #define DEBUG printf
@@ -161,16 +163,16 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 	long amt;
 
 	switch(cmd->cmd) {
-		case FuzzyMatcherCmd_Exit:
+		case GUICMD_FuzzyMatcher_Exit:
 //			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");			
 			break;
 			
-		case FuzzyMatcherCmd_CursorMove:
+		case GUICMD_FuzzyMatcher_CursorMove:
 			if(w->matchCnt == 0) break;
 			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
 			break;
 			
-		case FuzzyMatcherCmd_OpenFile: {
+		case GUICMD_FuzzyMatcher_OpenFile: {
 			if(w->matchCnt == 0) break;
 			
 			char* path_raw = path_join(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);

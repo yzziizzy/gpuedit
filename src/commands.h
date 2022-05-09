@@ -8,7 +8,7 @@
 
 
 
-#define COMMANDELEMTYPE_LIST \
+#define EXTERN_GUI_ELEMENT_LIST \
 	X(Buffer) \
 	X(Main) \
 	X(FileBrowser) \
@@ -23,7 +23,7 @@
 // EOL = End of Line
 // SOL = Start of Line
 
-#define COMMANDTYPE_LIST \
+#define EXTERN_GUI_COMMAND_LIST \
 	X(Buffer, Debug) \
 	X(Buffer, KeyStroke) \
 	X(Buffer, MoveCursorV) \
@@ -180,7 +180,7 @@
 
 
 
-#define COMMANDFLAG_LIST \
+#define EXTERN_GUI_COMMAND_FLAG_LIST \
 	X(scrollToCursor) \
 	X(rehighlight) \
 	X(resetCursorBlink) \
@@ -189,6 +189,8 @@
 	X(centerOnCursor) \
 
 
+
+/*
 #define X(a, b) a##Cmd_##b,
 enum  {
 	CUSTOMCMD_STARTVALUE = GUICMD_MAXVALUE,
@@ -205,11 +207,11 @@ enum  {
 	CUSTOMCMDELEM_MAXVALUE,
 };
 #undef X
+*/
 
 
 
-
-
+/*
 #define X(a) CMD_FLAG_ORD_##a,
 enum {
 	COMMANDFLAG_FIRSTVALUE = GUICMD_FLAG_ORD_MAXVALUE - 1,
@@ -222,7 +224,7 @@ enum {
 	COMMANDFLAG_LIST
 };
 #undef X
-
+*/
 
 
 

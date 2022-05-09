@@ -5,6 +5,7 @@
 #include <pcre2.h>
 
 
+#include "commands.h"
 #include "ui/gui.h"
 #include "font.h"
 #include "highlight.h"
@@ -279,6 +280,10 @@ typedef struct GUIBufferEditControl {
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
 	int colsOnScreen; // number of *full* columns that fit on screen
+	
+	// cached during event processing
+	Vector2 tl, sz;
+	
 	// TODO: padding lines on vscroll
 
 	int linesPerScrollWheel;
@@ -655,7 +660,7 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 
 void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
-void GBEC_Update(GUIBufferEditControl* w, Vector2 sz, PassFrameParams* pfp);
+void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
 
 void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s);

@@ -175,20 +175,19 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 	}* /
 	
 }
+*/
 
-
-static void click(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
+static void click(GUIBufferEditControl* w, GUIEvent* gev) {
 	Buffer* b = w->buffer;
 	
-	if(!w->current) return;
+	if(!w->current) return; // empty buffer
 	
 	unsigned int shift = gev->modifiers & GUIMODKEY_SHIFT;
 	
 	if(!shift) GBEC_ClearCurrentSelection(w);
 	
-	Vector2 tl = w->header.absTopLeft;
-	Vector2 sz = w->header.size;
+	Vector2 tl = w->tl;
+	Vector2 sz = w->sz;
 	
 	// TODO: reverse calculate cursor position
 	if(gev->pos.x < tl.x + w->textAreaOffsetX || gev->pos.x > tl.x + sz.x) return;
@@ -219,7 +218,7 @@ static void click(GUIObject* w_, GUIEvent* gev) {
 	GBEC_scrollToCursor(w);
 }
 
-
+/*
 static void middleClick(GUIObject* w_, GUIEvent* gev) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
 	Buffer* b = w->buffer;
@@ -253,7 +252,7 @@ static void keyDown(GUIObject* w_, GUIEvent* gev) {
 	/*
 	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			BufferCmd_InsertChar, gev->character
+			GUICMD_Buffer_InsertChar, gev->character
 		}, &needRehighlight);
 		
 		GUIBufferEditControl_RefreshHighlight(w);
@@ -309,7 +308,7 @@ static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
 }
 
 */
-void GBEC_Update(GUIBufferEditControl* w, Vector2 sz, PassFrameParams* pfp) {
+void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 //static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	Buffer* b = w->buffer;
@@ -690,38 +689,38 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 	char cc[2] = {cmd->amt, 0};
 	
 	switch(cmd->cmd) {
-		case BufferCmd_MoveCursorV:
+		case GUICMD_Buffer_MoveCursorV:
 			GBEC_MoveCursorV(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
 			break;		
 		
-		case BufferCmd_MoveCursorH:
+		case GUICMD_Buffer_MoveCursorH:
 			GBEC_MoveCursorH(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
 			break;
 
-		case BufferCmd_MoveCursorHSel:
+		case GUICMD_Buffer_MoveCursorHSel:
 			GBEC_MoveCursorHSel(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
 			break;
 		
-		case BufferCmd_ScrollLinesV:
+		case GUICMD_Buffer_ScrollLinesV:
 			GBEC_ScrollDir(w, cmd->amt, 0);
 			break;
 			
-		case BufferCmd_ScrollScreenPctV:
+		case GUICMD_Buffer_ScrollScreenPctV:
 			GBEC_ScrollDir(w, ((float)cmd->amt * 0.1) * w->linesOnScreen, 0);
 			break;
 			
-		case BufferCmd_ScrollColsH:
+		case GUICMD_Buffer_ScrollColsH:
 			GBEC_ScrollDir(w, 0, cmd->amt);
 			break;
 			
-		case BufferCmd_ScrollScreenPctH:
+		case GUICMD_Buffer_ScrollScreenPctH:
 			GBEC_ScrollDir(w, 0, ((float)cmd->amt * 0.1) * w->colsOnScreen);
 			break;
 		
-		case BufferCmd_InsertChar:
+		case GUICMD_Buffer_InsertChar:
 			// TODO: update
 			if(w->sel) {
 				w->current = w->sel->startLine; // TODO: undo cursor
@@ -733,7 +732,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			GBEC_MoveCursorH(w, 1);
 			break;
 		
-		case BufferCmd_Backspace:
+		case GUICMD_Buffer_Backspace:
 			if(w->sel) {
 				w->current = w->sel->startLine;
 				w->curCol = w->sel->startCol;
@@ -751,7 +750,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 		
-		case BufferCmd_Delete:
+		case GUICMD_Buffer_Delete:
 			if(w->sel) {
 				w->current = w->sel->startLine;
 				w->curCol = w->sel->startCol;
@@ -763,17 +762,17 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 		
-		case BufferCmd_SplitLine:
+		case GUICMD_Buffer_SplitLine:
 			GBEC_InsertLinebreak(w);
 			break;
 
-		case BufferCmd_SplitLineIndent:
+		case GUICMD_Buffer_SplitLineIndent:
 			GBEC_InsertLinebreak(w);
 			intptr_t tabs = Buffer_IndentToPrevLine(b, w->current);
 			GBEC_MoveCursorTo(w, w->current, tabs);
 			break;
 		
-		case BufferCmd_DeleteCurLine: {
+		case GUICMD_Buffer_DeleteCurLine: {
 			// preserve proper cursor position
 			if(w->sel) {
 				BufferLine* cur = w->sel->startLine->prev;
@@ -812,7 +811,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			break;
 		}
 		
-		case BufferCmd_LinePrependText:
+		case GUICMD_Buffer_LinePrependText:
 			if(w->sel) {
 				Buffer_LinePrependTextSelection(b, w->sel, cmd->str);
 			}
@@ -821,7 +820,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 			
-		case BufferCmd_LineAppendText:
+		case GUICMD_Buffer_LineAppendText:
 			if(w->sel) {
 				Buffer_LineAppendTextSelection(b, w->sel, cmd->str, strlen(cmd->str));
 			}
@@ -830,7 +829,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 			
-		case BufferCmd_LineEnsureEnding:
+		case GUICMD_Buffer_LineEnsureEnding:
 			if(w->sel) {
 				Buffer_LineEnsureEndingSelection(b, w->sel, cmd->str, strlen(cmd->str));
 			}
@@ -839,17 +838,17 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 			
-		case BufferCmd_SurroundSelection:
+		case GUICMD_Buffer_SurroundSelection:
 			if(w->sel)
 				GBEC_SurroundCurrentSelection(w, cmd->pstr[0], cmd->pstr[1]);
 			break;
 			
-		case BufferCmd_ReplaceLineWithSelectionTransform:
+		case GUICMD_Buffer_ReplaceLineWithSelectionTransform:
 			if(w->sel)
 				GBEC_ReplaceLineWithSelectionTransform(w, cmd->pstr[0], cmd->pstr[1], cmd->pstr[2]);
 			break;
 		
-		case BufferCmd_SmartComment:
+		case GUICMD_Buffer_SmartComment:
 			if(!cmd->pstr[0] || !cmd->pstr[1] || !cmd->pstr[2]) break;
 			if(!w->sel) { // simple case
 				Buffer_LinePrependText(b, w->current, cmd->pstr[0]);
@@ -864,7 +863,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 		
-		case BufferCmd_LineUnprependText:
+		case GUICMD_Buffer_LineUnprependText:
 			if(w->sel) {
 				Buffer_LineUnprependTextSelection(b, w->sel, cmd->str);
 			}
@@ -873,12 +872,12 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 			
-		case BufferCmd_UnsurroundSelection:
+		case GUICMD_Buffer_UnsurroundSelection:
 			if(w->sel)
 				GBEC_UnsurroundCurrentSelection(w, cmd->pstr[0], cmd->pstr[1]);
 			break;
 		
-		case BufferCmd_StrictUncomment:
+		case GUICMD_Buffer_StrictUncomment:
 			if(!cmd->pstr[0] || !cmd->pstr[1] || !cmd->pstr[2]) break;
 			if(!w->sel) { // simple case
 				Buffer_LineUnprependText(b, w->current, cmd->pstr[0]);
@@ -893,30 +892,30 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 		
-		case BufferCmd_GoToFirstCharOrSOL:
+		case GUICMD_Buffer_GoToFirstCharOrSOL:
 			GBEC_MoveToFirstCharOrSOL(w, w->current);
 			break;
 		
-		case BufferCmd_GoToFirstCharOfLine: 
+		case GUICMD_Buffer_GoToFirstCharOfLine: 
 			GBEC_MoveToFirstCharOfLine(w, w->current);
 			break;
 			
-		case BufferCmd_GoToLastCharOfLine:
+		case GUICMD_Buffer_GoToLastCharOfLine:
 			GBEC_MoveToLastCharOfLine(w, w->current);
 			break;
 		
-		case BufferCmd_GoToFirstColOfFile:
+		case GUICMD_Buffer_GoToFirstColOfFile:
 			// TODO: undo
 			GBEC_MoveCursorTo(w, b->first, 0);
 			break;
 		
-		case BufferCmd_GoToLastColOfFile:
+		case GUICMD_Buffer_GoToLastColOfFile:
 			// TODO: undo
 			w->current = b->last;
 			if(b->last) w->curCol = b->last->length;
 			break;
 			
-		case BufferCmd_Indent:
+		case GUICMD_Buffer_Indent:
 			if(w->sel) {
 				Buffer_IndentSelection(w->buffer, w->sel);
 			}
@@ -926,7 +925,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}		
 			break;
 			
-		case BufferCmd_Unindent: 
+		case GUICMD_Buffer_Unindent: 
 			if(w->sel) {
 				Buffer_UnindentSelection(w->buffer, w->sel);
 			}
@@ -935,7 +934,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 			
-		case BufferCmd_DuplicateLine:
+		case GUICMD_Buffer_DuplicateLine:
 			if(w->sel) {
 				Buffer_DuplicateSelection(b, w->sel, cmd->amt);
 				GBEC_MoveCursorTo(w, w->sel->endLine, w->sel->endCol);
@@ -946,14 +945,14 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 		
-		case BufferCmd_Copy:
+		case GUICMD_Buffer_Copy:
 			if(w->sel) {
 				b2 = Buffer_FromSelection(b, w->sel);
 				Clipboard_PushBuffer(cmd->amt/*CLIP_PRIMARY*/, b2);
 			}
 			break;
 		
-		case BufferCmd_Cut:
+		case GUICMD_Buffer_Cut:
 			if(w->sel) {
 				b2 = Buffer_FromSelection(b, w->sel);
 				Clipboard_PushBuffer(cmd->amt/*CLIP_PRIMARY*/, b2);
@@ -968,7 +967,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 		
-		case BufferCmd_SmartCut: {
+		case GUICMD_Buffer_SmartCut: {
 			int smart = 0;
 			if(!w->sel) {
 				// make the current line the selection
@@ -976,7 +975,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 				smart = 1;
 			}
 			if(w->sel) {
-				// stolen from BufferCmd_Cut
+				// stolen from GUICMD_Buffer_Cut
 				b2 = Buffer_FromSelection(b, w->sel);
 				Clipboard_PushBuffer(cmd->amt, b2);
 				// TODO: move cursor to cut spot, if it isn't already
@@ -989,7 +988,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 				GBEC_ClearAllSelections(w);
 			}
 			if(smart) {
-				// stolen from BufferCmd_DeleteCurLine
+				// stolen from GUICMD_Buffer_DeleteCurLine
 				// preserve proper cursor position
 				BufferLine* cur = w->current->next;
 				if(!cur) cur = w->current->prev;
@@ -1002,7 +1001,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			break;
 		}
 		
-		case BufferCmd_Paste:
+		case GUICMD_Buffer_Paste:
 			b2 = Clipboard_PopBuffer(cmd->amt/*CLIP_PRIMARY*/);
 			if(b2) {
 				if(w->sel) {
@@ -1022,33 +1021,33 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			break;
 		
-		case BufferCmd_SelectNone:
+		case GUICMD_Buffer_SelectNone:
 			GBEC_ClearAllSelections(w);
 			break;
 		
-		case BufferCmd_SelectAll:
+		case GUICMD_Buffer_SelectAll:
 			GBEC_SetCurrentSelection(w, b->first, 1, b->last, b->last->length+1);
 			break;
 		
-		case BufferCmd_SelectLine:
+		case GUICMD_Buffer_SelectLine:
 			GBEC_SetCurrentSelection(w, w->current, 1, w->current, w->current->length);
 			break;
 			
-		case BufferCmd_SelectToEOL:
+		case GUICMD_Buffer_SelectToEOL:
 			GBEC_SetCurrentSelection(w, w->current, w->curCol, w->current, w->current->length);
 			break;
 			
-		case BufferCmd_SelectFromSOL:
+		case GUICMD_Buffer_SelectFromSOL:
 			GBEC_SetCurrentSelection(w, w->current, 1, w->current, w->curCol);
 			break;
 		
-		case BufferCmd_SetBookmark:       Buffer_SetBookmarkAt(b, w->current);    break; 
-		case BufferCmd_RemoveBookmark:    Buffer_RemoveBookmarkAt(b, w->current); break; 
-		case BufferCmd_ToggleBookmark:    Buffer_ToggleBookmarkAt(b, w->current); break; 
-		case BufferCmd_GoToNextBookmark:  GBEC_NextBookmark(w);  break; 
-		case BufferCmd_GoToPrevBookmark:  GBEC_PrevBookmark(w);  break; 
-		case BufferCmd_GoToFirstBookmark: GBEC_FirstBookmark(w); break; 
-		case BufferCmd_GoToLastBookmark:  GBEC_LastBookmark(w);  break; 
+		case GUICMD_Buffer_SetBookmark:       Buffer_SetBookmarkAt(b, w->current);    break; 
+		case GUICMD_Buffer_RemoveBookmark:    Buffer_RemoveBookmarkAt(b, w->current); break; 
+		case GUICMD_Buffer_ToggleBookmark:    Buffer_ToggleBookmarkAt(b, w->current); break; 
+		case GUICMD_Buffer_GoToNextBookmark:  GBEC_NextBookmark(w);  break; 
+		case GUICMD_Buffer_GoToPrevBookmark:  GBEC_PrevBookmark(w);  break; 
+		case GUICMD_Buffer_GoToFirstBookmark: GBEC_FirstBookmark(w); break; 
+		case GUICMD_Buffer_GoToLastBookmark:  GBEC_LastBookmark(w);  break; 
 		default:
 			Buffer_ProcessCommand(w->buffer, cmd, needRehighlight);
 			return;
@@ -1057,41 +1056,19 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 	
 	// check flags
 	
-	/*
-#define flag_setup(x) \
-	static unsigned int x = 9999999; \
-	if(x == 9999999) { \
-		HT_get(&gm->cmdFlagLookup, #x, &x); \
-	}
-	
-	
-	GUIManager* gm = w->header.gm;
-	flag_setup(scrollToCursor)
-	flag_setup(rehighlight)
-	flag_setup(resetCursorBlink)
-	flag_setup(undoSeqBreak)
-	flag_setup(hideMouse)
-	flag_setup(centerOnCursor)
-	
-	
-	if(rehighlight == 9999999) {
-//		HT_get(&gm->cmdFlagLookup, "rehighlight", &rehighlight);
-	}
-	
-	
-	if(cmd->flags & scrollToCursor) {
+	if(cmd->flags & GUICMD_FLAG_scrollToCursor) {
 		GBEC_scrollToCursor(w);
 	}
 	
-	if(cmd->flags & rehighlight) {
+	if(cmd->flags & GUICMD_FLAG_rehighlight) {
 		GUIBufferEditControl_RefreshHighlight(w);
 	}
 	
-	if(cmd->flags & resetCursorBlink) {
+	if(cmd->flags & GUICMD_FLAG_resetCursorBlink) {
 		w->cursorBlinkTimer = 0;
 	}
 	
-	if(cmd->flags & undoSeqBreak) {
+	if(cmd->flags & GUICMD_FLAG_undoSeqBreak) {
 		if(!w->sel) {
 //					printf("seq break without selection\n");
 			Buffer_UndoSequenceBreak(
@@ -1111,10 +1088,10 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 		}			
 	}
 	
-	if(cmd->flags & centerOnCursor) {
+	if(cmd->flags & GUICMD_FLAG_centerOnCursor) {
 		GBEC_scrollToCursorOpt(w, 1);
 	}
-	*/
+	
 	
 }
 

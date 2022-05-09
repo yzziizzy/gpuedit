@@ -937,16 +937,16 @@ void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
 	
 	switch(cmd->cmd) {
 			
-		case BufferCmd_Undo:
+		case GUICMD_Buffer_Undo:
 			Buffer_UndoReplayToSeqBreak(b);  
 			break;
 			
-		case BufferCmd_Redo:
+		case GUICMD_Buffer_Redo:
 			Buffer_RedoReplayToSeqBreak(b);  
 			
 			break;
 			
-		case BufferCmd_Save:
+		case GUICMD_Buffer_Save:
 			if(!g_DisableSave) {
 				Buffer_SaveToFile(b, b->sourceFile);
 			}
@@ -955,7 +955,7 @@ void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
 			}
 			break;
 			
-		case BufferCmd_Debug:
+		case GUICMD_Buffer_Debug:
 			switch(cmd->amt) {
 				case 0: Buffer_DebugPrint(b); break;
 				case 1: Buffer_DebugPrintUndoStack(b); break;

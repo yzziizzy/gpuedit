@@ -256,6 +256,10 @@ typedef struct GUIManager {
 	
 	FontManager* fm;
 	TextureAtlas* ta;
+	VEC(GUI_Cmd) cmdList;
+	VEC(GUI_CmdElementInfo) cmdElements;
+	HT(int) cmdElementLookup;
+	
 	
 	// immediate mode stuff
 	char drawMode;// only set to 1 when primitives should be written to the draw buffers

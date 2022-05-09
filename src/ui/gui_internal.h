@@ -320,7 +320,7 @@ void GUI_BoxFilled_(
 #define GUI_BoxFilled(a, b, c, d, e) GUI_BoxFilled_(gm, a, b, c, d, e)
 
 // solid rectangle with no border
-#define GUI_Rect(a, b, c) GUI_BoxFilled_(gm, a, b, 0, &(Color4){0,0,0,0}, c)
+#define GUI_Rect(tl, sz, color) GUI_BoxFilled_(gm, tl, sz, 0, &(Color4){0,0,0,0}, color)
 
 void GUI_CircleFilled_(
 	GUIManager* gm, 
