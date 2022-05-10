@@ -22,6 +22,33 @@
 
 
 
+static char* getParentDir(char* child) {
+	intptr_t len = strlen(child);
+	
+	for(intptr_t i = len - 1; i > 0; i--) {
+		if(child[i] == '/') {
+			
+			if(child[i-1] == '\\') {
+				i--; // escaped slash
+				continue;
+			}
+			
+			if(i == len - 1) { // this is a trailing slash; ignore it
+				continue;
+			}
+			
+			// found the last legitimate slash
+			
+			return strndup(child, i);
+		}
+		
+	}
+	
+	return strdup("/");
+}
+
+
+
 
 //    name, width, label
 #define COLUMN_TYPE_LIST \
@@ -78,7 +105,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	time_t time = 0;
 	
 	
-	int linesOnScreen = (sz.y - w->headerHeight) / w->lineHeight;
+	int linesOnScreen = ((sz.y - w->headerHeight) / w->lineHeight) - w->isRootDir;
 	
 	if(w->cursorIndex < w->scrollOffset) {
 		w->scrollOffset = w->cursorIndex;
@@ -111,6 +138,37 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 			FileBrowser_ProcessCommand(w, cmd);
 			GUI_CancelInput();
 		}
+		
+		if(GUI_MouseWentUp(1)) {
+			// determine the clicked line
+			Vector2 mp = GUI_MousePos();
+			int cline = floor((mp.y - w->headerHeight) / w->lineHeight) + (int)w->scrollOffset - 1 - !w->isRootDir;
+			
+			if(!w->isRootDir && cline == -1) {
+				char* p = getParentDir(w->curDir);
+				free(w->curDir);
+				w->curDir = p;
+				
+				FileBrowser_Refresh(w);
+				GUI_CancelInput();
+			}
+			else if(cline >= 0 && cline <= VEC_LEN(&w->entries) - 1) {
+				FileBrowserEntry* e = &VEC_ITEM(&w->entries, cline);
+				
+				if(e->type == 2) { // enter the directory
+					char* p = path_join(w->curDir, e->name);
+					free(w->curDir);
+					w->curDir = p;
+					
+					FileBrowser_Refresh(w);
+				}
+				else
+					MessagePipe_Send(w->upstream, MSG_OpenFile, e->name, NULL);
+				
+				GUI_CancelInput();
+			}
+		}
+		
 	}
 	
 	if(!gm->drawMode) return;
@@ -140,7 +198,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	// cursor
 	gm->curZ = z + 2;
 	GUI_BoxFilled(
-		V(tl.x + gutter, tl.y + w->headerHeight + (w->cursorIndex - w->scrollOffset) * lh),
+		V(tl.x + gutter, tl.y + w->headerHeight + (w->cursorIndex - w->scrollOffset + !w->isRootDir) * lh),
 		V(sz.x, lh),
 		1,
 		&gm->defaults.outlineCurrentLineBorderColor,
@@ -148,10 +206,37 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	);
 	
 
-	// draw file line items
-	
 	int linesDrawn = 0;
-
+	
+	// draw the virtual parent folder line
+	if(!w->isRootDir) {
+		xoff = tl.x + w->leftMargin;
+		VEC_EACH(&w->columnInfo, i, ci) {
+			AABB2 box;
+			box.min.x = xoff;
+			box.min.y = tl.y + (lh * linesDrawn) + w->headerHeight;
+			box.max.x = xoff + col_type_widths[ci.type];
+			box.max.y = tl.y + (lh * (linesDrawn + 1)) + w->headerHeight;
+			
+			switch(ci.type) {
+				case GUIFB_CT_icon:
+					GUI_Image(V(box.min.x, box.min.y), V(20,20), "icon/folder");
+					break;
+				
+				case GUIFB_CT_name:
+					GUI_TextLine("..", strlen(".."), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
+					break;
+			}
+			
+			xoff += col_type_widths[ci.type];
+		}
+		
+		linesDrawn++;
+	} 
+	
+	
+	
+	// draw file line items
 	for(intptr_t i = w->scrollOffset; i < (intptr_t)VEC_LEN(&w->entries); i++) {
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 			
@@ -240,30 +325,6 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 
 
 
-static char* getParentDir(char* child) {
-	intptr_t len = strlen(child);
-	
-	for(intptr_t i = len - 1; i > 0; i--) {
-		if(child[i] == '/') {
-			
-			if(child[i-1] == '\\') {
-				i--; // escaped slash
-				continue;
-			}
-			
-			if(i == len - 1) { // this is a trailing slash; ignore it
-				continue;
-			}
-			
-			// found the last legitimate slash
-			
-			return strndup(child, i);
-		}
-		
-	}
-	
-	return strdup("/");
-}
 
 /*
 static void userEvent(GUIHeader* w_, GUIEvent* gev) {

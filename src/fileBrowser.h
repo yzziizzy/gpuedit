@@ -83,6 +83,7 @@ typedef struct FileBrowser {
 	
 	VEC(FileBrowserEntry) entries;
 	
+	unsigned int isRootDir       : 1;
 	unsigned int treeView        : 1;
 	unsigned int showPathBar     : 1;
 	unsigned int editablePathBar : 1;

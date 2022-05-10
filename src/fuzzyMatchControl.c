@@ -20,6 +20,7 @@
 #include "ui/gui_internal.h"
 
 
+static void open_match(GUIFuzzyMatchControl* w, int i);
 
 // #define DEBUG printf
 #define DEBUG(...) 
@@ -42,6 +43,18 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 		if(cmd) {
 			GUIFuzzyMatchControl_ProcessCommand(w, cmd);
 			GUI_CancelInput();
+		}
+		
+		
+		if(GUI_MouseWentUp(1)) {
+			// determine the clicked line
+			Vector2 mp = GUI_MousePos();
+			int cline = floor((mp.y - 20) / w->lineHeight) - 1;
+			
+			if(cline >= 0 && cline <= w->matchCnt - 1) {
+				open_match(w, cline);
+				GUI_CancelInput();
+			}
 		}
 	}
 
@@ -109,6 +122,8 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 */
 
+
+
 void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) {
 	long amt;
 
@@ -125,26 +140,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 		case GUICMD_FuzzyMatcher_OpenFile: {
 			if(w->matchCnt == 0) break;
 			
-			char* path_raw = path_join(w->matches[w->cursorIndex].basepath, w->matches[w->cursorIndex].filepath);
-			char* path = resolve_path(path_raw);
-			GUIFileOpt opt = {
-				.path = path,
-				.line_num = 1,
-				.set_focus = 0,
-			};
-			if(w->gs->MainControl_openInPlace) {
-				opt.set_focus = 1;
-			}
-			
-			MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
-
-			free(path_raw);
-			free(path);
-
-			if(w->gs->MainControl_openInPlace) {
-				MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
-			}
-
+			open_match(w, w->cursorIndex);
 			break;
 		}
 		
@@ -291,6 +287,34 @@ CLEANUP:
 	// free(filepaths);
 
 }
+
+
+
+static void open_match(GUIFuzzyMatchControl* w, int i) {
+
+	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);
+	char* path = resolve_path(path_raw);
+	
+	GUIFileOpt opt = {
+		.path = path,
+		.line_num = 1,
+		.set_focus = 0,
+	};
+	
+	if(w->gs->MainControl_openInPlace) {
+		opt.set_focus = 1;
+	}
+	
+	MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
+
+	free(path_raw);
+	free(path);
+	
+	if(w->gs->MainControl_openInPlace) {
+		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
+	}
+}
+
 
 #undef DEBUG
 
