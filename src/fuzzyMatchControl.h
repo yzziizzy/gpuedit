@@ -9,8 +9,9 @@
 
 typedef struct GUIFuzzyMatchControl {
 	
-//	GUIEdit* searchBox;
-	char* searchTerm;
+	GUIString searchTerm;
+//	char* searchTerm;
+
 	fcandidate* matches;
 	size_t matchCnt;
 	int cursorIndex;
@@ -22,13 +23,14 @@ typedef struct GUIFuzzyMatchControl {
 	float leftMargin;
 	
 	GlobalSettings* gs;
-	GUI_Cmd* commands;
+//	GUI_Cmd* commands;
 	
 } GUIFuzzyMatchControl;
 
 
 GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char* searchTerm);
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w);
+void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
 void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd);
 

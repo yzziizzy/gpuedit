@@ -75,6 +75,7 @@ void GUI_TextLine_(
 	float size, 
 	Color4* color
 );
+#define GUI_TextLine(a,b, c,d, f,g) GUI_TextLine_(gm, a,b, c,d, f,g)
 
 // no wrapping
 void GUI_TextLineCentered_(
@@ -223,10 +224,16 @@ void gui_drawVCenteredTextLine(
 
 
 void GUI_SetHot_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
+#define  GUI_SetHot(a, b) GUI_SetHot_(a, b, NULL, NULL)
 void GUI_SetActive_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
+#define  GUI_SetActive(a, b) GUI_SetActive_(a, b, NULL, NULL)
 void* GUI_GetData_(GUIManager* gm, void* id);
 void GUI_SetData_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
 
+int GUI_InputAvailable_(GUIManager*gm);
+#define GUI_InputAvailable() GUI_InputAvailable_(gm)
+void GUI_CancelInput_(GUIManager*gm);
+#define GUI_CancelInput() GUI_CancelInput_(gm)
 
 Vector2 GUI_MousePos_(GUIManager* gm);
 #define GUI_MousePos() GUI_MousePos_(gm)

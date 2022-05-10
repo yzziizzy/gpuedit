@@ -18,19 +18,25 @@
 extern int g_DisableSave;
 
 
-
+#include "ui/macros_on.h"
 
 void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	// GUI_BeginWindow()
 	
 	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
 	
+		
+	void* id = w;
+	
+	HOVER_HOT(id);
+	CLICK_HOT_TO_ACTIVE(id);
+
 	
 	// TODO: move elsewhere
 	w->ec->tl = tl;
 	w->ec->sz = sz;
 	
-	if(!gm->drawMode) {
+	if(!gm->drawMode && gm->activeID == id) {
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent);
 		int needRehighlight = 0;
 		
@@ -40,6 +46,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
 				GUIBufferEditControl_RefreshHighlight(w->ec);
 			}
+			
+			GUI_CancelInput();
 		}
 		else if(isprint(gm->curEvent.character) && (gm->curEvent.modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
 			GUIBufferEditControl_ProcessCommand(w->ec, &(GUI_Cmd){
@@ -50,6 +58,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 			GUIBufferEditControl_RefreshHighlight(w->ec);
 			GBEC_scrollToCursor(w->ec);
+			
+			GUI_CancelInput();
 		}
 	}
 	
@@ -65,49 +75,11 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	// GUI_EndWindow()
 }
 
-/*
-static void keyDown(GUIHeader* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	int needRehighlight = 0;
+#include "ui/macros_off.h"
 
-	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		GUIBufferEditControl_ProcessCommand(w->ec, &(GUI_Cmd){
-			.cmd = GUICMD_Buffer_InsertChar, .amt = gev->character
-		}, &needRehighlight);
-		
-		GUIBufferEditControl_RefreshHighlight(w->ec);
-	}
-	
-}
-*/
-static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	int needRehighlight = 0;
-//static void keyDown(GUIHeader* w_, GUIEvent* gev) {
-//	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-//	int needRehighlight = 0;
+
+
 /*
-	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		GUIBufferEditControl_ProcessCommand(w->ec, &(BufferCmd){
-			GUICMD_Buffer_InsertChar, gev->character
-		}, &needRehighlight);
-		
-		GUIBufferEditControl_RefreshHighlight(w->ec);
-		GBEC_scrollToCursor(w->ec);
-	}
-	else {*/
-		// special commands
-	
-		// GUIBufferEditor will pass on commands to the buffer
-		GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
-}
-/*
-static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
-	w->header.size = gev->size;
-	if(w->trayRoot) {
-		w->trayRoot->header.size.x = w->header.size.x;
-	}
-}
 
 static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams* pfp) {
 	Vector2 wsz = w->header.size; 
@@ -181,13 +153,6 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	}
 }
 
-static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	
-	if(w->inputMode == BIM_Find || w->inputMode == BIM_Replace) {
-		GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
-	}
-}
 */
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 

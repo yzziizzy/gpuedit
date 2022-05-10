@@ -655,11 +655,11 @@ static void postFrame(void* gm_) {
 	PCBuffer_afterDraw(&gm->instVB);
 	
 	// reset the inter-frame event accumulators
-	VEC_TRUNC(&gm->keysReleased);
-	for(int i = 0; i < 16; i++) {
-		gm->mouseWentUp[i] = 0;
-		gm->mouseWentDown[i] = 0;
-	}
+//	VEC_TRUNC(&gm->keysReleased);
+//	for(int i = 0; i < 16; i++) {
+//		gm->mouseWentUp[i] = 0;
+//		gm->mouseWentDown[i] = 0;
+//	}
 	gm->scrollDist = 0;
 	gm->hotID = 0;
 	

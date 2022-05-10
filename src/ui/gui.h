@@ -107,9 +107,6 @@ typedef struct GUIEvent GUIEvent;
 	X(ScrollDown, 1) \
 	X(ScrollUp, 1) \
 	\
-	X(GainedFocus, 0) \
-	X(LostFocus, 0) \
-	X(ParentResize, 0) \
 	X(Paste, 1) \
 	\
 	X(User, 1) \
@@ -182,12 +179,6 @@ typedef struct GUIEvent {
 } GUIEvent;
 
 
-typedef struct GUIKeyEvent {
-	enum GUIEventType type;
-	int keycode;
-	int character;
-	unsigned int modifiers;
-} GUIKeyEvent;
 
 
 #define GUIMOUSECURSOR_DYNAMIC   -1
@@ -211,7 +202,7 @@ typedef struct GUIString {
 	char* data;
 } GUIString;
 
-typedef int (*GUIEditFilterFn)(GUIString*, GUIKeyEvent*, int /*pos*/, void* /*user_data*/); 
+typedef int (*GUIEditFilterFn)(GUIString*, GUIEvent*, int /*pos*/, void* /*user_data*/); 
 
 
 typedef struct GUIElementData {
@@ -291,7 +282,6 @@ typedef struct GUIManager {
 	// per-frame event queue
 	VEC(GUIEvent) events;
 	
-	VEC(GUIKeyEvent) keysReleased;
 	
 	double time;
 	double timeElapsed;

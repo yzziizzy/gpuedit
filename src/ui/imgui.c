@@ -6,13 +6,8 @@
 
 
 
+#include "macros_on.h"
 
-#define C(r,g,b)  (&((Color4){r,g,b,1.0}))
-#define C4(r,g,b,a)  (&((Color4){r,g,b,a}))
-#define V(_x,_y) ((Vector2){(_x),(_y)})
-
-#define HOT(id) GUI_SetHot_(gm, id, NULL, NULL)
-#define ACTIVE(id) GUI_SetActive_(gm, id, NULL, NULL)
 
 #define CLAMP(min, val, max) val = MIN(MAX(min, val), max)
 
@@ -21,19 +16,16 @@ int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text) {
 	
 	int result = 0;
 	
-	if(GUI_MouseInside(tl, sz)) {
-		HOT(id);
-	}
+	HOVER_HOT(id)
 	
 	if(gm->activeID == id) {
 		if(GUI_MouseWentUp(1)) {
 			if(gm->hotID == id) result = 1;
 			ACTIVE(NULL);
+			GUI_CancelInput();
 		}
 	}
-	else if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
-	}
+	else CLICK_HOT_TO_ACTIVE(id)
 
 	// bail early if not drawing
 	if(!gm->drawMode) return result;
@@ -59,9 +51,7 @@ int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text) {
 // returns true if toggled on 
 int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text, int* state) {
 	
-	if(GUI_MouseInside(tl, sz)) {
-		HOT(id);
-	}
+	HOVER_HOT(id)
 	
 	if(gm->activeID == id) {
 		if(GUI_MouseWentUp(1)) {
@@ -69,11 +59,10 @@ int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* te
 				*state = !*state;
 			}
 			ACTIVE(NULL);
+			GUI_CancelInput();
 		}
 	}
-	else if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
-	}
+	else CLICK_HOT_TO_ACTIVE(id)
 
 	// bail early if not drawing
 	if(!gm->drawMode) return *state;
@@ -114,11 +103,10 @@ int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state)
 				*state = !*state;
 			}
 			ACTIVE(NULL);
+			GUI_CancelInput();
 		}
 	}
-	else if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
-	}
+	else CLICK_HOT_TO_ACTIVE(id)
 
 	// bail early if not drawing
 	if(!gm->drawMode) return *state;
@@ -158,11 +146,10 @@ int GUI_RadioButton_(GUIManager* gm, void* id, Vector2 tl, char* label, void** s
 				*state = id;
 			}
 			ACTIVE(NULL);
+			GUI_CancelInput();
 		}
 	}
-	else if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
-	}
+	else CLICK_HOT_TO_ACTIVE(id)
 
 	// bail early if not drawing
 	if(!gm->drawMode) return *state == id;
@@ -206,7 +193,7 @@ int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float mi
 	Vector2 sz = {width, h};
 	float oldV = *value;
 	
-	if(GUI_MouseInside(tl, sz)) HOT(id);
+	HOVER_HOT(id);
 	
 	if(gm->activeID == id) {
 		Vector2 mp = GUI_MousePos();
@@ -221,10 +208,11 @@ int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float mi
 
 		if(GUI_MouseWentUp(1)) {
 			ACTIVE(NULL);
+			GUI_CancelInput();
 		}
 	}
 	if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
+		MOUSE_DOWN_ACTIVE(id)
 		*value += GUI_GetScrollDist() * incr;
 	}
 	
@@ -270,8 +258,8 @@ int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, float width, long min, 
 	Vector2 sz = {width, h};
 	long oldV = *value;
 	
-	if(GUI_MouseInside(tl, sz)) HOT(id);
-	
+	HOVER_HOT(id)
+		
 	if(gm->activeID == id) {
 		Vector2 mp = GUI_MousePos();
 		
@@ -284,10 +272,11 @@ int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, float width, long min, 
 
 		if(GUI_MouseWentUp(1)) {
 			ACTIVE(NULL);
+			GUI_CancelInput();
 		}
 	}
 	if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
+		MOUSE_DOWN_ACTIVE(id)
 		*value += GUI_GetScrollDist();
 	}
 
@@ -321,9 +310,7 @@ int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, float width, char** 
 	int cnt = 0;
 	for(char** p = options; *p; p++) cnt++;
 	
-	if(GUI_MouseInside(tl, sz)) {
-		HOT(id);
-	}
+	HOVER_HOT(id)
 	
 	if(gm->activeID == id) {
 		Vector2 mp = GUI_MousePos();
@@ -335,11 +322,12 @@ int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, float width, char** 
 
 		if(GUI_MouseWentUp(1)) {
 			ACTIVE(NULL);
+			GUI_CancelInput();
 		}
 	}
 	
 	if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
+		MOUSE_DOWN_ACTIVE(id)
 		*selectedOption += GUI_GetScrollDist();
 	}
 	
@@ -366,9 +354,7 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** opti
 	int optsLen = 0;
 	for(char**p = options; *p != NULL; p++) optsLen++;
 	
-	if(GUI_MouseInside(tl, sz)) {
-		HOT(id);
-	}
+	HOVER_HOT(id)
 	
 	if(gm->activeID == id) {
 		if(GUI_MouseWentUpAnywhere(1)) {
@@ -388,12 +374,10 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** opti
 				ACTIVE(NULL);
 			}
 		}
-		else if(GUI_MouseWentDown(1)) {
-			ACTIVE(NULL);
-		}
+		else MOUSE_DOWN_ACTIVE(NULL)
 	}
 	else if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
+		MOUSE_DOWN_ACTIVE(id)
 		*selectedOption -= GUI_GetScrollDist();
 	}
 
@@ -473,7 +457,12 @@ struct edit_data {
 
 
 static void check_string(GUIString* s, int extra) {
-	if(s->alloc <= s->len + extra) {
+	if(!s->data) {
+		s->alloc = 64;
+		s->data = malloc(s->alloc * sizeof(*s->data));
+		s->data[0] = 0;
+	}
+	else if(s->alloc <= s->len + extra) {
 		s->alloc = nextPOT(s->len + extra + 1);
 		s->data = realloc(s->data, s->alloc * sizeof(*s->data));
 	}
@@ -491,14 +480,13 @@ static void delete_selection(struct cursor_data* cd, GUIString* str) {
 }
 
 // return 1 on changes
-static int handle_cursor(GUIManager* gm, struct cursor_data* cd, GUIString* str, GUIKeyEvent* e) {
+static int handle_cursor(GUIManager* gm, struct cursor_data* cd, GUIString* str, GUIEvent* e) {
 	int ret = 0;
-
 
 	switch(e->keycode) {
 		case XK_Left:
 			if(e->modifiers & GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
-				if(cd->cursorPos > 0) { // cant's start a selection leftward from the left edge
+				if(cd->cursorPos > 0) { // cant start a selection leftward from the left edge
 					cd->selectPivot = cd->cursorPos;
 					cd->cursorPos--;
 				}
@@ -511,7 +499,7 @@ static int handle_cursor(GUIManager* gm, struct cursor_data* cd, GUIString* str,
 							
 		case XK_Right: 
 			if(e->modifiers & GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
-				if(cd->cursorPos < str->len) { // cant's start a selection leftward from the left edge
+				if(cd->cursorPos < str->len) { // cant start a selection rightward from the right edge
 					cd->selectPivot = cd->cursorPos;
 					cd->cursorPos++;
 				}
@@ -522,7 +510,7 @@ static int handle_cursor(GUIManager* gm, struct cursor_data* cd, GUIString* str,
 			}
 			goto BLINK;
 			
-		case XK_BackSpace:
+		case XK_BackSpace: 
 			if(cd->selectPivot > -1) { // delete the selection
 				delete_selection(cd, str);
 			}
@@ -555,17 +543,18 @@ static int handle_cursor(GUIManager* gm, struct cursor_data* cd, GUIString* str,
 	return ret;
 
 BLINK:
-	cd->blinkTimer = 0;		
+	cd->blinkTimer = 0;	
+	GUI_CancelInput();	
 	
 	return ret;
 }
 
 // returns 1 on changes made to the buffer
-static int handle_input(GUIManager* gm, struct cursor_data* cd, GUIString* str, GUIKeyEvent* e) {
+static int handle_input(GUIManager* gm, struct cursor_data* cd, GUIString* str, GUIEvent* e) {
 	int ret = 0;
 	
-	cd->cursorPos = MIN(cd->cursorPos, str->len);
-	cd->selectPivot = MIN(cd->selectPivot, str->len);
+	cd->cursorPos = MIN(cd->cursorPos, (int)str->len);
+	cd->selectPivot = MIN(cd->selectPivot, (int)str->len);
 	
 	if(isprint(e->character)) {
 	
@@ -580,6 +569,7 @@ static int handle_input(GUIManager* gm, struct cursor_data* cd, GUIString* str, 
 		cd->cursorPos++;
 		cd->blinkTimer = 0;
 		
+		GUI_CancelInput();
 		ret = 1;
 	}
 	else {
@@ -615,8 +605,8 @@ int GUI_Edit_Trigger_(GUIManager* gm, void* id, GUIString* str, int c) {
 		GUI_SetData_(gm, id, d, free);
 	}
 	
-	GUIKeyEvent e = {
-		.type = GUIEVENT_KeyUp,
+	GUIEvent e = {
+		.type = GUIEVENT_KeyDown,
 		.character = c,
 		.keycode = 0,
 		.modifiers = 0,
@@ -643,6 +633,8 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 		GUI_SetData_(gm, id, d, free);
 	}
 	
+	check_string(str, 0); // make sure the input string exists
+	
 	ret = d->synthed_change;
 	d->synthed_change = 0;
 	
@@ -654,11 +646,10 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 	if(!font) font = gm->defaults.font;
 	
 	
-	if(GUI_MouseInside(tl, sz)) {
-		HOT(id);
-	}
+	HOVER_HOT(id)
+	
 	if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) ACTIVE(id);
+		MOUSE_DOWN_ACTIVE(id)
 		
 		if(GUI_MouseWentUp(1)) {
 			// position the cursor
@@ -669,11 +660,10 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 	
 	// handle input
 	if(gm->activeID == id) {
-		VEC_EACHP(&gm->keysReleased, i, e) {
-			if(d->filter_fn && isprint(e->character)) {
-				if(!d->filter_fn(str, e, d->cursor.cursorPos, d->filter_user_data)) continue;
+		if(gm->curEvent.type == GUIEVENT_KeyDown) {
+			if(!isprint(gm->curEvent.character) || !d->filter_fn || d->filter_fn(str, &gm->curEvent, d->cursor.cursorPos, d->filter_user_data)) {
+				ret |= handle_input(gm, &d->cursor, str, &gm->curEvent);
 			}
-			ret |= handle_input(gm, &d->cursor, str, e);
 		}
 	}
 	
@@ -720,7 +710,6 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 			int min = MIN(cursorOff, pivotOff);
 			int max = MAX(cursorOff, pivotOff);
 			
-			
 			GUI_BoxFilled_(gm, V(tl.x + min + d->scrollX, tl.y), V(max - min,sz.y), 0, C(.3,1,.7), C(.3,1,.7));
 			
 		}
@@ -729,11 +718,11 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 	
 
 	
-	gm->curZ += 0.01;
+	gm->curZ += 10.01;
 	
-	GUI_TextLine_(gm, str->data, str->len, V(tl.x + d->scrollX, tl.y +5+ fontSz * .75), "Arial", fontSz, &((Color4){.9,.9,.9,1}));
+	GUI_TextLine_(gm, str->data, str->len, V(tl.x + d->scrollX, tl.y ), "Arial", fontSz, &((Color4){.9,.9,.9,1}));
 	GUI_PopClip();
-	gm->curZ -= 0.01;
+	gm->curZ -= 10.01;
 	
 	return ret;
 }
@@ -763,43 +752,37 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 	}
 	
 	
-	if(GUI_MouseInside(tl, sz)) {
-		HOT(id);
-	}
-	
-	if(gm->hotID == id) {
-		if(GUI_MouseWentDown(1)) {
-			ACTIVE(id);
-		}
-	}
-	
-
+	HOVER_HOT(id)
+	CLICK_HOT_TO_ACTIVE(id)
 
 	// handle input
 	if(gm->activeID == id) {
-		VEC_EACHP(&gm->keysReleased, i, e) {
-			switch(e->character) {
+		if(gm->curEvent.type == GUIEVENT_KeyDown) {
+			switch(gm->curEvent.character) {
 				case '0': case '1': case '2':
 				case '3': case '4': case '5':
 				case '6': case '7': case '8': case '9':
 					memmove(d->buffer + d->cursorPos + 1, d->buffer + d->cursorPos, strlen(d->buffer) - d->cursorPos + 1);
-					d->buffer[d->cursorPos] = e->character;
+					d->buffer[d->cursorPos] = gm->curEvent.character;
 					d->cursorPos++;
 					*num = strtol(d->buffer, NULL, 10);
 					d->blinkTimer = 0;
+					GUI_CancelInput();
 					
 					ret = 1;
 					break;
 			}
 			
-			switch(e->keycode) {
+			switch(gm->curEvent.keycode) {
 				case XK_Left: 
 					d->cursorPos = d->cursorPos < 1 ? 0 : d->cursorPos - 1; 
 					d->blinkTimer = 0;
+					GUI_CancelInput();
 					break;
 				case XK_Right: 
 					d->cursorPos = d->cursorPos + 1 > strlen(d->buffer) ? strlen(d->buffer) : d->cursorPos + 1; 
 					d->blinkTimer = 0;
+					GUI_CancelInput();
 					break;
 					
 				case XK_BackSpace: 
@@ -807,6 +790,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 					d->cursorPos = d->cursorPos > 0 ? d->cursorPos - 1 : 0;
 					*num = strtol(d->buffer, NULL, 10);
 					d->blinkTimer = 0;
+					GUI_CancelInput();
 					
 					ret = 1;
 					break;
@@ -815,11 +799,15 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 					memmove(d->buffer + d->cursorPos, d->buffer + d->cursorPos + 1, strlen(d->buffer) - d->cursorPos);
 					*num = strtol(d->buffer, NULL, 10);
 					d->blinkTimer = 0;
+					GUI_CancelInput();
 					
 					ret = 1;
 					break;
 					
-				case XK_Return: ACTIVE(NULL); break;
+				case XK_Return: 
+					ACTIVE(NULL); 
+					GUI_CancelInput();
+					break;
 			}
 		}
 	}
@@ -1104,7 +1092,16 @@ int GUI_PointInBox_(GUIManager* gm, AABB2 box, Vector2 testPos) {
 	return 1;
 }
 
-	
+
+int GUI_InputAvailable_(GUIManager*gm) {
+	return !gm->curEvent.cancelled;
+}
+
+void GUI_CancelInput_(GUIManager*gm) {
+	gm->curEvent.cancelled = 1;
+}
+
+
 int GUI_MouseInside_(GUIManager* gm, Vector2 tl, Vector2 sz) {
 	return gm->curWin->id == gm->mouseWinID && GUI_PointInBoxV_(gm, tl, sz, gm->lastMousePos);
 }

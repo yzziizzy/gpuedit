@@ -115,7 +115,7 @@ static float tabscroll_fn_Loop(MainControlTab* tab, float boxw, PassFrameParams*
 }
 
 
-#define V(a,b) ((Vector2){.x = (a), .y = (b)})
+#include "ui/macros_on.h"
 
 
 void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
@@ -130,25 +130,63 @@ void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector
 	}
 	
 	
-	if(!gm->drawMode) return;
+	float tabw = (sz.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
+	
+	// handle input
+	if(!gm->drawMode) {
+		VEC_EACH(&w->tabs, i, tab) {
+		
+			if(GUI_MouseInside(V(tl.x + tabw * i + i + 1, tl.y), V(tabw - 1, w->tabHeight))) {
+				if(GUI_MouseWentUp(1)) {
+					GUIMainControl_GoToTab(w, i);
+				}
+				else if(GUI_MouseWentUp(1)) {
+					GUIMainControl_CloseTab(w, i);
+				}
+			}
+		
+		}
+		
+		if(GUI_InputAvailable()) {
+			
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent);
+			
+			if(cmd) {
+				GUIMainControl_ProcessCommand(w, cmd);
+				GUI_CancelInput();
+			}
+		}
+				
+		return;
+	}
+	
+	// ---------- only drawing code after this point ----------
+	
+	// TEMP
+	VEC_EACH(&w->tabs, i, t) {
+		if(t->everyFrame) t->everyFrame(t);
+	}
 	
 	// background
 	GUI_Rect(tl, V(sz.x, w->tabHeight), &gm->defaults.tabBorderColor);
 	
-	
-	float tabw = (sz.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
-	
+
 	gm->curZ += 1;
 	
 	// tab backgrounds
 	VEC_EACH(&w->tabs, i, tab) {
+		Vector2 boxSz = {tabw - 1, w->tabHeight};
+	
 		struct Color4* color;
 		if(tab->isActive) color = &gm->defaults.tabActiveBgColor;
-		else if(tab->isHovered) color = &gm->defaults.tabHoverBgColor;
+		else if(GUI_MouseInside(V(tl.x + tabw * i + i + 1, tl.y), boxSz)) color = &gm->defaults.tabHoverBgColor;
 		else color = &gm->defaults.tabBgColor;
+		
 		
 		// TODO: fix pixel widths
 		GUI_Rect(V(tl.x + tabw * i + i + 1, tl.y + 1), V(tabw - 1, w->tabHeight - 2), color);
+		
+		
 	}
 	
 	AABB2 oClip = gm->curClip;
@@ -188,192 +226,15 @@ void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector
 //		}
 	}
 	
+	
+#include "ui/macros_off.h"
 }
-/*
 
-static void updatePos(GUIMainControl* w, GUIRenderParams* grp, PassFrameParams* pfp) {
-	GUIHeader* h = &w->header;
-	
-	
-	if(w->gs->MainControl_autoSortTabs && w->tabAutoSortDirty) {
-		GUIMainControl_SortTabs(w);
-		w->tabAutoSortDirty = 0;
-	} 
-	
-	
-	Vector2 tl = gui_calcPosGrav(h, grp);
-	
-	h->absTopLeft = tl;
-	h->absClip = grp->clip;
-	h->absZ = grp->baseZ + h->z;
-	
-	// update the client of the current tab
-	if(w->currentIndex > -1) {
-		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		
-		GUIRenderParams grp2 = {
-			.clip = grp->clip, // TODO: update the clip
-			// TODO check showXXX flags for height calculation
-			.size = {.x = h->size.x, .y = h->size.y - w->tabHeight}, // maximized
-			.offset = {
-				.x = tl.x,
-				.y = tl.y + w->tabHeight,
-			},
-			.baseZ = grp->baseZ + w->header.z,
-		};
-		
-		if(a) GUIHeader_updatePos(a->client, &grp2, pfp);
-	}
 
-	
-	// update all the tabs
-	/*
-	VEC_EACH(&w->tabs, i, child) { 
-		
-		GUIRenderParams grp2 = {
-			.clip = grp->clip, // TODO: update the clip
-			.size = child->header.size, // sized to the child to eliminate gravity 
-			.offset = {
-				.x = tl.x,
-				.y = tl.y + tabHeight,
-			},
-			.baseZ = grp->baseZ + w->header.z,
-		};
-		
-		GUIHeader_updatePos(child, &grp2, pfp);
-	}
-	* /
-	
-	// as good a place as any, I suppose
-	VEC_EACH(&w->tabs, i, t) {
-		if(t->everyFrame) t->everyFrame(t);
-	}
-}
-*/
+
+
 
 /*
-static GUIHeader* hitTest(GUIMainControl* w, Vector2 absTestPos) {
-// 	printf("tab tes pos %f,%f %p\n", absTestPos.x, absTestPos.y, w);
-	GUIHeader* o = NULL;
-	
-	if(w->currentIndex > -1) {
-		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a) o = gui_defaultHitTest(a->client, absTestPos);
-		if(o) return o;
-	}
-	
-	/*
-	// check the tabs
-	Vector2 tl = w->header.absTopLeft;
-	float tabw = (w->header.size.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
-	
-	VEC_EACH(&w->tabs, i, tab) {
-		AABB2 box;
-		box.min.x = tl.x + tabw * i + i + 1;
-		box.min.y = tl.y + 1;
-		box.max.x = tl.x + tabw * (i + 1) + i + 1;
-		box.max.y = tl.y + w->header.size.y - 1;
-		
-		if(boxContainsPoint2p(&box, &gev->pos)) {
-			if(tab->onClick) tab->onClick(i, gev->button, tab->onClickData);
-			if(tab->onActivate) tab->onActivate(i, tab->onActivateData);
-			
-			return NULL;
-		}
-		
-	}
-	* /
-	
-	return gui_defaultHitTest(&w->header, absTestPos);
-}
-*/
-/*
-
-static void parentResize(GUIHeader* w_, GUIEvent* gev) {
-	GUIMainControl* w = (GUIMainControl*)w_;
-	gui_default_ParentResize(w_, gev);
-}
-
-static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
-	GUIMainControl* w = (GUIMainControl*)w_;
-	
-	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-	if(a) { 
-		GUIManager_pushFocusedObject(w->header.gm, a->client);
-	}
-}
-
-
-static int hitTestTabs(GUIMainControl* w, GUIEvent* gev) {
-	Vector2 tl = w->header.absTopLeft;
-	float tabw = (w->header.size.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
-	
-	VEC_EACH(&w->tabs, i, tab) {
-		AABB2 box;
-		box.min.x = tl.x + tabw * i + i + 1;
-		box.min.y = tl.y + 1;
-		box.max.x = tl.x + tabw * (i + 1) + i + 1;
-		box.max.y = tl.y + w->tabHeight - 1;
-		
-		if(boxContainsPoint2p(&box, &gev->pos)) {
-			return i;
-		}
-	}
-	
-	return -1;
-}
-
-
-
-static void mouseMove(GUIHeader* w_, GUIEvent* gev) {
-	GUIMainControl* w = (GUIMainControl*)w_;
-	if(VEC_LEN(&w->tabs) == 0) return;
-	
-	int index = hitTestTabs(w, gev);
-// 	if(index < 0) return;
-	
-	// highlight hovered tab
-	VEC_EACH(&w->tabs, i, t) {
-		t->isHovered = (i == index); 
-	}
-}
-
-
-static void click(GUIHeader* w_, GUIEvent* gev) {
-	GUIMainControl* w = (GUIMainControl*)w_;
-	if(VEC_LEN(&w->tabs) == 0) return;
-	
-	int index = hitTestTabs(w, gev);
-	if(index < 0) return;
-	
-	if(gev->button == 1) { // left click
-		if(w->currentIndex > -1) { // deactivate old tab
-			MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-			if(a) {
-				a->isActive = 0;
-			}
-		}
-		
-		w->currentIndex = index;
-		
-		// activate new tab
-		MainControlTab* t = VEC_ITEM(&w->tabs, index);
-		t->isActive = 1;
-		
-		//GUIManager_popFocusedObject(w->header.gm);
-		GUIManager_pushFocusedObject(w->header.gm, t->client);
-		GUIManager_SetMainWindowTitle(w->header.gm, t->title);
-	}
-	else if(gev->button == 2) { // middle click
-		// close the tab
-		GUIMainControl_CloseTab(w, index);
-	}
-	
-}
-
-
-
-
 
 static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
@@ -412,65 +273,14 @@ void* args[4];
 
 void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 	
-	//GUIBufferEditor* bb = VEC_ITEM(&w->editors, 0);
-// 	printf("eds: %d, lines: %ld\n", VEC_LEN(&w->editors), bb->buffer->numLines);
-
-	//args[0] = &bb->buffer->numLines;
-	
 	switch(cmd->cmd) {
-	case GUICMD_Main_SimpleWindowTest:
-	{
-/* 		sw = GUISimpleWindow_New(w->header.gm);
-		sw->header.topleft = (Vector2){20, 20};
-		sw->header.size = (Vector2){400, 400};
-		sw->title = "foobar";
-// 		sw->absScrollPos.x = 50;
-		GUI_RegisterObject(w->header.parent, sw);
-		*/
-		
-// 		GUI_RegisterObject(sw, oo);
-	}
-		
-		
-		/*
-		textf = GUITextF_new(w->header.gm);
-		textf->header.topleft = (Vector2){20, 50};
-		GUITextF_setString(textf, "----%>ld--", args);
-		GUI_RegisterObject(w->header.parent, textf);
-		
-		
-		for(int i = 0; i < 1; i++) {
-			/*GUIFormControl* ww = GUIFormControl_New(w->header.gm, (i%3) +1, "Foo");
-			ww->header.topleft.y = i * 35;
-			ww->header.size = (Vector2){370, 35};
-			GUIHeader_AddClient(sw, ww);* /
-			
-			GUISelectBox* ww = GUISelectBox_New(w->header.gm);
-			ww->header.topleft.y = i * 45;
-			ww->header.size = (Vector2){370, 35};
-			GUIHeader_AddClient(sw, ww);
-			
-			GUISelectBoxOption opts[] = {
-				{.label = "> One"},
-				{.label = "> Two"},
-				{.label = "> Three"},
-				{.label = "> Four"},
-				{.label = "> Five"},
-			};
-			
-			GUISelectBox_SetOptions(ww, opts, 5);
-			
-		}
-		*/
-		
-		break;
 	
 	case GUICMD_Main_OpenFileBrowser:
 //		GUIMainControl_OpenFileBrowser(w, "./");
 		break;
 
 	case GUICMD_Main_FuzzyOpener:
-//		GUIMainControl_FuzzyOpener(w, NULL);
+		GUIMainControl_FuzzyOpener(w, NULL);
 		break;
 	
 	case GUICMD_Main_GrepOpen:
@@ -525,26 +335,17 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 	case GUICMD_Main_SaveAndCloseTab:
 		printf("NYI\n"); // see BufferCmd_SaveAndClose and BufferCmd_PromptAndClose
 		break;
-		/*
+		
 	case GUICMD_Main_SortTabs: GUIMainControl_SortTabs(w); break;
 	case GUICMD_Main_MoveTabR: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex + 1); break;
 	case GUICMD_Main_MoveTabL: GUIMainControl_SwapTabs(w, w->currentIndex, w->currentIndex - 1); break;
-	case GUICMD_Main_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n* /); break;
-	case GUICMD_Main_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n* /); break;
+	case GUICMD_Main_NextTab: GUIMainControl_NextTab(w, 1/*cmd->n*/); break;
+	case GUICMD_Main_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n*/); break;
 	case GUICMD_Main_GoToTab: GUIMainControl_GoToTab(w, cmd->amt); break;
-	*/
+	
 	}
 }
 
-
-/*
-static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
-	GUIMainControl* w = (GUIMainControl*)w_;
-	int needRehighlight = 0;
-	
-	GUIMainControl_ProcessCommand(w, cmd);
-}
-*/
 
 
 GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
@@ -553,7 +354,6 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	GUIMainControl* w = pcalloc(w);
 	w->gs = gs;
 	
-//	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Main;
 	w->tabHeight = gs->MainControl_tabHeight;
 	
 	// TEMP HACK
@@ -564,16 +364,6 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	HighlighterManager_Init(&w->hm);
 	Highlighter_ScanDirForModules(&w->hm, "/usr/lib64/gpuedit/highlighters/");
 	Highlighter_ScanDirForModules(&w->hm, "~/.gpuedit/highlighters/");
-	
-	/*
-	GUIWindow* test = GUIWindow_New(gm);
-	test->borderColor = (struct Color4){1,0,0,1};
-	test->color = (struct Color4){0,1,0,1};
-	test->header.size = (Vector2){200, 100};
-	GUIManager_SpawnModal(gm, &test->header);
-	*/
-	
-	// TODO: resize
 	
 	
 	return w;
@@ -588,26 +378,6 @@ void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s) {
 	}
 }
 
-
-
-static void switchtab(int index, int btn, MainControlTab* t) {
-//	GUIMainControl* w = (GUIMainControl*)t->userData1;
-//	GUIMainControl_GoToTab(w, index);
-	//GUIManager_popFocusedObject(w->header.gm);
-	
-//	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-//	if(!a) return; 
-	
-//	GUIManager_pushFocusedObject(w->header.gm, a->client);
-	
-//	if(btn == 2) { // close on middle click
-//		GUIMainControl_CloseTab(w, index);
-//		return;
-//	}
-	
-	// HACK
-//	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
-}
 
 
 MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, void* client, char* title) {
@@ -780,9 +550,8 @@ GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
-//	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
-//	GUIManager_popFocusedObject(w->header.gm);
-//	GUIManager_pushFocusedObject(w->header.gm, a->client);
+	GUI_SetActive(w->gm, a->client);
+	
 	return a->client;
 }
 
@@ -802,8 +571,8 @@ GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
-//	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
-//	GUIManager_pushFocusedObject(w->header.gm, a->client);
+	GUI_SetActive(w->gm, a->client);
+	
 	return a->client;
 }
 
@@ -818,8 +587,8 @@ GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
-//	GUIManager_SetMainWindowTitle(w->header.gm, a->title);
-//	GUIManager_pushFocusedObject(w->header.gm, a->client);
+	GUI_SetActive(w->gm, a->client);
+	
 	return a->client;
 }
 
@@ -908,30 +677,30 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 	GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
 }
 
-
+*/
 void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm) {
 	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
 
-	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->header.gm, "./", searchTerm);
+	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->gm, "./", searchTerm);
 	fmc->gs = w->gs;
-	fmc->commands = w->commands;
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fmc->header, "fuzzy matcher");
+//	fmc->commands = w->commands;
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fmc, "fuzzy matcher");
 	tab->type = MCTAB_FUZZYOPEN;
+	tab->render = (void*)GUIFuzzyMatchControl_Render;
+	tab->client = fmc;
 	//tab->beforeClose = gbeBeforeClose;
 	//tab->beforeClose = gbeAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
-	fmc->header.parent = (GUIHeader*)w;
-
 	GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 
 	GUIFuzzyMatchControl_Refresh(fmc);
 }
 
-
+/*
 void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm) {
 	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 	if(o != NULL) {

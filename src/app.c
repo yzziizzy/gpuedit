@@ -216,10 +216,10 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 				break;
 	/*		case MCTAB_FILEOPEN:
 				GUIMainControl_OpenFileBrowser(as->mc, ts[i].path);
-				break;
+				break; */
 			case MCTAB_FUZZYOPEN:
 				GUIMainControl_FuzzyOpener(as->mc, NULL);
-				break;
+				break; /*
 			case MCTAB_GREPOPEN:
 				GUIMainControl_GrepOpen(as->mc, NULL);
 				break;*/

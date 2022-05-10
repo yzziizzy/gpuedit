@@ -22,33 +22,35 @@
 
 
 // #define DEBUG printf
-#define DEBUG(...)
+#define DEBUG(...) 
 
-/*
-static void render(GUIHeader* w_, PassFrameParams* pfp) {
-	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
-	GUIManager* gm = w->header.gm;
-	GUIUnifiedVertex* v;
 
-	Vector2 tl = w->header.absTopLeft;
+#include "ui/macros_on.h"
+
+void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
+
+	gm->curZ += 10;
+	if(GUI_Edit(&w->searchTerm, tl, V(sz.x, 20), &w->searchTerm)) {
+		GUIFuzzyMatchControl_Refresh(w);
+	}
+	gm->curZ -= 10;
+
+
+	if(GUI_InputAvailable()) {
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_FuzzyMatcher, &gm->curEvent);
+		
+		if(cmd) {
+			GUIFuzzyMatchControl_ProcessCommand(w, cmd);
+			GUI_CancelInput();
+		}
+	}
+
+
+	if(!gm->drawMode) return;
+
 
 	// draw general background
-	v = GUIManager_reserveElements(gm, 1);
-	*v = (GUIUnifiedVertex){
-		.pos = {
-			tl.x,
-			tl.y,
-			tl.x + w->header.size.x,
-			tl.y + w->header.size.y
-		},
-		.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-		.guiType = 0, // window (just a box)
-		.fg = {0, 0, 255, 255},
-		.bg = GUI_COLOR4_TO_SHADER(gm->defaults.windowBgColor),
-		.z = w->header.absZ,
-		.alpha = 1,
-	};
-
+	GUI_Rect(tl, sz, &gm->defaults.windowBgColor);
 	
 	// 	drawTextLine();
 	float lh = w->lineHeight;
@@ -56,61 +58,37 @@ static void render(GUIHeader* w_, PassFrameParams* pfp) {
 	
 	int linesDrawn = 0;
 	
+	gm->curZ++;
+	
 	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
-		if(lh * linesDrawn > w->header.size.y) break; // stop at the bottom of the window
-
-		AABB2 box;
-		box.min.x = tl.x + gutter;
-		box.min.y = tl.y + 30 + (lh * linesDrawn);
-		box.max.x = tl.x + w_->size.x - gutter;
-		box.max.y = tl.y + 30 + (lh * (linesDrawn + 1));
-
-
+		DEBUG("rendering match: %ld\n", i);
+	
+		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
+		
+		Vector2 btl = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 bsz = {sz.x - gutter, (lh)};
+		
 		if(w->cursorIndex == i) { // backgrounds for selected items
 			struct Color4* color = &gm->defaults.selectedItemBgColor;
-			
-			v = GUIManager_reserveElements(gm, 1);
-			*v = (GUIUnifiedVertex){
-				.pos = {box.min.x, box.min.y, box.max.x, box.max.y},
-				.clip = GUI_AABB2_TO_SHADER(w->header.absClip),
-				
-				.guiType = 0, // window (just a box)
-				
-				.fg = GUI_COLOR4_TO_SHADER(*color),
-				.bg = GUI_COLOR4_TO_SHADER(*color),
-				
-				.z = w->header.absZ,
-				.alpha = 1,
-			};
+			GUI_Rect(btl, bsz, color);
 		}
 
-
-
+		gm->curZ++;
 		// the file name
-		gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x - box.min.x,0}, &w->header.absClip, &gm->defaults.selectedItemTextColor , 10000000, w->matches[i].filepath, strlen(w->matches[i].filepath));
+		GUI_TextLine(w->matches[i].filepath, strlen(w->matches[i].filepath), btl, "Arial",  16, &gm->defaults.selectedItemTextColor);
+		gm->curZ--;
 		
 		linesDrawn++;
 	}
 
-
-	
-	GUIHeader_renderChildren(&w->header, pfp);
 }
 
+#include "ui/macros_off.h"
 
 
-static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
-	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
-	
-	w->searchBox->header.topleft.y = 0;
-	w->searchBox->header.topleft.x = 0;
-	w->searchBox->header.size.y = 25;
 
 
-	gui_defaultUpdatePos(&w->header, grp, pfp);
-}
-
-
+/*
 
 static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
@@ -129,34 +107,6 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 
 
-static void keyDown(GUIHeader* w_, GUIEvent* gev) {
-	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
-/*
-	Cmd found;
-	unsigned int iter = 0;
-	while(Commands_ProbeCommand(gev, w->commands, 0, &found, &iter)) {
-		// GUIBufferEditor will pass on commands to the buffer
-		GUIFuzzyMatchControl_ProcessCommand(w, &found);		
-		
-	}
-* /
-}
-
-
-static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
-	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
-	
-	GUIManager_pushFocusedObject(w->header.gm, &w->searchBox->header);
-}
-
-
-
-static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
-	GUIFuzzyMatchControl* w = (GUIFuzzyMatchControl*)w_;
-	int needRehighlight = 0;
-	
-	GUIFuzzyMatchControl_ProcessCommand(w, cmd);
-}
 */
 
 void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) {
@@ -229,7 +179,7 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char*
 	w->leftMargin = 20;
 	
 	if(searchTerm) {
-		w->searchTerm = strdup(searchTerm);
+//		w->searchTerm = strdup(searchTerm);
 //		w->searchBox = GUIEdit_New(gm, searchTerm);
 	} else {
 //		w->searchBox = GUIEdit_New(gm, "");
@@ -258,7 +208,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	int j = 0;
 	int n_paths = 0;
 	
-	if(!w->searchTerm) {
+	if(!w->searchTerm.data) {
 		goto CLEANUP;
 	}
 	
@@ -267,9 +217,9 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	}
 	if(n_paths == 0) return;
 
-	candidates = malloc(max_candidates*sizeof(*candidates));
-	contents = malloc(sizeof(*contents)*(n_paths+1));
-	stringBuffers = malloc(sizeof(*stringBuffers)*(n_paths+1));
+	candidates = malloc(max_candidates * sizeof(*candidates));
+	contents = malloc(sizeof(*contents) * (n_paths + 1));
+	stringBuffers = malloc(sizeof(*stringBuffers) * (n_paths + 1));
 	
 	i = 0;
 	while(w->gs->MainControl_searchPaths[i]) {
@@ -283,15 +233,17 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 			DEBUG("mc: %lu, size: %lu\n", max_candidates, sizeof(*candidates));
 			candidates = realloc(candidates, max_candidates*sizeof(*candidates));
 		}
-		for(j=0;j<n_filepaths;j++) {
+		
+		for(j = 0; j < n_filepaths; j++) {
 			DEBUG("got filepath: %s\n", stringBuffers[i][j]);
-			candidates[n_candidates+j].basepath = w->gs->MainControl_searchPaths[i];
-			candidates[n_candidates+j].filepath = stringBuffers[i][j];
+			candidates[n_candidates + j].basepath = w->gs->MainControl_searchPaths[i];
+			candidates[n_candidates + j].filepath = stringBuffers[i][j];
 		}
 
 		i++;
 		n_candidates += n_filepaths;
 	}
+	
 	contents[i] = NULL;
 	stringBuffers[i] = NULL;
 
@@ -321,7 +273,8 @@ CLEANUP:
 	}
 	w->candidates = candidates;
 
-	char* input = w->searchTerm;
+	char* input = w->searchTerm.data;
+	printf("'%s'\n", input);
 
 	fcandidate* matches = NULL;
 	int n_matches = 0;
@@ -329,14 +282,14 @@ CLEANUP:
 
 	if(input) {
 		err = fuzzy_match_fcandidate(candidates, n_candidates, &matches, &n_matches, input, 0);
-		// printf("fuzzy match exit code: %d\n", err);
+		DEBUG("fuzzy match exit code: %d\n", err);
 	}
 
 	if(w->matches) free(w->matches);
 	if(!err) {
 		w->matches = matches;
 		w->matchCnt = n_matches;
-		
+		DEBUG("match count at end: %ld\n", w->matchCnt);
 	//	for(i=0;i<n_matches;i++) {
 	//		printf("ordered match [%s]\n", matches[i]);
 	//	}
