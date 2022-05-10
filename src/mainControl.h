@@ -10,6 +10,7 @@
 #include "buffer.h"
 #include "mainMenu.h"
 #include "highlight.h"
+#include "msg.h"
 
 /*
 typedef struct MainCmd {
@@ -77,6 +78,7 @@ typedef struct GUIMainControl {
 	GUIMainMenu* menu; // there is only one main menu
 	HighlighterManager hm;
 	
+	MessagePipe rx;
 	GUI_Cmd* commands;
 	
 	GUIManager* gm;
@@ -101,7 +103,7 @@ MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, void* client, ch
 void GUIMainControl_CloseTab(GUIMainControl* w, int index);
 
 int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path);
-int GUIMainControl_FindTabIndexByHeaderP(GUIMainControl* w, GUIHeader* h);
+int GUIMainControl_FindTabIndexByClient(GUIMainControl* w, void* client);
 
 void GUIMainControl_SwapTabs(GUIMainControl* w, int ind_a, int ind_b);
 void GUIMainControl_SortTabs(GUIMainControl* w);

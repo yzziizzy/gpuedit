@@ -5,6 +5,7 @@
 #include "commands.h"
 #include "ui/gui.h"
 #include "fuzzyMatch.h"
+#include "msg.h"
 
 
 typedef struct GUIFuzzyMatchControl {
@@ -22,13 +23,14 @@ typedef struct GUIFuzzyMatchControl {
 	float lineHeight;
 	float leftMargin;
 	
+	MessagePipe* upstream;
 	GlobalSettings* gs;
 //	GUI_Cmd* commands;
 	
 } GUIFuzzyMatchControl;
 
 
-GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char* searchTerm);
+GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, MessagePipe* mp, char* path, char* searchTerm);
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w);
 void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 

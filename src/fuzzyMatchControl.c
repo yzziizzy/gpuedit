@@ -135,26 +135,14 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 			if(w->gs->MainControl_openInPlace) {
 				opt.set_focus = 1;
 			}
-		/*
-			GUIEvent gev2 = {};
-			gev2.type = GUIEVENT_User;
-			gev2.eventTime = 0;//gev->eventTime;
-			gev2.originalTarget = &w->header;
-			gev2.currentTarget = &w->header;
-			gev2.cancelled = 0;
-			// handlers are responsible for cleanup
-			gev2.userData = &opt;
-			gev2.userSize = sizeof(opt);
 			
-			gev2.userType = "openFileOpt";
-		
-			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
-			*/
+			MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
+
 			free(path_raw);
 			free(path);
 
 			if(w->gs->MainControl_openInPlace) {
-//				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+				MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
 			}
 
 			break;
@@ -165,12 +153,12 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 }
 
 
-GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char* searchTerm) {
+GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, MessagePipe* mp, char* path, char* searchTerm) {
 
 	
 	
 	GUIFuzzyMatchControl* w = pcalloc(w);
-	
+	w->upstream = mp;
 
 //	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 //	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;
@@ -274,7 +262,6 @@ CLEANUP:
 	w->candidates = candidates;
 
 	char* input = w->searchTerm.data;
-	printf("'%s'\n", input);
 
 	fcandidate* matches = NULL;
 	int n_matches = 0;

@@ -301,35 +301,15 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 	long amt;
 	
-	
-	
-//	w->scrollOffset = MAX(0, w->scrollOffset - w->linesPerScrollWheel);
-
-
-//	float linesOnScreen = floor(w->header.size.y / w->lineHeight);
-//	w->scrollOffset = MIN(MAX(0, VEC_LEN(&w->entries) - linesOnScreen), w->scrollOffset + w->linesPerScrollWheel);
-
-
-
-//		case FileBrowserCmd_Exit:
-//			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
-//			break;
-
-/*	if(w->gs->MainControl_openInPlace) {
-				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
-			}
-	*/
 	switch(cmd->cmd) {
 		case GUICMD_FileBrowser_MoveCursorV:
 			w->cursorIndex = (w->cursorIndex + cmd->amt + VEC_LEN(&w->entries)) % (intptr_t)VEC_LEN(&w->entries);
-//			GUIFileBrowser_Autoscroll(w);
 			break;
 			
 		case GUICMD_FileBrowser_CursorMoveNoWrap:
 			w->cursorIndex += cmd->amt;
 			w->cursorIndex = w->cursorIndex >= (intptr_t)VEC_LEN(&w->entries) - 1 ? (intptr_t)VEC_LEN(&w->entries) - 1: w->cursorIndex;
 			w->cursorIndex = w->cursorIndex < 0 ? 0 : w->cursorIndex;
-//			GUIFileBrowser_Autoscroll(w);
 			break;
 			
 		case GUICMD_FileBrowser_ParentDir: {
@@ -361,26 +341,17 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 				
 				FileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
 				e->isSelected = 1;
-				w->numSelected++;
 
-				size_t sz;						
-				// handlers are responsible for cleanup
-//				gev2.userData = GUIFileBrowserControl_CollectSelected(w, &sz);
-		
-				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
-//					GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);
-	
-				e->isSelected = 0;
-				w->numSelected = 0;
+				MessagePipe_Send(w->upstream, MSG_OpenFile, e->name, NULL);				
 			}
 			else { // open selected files
-//				size_t sz;						
-	
-//				gev2.userData = GUIFileBrowserControl_CollectSelected(w, &sz);
-				
-				//if(w->onChoose) w->onChoose(w->onChooseData, files, n);
-				
-//				GUIFileBrowserControl_FreeEntryList(gev2.userData, sz);	
+				for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
+					FileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
+		
+					if(!e->isSelected) {
+						MessagePipe_Send(w->upstream, MSG_OpenFile, e->name, NULL);
+					}
+				}
 			}
 		}
 	}
@@ -454,11 +425,12 @@ FileBrowserEntry* FileBrowser_CollectSelected(FileBrowser* w, intptr_t* szOut) {
 
 
 
-FileBrowser* FileBrowser_New(GUIManager* gm, char* path) {
+FileBrowser* FileBrowser_New(GUIManager* gm, MessagePipe* mp, char* path) {
 
 	FileBrowser* w = pcalloc(w);
 	
 	w->gm = gm;
+	w->upstream = mp;
 	w->headerHeight = 20;
 	w->lineHeight = 20;
 	w->leftMargin = 20;

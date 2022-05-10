@@ -239,20 +239,6 @@ void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector
 static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainControl* w = (GUIMainControl*)w_;
 	
-	if(0 == strcmp(gev->userType, "openFile")) {
-		GUIMainControl_LoadFile(w, gev->userData);
-		gev->cancelled = 1;
-	}
-	else if(0 == strcmp(gev->userType, "openFileOpt")) {
-		GUIMainControl_LoadFileOpt(w, gev->userData);
-		gev->cancelled = 1;
-	}
-	else if(0 == strcmp(gev->userType, "closeMe")) {
-		int i = GUIMainControl_FindTabIndexByHeaderP(w, gev->originalTarget);
-		if(i > -1) {
-			GUIMainControl_CloseTab(w, i);
-			gev->cancelled = 1;
-		}
 	} else if(0 == strcmp(gev->userType, "SmartBubble")) {
 		GUIBubbleOpt* opt = (GUIBubbleOpt*)gev->userData;
 		if(0 == strcmp(opt->ev, "FuzzyOpen")) {
@@ -321,15 +307,15 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		break;
 		
 	case GUICMD_Main_LoadFile:
-//		GUIMainControl_LoadFile(w, cmd->str);
+		GUIMainControl_LoadFile(w, cmd->str);
 		break;
 		
 	case GUICMD_Main_NewEmptyBuffer:
-//		GUIMainControl_NewEmptyBuffer(w);
+		GUIMainControl_NewEmptyBuffer(w);
 		break;
 		
 	case GUICMD_Main_CloseTab:
-//		GUIMainControl_CloseTab(w, w->currentIndex);
+		GUIMainControl_CloseTab(w, w->currentIndex);
 		break;
 		
 	case GUICMD_Main_SaveAndCloseTab:
@@ -347,12 +333,39 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 }
 
 
+static int message_handler(GUIMainControl* w, Message* m) {
+	switch(m->type) {
+		case MSG_CmdFwd:
+			GUIMainControl_ProcessCommand(w, (GUI_Cmd*)m->data);
+			break;
+			
+		case MSG_CloseMe: {
+			int i = GUIMainControl_FindTabIndexByClient(w, m->data);
+			if(i > -1) GUIMainControl_CloseTab(w, i);
+			break;
+		}
+		
+		case MSG_OpenFile:
+			GUIMainControl_LoadFile(w, (char*)m->data);
+			break;
+		
+		case MSG_OpenFileOpt:
+			GUIMainControl_LoadFileOpt(w, (GUIFileOpt*)m->data);
+			break;
+			
+		default:
+			return 0;
+	}
+	return 1;
+}
+
 
 GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 
 		
 	GUIMainControl* w = pcalloc(w);
 	w->gs = gs;
+	MessagePipe_Listen(&w->rx, (void*)message_handler, w);
 	
 	w->tabHeight = gs->MainControl_tabHeight;
 	
@@ -442,10 +455,10 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 }
 
 
-/*
-int GUIMainControl_FindTabIndexByHeaderP(GUIMainControl* w, GUIHeader* h) {
+
+int GUIMainControl_FindTabIndexByClient(GUIMainControl* w, void* client) {
 	VEC_EACH(&w->tabs, i, tab) {
-		if(tab->client == h) {
+		if(tab->client == client) {
 			return i;
 		}
 	}
@@ -468,7 +481,7 @@ int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path) {
 
 	return -1;
 }
-*/
+
 
 static int tab_sort_priorities[] = {
 	[MCTAB_NONE] = 0,
@@ -660,7 +673,7 @@ void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
 //		return;
 //	}
 
-	FileBrowser* fb = FileBrowser_New(w->gm, path);
+	FileBrowser* fb = FileBrowser_New(w->gm, &w->rx, path);
 //	fb->gs = w->gs;
 
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
@@ -683,7 +696,7 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm) {
 		return;
 	}
 
-	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->gm, "./", searchTerm);
+	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->gm, &w->rx, "./", searchTerm);
 	fmc->gs = w->gs;
 //	fmc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fmc, "fuzzy matcher");

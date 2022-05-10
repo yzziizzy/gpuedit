@@ -485,29 +485,31 @@ static int handle_cursor(GUIManager* gm, struct cursor_data* cd, GUIString* str,
 
 	switch(e->keycode) {
 		case XK_Left:
-			if(e->modifiers & GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
+			if(e->modifiers == GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
 				if(cd->cursorPos > 0) { // cant start a selection leftward from the left edge
 					cd->selectPivot = cd->cursorPos;
 					cd->cursorPos--;
 				}
 			}
-			else { // just move the cursor normally
+			else if(e->modifiers == 0) { // just move the cursor normally
 				cd->cursorPos = cd->cursorPos - 1 <= 0 ? 0 : cd->cursorPos - 1;
 				if(!(e->modifiers & GUIMODKEY_SHIFT)) cd->selectPivot = -1;
 			}
+			else break;
 			goto BLINK;
 							
 		case XK_Right: 
-			if(e->modifiers & GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
+			if(e->modifiers == GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
 				if(cd->cursorPos < str->len) { // cant start a selection rightward from the right edge
 					cd->selectPivot = cd->cursorPos;
 					cd->cursorPos++;
 				}
 			}
-			else { // just move the cursor normally
+			else if(e->modifiers == 0) { // just move the cursor normally
 				cd->cursorPos = cd->cursorPos + 1 > str->len ? str->len : cd->cursorPos + 1;
 				if(!(e->modifiers & GUIMODKEY_SHIFT)) cd->selectPivot = -1;
 			}
+			else break;
 			goto BLINK;
 			
 		case XK_BackSpace: 

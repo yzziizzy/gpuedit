@@ -2,6 +2,7 @@
 #define __gpuedit_fileBrowser_h__
 
 #include "ui/gui.h"
+#include "msg.h"
 
 #include <sys/stat.h>
 #include <stdatomic.h>
@@ -57,7 +58,7 @@ typedef struct FileBrowserColumnInfo {
 typedef struct FileBrowser {
 	
 	GUIManager* gm;
-	
+	MessagePipe* upstream;
 	
 	GlobalSettings* gs;
 	char* acceptButtonLabel;
@@ -101,7 +102,7 @@ typedef struct FileBrowser {
 	
 } FileBrowser;
 
-FileBrowser* FileBrowser_New(GUIManager* gm, char* path);
+FileBrowser* FileBrowser_New(GUIManager* gm, MessagePipe* mp, char* path);
 
 void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
