@@ -30,90 +30,9 @@ size_t getColOffset(char* txt, int col, int tabWidth) {
 }
 
 
-size_t drawCharacter(
-	GUIManager* gm, 
-	TextDrawParams* tdp, 
-	struct Color4* fgColor, 
-	struct Color4* bgColor, 
-	int c, 
-	Vector2 tl,
-	float z,
-	AABB2* clip
-) {
-// 		printf("'%s'\n", bl->buf);
-	GUIFont* f = tdp->font;
-	float size = tdp->fontSize; 
-	float hoff = size * f->ascender;
-		
-	struct charInfo* ci = &f->regular[c];
-	GUIUnifiedVertex* v;
-	
-	// background
-	if(bgColor->a > 0) {
-		v = GUIManager_reserveElements(gm, 1);
-		
-		*v = (GUIUnifiedVertex){
-			.pos.t = tl.y,
-			.pos.l = tl.x,
-			.pos.b = tl.y + tdp->lineHeight,
-			.pos.r = tl.x + tdp->charWidth,
-			
-			.guiType = 0, // box
-			
-			.texOffset1.x = ci->texNormOffset.x * 65535.0,
-			.texOffset1.y = ci->texNormOffset.y * 65535.0,
-			.texSize1.x = ci->texNormSize.x *  65535.0,
-			.texSize1.y = ci->texNormSize.y * 65535.0,
-			.texIndex1 = ci->texIndex,
-			
-			.bg = GUI_COLOR4_TO_SHADER(*bgColor),
-			
-			.z = z,
-			
-			.clip = GUI_AABB2_TO_SHADER(*clip),
-			.alpha = 1,
-		};
-	}
-	
-	// character
-	if(c != ' ' && c != '\t') { // TODO: proper printable character check
-		v = GUIManager_reserveElements(gm, 1);
-		
-		*v = (GUIUnifiedVertex){
-		
-			.pos.t = tl.y + ci->topLeftOffset.y * size,
-			.pos.l = tl.x + ci->topLeftOffset.x * size,
-			.pos.b = tl.y + ci->bottomRightOffset.y * size,
-			.pos.r = tl.x + ci->bottomRightOffset.x * size,
-			
-//			.pos.t = tl.y + hoff - ci->topLeftOffset.y * size,
-//			.pos.l = tl.x + ci->topLeftOffset.x * size,
-//			.pos.b = tl.y + hoff + ci->size.y * size - ci->topLeftOffset.y * size,
-//			.pos.r = tl.x + ci->size.x * size + ci->topLeftOffset.x * size,
-			
-			.guiType = 1, // text
-			
-			.texOffset1.x = ci->texNormOffset.x * 65535.0,
-			.texOffset1.y = ci->texNormOffset.y * 65535.0,
-			.texSize1.x = ci->texNormSize.x *  65535.0,
-			.texSize1.y = ci->texNormSize.y * 65535.0,
-			.texIndex1 = ci->texIndex,
-			
-			.fg = GUI_COLOR4_TO_SHADER(*fgColor),
-			
-			.z = z+0.001,
-			
-			.clip = GUI_AABB2_TO_SHADER(*clip),
-			.alpha = 1,
-		};
-	}
-	
-	return 0;
-}
 
 
-
-#define V(a,b) ((Vector2){.x = (a), .y = (b)})
+#include "ui/macros_on.h"
 
 // draws the editor's text area and line numbers
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz,
@@ -123,11 +42,14 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	if(!b) return;
 	if(!b->first) return;
 	
+	float z = gm->curZ;
+	
 	BufferDrawParams* bdp = gbe->bdp;
 	TextDrawParams* tdp = bdp->tdp;
 	ThemeDrawParams* theme = bdp->theme;
 	float fsize = tdp->fontSize; 
 	GUIFont* f = gbe->font;
+	float ascender = f->ascender * fsize;
 	int line = 1;
 	int linesRendered = 0;
 	char lnbuf[32];
@@ -136,6 +58,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	float edh = sz.y;
 	
 	// draw general background	
+	gm->curZ = z + 0.1;
 	GUI_Rect(V(0,0), gm->curWin->size, &theme->bgColor);
 	
 	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
@@ -210,28 +133,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		// highlight current line
 		if(bl == gbe->current && gbe->outlineCurLine && !gbe->sel) {
-			GUIUnifiedVertex* vv = GUIManager_reserveElements(gm, 1);
-			*vv = (GUIUnifiedVertex){
-//					v->pos.t = off.y + hoff + ci->topLeftOffset.y * fontsize;
-//					v->pos.l = off.x + alignoff + adv + ci->topLeftOffset.x * fontsize;
-//					v->pos.b = off.y + hoff + ci->bottomRightOffset.y * fontsize;
-//					v->pos.r = off.x + alignoff + adv + ci->bottomRightOffset.x * fontsize;
-			
-			// TODO IMGUI
-//				.pos = {
-////					tl.x - 1, 
-//					tl.y + gbe->gs->Buffer_outlineCurrentLineYOffset, 
-//					tl.x + gbe->header.size.x - gbe->textAreaOffsetX, 
-//					tl.y + tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 2, // +1 to not cover underscores
-//				},
-//				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip),// TODO IMGUI
-				.texIndex1 = 1, // order width
-				.guiType = 4, // bordered window (just a box)
-				.fg = GUI_COLOR4_TO_SHADER(theme->outlineCurrentLineBorderColor), // border color 
-				.bg = {0,0,0,0},
-//				.z = gbe->header.absZ + 0.1, // TODO IMGUI
-				.alpha = 1.0,
-			};
+			gm->curZ = z + 10;
+			GUI_Box(
+				V(tl.x - 1, tl.y + gbe->gs->Buffer_outlineCurrentLineYOffset), 
+				V(sz.x - gbe->textAreaOffsetX, tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 2), // +1 to not cover underscores
+				1,
+				&theme->outlineCurrentLineBorderColor
+			);
 		}
 		
 		
@@ -317,40 +225,32 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 					};
 					
 					// TODO IMGUI
-//					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) 
-//						drawCharacter(gm, tdp, &pulseColor, &pulseColorBg, '0', 
-//							(Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip);
+					
+					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + sz.x) {
+						gm->curZ = z + 4;
+						GUI_CharFont_NoGuard('0', V(tl.x + hsoff + adv, yoff), f, fsize, &pulseColor);
+						gm->curZ = z + 2;
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)tdp->charWidth), tdp->lineHeight), &pulseColorBg);
+					}
 					
 					adv += tdp->charWidth;	
 				}
 				else if(c == '\t') {
 					if(inSelection) { // tabs inside selection
-						v = GUIManager_reserveElements(gm, 1);
-						*v = (GUIUnifiedVertex){
-							.pos.t = tl.y,
-							.pos.l = tl.x + adv + hsoff,
-							.pos.b = tl.y + tdp->lineHeight,
-							.pos.r = tl.x + adv + hsoff + (tdp->charWidth * tdp->tabWidth),
-							
-							.guiType = 0, // box
-							
-							.bg = GUI_COLOR4_TO_SHADER(*bg),
-//							.z = gbe->header.absZ, // TODO IMGUI
-							
-							// disabled in the shader right now
-//							.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip), // TODO IMGUI
-							.alpha = 1,
-						};
+						gm->curZ = z + 2;
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(adv + hsoff + (tdp->charWidth * tdp->tabWidth), tdp->lineHeight), bg);
 					}
 					
 					adv += tdp->charWidth * tdp->tabWidth;
 				}
 				else { 
-				
-					GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, yoff), f, fsize, fg);
 					// normal, non-tab text		
-//					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + gbe->header.size.x) // TODO IMGUI
-//						drawCharacter(gm, tdp, fg, bg, c, (Vector2){tl.x + hsoff + adv, tl.y}, gbe->header.absZ, &gbe->header.absClip); // TODO IMGUI
+					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + sz.x) {
+						gm->curZ = z + 4;
+						GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, yoff), f, fsize, fg);
+						gm->curZ = z + 2;
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)tdp->charWidth), tdp->lineHeight), bg);
+					}
 					
 					adv += tdp->charWidth;
 				}
@@ -392,25 +292,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		}
 
-		if(inSelection) {
-			v = GUIManager_reserveElements(gm, 1);
-
-			*v = (GUIUnifiedVertex){
-				.pos.t = tl.y,
-				.pos.l = tl.x + adv + hsoff,
-				.pos.b = tl.y + tdp->lineHeight,
-				.pos.r = tl.x + adv + hsoff + MAX(5, (float)tdp->charWidth / 1.0),
-
-				.guiType = 0, // box
-
-				.bg = GUI_COLOR4_TO_SHADER(theme->hl_bgColor),
-//				.z = gbe->header.absZ, // TODO IMGUI
-
-				// disabled in the shader right now
-//				.clip = GUI_AABB2_TO_SHADER(gbe->header.absClip), // TODO IMGUI
-				.alpha = 1,
-			};
-		}
+//         not sure if long-dead code
+//		if(inSelection) {
+//			gm->curZ = z + 2;
+//			GUI_Rect(V(tl.x + adv + hsoff, yoff), V(adv + hsoff + MAX(5, (float)tdp->charWidth / 1.0), tdp->lineHeight), &theme->hl_bgColor);
+//		}
 
 		if(ytop > edh) break; // end of buffer control
 
@@ -433,9 +319,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		float cursorOff = hsoff + getColOffset(gbe->current->buf, gbe->curCol, tdp->tabWidth) * tdp->charWidth;
 		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		
-		gm->curZ += 100;
+		gm->curZ = z + 10;
 		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, tdp->lineHeight), &theme->cursorColor);
-		gm->curZ -= 100;
 	}
 	
 	
@@ -502,6 +387,8 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 	
 }
 
+
+#include "ui/macros_off.h"
 
 
 

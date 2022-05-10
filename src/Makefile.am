@@ -34,6 +34,7 @@ gpuedit_SOURCES = main.c \
 	qsort_r.c \
 	settings.c \
 	shader.c \
+	statusBar.c \
 	sti/sti.c \
 	texture.c \
 	textureAtlas.c \

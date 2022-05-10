@@ -1072,6 +1072,16 @@ Vector2 GUI_MousePos_(GUIManager* gm) {
 	return V(gm->lastMousePos.x - gm->curWin->absClip.min.x, gm->lastMousePos.y - gm->curWin->absClip.min.y);
 }
 
+// only valid when the mouse is dragging
+Vector2 GUI_DragStartPos_(GUIManager* gm, int button) {
+	return vSub2(gm->mouseDragStartPos[button], V(gm->curWin->absClip.min.x, gm->curWin->absClip.min.y));
+}
+
+// may output garbage on non-mouse events
+Vector2 GUI_EventPos_(GUIManager* gm) {
+	return vSub2(gm->curEvent.pos, V(gm->curWin->absClip.min.x, gm->curWin->absClip.min.y));
+}
+
 int GUI_PointInBoxV_(GUIManager* gm, Vector2 tl, Vector2 size, Vector2 testPos) {
 	tl.x += gm->curWin->absClip.min.x;
 	tl.y += gm->curWin->absClip.min.y;

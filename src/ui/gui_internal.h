@@ -214,15 +214,27 @@ void GUI_SetHot_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
 void GUI_SetActive_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
 #define  GUI_SetActive(a, b) GUI_SetActive_(a, b, NULL, NULL)
 void* GUI_GetData_(GUIManager* gm, void* id);
+#define GUI_GetData(b) GUI_GetData_(gm, b)
 void GUI_SetData_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
+#define GUI_SetData(a,b,c) GUI_SetData_(gm, a,b,c)
 
 int GUI_InputAvailable_(GUIManager*gm);
 #define GUI_InputAvailable() GUI_InputAvailable_(gm)
 void GUI_CancelInput_(GUIManager*gm);
 #define GUI_CancelInput() GUI_CancelInput_(gm)
 
+// the last known position of the mouse
 Vector2 GUI_MousePos_(GUIManager* gm);
 #define GUI_MousePos() GUI_MousePos_(gm)
+
+// only valid when the mouse is dragging
+Vector2 GUI_DragStartPos_(GUIManager* gm, int button);
+#define GUI_DragStartPos(b) GUI_DragStartPos_(gm, b)
+
+// may output garbage on non-mouse events
+Vector2 GUI_EventPos_(GUIManager* gm);
+#define GUI_EventPos() GUI_EventPos_(gm)
+
 
 int GUI_MouseInside_(GUIManager* gm, Vector2 tl, Vector2 sz);
 #define GUI_MouseInside(a, b) GUI_MouseInside_(gm, a, b)
@@ -256,15 +268,19 @@ void GUI_EndWindow_(GUIManager* gm);
 
 // returns true if clicked
 int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text);
+#define GUI_Button(a, b, c, d) GUI_Button_(gm, a, b, c, d)
 
 // returns true if toggled on
 int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text, int* state);
+#define GUI_ToggleButton(a, b, c, d, e) GUI_ToggleButton_(gm, a, b, c, d, e)
 
 // returns true if checked
 int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state);
+#define GUI_Checkbox(a, b, c, d) GUI_Checkbox_(gm, a, b, c, d)
 
 // returns true if *this* radio button is active
 int GUI_RadioButton_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault);
+#define GUI_RadioButton(a, b, c, d, e) GUI_RadioButton_(gm, a, b, c, d, e)
 
 // returns 1 on change
 int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float min, float max, float incr, int prec, float* value);
@@ -292,10 +308,11 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* s);
 
 // returns true on a change
 int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num);
+#define GUI_IntEdit(a, b, c) GUI_IntEdit_(gm, a, b, c)
 
 // returns true on a change
 int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** options, int* selectedOption);
-
+#define GUI_SelectBox(a, b, c, d, e) GUI_SelectBox_(gm, a, b, c, d, e)
 
 // outline of a box with transparent center
 void GUI_Box_(GUIManager* gm, Vector2 tl, Vector2 sz, float width, Color4* borderColor);
@@ -335,9 +352,11 @@ void GUI_TextLine_(
 	Color4* color
 );
 
+// repects the current window and clipping region
 int GUI_PointInBoxV_(GUIManager* gm, Vector2 tl, Vector2 size, Vector2 testPos);
+#define GUI_PointInBoxV(a, b, c) GUI_PointInBoxV_(gm, a, b, c)
 int GUI_PointInBox_(GUIManager* gm, AABB2 box, Vector2 testPos);
-
+#define GUI_PointInBox(a, b) GUI_PointInBox_(gm, a, b)
 
 
 

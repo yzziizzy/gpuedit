@@ -130,6 +130,18 @@ static char GUIEventBubbleBehavior[] = {
 	#undef X
 };
 
+
+// mouse buttons: 
+// 1 - left
+// 2 - mid
+// 3 - right
+// 4 - scroll up
+// 5 - scroll down
+// 6 - scroll left
+// 7 - scroll right
+// 8 - front left side (on my mouse)
+// 9 - rear left side (on my mouse)
+
 // specific keys
 #define GUIMODKEY_LSHIFT (1 << 1)
 #define GUIMODKEY_RSHIFT (1 << 2)
@@ -153,7 +165,6 @@ typedef struct GUIEvent {
 	char* userType;
 	
 	double eventTime;
-	Vector2 eventPos;
 
 	union {
 		Vector2 pos; // for mouse events; absolute position
@@ -266,6 +277,9 @@ typedef struct GUIManager {
 	float scrollDist;
 	char mouseWentUp[16];
 	char mouseWentDown[16];
+	char mouseIsDown[16];
+	char mouseIsDragging[16];
+	Vector2 mouseDragStartPos[16]; // absolute coordinates
 	void* mouseWinID;
 	
 	void* hotID;
@@ -316,10 +330,12 @@ typedef struct GUIManager {
 	
 	struct {
 		float time;
-		int button;
-	} clickHistory[3];
+		Vector2 pos;
+	} clickHistory[16][3]; // [button][entry]
 	float doubleClickTime;
 	float tripleClickTime;
+	float quadClickTime;
+	float multiClickDist;
 	
 	int defaultCursor;
 	int currentCursor;

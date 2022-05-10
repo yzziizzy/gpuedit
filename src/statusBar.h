@@ -2,7 +2,6 @@
 #define __EACSMB_ui_statusBar__
 
 
-#include "buffer.h"
 #include "ui/gui.h"
 
 
@@ -10,7 +9,7 @@
 
 
 
-typedef struct GUIStatusBarItem {
+typedef struct StatusBarItem {
 	int order; // l-to-r
 	char align; // l/c/r
 	
@@ -21,12 +20,12 @@ typedef struct GUIStatusBarItem {
 	size_t size;  // width in characters
 	float offset; // pixel offset within left/center/right list
 	char* format;
-} GUIStatusBarItem;
+} StatusBarItem;
 
 
 typedef struct GUIBufferEditControl GUIBufferEditControl;
 
-typedef struct GUIStatusBar {
+typedef struct StatusBar {
 //	GUIHeader header;
 	
 	float spacing;
@@ -34,20 +33,21 @@ typedef struct GUIStatusBar {
 	
 	GUIBufferEditControl* ec;
 	
-	VEC(GUIStatusBarItem*) items;
+	VEC(StatusBarItem*) items;
 	
-	VEC(GUIStatusBarItem*) left;
-	VEC(GUIStatusBarItem*) center;
-	VEC(GUIStatusBarItem*) right;
+	VEC(StatusBarItem*) left;
+	VEC(StatusBarItem*) center;
+	VEC(StatusBarItem*) right;
 	
 	
-} GUIStatusBar;
+} StatusBar;
 
 
 
-GUIStatusBar* GUIStatusBar_New(GUIManager* gm);
-GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, WidgetSpec* spec, int order);
-GUIStatusBar* GUIStatusBar_SetItems(GUIStatusBar* w, WidgetSpec* widgets);
+void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+StatusBar* StatusBar_New(GUIManager* gm, GUIBufferEditControl* ec);
+StatusBarItem* StatusBar_AddItem(StatusBar* w, WidgetSpec* spec, int order);
+StatusBar* StatusBar_SetItems(StatusBar* w, WidgetSpec* widgets);
 
 
 

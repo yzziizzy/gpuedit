@@ -404,7 +404,7 @@ typedef struct GUIBufferEditor {
 	// status bar
 	char showStatusBar;
 	float statusBarHeight;
-	GUIStatusBar* statusBar;
+	StatusBar* statusBar;
 	
 	HighlighterManager* hm;
 	
@@ -658,8 +658,8 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 // GUIBufferEditor
 
 
-void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
 

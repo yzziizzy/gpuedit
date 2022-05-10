@@ -25,18 +25,22 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	
 	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
 	
+	float sbh = w->statusBarHeight * w->showStatusBar;
+	Vector2 ecsz = V(sz.x, sz.y - sbh);
 		
-	void* id = w;
-	
-	HOVER_HOT(id);
-	CLICK_HOT_TO_ACTIVE(id);
+	// forward activeness to the edit control
+	if(gm->activeID == w) ACTIVE(w->ec);
 
+	GUI_PushClip(V(0,0), ecsz);
+	GBEC_Render(w->ec, gm, V(0,0), ecsz, pfp);
+	GUI_PopClip();
+
+	if(w->showStatusBar) {
+		StatusBar_Render(w->statusBar, gm, V(0, sz.y - sbh), V(sz.x, sbh), pfp);
+	}
 	
-	// TODO: move elsewhere
-	w->ec->tl = tl;
-	w->ec->sz = sz;
 	
-	if(!gm->drawMode && gm->activeID == id) {
+	if(!gm->drawMode && gm->activeID == w->ec) {
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent);
 		int needRehighlight = 0;
 		
@@ -63,16 +67,15 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		}
 	}
 	
-	GBEC_Update(w->ec, tl, sz, pfp);
-//	printf("%ld\n", w->ec->scrollLines);
 	
-	if(gm->drawMode) {
-		GUIBufferEditControl_Draw(w->ec, gm, (Vector2){0,0}, sz, w->ec->scrollLines, + w->ec->scrollLines + w->ec->linesOnScreen + 2, 0, 100, pfp);
+	// --------- drawing code ---------
+	if(gm->drawMode) {	
+		
+
 	}
 	
-	GUI_EndWindow();
 	
-	// GUI_EndWindow()
+	GUI_EndWindow();
 }
 
 #include "ui/macros_off.h"
@@ -167,7 +170,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 // 	w->ec->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 //	GUI_RegisterObject(w, w->ec);
 	
-	
+	w->statusBar = StatusBar_New(gm, w->ec);
 	w->showStatusBar = !gm->gs->hideStatusBar;
 	
 	

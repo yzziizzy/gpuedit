@@ -51,32 +51,31 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 
 
 
-/*
 
-static void scrollUp(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
-	if(gev->originalTarget != (void*)w) return;
+static void scrollUp(GUIBufferEditControl* w) {
 	w->scrollLines = MAX(0, w->scrollLines - w->linesPerScrollWheel);
 }
 
-static void scrollDown(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
-	if(gev->originalTarget != (void*)w) return;
+static void scrollDown(GUIBufferEditControl* w) {
 	w->scrollLines = MIN(MAX(0, w->buffer->numLines - w->linesOnScreen), w->scrollLines + w->linesPerScrollWheel);
 }
 
-static void dragStart(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
+
+static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 	Buffer* b = w->buffer;
 	
+	/* scrollbar dragging
 	if(gev->originalTarget == (void*)w->scrollbar) {
 		printf("scrollbar drag start\n");
 		return;
 	}
+	*/
 	
-	if(gev->button == 1) {
-		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
-		size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
+	Vector2 mp = GUI_EventPos();
+	
+	if(gm->curEvent.button == 1) {
+		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, mp));
+		size_t col = GBEC_getColForPos(w, bl, mp.x);
 		
 		w->selectPivotLine = bl;
 		w->selectPivotCol = col;
@@ -85,10 +84,9 @@ static void dragStart(GUIObject* w_, GUIEvent* gev) {
 	}
 }
 
-static void dragStop(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
-	
-	if(gev->button == 1) {
+static void dragStop(GUIBufferEditControl* w, GUIManager* gm) {
+
+	if(gm->curEvent.button == 1) {
 		w->isDragSelecting = 0;
 		w->isDragScrollCoasting = 0;
 	}
@@ -96,46 +94,50 @@ static void dragStop(GUIObject* w_, GUIEvent* gev) {
 // 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
 }
 
-static void dragMove(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
+static void dragMove(GUIBufferEditControl* w, GUIManager* gm) {
 	Buffer* b = w->buffer;
 // 	w->header.gm
+
+	Vector2 mp = GUI_EventPos();
 	
+	/* handle scrollbar dragging
 	if(gev->originalTarget == (void*)w->scrollbar) {
 		gev->cancelled = 1;
 		
 		float val;
 		
-		val = /*gev->dragStartPos.y -* / gev->pos.y / w->header.size.y;
+		val = /*gev->dragStartPos.y -* / mp.y / w->sz.y;
 		
 		
 		w->scrollLines = MIN(MAX(0, b->numLines * val), b->numLines);
 		
 		return;
 	}
+	*/
+
 	
 	if(w->isDragSelecting) {
-		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, gev->pos));
+		BufferLine* bl = Buffer_raw_GetLine(b, GBEC_lineFromPos(w, mp));
 		
-		size_t col = GBEC_getColForPos(w, bl, gev->pos.x);
+		size_t col = GBEC_getColForPos(w, bl, mp.x);
 		
 		GBEC_SetCurrentSelection(w, bl, col, w->selectPivotLine, w->selectPivotCol);
 		
 		w->current = bl;
 		w->curCol = col;
 		
-		if(gev->pos.y < w->header.absTopLeft.y) {
+		if(mp.y < w->tl.y) {
 			w->isDragScrollCoasting = 1;
 			
-			float d = w->header.absTopLeft.y - gev->pos.y;
+			float d = w->tl.y - mp.y;
 			
 			w->scrollCoastStrength = (fclamp(d, 0, w->scrollCoastMax) / w->scrollCoastMax);
 			w->scrollCoastDir = -1;
 		}
-		else if(gev->pos.y > w->header.absTopLeft.y + w->header.size.y) {
+		else if(mp.y > w->tl.y + w->sz.y) {
 			w->isDragScrollCoasting = 1;
 			
-			float d = gev->pos.y - w->header.absTopLeft.y - w->header.size.y;
+			float d = mp.y - w->tl.y - w->sz.y;
 			
 			w->scrollCoastStrength = (fclamp(d, 0, w->scrollCoastMax) / w->scrollCoastMax) ;
 			w->scrollCoastDir = 1;
@@ -172,142 +174,140 @@ static void dragMove(GUIObject* w_, GUIEvent* gev) {
 			b->sel->startCol = w->selectPivotCol;
 			b->sel->endCol = col;
 		}
-	}* /
+	}*/
 	
 }
-*/
 
-static void click(GUIBufferEditControl* w, GUIEvent* gev) {
+
+static void click(GUIBufferEditControl* w, GUIManager* gm) {
 	Buffer* b = w->buffer;
 	
 	if(!w->current) return; // empty buffer
 	
-	unsigned int shift = gev->modifiers & GUIMODKEY_SHIFT;
+	unsigned int shift = gm->curEvent.modifiers & GUIMODKEY_SHIFT;
 	
-	if(!shift) GBEC_ClearCurrentSelection(w);
-	
+	Vector2 mp = GUI_EventPos();
 	Vector2 tl = w->tl;
 	Vector2 sz = w->sz;
 	
-	// TODO: reverse calculate cursor position
-	if(gev->pos.x < tl.x + w->textAreaOffsetX || gev->pos.x > tl.x + sz.x) return;
-	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
-	
-	if(shift && !w->sel) {
-		w->selectPivotLine = w->current;
-		w->selectPivotCol = w->curCol;
-	}
-	
-	size_t line = GBEC_lineFromPos(w, gev->pos);
-	w->current = Buffer_raw_GetLine(b, line);
-	
-	w->curCol = GBEC_getColForPos(w, w->current, gev->pos.x);
-	
-	w->cursorBlinkTimer = 0;
-	
-	if(shift) {
-		GBEC_SetSelectionFromPivot(w);
-	}
-	
-	if(gev->multiClick == 2) {
-		GBEC_SelectSequenceUnder(w, w->current, w->curCol, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
-	}
-	
-	// maybe nudge the screen down a tiny bit
-	GBEC_MoveCursorTo(w, w->current, w->curCol);
-	GBEC_scrollToCursor(w);
-}
+	if(gm->curEvent.button == 1) { // left click
 
-/*
-static void middleClick(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
-	Buffer* b = w->buffer;
-	
-	if(!w->current) return;
-	
-	Vector2 tl = w->header.absTopLeft;
-	Vector2 sz = w->header.size;
-	
-	// TODO: reverse calculate cursor position
-	if(gev->pos.x < tl.x + w->textAreaOffsetX || gev->pos.x > tl.x + sz.x) return;
-	if(gev->pos.y < tl.y || gev->pos.y > tl.y + sz.y) return;
-	
-	size_t lineNum = GBEC_lineFromPos(w, gev->pos);
-	BufferLine* line = Buffer_raw_GetLine(b, lineNum);
-	size_t col = GBEC_getColForPos(w, w->current, gev->pos.x);
-	col = MIN(col, line->length);
-	
-	Buffer* b2 = Clipboard_PopBuffer(CLIP_SELECTION);
-	if(b2) {
-		// TODO: undo
-		BufferRange pasteRange;
-		Buffer_InsertBufferAt(b, b2, line, col, &pasteRange);
-	}
-}
-
-
-static void keyDown(GUIObject* w_, GUIEvent* gev) {
-	GUIBufferEditControl* w = (GUIBufferEditControl*)w_;
-	int needRehighlight = 0;
-	/*
-	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		Buffer_ProcessCommand(w->buffer, &(BufferCmd){
-			GUICMD_Buffer_InsertChar, gev->character
-		}, &needRehighlight);
+		if(!shift) GBEC_ClearCurrentSelection(w);
 		
-		GUIBufferEditControl_RefreshHighlight(w);
-	}
-	/*
-	else {
-		// special commands
-		unsigned int S = GUIMODKEY_SHIFT;
-		unsigned int C = GUIMODKEY_CTRL;
-		unsigned int A = GUIMODKEY_ALT;
-		unsigned int T = GUIMODKEY_TUX;
+		// TODO: reverse calculate cursor position
+		if(mp.x < tl.x + w->textAreaOffsetX || mp.x > tl.x + sz.x) return;
+		if(mp.y < tl.y || mp.y > tl.y + sz.y) return;
 		
-		unsigned int scrollToCursor   = 1 << 0;
-		unsigned int rehighlight      = 1 << 1;
-		unsigned int resetCursorBlink = 1 << 2;
-		unsigned int undoSeqBreak     = 1 << 3;
-		unsigned int hideMouse        = 1 << 4;
-		
-		
-		Cmd found;
-		unsigned int iter = 0;
-		while(Commands_ProbeCommand(gev, w->commands, &found, &iter)) {
-			// GUIBufferEditor will pass on commands to the buffer
-			GUIBufferEditor_ProcessCommand(w, &(BufferCmd){
-				found.cmd, found.amt 
-			}, &needRehighlight);
-			
-			
-			if(found.flags & scrollToCursor) {
-				GBEC_scrollToCursor(w);
-			}
-			
-			if(found.flags & rehighlight) {
-				GUIBufferEditControl_RefreshHighlight(w);
-			}
-			
-			if(found.flags & resetCursorBlink) {
-				w->cursorBlinkTimer = 0;
-			}
-			
-			if(found.flags & undoSeqBreak) {
-				Buffer_UndoBak(w->buffer, 0);
-			}
+		if(shift && !w->sel) {
+			w->selectPivotLine = w->current;
+			w->selectPivotCol = w->curCol;
 		}
 		
+		size_t line = GBEC_lineFromPos(w, mp);
+		w->current = Buffer_raw_GetLine(b, line);
+		
+		w->curCol = GBEC_getColForPos(w, w->current, mp.x);
+		
+		w->cursorBlinkTimer = 0;
+		
+		if(shift) {
+			GBEC_SetSelectionFromPivot(w);
+		}
+		
+		// maybe nudge the screen down a tiny bit
+		GBEC_MoveCursorTo(w, w->current, w->curCol);
+		GBEC_scrollToCursor(w);
+			
+		if(gm->curEvent.multiClick == 2) {
+			GBEC_SelectSequenceUnder(w, w->current, w->curCol, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+		}
+		else if(gm->curEvent.multiClick == 3) {
+			GBEC_SetCurrentSelection(w, w->current, 0, w->current, w->current->length);
+		}
+		
+
+		
 	}
-	* /
+	else if(gm->curEvent.button == 2) { // middle click	
+	
+		// TODO: reverse calculate cursor position
+		if(mp.x < tl.x + w->textAreaOffsetX || mp.x > tl.x + sz.x) return;
+		if(mp.y < tl.y || mp.y > tl.y + sz.y) return;
+		
+		size_t lineNum = GBEC_lineFromPos(w, mp);
+		BufferLine* line = Buffer_raw_GetLine(b, lineNum);
+		size_t col = GBEC_getColForPos(w, w->current, mp.x);
+		col = MIN(col, line->length);
+		
+		Buffer* b2 = Clipboard_PopBuffer(CLIP_SELECTION);
+		if(b2) {
+			// TODO: undo
+			BufferRange pasteRange;
+			Buffer_InsertBufferAt(b, b2, line, col, &pasteRange);
+		}
+	}
+	else if(gm->curEvent.button == 4) { // scroll up
+		scrollUp(w);
+	}
+	else if(gm->curEvent.button == 5) { // scroll down	
+		scrollDown(w);
+	}
+	else if(gm->curEvent.button == 6) { // scroll left
+	}
+	else if(gm->curEvent.button == 7) { // scroll right	
+	}
+	
+	
+	
+
 }
 
 
-static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
-// 	w->header.size = gev->size;
-}
+#include "ui/macros_on.h"
 
-*/
+void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
+	void* id = w;
+	
+	w->tl = tl;
+	w->sz = sz;
+	
+	HOVER_HOT(id);
+	CLICK_HOT_TO_ACTIVE(id);
+	
+
+	if(!gm->drawMode) {
+	
+		GBEC_Update(w, tl, sz, pfp);
+		
+		if(gm->activeID == w) {
+			
+			Vector2 mp = GUI_EventPos();
+			int inbox = GUI_PointInBoxV(tl, sz, mp);
+			
+			switch(gm->curEvent.type) {
+				case GUIEVENT_MouseUp: if(inbox) click(w, gm); break;
+				case GUIEVENT_DragStart: if(inbox) dragStart(w, gm); break;
+				case GUIEVENT_DragStop: dragStop(w, gm); break;
+				case GUIEVENT_DragMove: if(inbox) dragMove(w, gm); break;
+					
+				// todo scroll
+			}
+		
+		}
+		
+		
+		return;
+	}
+	
+	// ------ drawing commands after here ------
+	
+	GBEC_Update(w, tl, sz, pfp);
+	
+	GUIBufferEditControl_Draw(w, gm, (Vector2){0,0}, sz, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100, pfp);
+}
+#include "ui/macros_off.h"
+
+
 void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 //static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	

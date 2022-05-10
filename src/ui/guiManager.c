@@ -62,6 +62,9 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	gm->minDragDist = 2;
 	gm->doubleClickTime = 0.500;
+	gm->tripleClickTime = 1.000;
+	gm->quadClickTime = 1.500;
+	gm->multiClickDist = 2.000;
 	
 	
 	
@@ -319,37 +322,116 @@ static unsigned int translateModKeys(GUIManager* gm, InputEvent* iev) {
 
 
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp) {
-	Vector2 newPos = {
-		iev->intPos.x, iev->intPos.y
-	};
+	Vector2 epos = {iev->intPos.x, iev->intPos.y};
 	
-	gm->lastMousePos = newPos;
+//	printf("mdd: %f, %d, %d\n", gm->minDragDist, (int)gm->mouseIsDown[b], (int)gm->mouseIsDragging[b]);
 	
-
-//		.modifiers = translateModKeys(gm, iev), 
+	// check for dragging
+	for(int b = 0; b < 16; b++) {
+		if(gm->mouseIsDown[b] && !gm->mouseIsDragging[b]) {
+			
+			float dragDist = vDist2(epos, gm->mouseDragStartPos[b]);
+			if(dragDist >= gm->minDragDist) {
+				gm->mouseIsDragging[b] = 1;
+//			printf("mdd[%d]: %f ~ %f (%f,%f)\n", b, dragDist, gm->minDragDist, gm->mouseDragStartPos[b].x, gm->mouseDragStartPos[b].y);
+				
+				// fire the start event
+				gm->curEvent = (GUIEvent){0};
+				gm->curEvent = (GUIEvent){
+					.type = GUIEVENT_DragStart,
+					.button = b, 
+					.pos = gm->mouseDragStartPos[b], 
+					.modifiers = translateModKeys(gm, iev),
+				};
+					
+				gm->drawMode = 0;
+				gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+			};
+		}
+		
+			
+		if(gm->mouseIsDragging[b]) {
+			// drag move event
+			gm->curEvent = (GUIEvent){0};
+			gm->curEvent = (GUIEvent){
+				.type = GUIEVENT_DragMove,
+				.button = b, 
+				.pos = epos, 
+				.modifiers = translateModKeys(gm, iev),
+			};
+				
+			gm->drawMode = 0;
+			gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+		}
+	}
 	
 }
 
 void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp) {
 	int type;
+	int multiClick = 1;
+	int b = iev->button;
+	Vector2 epos = {iev->intPos.x, iev->intPos.y};
 	
-	// translate event type
-	switch(iev->type) {
-		case EVENT_MOUSEDOWN: type = GUIEVENT_MouseDown; break; 
-		case EVENT_MOUSEUP: type = GUIEVENT_MouseUp; break; 
-		default:
-			fprintf(stderr, "!!! Non-mouse event in GUIManager_HandleMouseClick: %d\n", iev->type);
-			return; // not actually a kb event
-	}
+
 	
 	if(iev->type == EVENT_MOUSEDOWN) {
-//		gm->mouseWentDown[iev->button] = 1;
+		type = GUIEVENT_MouseDown;
+		gm->mouseWentDown[b] = 1;
 		
+		gm->mouseIsDown[b] = 1;
+		gm->mouseDragStartPos[b] = epos;
 	}
-	if(iev->type == EVENT_MOUSEUP) {
-//		gm->mouseWentUp[iev->button] = 1;
-		if(iev->button == 4) gm->scrollDist += 1.0;
-		else if(iev->button == 5) gm->scrollDist -= 1.0;
+	else if(iev->type == EVENT_MOUSEUP) {
+		type = GUIEVENT_MouseUp;
+		gm->mouseWentUp[b] = 1;
+		gm->mouseIsDown[b] = 0;
+		
+		if(b == 4) gm->scrollDist += 1.0;
+		else if(b == 5) gm->scrollDist -= 1.0;
+		
+		// handle dragging
+		if(gm->mouseIsDragging[b]) {
+		
+			gm->curEvent = (GUIEvent){0};
+			gm->curEvent = (GUIEvent){
+				.type = GUIEVENT_DragStop,
+				.button = iev->button, 
+				.pos = epos, 
+				.modifiers = translateModKeys(gm, iev),
+			};
+				
+			gm->drawMode = 0;
+			gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+		
+			
+			gm->mouseIsDragging[b] = 0;
+			gm->mouseDragStartPos[b] = (Vector2){0,0};
+			
+			return;
+		}
+		
+		// double, triple, and quad-click handling
+		// position is tracked because it's not a multiclick if the mouse moves too much
+		if(iev->time < gm->clickHistory[b][0].time + gm->doubleClickTime && gm->multiClickDist >= vDist2(gm->clickHistory[b][0].pos, epos)) {	
+			if(iev->time < gm->clickHistory[b][1].time + gm->tripleClickTime && gm->multiClickDist >= vDist2(gm->clickHistory[b][1].pos, epos)) {
+				if(iev->time < gm->clickHistory[b][2].time + gm->quadClickTime && gm->multiClickDist >= vDist2(gm->clickHistory[b][2].pos, epos)) 
+					multiClick = 4;
+				else 
+					multiClick = 3;
+			}
+			else multiClick = 2;
+		}
+		
+		// shift the click history
+		gm->clickHistory[b][2] = gm->clickHistory[b][1];
+		gm->clickHistory[b][1] = gm->clickHistory[b][0];
+		gm->clickHistory[b][0].time = iev->time;
+		gm->clickHistory[b][0].pos = epos;
+	}
+	else {
+		fprintf(stderr, "!!! Non-mouse event in GUIManager_HandleMouseClick: %d\n", iev->type);
+		return; // not actually a mouse event
 	}
 	
 
@@ -357,7 +439,8 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	gm->curEvent = (GUIEvent){
 		.type = type,
 		.button = iev->button, 
-		.pos = {iev->intPos.x, iev->intPos.y}, 
+		.pos = epos, 
+		.multiClick = multiClick,
 		.modifiers = translateModKeys(gm, iev),
 	};
 		
@@ -376,14 +459,6 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	// 7 - scroll right
 	// 8 - front left side (on my mouse)
 	// 9 - rear left side (on my mouse)
-	
-
-//		.modifiers = translateModKeys(gm, iev),
-		// push the latest click onto the stack
-	gm->clickHistory[2] = gm->clickHistory[1];
-	gm->clickHistory[1] = gm->clickHistory[0];
-	gm->clickHistory[0].time = iev->time;
-	gm->clickHistory[0].button = iev->button;
 
 }
 
