@@ -172,15 +172,15 @@
 			{elem: "Edit", cmd: "Undo", mods: "C", key: "z", amt: 0, flags: ['resetCursorBlink']},
 			{elem: "Edit", cmd: "Redo", mods: "CS", key: "z", amt: 0, flags: ['resetCursorBlink']},
 
-			{elem: "FileViewer", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1, flags: []},
-			{elem: "FileViewer", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1, flags: []},
+			{elem: "FileBrowser", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1, flags: []},
+			{elem: "FileBrowser", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1, flags: []},
 //			{elem: "FileViewer", cmd: "MoveCursorV", mods: "", key: "RAT_1", amt: 1, flags: []},
-			{elem: "FileViewer", cmd: "ParentDir", mods: "", key: "XK_BackSpace", amt: 0, flags: []},
-			{elem: "FileViewer", cmd: "ToggleSelect", mods: "", key: "XK_space", amt: 0, flags: []},
-			{elem: "FileViewer", cmd: "SmartOpen", mods: "", key: "XK_Return", amt: 0, flags: []},
+			{elem: "FileBrowser", cmd: "ParentDir", mods: "", key: "XK_BackSpace", amt: 0, flags: []},
+			{elem: "FileBrowser", cmd: "ToggleSelect", mods: "", key: "XK_space", amt: 0, flags: []},
+			{elem: "FileBrowser", cmd: "SmartOpen", mods: "", key: "XK_Return", amt: 0, flags: []},
 			
-			{elem: "FileViewer", sub_elem: "FileRow" cmd: "ToggleSelect", mods: "", key: "RAT_1", amt: 0, flags: []},
-			{elem: "FileViewer", sub_elem: "FileRow" cmd: "SmartOpen", mods: "", key: "RAT_1x2", amt: 0, flags: []},
+			{elem: "FileBrowser", sub_elem: "FileRow" cmd: "ToggleSelect", mods: "", key: "RAT_1", amt: 0, flags: []},
+			{elem: "FileBrowser", sub_elem: "FileRow" cmd: "SmartOpen", mods: "", key: "RAT_1x2", amt: 0, flags: []},
 			
 			
 		],

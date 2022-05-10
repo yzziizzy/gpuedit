@@ -3,12 +3,86 @@
 
 #include "ui/gui.h"
 
+#include <sys/stat.h>
+#include <stdatomic.h>
 
+typedef struct FileBrowserEntry {
+	char* name;
+	char* fullPath;
+// 	int type;
+	mode_t perms;
+	
+	uid_t ownerID;
+	gid_t groupID;
+	
+	int64_t atime; // unix timestamps
+	int64_t mtime;
+	int64_t ctime;
+	
+	uint64_t size;
+	uint64_t sizeOnDisk;
+	
+	// ext/mime
+	
+	// dup'd
+	char* humanSize;
+	char* humanSizeOnDisk;
+	char* atimeStr;
+	char* mtimeStr;
+	char* ctimeStr;
+
+	// externally owned strings
+	char* ownerName;
+	char* groupName;
+
+		
+	unsigned int type : 4; // target type: unknown, reg, dir
+	unsigned int isSymlink : 1;
+	unsigned int hasStats: 1;
+	unsigned int isAlreadyOpen : 1;
+	unsigned int isSelected : 1;
+	unsigned int isRoot: 1; // no parent folder
+	
+} FileBrowserEntry;
+
+
+
+
+typedef struct FileBrowserColumnInfo {
+	int type;
+	float width;
+} FileBrowserColumnInfo;
 
 // the full-functioning dialog contents
-typedef struct GUIFileBrowser {
-	GUIHeader header;
+typedef struct FileBrowser {
 	
+	GUIManager* gm;
+	
+	
+	GlobalSettings* gs;
+	char* acceptButtonLabel;
+	
+	float lineHeight;
+	float leftMargin;
+	float headerHeight;
+	// iconsize, font params, etc
+	
+	VEC(FileBrowserColumnInfo) columnInfo;
+	
+	GUIWindow* scrollbar;
+	float sbMinHeight;
+	intptr_t scrollOffset;
+	
+	intptr_t cursorIndex;
+	intptr_t numSelected;
+	
+	int linesPerScrollWheel;
+
+	char* curDir;
+	
+	VEC(FileBrowserEntry) entries;
+	
+	unsigned int treeView        : 1;
 	unsigned int showPathBar     : 1;
 	unsigned int editablePathBar : 1;
 	unsigned int multipleSelect  : 1;
@@ -19,31 +93,31 @@ typedef struct GUIFileBrowser {
 	unsigned int showNewFile     : 1;
 	unsigned int noEmptyAccept   : 1;
 	
-	GUIFileBrowserControl* fbc;
-	GUIWindow* tray;
-	GUIEdit* filenameBar;
-	GUIButton* newDirBtn;
-	GUIButton* newFileBtn;
-	GUIButton* acceptBtn; // Save/Open/etc
-	GUIButton* cancelBtn;
+	// click/dbl/right actions
 	
-	char* curDir;
+	void* onChooseData;
+	void (*onChoose)(void*, char**, intptr_t);
 	
-	GlobalSettings* gs;
-	char* acceptButtonLabel;
 	
-	GUI_Cmd* commands;
-	
-} GUIFileBrowser;
+} FileBrowser;
 
-GUIFileBrowser* GUIFileBrowser_New(GUIManager* gm, char* path);
-void GUIFileBrowser_Destroy(GUIFileBrowser* w);
-void GUIFileBrowser_UnselectAll(GUIFileBrowser* w);
+FileBrowser* FileBrowser_New(GUIManager* gm, char* path);
 
-void GUIFileBrowser_ProcessCommand(GUIFileBrowser* w, GUI_Cmd* cmd);
+void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
-void GUIFileBrowser_Refresh(GUIFileBrowser* w);
+void FileBrowser_Destroy(FileBrowser* w);
+void FileBrowser_UnselectAll(FileBrowser* w);
 
+void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd);
+
+void FileBrowser_Refresh(FileBrowser* w);
+
+
+
+void FileBrowser_FreeEntryList(FileBrowserEntry* e, intptr_t sz);
+FileBrowserEntry* FileBrowser_CollectSelected(FileBrowser* w, intptr_t* szOut);
+
+void FileBrowser_Autoscroll(FileBrowser* w);
 
 
 #endif // __gpuedit_fileBrowser_h__

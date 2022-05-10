@@ -38,23 +38,9 @@ static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {
 #define GUI_TEXT_ALIGN_CENTER 0x02
 
 
-void GUI_Box_(
-	GUIManager* gm, 
-	Vector2 tl, 
-	Vector2 sz, 
-	float width, 
-	Color4* borderColor
-);
 
-void GUI_BoxFilled_(
-	GUIManager* gm, 
-	Vector2 tl, 
-	Vector2 sz, 
-	float width, 
-	Color4* borderColor, 
-	Color4* bgColor
-);
-
+void GUI_Image_(GUIManager* gm, Vector2 tl, Vector2 sz, char* name);
+#define GUI_Image(a,b,c) GUI_Image_(gm, a,b,c)
 
 // draws a single character from its font origin point
 void GUI_Char_(GUIManager* gm, int c, Vector2 origin, char* fontName, float size, Color4* color);

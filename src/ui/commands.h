@@ -44,11 +44,6 @@
 	X(Edit, Clear) \
 	X(Edit, Undo) \
 	X(Edit, Redo) \
-	X(FileViewer, MoveCursorV) \
-	X(FileViewer, ParentDir) \
-	X(FileViewer, SmartOpen) \
-	X(FileViewer, ToggleSelect) \
-	X(FileViewer, OpenUnderCursor) \
 	EXTERN_GUI_COMMAND_LIST
 
 

@@ -176,7 +176,7 @@ void gui_drawTriangleBorder(
 
 
 
-void gui_drawImg(GUIManager* gm, char* name, Vector2 tl, Vector2 sz, AABB2* clip, float z) {
+void GUI_Image_(GUIManager* gm, Vector2 tl, Vector2 sz, char* name) {
 	
 	TextureAtlasItem* it;
 	if(HT_get(&gm->ta->items, name, &it)) {
@@ -187,7 +187,7 @@ void gui_drawImg(GUIManager* gm, char* name, Vector2 tl, Vector2 sz, AABB2* clip
 		GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 		*v = (GUIUnifiedVertex){
 			.pos = {tl.x, tl.y, tl.x + sz.x, tl.y + sz.y},
-			.clip = GUI_AABB2_TO_SHADER(*clip),
+			.clip = GUI_AABB2_TO_SHADER(gm->curClip),
 			
 			.texIndex1 = it->index,
 			.texIndex2 = 0,
@@ -203,7 +203,7 @@ void gui_drawImg(GUIManager* gm, char* name, Vector2 tl, Vector2 sz, AABB2* clip
 			.fg = {255,255,255,255},
 			.bg = {255,255,255,255},
 			
-			.z = z,
+			.z = gm->curZ,
 			.alpha = 1,
 		};
 	}

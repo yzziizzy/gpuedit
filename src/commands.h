@@ -128,6 +128,9 @@
 	X(FileBrowser, SmartOpen) \
 	X(FileBrowser, ToggleSelect) \
 	X(FileBrowser, JumpToLetter) \
+	X(FileBrowser, MoveCursorV) \
+	X(FileBrowser, ParentDir) \
+	X(FileBrowser, OpenUnderCursor) \
 	\
 	X(FuzzyMatcher, Exit) \
 	X(FuzzyMatcher, CursorMove) \

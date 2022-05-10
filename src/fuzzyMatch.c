@@ -7,8 +7,8 @@
 
 #include "fuzzyMatch.h"
 
-#define DEBUG printf
-//#define DEBUG(...)
+//#define DEBUG printf
+#define DEBUG(...)
 
 
 int match_cmp(const void* a_in, const void* b_in) {

@@ -13,7 +13,7 @@
 #include "c_json/json.h"
 
 
-//#include "fileBrowser.h"
+#include "fileBrowser.h"
 #include "fuzzyMatchControl.h"
 //#include "grepOpenControl.h"
 //#include "calcControl.h"
@@ -276,7 +276,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 	switch(cmd->cmd) {
 	
 	case GUICMD_Main_OpenFileBrowser:
-//		GUIMainControl_OpenFileBrowser(w, "./");
+		GUIMainControl_OpenFileBrowser(w, "./");
 		break;
 
 	case GUICMD_Main_FuzzyOpener:
@@ -630,20 +630,20 @@ static void mmAfterClose(MainControlTab* t) {
 	
 	GUIMainMenu_Destroy(mm);
 }
-
+*/
 static int fbBeforeClose(MainControlTab* t) {
 	
 	return 0;
 }
 
 static void fbAfterClose(MainControlTab* t) {
-	GUIFileBrowser* fb = (GUIFileBrowser*)t->client;
+	FileBrowser* fb = (FileBrowser*)t->client;
 	
-	GUIFileBrowser_Destroy(fb);
+	FileBrowser_Destroy(fb);
 }
 
 static void fbEveryFrame(MainControlTab* t) {
-	GUIFileBrowser* fb = (GUIFileBrowser*)t->client;
+	FileBrowser* fb = (FileBrowser*)t->client;
 	
 	if(0 != strcmp(t->title, fb->curDir)) {
 		if(t->title) free(t->title);
@@ -655,29 +655,28 @@ static void fbEveryFrame(MainControlTab* t) {
 
 
 void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path) {
-	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
-	if(o != NULL) {
-		return;
-	}
+//	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
+//	if(o != NULL) {
+//		return;
+//	}
 
-	GUIFileBrowser* fb = GUIFileBrowser_New(w->header.gm, path);
-	fb->gs = w->gs;
-	fb->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-	fb->commands = w->commands;
+	FileBrowser* fb = FileBrowser_New(w->gm, path);
+//	fb->gs = w->gs;
 
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &fb->header, path);
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fb, path);
 	tab->type = MCTAB_FILEOPEN;
+	tab->client = fb;
+	tab->render = (void*)FileBrowser_Render;
 	tab->beforeClose = fbBeforeClose;
 	tab->afterClose = fbAfterClose;
 	// 	tab->everyFrame = fbEveryFrame;
 	
 	// very important, since normal registration is not used
-	fb->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_FILEOPEN, 1);
 }
 
-*/
+
 void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm) {
 	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 	if(o != NULL) {
