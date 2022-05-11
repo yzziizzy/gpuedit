@@ -167,6 +167,10 @@
 	X(Main, GoToTab) \
 	X(Main, MainMenu) \
 	X(Main, ToggleGDBBreakpoint) \
+	X(Main, FontNudgeLow) \
+	X(Main, FontNudgeHigh) \
+	X(Main, FontNudgeWidth) \
+	X(Main, FontNudgeCenter) \
 	
 	
 	/*

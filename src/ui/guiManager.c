@@ -47,6 +47,10 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	gm->vertAlloc = 2048;
 	gm->vertBuffer = calloc(1, sizeof(*gm->vertBuffer) * gm->vertAlloc);
 	
+		
+	gm->fontClipLow = 0.46;
+	gm->fontClipHigh = 0.84;
+	gm->fontClipGap = gm->fontClipHigh - gm->fontClipLow;
 	
 	gm->windowHeap.alloc = 16;
 	gm->windowHeap.buf = calloc(1, gm->windowHeap.alloc * sizeof(*gm->windowHeap.buf));
@@ -683,6 +687,14 @@ static void draw(void* gm_, GLuint progID, PassDrawParams* pdp) {
 // 	if(mdi->uniformSetup) {
 // 		(*mdi->uniformSetup)(mdi->data, progID);
 // 	}
+	
+	glUniform1f(glGetUniformLocation(progID, "fontClipLow"), gm->fontClipLow);
+	glUniform1f(glGetUniformLocation(progID, "fontClipHigh"), gm->fontClipHigh);
+//printf("ul: %d\n", glGetUniformLocation(progID, "fontClipLow"));
+//	glUniform1f(glGetUniformLocation(progID, "fontClipLow"), 0.45f);
+//	glUniform1f(glGetUniformLocation(progID, "fontClipHigh"), 0.8f);
+	glexit("");
+	
 	GLuint ts_ul = glGetUniformLocation(progID, "fontTex");
 	GLuint ta_ul = glGetUniformLocation(progID, "atlasTex");
 	

@@ -34,6 +34,12 @@
 			{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
 			{elem: "Main", cmd: "Terminal", mods: "T", key: "t", amt: 0},
 			
+			
+			{elem: "Main", cmd: "FontNudgeWidth", mods: "CAT", key: "XK_Next", amt: -1},
+			{elem: "Main", cmd: "FontNudgeWidth", mods: "CAT", key: "XK_Prior", amt: 1},
+			{elem: "Main", cmd: "FontNudgeCenter", mods: "CAT", key: "XK_Home", amt: 1},
+			{elem: "Main", cmd: "FontNudgeCenter", mods: "CAT", key: "XK_End", amt: -1},
+			
 			{elem: "Buffer", cmd: "ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 			
 			{elem: "FuzzyMatcher", cmd: "Exit", mods: "", key: "XK_Escape", amt: 0},

@@ -34,7 +34,7 @@
 	"Buffer_tabWidth": 4,
 	
 	"Buffer_font": "Courier New",
-	"Buffer_fontSize": 16,
+	"Buffer_fontSize": 14,
 	"Buffer_invertSelection": 1,
 	"Buffer_maxUndo": 4096,
 	"Buffer_statusBarHeight": 20,
@@ -54,7 +54,7 @@
 			"Courier New"
 		],
 		
-		"fontSize_fw": 16,
+		"fontSize_fw": 14,
 	},
 	
 }

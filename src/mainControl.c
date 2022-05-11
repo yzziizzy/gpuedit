@@ -329,6 +329,36 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 	case GUICMD_Main_PrevTab: GUIMainControl_PrevTab(w, 1/*cmd->n*/); break;
 	case GUICMD_Main_GoToTab: GUIMainControl_GoToTab(w, cmd->amt); break;
 	
+	
+	case GUICMD_Main_FontNudgeLow: 
+		w->gm->fontClipLow += (float)cmd->amt * 0.01;
+		w->gm->fontClipLow = MIN(MAX(w->gm->fontClipLow, 0.0), w->gm->fontClipHigh);
+		w->gm->fontClipGap = w->gm->fontClipHigh - w->gm->fontClipLow; 
+		printf("low: %f, high: %f [gap: %f]\n", w->gm->fontClipLow, w->gm->fontClipHigh, w->gm->fontClipGap);
+		break;
+	case GUICMD_Main_FontNudgeHigh:
+		w->gm->fontClipHigh += (float)cmd->amt * 0.01;
+		w->gm->fontClipHigh = MIN(MAX(w->gm->fontClipHigh, w->gm->fontClipLow), 1.0);
+		w->gm->fontClipGap = w->gm->fontClipHigh - w->gm->fontClipLow;
+		printf("low: %f, high: %f [gap: %f]\n", w->gm->fontClipLow, w->gm->fontClipHigh, w->gm->fontClipGap);
+		break;
+	
+	case GUICMD_Main_FontNudgeWidth:
+		w->gm->fontClipGap += (float)cmd->amt * 0.01;
+		w->gm->fontClipGap = MIN(MAX(w->gm->fontClipGap, 0), 1.0);
+		
+		if(w->gm->fontClipLow + w->gm->fontClipGap > 1.0) w->gm->fontClipLow = 1.0 - w->gm->fontClipGap;
+		w->gm->fontClipHigh = w->gm->fontClipLow + w->gm->fontClipGap;
+		printf("low: %f, high: %f [gap: %f]\n", w->gm->fontClipLow, w->gm->fontClipHigh, w->gm->fontClipGap);
+		break;
+		
+	case GUICMD_Main_FontNudgeCenter: 
+		w->gm->fontClipLow += (float)cmd->amt * 0.01;
+		w->gm->fontClipLow = MIN(MAX(w->gm->fontClipLow, 0.0), 1.0 - w->gm->fontClipGap);
+		w->gm->fontClipHigh = w->gm->fontClipLow + w->gm->fontClipGap;
+		printf("low: %f, high: %f [gap: %f]\n", w->gm->fontClipLow, w->gm->fontClipHigh, w->gm->fontClipGap);
+		break;
+		
 	}
 }
 

@@ -256,6 +256,10 @@ typedef struct GUIManager {
 	Vector2i screenSize;
 	Vector2 screenSizef;
 	
+	float fontClipLow, fontClipHigh;
+	float fontClipGap;
+	
+	
 	FontManager* fm;
 	TextureAtlas* ta;
 	VEC(GUI_Cmd) cmdList;
