@@ -149,7 +149,7 @@ void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector
 		
 		if(GUI_InputAvailable()) {
 			
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent);
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, 0);
 			
 			if(cmd) {
 				GUIMainControl_ProcessCommand(w, cmd);
@@ -563,7 +563,7 @@ GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
-	GUI_SetActive(w->gm, a->client);
+	GUI_SetActive_(w->gm, a->client, NULL, NULL);
 	
 	return a->client;
 }
@@ -584,7 +584,7 @@ GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
-	GUI_SetActive(w->gm, a->client);
+	GUI_SetActive_(w->gm, a->client, NULL, NULL);
 	
 	return a->client;
 }
@@ -600,7 +600,7 @@ GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	
-	GUI_SetActive(w->gm, a->client);
+	GUI_SetActive_(w->gm, a->client, NULL, NULL);
 	
 	return a->client;
 }

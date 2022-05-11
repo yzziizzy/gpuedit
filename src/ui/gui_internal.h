@@ -33,6 +33,14 @@ static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {
 }
 
 
+static inline void GUIString_Init(GUIString* s) {
+	s->len = 0;
+	s->alloc = 64;
+	s->data = malloc(s->alloc * sizeof(*s->data));
+	s->data[0] = 0;
+}
+
+
 #define GUI_TEXT_ALIGN_LEFT 0x00
 #define GUI_TEXT_ALIGN_RIGHT 0x01
 #define GUI_TEXT_ALIGN_CENTER 0x02
@@ -210,9 +218,9 @@ void gui_drawVCenteredTextLine(
 
 
 void GUI_SetHot_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
-#define  GUI_SetHot(a, b) GUI_SetHot_(a, b, NULL, NULL)
+#define  GUI_SetHot(a) GUI_SetHot_(gm, a, NULL, NULL)
 void GUI_SetActive_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));
-#define  GUI_SetActive(a, b) GUI_SetActive_(a, b, NULL, NULL)
+#define  GUI_SetActive(a) GUI_SetActive_(gm, a, NULL, NULL)
 void* GUI_GetData_(GUIManager* gm, void* id);
 #define GUI_GetData(b) GUI_GetData_(gm, b)
 void GUI_SetData_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*));

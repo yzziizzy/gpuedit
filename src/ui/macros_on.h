@@ -6,6 +6,8 @@
 #define C4(r,g,b,a)  (&((Color4){r,g,b,a}))
 #define V(_x,_y) ((Vector2){(_x),(_y)})
 
+#define ID(a) ((void*)(a))
+
 #define HOT(id) GUI_SetHot_(gm, id, NULL, NULL)
 #define ACTIVE(id) GUI_SetActive_(gm, id, NULL, NULL)
 

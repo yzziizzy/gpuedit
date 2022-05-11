@@ -139,7 +139,7 @@ typedef struct GUIHeader GUIHeader;
 
 #define GUI_CMD_RATSYM(btn, reps) ((1 << 30) | ((reps & 0xff) << 15) | (btn & 0xff))
 
-GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev);
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode);
 GUI_Cmd* Commands_ProbeSubCommand(GUIManager* gm, int sub_elem, GUIEvent* gev);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);

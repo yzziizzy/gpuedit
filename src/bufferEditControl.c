@@ -279,7 +279,7 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	
 		GBEC_Update(w, tl, sz, pfp);
 		
-		if(gm->activeID == w) {
+		if(gm->activeID == w || gm->hotID == w) {
 			
 			Vector2 mp = GUI_EventPos();
 			int inbox = GUI_PointInBoxV(tl, sz, mp);

@@ -127,7 +127,7 @@ static unsigned int get_index(unsigned int mods) {
 	return o;
 }
 
-GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev) {
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode) {
 //	printf("probing\n");
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
@@ -140,6 +140,9 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev) {
  			//printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
 		
 		int c = gev->keycode;
+		if(cat == GUI_CMD_SRC_NONE) {
+			return NULL;
+		}
 		if(cat == GUI_CMD_SRC_KEY) {
 			c = tolower(c);
 		}
@@ -150,7 +153,7 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev) {
 		
 		if(cp->src_type != cat) { continue; }
 		if(cp->element != elemType) { continue; }
-//		if(cp->mode != gh->cmdMode) { continue; }
+		if(cp->mode != mode) { continue; }
 		if(cp->keysym != c) { continue; }
 		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
 		// TODO: specific mods
@@ -517,7 +520,6 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 					if(l2->v->type == JSON_TYPE_STRING) {
 						uint64_t x;
 						if(!HT_get(&flag_lookup, l2->v->s, &x)) {
-							printf("flag: %s\n", l2->v->s);
 							flags |= x;
 						}
 					}

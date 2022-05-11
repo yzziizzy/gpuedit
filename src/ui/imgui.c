@@ -558,7 +558,7 @@ static int handle_input(GUIManager* gm, struct cursor_data* cd, GUIString* str, 
 	cd->cursorPos = MIN(cd->cursorPos, (int)str->len);
 	cd->selectPivot = MIN(cd->selectPivot, (int)str->len);
 	
-	if(isprint(e->character)) {
+	if(isprint(e->character) && (e->modifiers & ~(GUIMODKEY_SHIFT | GUIMODKEY_RSHIFT | GUIMODKEY_LSHIFT)) == 0) {
 	
 		if(cd->selectPivot > -1) {
 			delete_selection(cd, str);

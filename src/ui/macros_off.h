@@ -5,6 +5,8 @@
 #undef C4
 #undef V
 
+#undef ID
+
 #undef HOT
 #undef ACTIVE
 

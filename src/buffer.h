@@ -284,6 +284,8 @@ typedef struct GUIBufferEditControl {
 	// cached during event processing
 	Vector2 tl, sz;
 	
+	int* inputMode;
+	
 	// TODO: padding lines on vscroll
 
 	int linesPerScrollWheel;
@@ -363,6 +365,8 @@ typedef struct GUIFindOpt {
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
 	
+	GUIManager* gm;
+	
 	GUIBufferEditControl* ec;
 	
 	Buffer* buffer;
@@ -371,14 +375,11 @@ typedef struct GUIBufferEditor {
 	
 	char* sourceFile; // issues with undo-save
 	
-	BufferInputMode_t inputMode; 
+//	BufferInputMode_t inputMode; 
 	
-//	GUIEdit* lineNumEntryBox;
-//	GUIEdit* findBox;
-//	GUIEdit* replaceBox;
-//	GUIEdit* loadBox;
+	GUIString findQuery;
+	GUIString replaceText;
 	
-	char* findQuery;
 	GUIFindOpt find_opt;
 	pcre2_code* findRE;
 	pcre2_match_data* findMatch;
@@ -399,12 +400,15 @@ typedef struct GUIBufferEditor {
 	void* setBreakpointData;
 	
 	char trayOpen;
+	float trayHeight;
 //	GUIWindow* trayRoot;
 	
 	// status bar
 	char showStatusBar;
 	float statusBarHeight;
 	StatusBar* statusBar;
+	
+	int inputMode;
 	
 	HighlighterManager* hm;
 	

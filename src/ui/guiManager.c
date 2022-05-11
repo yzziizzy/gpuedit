@@ -323,7 +323,7 @@ static unsigned int translateModKeys(GUIManager* gm, InputEvent* iev) {
 
 void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev, PassFrameParams* pfp) {
 	Vector2 epos = {iev->intPos.x, iev->intPos.y};
-	
+	gm->lastMousePos = epos;
 //	printf("mdd: %f, %d, %d\n", gm->minDragDist, (int)gm->mouseIsDown[b], (int)gm->mouseIsDragging[b]);
 	
 	// check for dragging
@@ -475,17 +475,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev, 
 			fprintf(stderr, "!!! Non-keyboard event in GUIManager_HandleKeyInput: %d\n", iev->type);
 			return; // not actually a kb event
 	}
-	/*
-	if(type == GUIEVENT_KeyUp) {
-		
-		VEC_PUSH(&gm->keysReleased, ((GUIKeyEvent){
-			.type = GUIEVENT_KeyUp,
-			.character = iev->character, 
-			.keycode = iev->keysym, 
-			.modifiers = translateModKeys(gm, iev),
-		}));
-	}
-	*/
+
 	gm->curEvent = (GUIEvent){0};
 	gm->curEvent = (GUIEvent){
 		.type = type,
@@ -740,27 +730,31 @@ static void postFrame(void* gm_) {
 	
 	
 	// gc the element data
-	VEC_EACHP(&gm->elementData, i, d) {
+	for(int i = 0; i < VEC_LEN(&gm->elementData); i++) {
+		
 	RESTART:
-		if(d->age > 10) {
+		GUIElementData* d = &VEC_ITEM(&gm->elementData, i);
+		
+		if(d->age < 10) {
+			d->age++;
+			continue;
+		}
+		
+		// free this entry
 					
-			if(d->freeFn) {
-				d->freeFn(d->data);
-			}
-			
-			if(i < VEC_LEN(&gm->elementData) - 1)  {
-				*d = VEC_TAIL(&gm->elementData);
-				VEC_LEN(&gm->elementData)--;
-				gm->elementData.len--;
-				goto RESTART;
-			}
-			else {
-				VEC_LEN(&gm->elementData)--;
-				break;
-			}
+		if(d->freeFn) {
+			d->freeFn(d->data);
+			d->freeFn = 0;
+		}
+		
+		if(i < VEC_LEN(&gm->elementData) - 1)  {
+			*d = VEC_TAIL(&gm->elementData);
+			VEC_LEN(&gm->elementData)--;
+			goto RESTART;
 		}
 		else {
-			d->age++;
+			VEC_LEN(&gm->elementData)--;
+			break;
 		}
 	}
 	
