@@ -261,6 +261,7 @@ typedef struct GUIManager {
 	VEC(GUI_Cmd) cmdList;
 	VEC(GUI_CmdElementInfo) cmdElements;
 	HT(int) cmdElementLookup;
+	GUI_Cmd tmpCmd;
 	
 	
 	// immediate mode stuff

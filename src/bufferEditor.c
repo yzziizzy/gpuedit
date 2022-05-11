@@ -94,7 +94,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	
 	if(!gm->drawMode && GUI_InputAvailable()) {
 		
-		int mode = 0;
+		int mode = w->inputMode;
 		if(w->trayOpen && gm->activeID != w->ec) mode = 1;
 	
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
@@ -106,18 +106,6 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
 				GUIBufferEditControl_RefreshHighlight(w->ec);
 			}
-			
-			GUI_CancelInput();
-		}
-		else if(gm->curEvent.type == GUIEVENT_KeyDown && isprint(gm->curEvent.character) && (gm->curEvent.modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-			GUIBufferEditControl_ProcessCommand(w->ec, &(GUI_Cmd){
-				.cmd = GUICMD_Buffer_InsertChar, 
-				.amt = gm->curEvent.character, 
-				.flags = GUICMD_FLAG_resetCursorBlink | GUICMD_FLAG_centerOnCursor
-			}, &needRehighlight);
-		
-			GUIBufferEditControl_RefreshHighlight(w->ec);
-			GBEC_scrollToCursor(w->ec);
 			
 			GUI_CancelInput();
 		}
@@ -604,7 +592,21 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 	GUIManager* gm = w->gm;
 	
 	switch(cmd->cmd){
-		case GUICMD_Buffer_ToggleMenu:
+		case GUICMD_Buffer_SetMode:
+			w->inputMode = cmd->amt;
+			break;
+			
+		case GUICMD_Buffer_PushMode:
+			VEC_PUSH(&w->inputModeStack, w->inputMode);
+			w->inputMode = cmd->amt;
+			break;
+			
+		case GUICMD_Buffer_PopMode:
+			if(VEC_LEN(&w->inputModeStack)) {
+				VEC_POP(&w->inputModeStack, w->inputMode);
+			}
+			else
+				w->inputMode = 0;
 			break;
 
 		case GUICMD_Buffer_ToggleGDBBreakpoint: {

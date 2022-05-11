@@ -25,6 +25,9 @@
 
 #define EXTERN_GUI_COMMAND_LIST \
 	X(Buffer, Debug) \
+	X(Buffer, PushMode) \
+	X(Buffer, PopMode) \
+	X(Buffer, SetMode) \
 	X(Buffer, KeyStroke) \
 	X(Buffer, MoveCursorV) \
 	X(Buffer, MoveCursorH) \

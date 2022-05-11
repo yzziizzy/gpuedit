@@ -409,6 +409,7 @@ typedef struct GUIBufferEditor {
 	StatusBar* statusBar;
 	
 	int inputMode;
+	VEC(int) inputModeStack;
 	
 	HighlighterManager* hm;
 	

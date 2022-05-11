@@ -27,6 +27,8 @@ static struct {
 	uint64_t val;
 } keysym_lookup[] = {
 	#include "cmd_keysym_lookup.c"
+	
+	{"VK_Print", GUI_CMD_EXTSYM(1)},
 	{NULL, NULL},
 };
 
@@ -129,22 +131,29 @@ static unsigned int get_index(unsigned int mods) {
 
 GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode) {
 //	printf("probing\n");
+	
+	
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
 	
 	uint16_t cat = event_src_cat(gev);
 	
 	unsigned int i = 0;
-//	printf("$$$$\n");
+
 	VEC_EACHP(&gm->cmdList, i, cp) {
  			//printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+		int extMode = 0;
+		int32_t c = gev->keycode;
 		
-		int c = gev->keycode;
 		if(cat == GUI_CMD_SRC_NONE) {
 			return NULL;
 		}
 		if(cat == GUI_CMD_SRC_KEY) {
-			c = tolower(c);
+			if(cp->keysym & (1 << 29)) {
+				extMode = 1;
+			}
+			else 
+				c = tolower(c);
 		}
 		else {
 			c = GUI_CMD_RATSYM(gev->button, gev->multiClick);
@@ -154,6 +163,21 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 		if(cp->src_type != cat) { continue; }
 		if(cp->element != elemType) { continue; }
 		if(cp->mode != mode) { continue; }
+		
+		if(extMode) {
+			if((cp->keysym & ~(7u << 29u)) == 1) { // regular print chars
+				if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
+				
+					gm->tmpCmd = *cp;
+					gm->tmpCmd.amt = gev->character;
+					
+					return &gm->tmpCmd;
+				}
+			}
+		
+			continue;
+		}
+		
 		if(cp->keysym != c) { continue; }
 		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
 		// TODO: specific mods
@@ -405,6 +429,16 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 			uint64_t n;
 			if(HT_get(&syms, s, &n)) {
 				fprintf(stderr, "Invalid X11 keysym name: '%s'\n", s);
+				continue;
+			}
+			
+			cmd.keysym = n;
+		}
+		else if(*s == 'V' && *(s+1) == 'K') {
+			// virtual key macro
+			uint64_t n;
+			if(HT_get(&syms, s, &n)) {
+				fprintf(stderr, "Invalid virtual keysym name: '%s'\n", s);
 				continue;
 			}
 			
