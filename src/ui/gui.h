@@ -240,6 +240,10 @@ typedef struct GUIWindow {
 	
 } GUIWindow;
 
+
+#include "opts_structs.h"
+
+
 /*
 
 */
@@ -352,6 +356,10 @@ typedef struct GUIManager {
 	struct {
 		GUIFont* font;
 		float fontSize;
+		
+		#define X(a) a a;
+			GUI_OPTS_STRUCTS_LIST
+		#undef X
 		
 		float checkboxBoxSize;
 		float sliderHeight;

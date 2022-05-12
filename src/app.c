@@ -124,43 +124,6 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->mouseCursorSetData = xs;
 	
 	
-	/*
-	char* flag_names[] = {
-		"scrollToCursor",
-		"rehighlight",
-		"undoSeqBreak",
-		"hideMouse",
-		"centerOnCursor",
-		NULL,
-	};
-	
-	for(int i = 0; flag_names[i]; i++) 
-		GUIManager_AddCommandFlag(as->gui, flag_names[i]);
-	
-	
-	
-	struct {char* n; uint16_t id;} elem_names[] = {
-	#define X(a) { #a, CUSTOM_ELEM_TYPE_##a },
-	COMMANDELEMTYPE_LIST
-		{NULL, 0},
-	#undef X
-	};
-	
-	for(int i = 0; elem_names[i].n; i++) 
-		GUIManager_AddCommandElement(as->gui, elem_names[i].n, elem_names[i].id);
-	
-	
-	struct {char* en; char* n; uint32_t id;} cmd_names[] = {
-	#define X(a, b) { #a, #b, a##Cmd_##b },
-	COMMANDTYPE_LIST
-		{NULL, NULL, 0},
-	#undef X
-	};
-	
-	for(int i = 0; cmd_names[i].n; i++) 
-		GUIManager_AddCommand(as->gui, cmd_names[i].en, cmd_names[i].n, cmd_names[i].id);
-	*/
-	
 	char* homedir = getenv("HOME");
 	char* tmp = path_join(homedir, ".gpuedit/commands.json");
 
@@ -214,9 +177,9 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 			case MCTAB_EDIT:
 				GUIMainControl_LoadFile(as->mc, ts[i].path);
 				break;
-	/*		case MCTAB_FILEOPEN:
+			case MCTAB_FILEOPEN:
 				GUIMainControl_OpenFileBrowser(as->mc, ts[i].path);
-				break; */
+				break;
 			case MCTAB_FUZZYOPEN:
 				GUIMainControl_FuzzyOpener(as->mc, NULL);
 				break; /*
@@ -228,7 +191,6 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	}
 	GUIMainControl_GoToTab(as->mc, 0);
 	
-//	GUIManager_pushFocusedObject(as->gui, &as->mc->header);
 		
 	
 	as->frameCount = 0;

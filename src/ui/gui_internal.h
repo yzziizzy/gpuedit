@@ -274,33 +274,39 @@ void GUI_BeginWindow_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, float z,
 void GUI_EndWindow_(GUIManager* gm);
 #define GUI_EndWindow() GUI_EndWindow_(gm)
 
+/*  _______________
+  //              //
+ //   Controls   //
+//______________*/
+
+
 // returns true if clicked
-int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text);
-#define GUI_Button(a, b, c, d) GUI_Button_(gm, a, b, c, d)
+int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o);
+#define GUI_Button(a,b,c) GUI_Button_(gm, a,b,c, gm->defaults.GUIButtonOpts)
 
 // returns true if toggled on
-int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text, int* state);
-#define GUI_ToggleButton(a, b, c, d, e) GUI_ToggleButton_(gm, a, b, c, d, e)
+int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o);
+#define GUI_ToggleButton(a,b,c,d) GUI_ToggleButton_(gm, a,b,c,d, gm->defaults.GUIToggleButtonOpts)
 
 // returns true if checked
-int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state);
-#define GUI_Checkbox(a, b, c, d) GUI_Checkbox_(gm, a, b, c, d)
+int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o);
+#define GUI_Checkbox(a,b,c,d) GUI_Checkbox_(gm, a,b,c,d, gm->defaults.GUICheckboxOpts)
 
 // returns true if *this* radio button is active
-int GUI_RadioButton_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault);
-#define GUI_RadioButton(a, b, c, d, e) GUI_RadioButton_(gm, a, b, c, d, e)
+int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o);
+#define GUI_RadioBox(a, b, c, d, e) GUI_RadioBox_(gm, a,b,c,d,e, gm->defaults.GUIRadioBoxOpts)
 
 // returns 1 on change
-int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float min, float max, float incr, int prec, float* value);
-#define GUI_FloatSlider(a,b,c,d,e,f,g,h) GUI_FloatSlider_(gm, a,b,c,d,e,f,g,h)
+int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float min, float max, float incr, float* value, GUIFloatSliderOpts* o);
+#define GUI_FloatSlider(a,b,c,d,e,f) GUI_FloatSlider_(gm, a,b,c,d,e,f, gm->defaults.GUIFloatSliderOpts)
 
 // returns 1 on change
-int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, float width, long min, long max, long* value);
-#define GUI_IntSlider(a,b,c,d,e,f) GUI_IntSlider_(gm, a,b,c,d,e,f)
+int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, long min, long max, long* value, GUIIntSliderOpts* o);
+#define GUI_IntSlider(a,b,c,d,e) GUI_IntSlider_(gm, a,b,c,d,e, gm->defaults.GUIIntSliderOpts)
 
 // returns 1 when the value changes _due to this control_
-int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, float width, char** options, int* selectedOption);
-#define GUI_OptionSlider(a,b,c,d,e) GUI_OptionSlider_(gm, a,b,c,d,e)
+int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, char** options, int* selectedOption, GUIOptionSliderOpts* o);
+#define GUI_OptionSlider(a,b,c,d) GUI_OptionSlider_(gm, a,b,c,d, &gm->defaults.GUIOptionSliderOpts)
 
 // filter all input before accepting it
 void GUI_Edit_SetFilter_(GUIManager* gm, void* id, GUIEditFilterFn fn, void* data);
@@ -311,16 +317,16 @@ int GUI_Edit_Trigger_(GUIManager* gm, void* id, GUIString* str, int c);
 #define GUI_Edit_Trigger(a, b, c) GUI_Edit_Trigger_(gm, a, b, c)
 
 // returns true on a change
-int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* s);
-#define GUI_Edit(a, b, c, d) GUI_Edit_(gm, a, b, c, d)
+int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* s, GUIEditOpts* o);
+#define GUI_Edit(a,b,c,d) GUI_Edit_(gm, a,b,c,d, &gm->defaults.GUIEditOpts)
 
 // returns true on a change
-int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num);
-#define GUI_IntEdit(a, b, c) GUI_IntEdit_(gm, a, b, c)
+int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o);
+#define GUI_IntEdit(a,b,c) GUI_IntEdit_(gm, a,b,c, &gm->defaults.GUIIntEditOpts)
 
 // returns true on a change
-int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** options, int* selectedOption);
-#define GUI_SelectBox(a, b, c, d, e) GUI_SelectBox_(gm, a, b, c, d, e)
+int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, float width, char** options, int* selectedOption, GUISelectBoxOpts* o);
+#define GUI_SelectBox(a,b,c,d,e) GUI_SelectBox_(gm, a,b,c,d,e, &gm->defaults.GUISelectBoxOpts)
 
 // outline of a box with transparent center
 void GUI_Box_(GUIManager* gm, Vector2 tl, Vector2 sz, float width, Color4* borderColor);
@@ -348,6 +354,8 @@ void GUI_CircleFilled_(
 	Color4* borderColor, 
 	Color4* bgColor
 );
+
+#define GUI_CircleFilled(a,b,c,d,e) GUI_CircleFilled_(gm, a,b,c,d,e);
 
 // no wrapping
 void GUI_TextLine_(

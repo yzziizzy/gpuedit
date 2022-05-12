@@ -11,10 +11,17 @@
 
 #define CLAMP(min, val, max) val = MIN(MAX(min, val), max)
 
+
 // returns true if clicked
-int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text) {
-	
+
+#define DEFAULTS(type, var) type var = gm->defaults.type;
+
+
+// returns 1 if clicked
+int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o) {
 	int result = 0;
+	Vector2 sz = o->size;
+	
 	
 	HOVER_HOT(id)
 	
@@ -30,18 +37,13 @@ int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text) {
 	// bail early if not drawing
 	if(!gm->drawMode) return result;
 	
-	if(gm->hotID == id) {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
+	int st = CUR_STATE(id);
 	
-	float fontSz = gm->fontSize;
-	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
+	GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+
 	
 	gm->curZ += 0.01;
-	GUI_TextLineCentered_(gm, text, strlen(text), (Vector2){tl.x, tl.y - fontSz*.25}, sz, "Arial", fontSz, C(.8,.8,.8));
+	GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
 	gm->curZ -= 0.01;
 	
 	return result;
@@ -49,7 +51,8 @@ int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text) {
 
 
 // returns true if toggled on 
-int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* text, int* state) {
+int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o) {
+	Vector2 sz = o->size;
 	
 	HOVER_HOT(id)
 	
@@ -67,18 +70,12 @@ int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* te
 	// bail early if not drawing
 	if(!gm->drawMode) return *state;
 	
-	if(gm->hotID == id || *state) {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
+	int st = CUR_STATE(id);
 	
-	float fontSz = gm->fontSize;
-	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
+	GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
 	
 	gm->curZ += 0.01;
-	GUI_TextLineCentered_(gm, text, strlen(text), (Vector2){tl.x, tl.y - fontSz*.25}, sz, "Arial", fontSz, C(.8,.8,.8));
+	GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
 	gm->curZ -= 0.01;
 	
 	return *state;
@@ -86,12 +83,10 @@ int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char* te
 
 
 // returns true if checked
-int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state) {
+int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o) {
 	
-	float bs = gm->defaults.checkboxBoxSize;
+	float bs = o->boxSize;
 	Vector2 boxSz = {bs, bs};
-	
-	
 	
 	if(GUI_MouseInside(tl, boxSz)) {
 		HOT(id);
@@ -111,25 +106,25 @@ int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state)
 	// bail early if not drawing
 	if(!gm->drawMode) return *state;
 	
-	if(gm->hotID == id || *state) {
-		GUI_BoxFilled_(gm, tl, boxSz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, boxSz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
+		
+	int st = CUR_STATE(id);
+	if(*state) st = STATE_ACTIVE;
 	
-	float fontSz = gm->fontSize;
+	GUI_BoxFilled_(gm, tl, boxSz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+	
+	
+	float fontSz = o->fontSize;
 //	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
 	
-	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, "Arial", fontSz, C(.8,.8,.8));
+	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, o->fontName, fontSz, &o->colors[st].text);
 	
 	return *state;
 }
 
 // returns true if *this* radio button is active
-int GUI_RadioButton_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault) {
+int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o) {
 	
-	float bs = gm->defaults.checkboxBoxSize;
+	float bs = o->boxSize;
 	Vector2 boxSz = {bs, bs};
 	
 	if(*state == NULL && isDefault) {
@@ -153,19 +148,17 @@ int GUI_RadioButton_(GUIManager* gm, void* id, Vector2 tl, char* label, void** s
 
 	// bail early if not drawing
 	if(!gm->drawMode) return *state == id;
+		
+	int st = CUR_STATE(id);
+	if(*state) st = STATE_ACTIVE;
+	
+	GUI_BoxFilled_(gm, tl, boxSz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
 	
 	
-	if(gm->hotID == id || *state == id) {
-		GUI_CircleFilled_(gm, tl, bs, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_CircleFilled_(gm, tl, bs, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
-	
-	float fontSz = gm->fontSize;
+	float fontSz = o->fontSize;
 //	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
 	
-	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, "Arial", fontSz, C(.8,.8,.8));
+	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, o->fontName, fontSz, &o->colors[st].text);
 	
 	return *state == id;
 }
@@ -178,7 +171,7 @@ struct floatslider_data {
 };
 
 // returns 1 on change
-int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float min, float max, float incr, int prec, float* value) {
+int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float min, float max, float incr, float* value, GUIFloatSliderOpts* o) {
 	struct floatslider_data* d;
 	int first_run = 0;
 	
@@ -189,8 +182,8 @@ int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float mi
 		GUI_SetData_(gm, id, d, free);
 	}
 	
-	float h = gm->defaults.sliderHeight;
-	Vector2 sz = {width, h};
+	Vector2 sz = o->size;
+	float h = sz.y;
 	float oldV = *value;
 	
 	HOVER_HOT(id);
@@ -199,7 +192,7 @@ int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float mi
 		Vector2 mp = GUI_MousePos();
 		
 		float v = mp.x - tl.x;
-		v = (v / width);
+		v = (v / sz.x);
 		v = v < 0 ? 0 : (v > 1.0 ? 1.0 : v);
 		v *= max - min;
 		v += min;
@@ -217,20 +210,22 @@ int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float width, float mi
 	}
 	
 	*value = *value > max ? max : (*value < min ? min : *value);
-	float bw = (*value / (max - min)) * width;
+	float bw = (*value / (max - min)) * sz.x;
 	
 	if(first_run || *value != d->last_value) {
-		d->len = snprintf(d->buf, 64, "%.*f", prec, *value);
+		d->len = snprintf(d->buf, 64, "%.*f", o->precision, *value);
 		d->last_value = *value;
 	}
 	
 	// bail early if not drawing
 	if(!gm->drawMode) return *value != oldV;
+			
+	int st = CUR_STATE(id);
 		
-	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, C(.9,.6,.6), C(.9,.4,.4));
-	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(width - bw, h), 0, C(.5,.6,.9), C(.4,.4,.9));
-
-	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, "Arial", gm->defaults.sliderFontSz, C(.8,.8,.8));
+	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
+	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
+	
+	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
 
 	return *value != oldV;
 }
@@ -242,7 +237,7 @@ struct intslider_data {
 };
 
 // returns 1 on change
-int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, float width, long min, long max, long* value) {
+int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, long min, long max, long* value, GUIIntSliderOpts* o) {
 	struct intslider_data* d;
 	int first_run = 0;
 	
@@ -254,8 +249,9 @@ int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, float width, long min, 
 	}
 	
 	
-	float h = gm->defaults.sliderHeight;
-	Vector2 sz = {width, h};
+	Vector2 sz = o->size;
+	float h = sz.y;
+	float width = sz.x;
 	long oldV = *value;
 	
 	HOVER_HOT(id)
@@ -290,21 +286,24 @@ int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, float width, long min, 
 	}
 	
 	if(!gm->drawMode) return *value != oldV;
-	
-	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, C(.9,.6,.6), C(.9,.4,.4));
-	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(width - bw, h), 0, C(.5,.6,.9), C(.4,.4,.9));
+				
+	int st = CUR_STATE(id);
+		
+	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
+	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
 
-	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, "Arial", gm->defaults.sliderFontSz, C(.8,.8,.8));
+	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
 
 	return *value != oldV;
 }
 
 
 // returns 1 when the value changes _due to this control_
-int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, float width, char** options, int* selectedOption) {
+int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, char** options, int* selectedOption, GUIOptionSliderOpts* o) {
 	int ret = 0;
-	float h = gm->defaults.sliderHeight;
-	Vector2 sz = {width, h};
+	Vector2 sz = o->size;
+	float h = sz.y;
+	float width = sz.x;
 	int old_opt = *selectedOption; 
 	
 	int cnt = 0;
@@ -337,19 +336,23 @@ int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, float width, char** 
 	if(!gm->drawMode) return old_opt != *selectedOption;
 	
 	float bw = ((float)(*selectedOption + 1) / (float)cnt) * width;
-	
-	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, C(.9,.6,.6), C(.9,.4,.4));
-	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(width - bw, h), 0, C(.5,.6,.9), C(.4,.4,.9));
+					
+	int st = CUR_STATE(id);
+		
+	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
+	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
 
-	GUI_TextLineCentered_(gm, options[*selectedOption], -1, tl, sz, "Arial", gm->defaults.sliderFontSz, C(.8,.8,.8));
+	GUI_TextLineCentered_(gm, options[*selectedOption], -1, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
 
 	return old_opt != *selectedOption;
 }
 
 
 // returns 1 when the value changes
-int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** options, int* selectedOption) {
+int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, float width, char** options, int* selectedOption, GUISelectBoxOpts* o) {
 	int ret = 0;
+	Vector2 sz = o->size;
+	if(width <= 0) sz.x = width;
 	
 	int optsLen = 0;
 	for(char**p = options; *p != NULL; p++) optsLen++;
@@ -384,20 +387,13 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** opti
 	// bail early if not drawing
 	if(!gm->drawMode) return ret;
 	
-	float fontSz = gm->fontSize;
-	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
-
+	float fontSz = o->fontSize;
 	CLAMP(0, *selectedOption, optsLen - 1);
+						
+	int st = CUR_STATE(id);
+		
+	GUI_BoxFilled_(gm, tl, sz, 2, &o->colors[st].border, &o->colors[st].bg);
 	
-	
-	if(gm->hotID == id) {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
-	
-
 	
 	if(gm->activeID == id) {
 		// draw the dropdown
@@ -409,7 +405,7 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** opti
 		for(char** p = options; *p; p++) {
 			
 			gm->curZ += 0.02;
-			GUI_TextLineCentered_(gm, *p, strlen(*p), V(0, sz.y * cnt + fontSz*.25 - 6), sz, "Arial", fontSz, C(.8,.8,.8));
+			GUI_TextLineCentered_(gm, *p, strlen(*p), V(0, sz.y * cnt + fontSz*.25 - 6), sz, o->fontName, fontSz, &o->colors[st].text);
 			gm->curZ -= 0.01;
 			
 			if(GUI_MouseInside(V(0, sz.y * cnt), sz)) {
@@ -432,7 +428,7 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, char** opti
 	}
 	
 	gm->curZ += 0.01;
-	GUI_TextLineCentered_(gm, options[*selectedOption], strlen(options[*selectedOption]), (Vector2){tl.x, tl.y - fontSz*.25}, sz, "Arial", fontSz, C(.8,.8,.8));
+	GUI_TextLineCentered_(gm, options[*selectedOption], strlen(options[*selectedOption]), (Vector2){tl.x, tl.y - fontSz*.25}, sz, "Arial", fontSz, &o->colors[st].text);
 	gm->curZ -= 0.01;
 	
 	return ret;
@@ -625,7 +621,7 @@ int GUI_Edit_Trigger_(GUIManager* gm, void* id, GUIString* str, int c) {
 }
 
 // returns true on a change
-int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) {
+int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str, GUIEditOpts* o) {
 	int ret;
 	struct edit_data* d;
 	
@@ -640,13 +636,11 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 	ret = d->synthed_change;
 	d->synthed_change = 0;
 	
+	Vector2 sz = o->size;
+	if(width <= 0) sz.x = width;
+	float fontSz = o->fontSize;
 	
-	float fontSz = gm->fontSize;
-	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
-	
-	GUIFont* font = GUI_FindFont(gm, "Arial");
-	if(!font) font = gm->defaults.font;
-	
+	GUIFont* font = GUI_FindFont(gm, o->fontName);	
 	
 	HOVER_HOT(id)
 	
@@ -672,14 +666,10 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 	// bail early if not drawing
 	if(!gm->drawMode) return ret;
 	
-	// draw the border
-	if(gm->activeID == id) {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
+	int st = CUR_STATE(id);
 	
+	// draw the border
+	GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
 	
 	float cursorOff = gui_getTextLineWidth(gm, font, fontSz, str->data, d->cursor.cursorPos);
 	
@@ -699,7 +689,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 		if(d->cursor.blinkTimer < 0.5) { 
 			gm->curZ += 0.001;
 			
-			GUI_BoxFilled_(gm, V(tl.x + cursorOff + d->scrollX, tl.y), V(2,sz.y), 0, C(.8,1,.3), C(.8,1,.3));
+			GUI_Rect(V(tl.x + cursorOff + d->scrollX, tl.y), V(2,sz.y), &o->cursorColor);
 			gm->curZ -= 0.001;
 		}
 		
@@ -712,7 +702,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 			int min = MIN(cursorOff, pivotOff);
 			int max = MAX(cursorOff, pivotOff);
 			
-			GUI_BoxFilled_(gm, V(tl.x + min + d->scrollX, tl.y), V(max - min,sz.y), 0, C(.3,1,.7), C(.3,1,.7));
+			GUI_Rect(V(tl.x + min + d->scrollX, tl.y), V(max - min,sz.y), &o->selectionBgColor);
 			
 		}
 		gm->curZ -= 0.001;
@@ -722,7 +712,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, GUIString* str) 
 	
 	gm->curZ += 10.01;
 	
-	GUI_TextLine_(gm, str->data, str->len, V(tl.x + d->scrollX, tl.y ), "Arial", fontSz, &((Color4){.9,.9,.9,1}));
+	GUI_TextLine_(gm, str->data, str->len, V(tl.x + d->scrollX, tl.y ), o->fontName, fontSz, &o->colors[st].text);
 	GUI_PopClip();
 	gm->curZ -= 10.01;
 	
@@ -742,7 +732,7 @@ struct intedit_data {
 
 
 // returns true on a change
-int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
+int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o) {
 	int ret = 0;
 	int firstRun = 0;
 	struct intedit_data* d;
@@ -753,6 +743,8 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 		firstRun = 1;
 	}
 	
+	Vector2 sz = o->size;
+	if(width <= 0) sz.x = width;
 	
 	HOVER_HOT(id)
 	CLICK_HOT_TO_ACTIVE(id)
@@ -816,6 +808,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 	
 	// bail early if not drawing
 	if(!gm->drawMode) return ret;
+	int st = CUR_STATE(id);
 	
 	if(gm->activeID == id) {
 		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
@@ -831,18 +824,16 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 	}
 	
 		
-	float fontSz = gm->fontSize;
-	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
+	float fontSz = o->fontSize;
 	
-	GUIFont* font = GUI_FindFont(gm, "Arial");
-	if(!font) font = gm->defaults.font;
+	GUIFont* font = GUI_FindFont(gm, o->fontName);
 	
 	
 	// draw cursor
 	if(gm->activeID == id) {
 		if(d->blinkTimer < 0.5) { 
 			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->buffer, d->cursorPos);
-			GUI_BoxFilled_(gm, V(tl.x + cursorOff , tl.y), V(2,sz.y), 0, C(.8,1,.3), C(.8,1,.3));
+			GUI_Rect(V(tl.x + cursorOff, tl.y), V(2,sz.y), &o->cursorColor);
 		}
 		
 		d->blinkTimer += gm->timeElapsed;
@@ -850,7 +841,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, long* num) {
 	}
 	
 	gm->curZ += 0.01;
-	GUI_TextLine_(gm, d->buffer, strlen(d->buffer), V(tl.x, tl.y +5+ fontSz * .75), "Arial", fontSz, &((Color4){.9,.9,.9,1}));
+	GUI_TextLine_(gm, d->buffer, strlen(d->buffer), V(tl.x, tl.y ), o->fontName, fontSz, &o->colors[st].text);
 	gm->curZ -= 0.01;
 	
 	return ret;
@@ -933,7 +924,7 @@ void GUI_Box_(GUIManager* gm, Vector2 tl, Vector2 sz, float width, Color4* borde
 	if(!gm->drawMode) return; // this function is only for drawing mode
 	
 	Color4 clear = {0,0,0,0};
-	gui_drawBoxBorder(gm, tl, sz, &gm->curClip, gm->curZ, &clear, width, borderColor);
+	GUI_BoxFilled_(gm, tl, sz, width, borderColor, &clear);
 }
 
 void GUI_BoxFilled_(
@@ -945,7 +936,21 @@ void GUI_BoxFilled_(
 	Color4* bgColor
 ) {
 	if(!gm->drawMode) return; // this function is only for drawing mode
-	gui_drawBoxBorder(gm, tl, sz, &gm->curClip, gm->curZ, bgColor, width, borderColor);
+	
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+	*v++ = (GUIUnifiedVertex){
+		.pos = {tl.x, tl.y, tl.x + sz.x, tl.y + sz.y},
+		.clip = GUI_AABB2_TO_SHADER(gm->curClip),
+		
+		.guiType = 4, // bordered box
+		
+		.texIndex1 = width,
+		
+		.fg = GUI_COLOR4_TO_SHADER(*borderColor), 
+		.bg = GUI_COLOR4_TO_SHADER(*bgColor), 
+		.z = gm->curZ,
+		.alpha = 1,
+	};
 }
 
 void GUI_CircleFilled_(

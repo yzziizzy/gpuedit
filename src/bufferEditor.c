@@ -47,25 +47,29 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		GUI_Rect(V(0, sz.y - sbh - 60), V(sz.x, 60), &gm->defaults.trayBgColor);
 		
-		if(GUI_Edit(&w->findQuery, V(10, sz.y - sbh - 55), V(sz.x - 10 - 200, 20), &w->findQuery)){
+		if(GUI_Edit(&w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery)){
 			update = 1;
 		}
-		if(GUI_Edit(&w->replaceText, V(10, sz.y - sbh - 25), V(sz.x - 10 - 200, 20), &w->replaceText)) {
+		if(GUI_Edit(&w->replaceText, V(10, sz.y - sbh - 25), sz.x - 10 - 200, &w->replaceText)) {
 			
 		}
 		
-		float of = gm->fontSize;
-		gm->fontSize = 12;
-		if(GUI_Button(ID(&w->findQuery)+1, V(sz.x - 200 + 10, sz.y - sbh - 55), V(90, 20), "Find Next")) {
+
+		
+		DEFAULTS(GUIButtonOpts, bo)
+		bo.size = V(90, 20);
+		bo.fontSize = 12;
+		
+		if(GUI_Button_(gm, ID(&w->findQuery)+1, V(sz.x - 200 + 10, sz.y - sbh - 55), "Find Next", &bo)) {
 			update = 1;
 		}
-		if(GUI_Button(ID(&w->replaceText)+1, V(sz.x - 200 + 10, sz.y - sbh - 25), V(90, 20), "Replace")) {
+		if(GUI_Button_(gm, ID(&w->replaceText)+1, V(sz.x - 200 + 10, sz.y - sbh - 25), "Replace", &bo)) {
 		
 		}
-		if(GUI_Button(ID(&w->replaceText)+2, V(sz.x - 200 + 10 + 95, sz.y - sbh - 25), V(90, 20), "Replace All")) {
+		if(GUI_Button_(gm, ID(&w->replaceText)+2, V(sz.x - 200 + 10 + 95, sz.y - sbh - 25), "Replace All", &bo)) {
 		
 		}
-		gm->fontSize = of;
+
 		gm->curZ -= 10;
 		
 		
@@ -115,7 +119,12 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	// --------- drawing code ---------
 	if(gm->drawMode) {	
 		
-
+		// the little red recording circle
+		if(w->isRecording) {
+			gm->curZ += 100;
+			GUI_CircleFilled(V(sz.x - 30, sz.y - (sbh) + 2), (sbh - 4), 0, C4(1,0,0,1), C4(1,0,0,1));
+			gm->curZ -= 100;
+		}
 	}
 	
 	
@@ -142,7 +151,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	w->ec = GUIBufferEditControl_New(gm);
 	
-	w->statusBar = StatusBar_New(gm, w->ec);
+	w->statusBar = StatusBar_New(gm, w);
 	w->showStatusBar = !gm->gs->hideStatusBar;
 	
 	
@@ -635,7 +644,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		case GUICMD_Buffer_MacroToggleRecording: 
 			w->isRecording = !w->isRecording;
 			if(w->isRecording) {
-				RING_PUSH(&w->macros, (BufferEditorMacro){0});
+				RING_PUSH(&w->macros, (BufferEditorMacro){});
 				BufferEditorMacro* m = &RING_HEAD(&w->macros);
 				VEC_TRUNC(&m->cmds);
 			}

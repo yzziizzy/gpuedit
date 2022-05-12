@@ -23,7 +23,10 @@ typedef struct StatusBarItem {
 } StatusBarItem;
 
 
+struct GUIBufferEditControl;
+struct GUIBufferEditor;
 typedef struct GUIBufferEditControl GUIBufferEditControl;
+typedef struct GUIBufferEditor GUIBufferEditor;
 
 typedef struct StatusBar {
 //	GUIHeader header;
@@ -32,6 +35,7 @@ typedef struct StatusBar {
 	AABB2 padding;
 	
 	GUIBufferEditControl* ec;
+	GUIBufferEditor* ed;
 	
 	VEC(StatusBarItem*) items;
 	
@@ -45,7 +49,7 @@ typedef struct StatusBar {
 
 
 void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
-StatusBar* StatusBar_New(GUIManager* gm, GUIBufferEditControl* ec);
+StatusBar* StatusBar_New(GUIManager* gm, GUIBufferEditor* ec);
 StatusBarItem* StatusBar_AddItem(StatusBar* w, WidgetSpec* spec, int order);
 StatusBar* StatusBar_SetItems(StatusBar* w, WidgetSpec* widgets);
 

@@ -706,6 +706,8 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height); 
 
+void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index);
+
 
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);

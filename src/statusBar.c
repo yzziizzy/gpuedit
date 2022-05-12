@@ -135,21 +135,26 @@ static void setLine(StatusBar* w, StatusBarItem* item) {
 		case MCWID_HELLO:
 			strcpy(item->line, "hello world");
 			break;
+			
 		case MCWID_PING:
 			strcpy(item->line, "ping stats");
 			break;
+			
 		case MCWID_CLOCK: {
 			time_t timer = time(NULL);
 			struct tm* tm = localtime(&timer);
 			strftime(item->line, 100, item->format, tm);
 			break;
 		}
+		
 		case MCWID_BATTERY:
 			strcpy(item->line, "batt: over 9000%");
 			break;
+			
 		case MCWID_LINECOL:
 			strflinecol(item->line, 100, item->format, w->ec);
 			break;
+			
 		case MCWID_NONE:
 		default:
 			break;
@@ -158,10 +163,11 @@ static void setLine(StatusBar* w, StatusBarItem* item) {
 
 
 
-StatusBar* StatusBar_New(GUIManager* gm, GUIBufferEditControl* ec) {
+StatusBar* StatusBar_New(GUIManager* gm, GUIBufferEditor* ed) {
 	
 	StatusBar* w = pcalloc(w);
-	w->ec = ec;
+	w->ed = ed;
+	w->ec = ed->ec;
 
 	return w;
 }

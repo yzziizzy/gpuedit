@@ -31,7 +31,7 @@ static void open_match(GUIFuzzyMatchControl* w, int i);
 void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 
 	gm->curZ += 10;
-	if(GUI_Edit(&w->searchTerm, tl, V(sz.x, 20), &w->searchTerm)) {
+	if(GUI_Edit(&w->searchTerm, tl, sz.x, &w->searchTerm)) {
 		GUIFuzzyMatchControl_Refresh(w);
 	}
 	gm->curZ -= 10;

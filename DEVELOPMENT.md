@@ -155,6 +155,7 @@
 * Jump to line of last edit
 * Notify when semicolons appear to be missing
 * Algorithm to detect indent width then convert all spaces to tabs
+* Command to fix all whitespacing on a line according to defined rules
 
 == BUGS ==
 * Invalidly high column number when ctrl-k deleting a line with a selection on it

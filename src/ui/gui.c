@@ -69,49 +69,9 @@ void GUI_SetData_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*)) {
 }
 
 
+/*
 
-void gui_drawBox(GUIManager* gm, Vector2 tl, Vector2 sz, AABB2* clip, float z, Color4* color) {
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-	
-	*v++ = (GUIUnifiedVertex){
-		.pos = {tl.x, tl.y, tl.x + sz.x, tl.y + sz.y},
-		.clip = GUI_AABB2_TO_SHADER(*clip),
-		
-		.guiType = 0, // just a box
-		
-		.fg = GUI_COLOR4_TO_SHADER(*color), 
-		.bg = GUI_COLOR4_TO_SHADER(*color), 
-		.z = z,
-		.alpha = 1,
-	};
-}
 
-void gui_drawBoxBorder(
-	GUIManager* gm, 
-	Vector2 tl, 
-	Vector2 sz, 
-	AABB2* clip, 
-	float z, 
-	Color4* bgColor,
-	float borderWidth,
-	Color4* borderColor
-) {
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-	
-	*v++ = (GUIUnifiedVertex){
-		.pos = {tl.x, tl.y, tl.x + sz.x, tl.y + sz.y},
-		.clip = GUI_AABB2_TO_SHADER(*clip),
-		
-		.guiType = 4, // bordered box
-		
-		.texIndex1 = borderWidth,
-		
-		.fg = GUI_COLOR4_TO_SHADER(*borderColor), 
-		.bg = GUI_COLOR4_TO_SHADER(*bgColor), 
-		.z = z,
-		.alpha = 1,
-	};
-}
 
 
 
@@ -172,7 +132,7 @@ void gui_drawTriangleBorder(
 		.rot = rotation,
 	};
 }
-
+*/
 
 
 
