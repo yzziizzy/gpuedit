@@ -60,6 +60,7 @@
 
 
 
+
 #define X(a) GUIELEMENT_##a,
 enum GUIElementType {
 	GUIELEMENT_NULL = 0,
@@ -97,6 +98,8 @@ enum {
 	GUI_CMD_SRC_KEY,
 	GUI_CMD_SRC_CLICK,
 };
+
+
 
 
 typedef struct GUI_Cmd {

@@ -361,6 +361,10 @@ typedef struct GUIFindOpt {
 } GUIFindOpt;
 
 
+typedef struct BufferEditorMacro {
+	VEC(GUI_Cmd) cmds;
+} BufferEditorMacro;
+
 
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
@@ -417,6 +421,9 @@ typedef struct GUIBufferEditor {
 	
 	GlobalSettings* gs;
 	GUI_Cmd* commands;
+	
+	char isRecording;
+	RING(BufferEditorMacro) macros;
 
 } GUIBufferEditor;
 

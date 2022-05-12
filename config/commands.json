@@ -87,11 +87,11 @@
 			{elem: "Buffer", cmd: "GrowSelectionV", mods: "CS", key: "XK_Up", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "GrowSelectionV", mods: "CS", key: "XK_Down", amt: 1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "ClearSelection", mods: "", key: "XK_Escape", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "Indent", mods: "", key: "XK_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "Indent", mods: "", key: "XK_Tab", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "GrowSelectionToSOL", mods: "S", key: "XK_Home", amt: 0, },
 			{elem: "Buffer", cmd: "GrowSelectionToEOL", mods: "S", key: "XK_End", amt: 0, },
-			{elem: "Buffer", cmd: "Unindent", mods: "S", key: "XK_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "Unindent", mods: "S", key: "XK_ISO_Left_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "Unindent", mods: "S", key: "XK_Tab", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "Unindent", mods: "S", key: "XK_ISO_Left_Tab", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 			//{elem: "Buffer", cmd: "LinePrependText", mods: "CAST", key: "XK_F1", amt: "//", flags: ["rehighlight", "undoSeqBreak"]},
 			//{elem: "Buffer", cmd: "SurroundSelection", mods: "CAST", key: "XK_F1", amt: ["/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "ReplaceLineWithSelectionTransform", mods: "AT", key: "s", 
@@ -147,6 +147,18 @@
 			{elem: "Buffer", cmd: "GrowSelectionToPrevSequence", mods: "CS", key: "XK_Left", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "FindStartSequenceUnderCursor", mods: "CS",  key: "f", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: []},
 			{elem: "Buffer", cmd: "ShowDictComplete", mods: "T",  key: "m", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["scrollToCursor", "resetCursorBlink"]},
+			
+			{elem: "Buffer", cmd: "MacroToggleRecording", mods: "T",  key: "r"},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "1", amt: 0},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "2", amt: 1},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "3", amt: 2},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "4", amt: 3},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "5", amt: 4},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "6", amt: 5},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "7", amt: 6},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "8", amt: 7},
+			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "9", amt: 8},
+			
 			{mode: 1, elem: "Buffer", cmd: "FindNext",     mods: "",  key: "XK_F3", amt: 0, flags: ["centerOnCursor"]},
 			{mode: 1, elem: "Buffer", cmd: "FindPrev",     mods: "S", key: "XK_F3", amt: 0, flags: ["centerOnCursor"]},
 			{mode: 2, elem: "Buffer", cmd: "FindNext",     mods: "",  key: "XK_F3", amt: 0, flags: ["centerOnCursor"]},
@@ -165,22 +177,36 @@
 			
 			// vim mode
 			{mode: 0,   elem: "Buffer", cmd: "SetMode",  mods: "T", key: "v",         amt: 666}, // vim command mode
-			{mode: 666, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "XK_Escape", amt:   0}, // back to normal mode
-			{mode: 666, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "i",         amt: 667}, // insert -> cmd mode
+			{mode: 666, elem: "Buffer", cmd: "SetMode",  mods: "T", key: "v",         amt:   0}, // back to normal mode
+			{mode: 667, elem: "Buffer", cmd: "SetMode",  mods: "T", key: "v",         amt:   0}, // back to normal mode
 			
-			{mode: 667, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "XK_Escape", amt: 667}, // cmd -> insert
-			{mode: 667, elem: "Buffer", cmd: "InsertChar", mods: "", key: "VK_Print", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
+			{mode: 667, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "XK_Escape", amt: 666}, // insert -> cmd
+			{mode: 668, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "XK_Escape", amt: 666}, // replace -> cmd
+			{mode: 669, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "XK_Escape", amt: 666}, // visual -> cmd
+			{mode: 666, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "i",         amt: 667}, // cmd -> insert
+			{mode: 666, elem: "Buffer", cmd: "SetMode",  mods: "S", key: "r",         amt: 668}, // cmd -> replace
+			{mode: 666, elem: "Buffer", cmd: "SetMode",  mods: "",  key: "v",         amt: 669}, // cmd -> visual
 			
-			{mode: 666, elem: "Buffer", cmd: "MoveCursorH", mods: "",  key: "h", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{mode: 666, elem: "Buffer", cmd: "MoveCursorH", mods: "",  key: "l", amt:  1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{mode: 666, elem: "Buffer", cmd: "MoveCursorV", mods: "",  key: "k", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{mode: 666, elem: "Buffer", cmd: "MoveCursorV", mods: "",  key: "j", amt:  1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{mode: 666, elem: "Buffer", cmd: "Backspace",   mods: "S", key: "x", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
-			{mode: 666, elem: "Buffer", cmd: "Delete",      mods: "",  key: "x", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
-			{mode: 666, elem: "Buffer", cmd: "Undo",        mods: "",  key: "u", amt: 0, flags: ["scrollToCursor", "rehighlight"]},
-		
-		
-		
+			{mode: 666, cmd_list: [ // vim "normal" command mode
+				{elem: "Buffer", cmd: "MoveCursorH", mods: "",  key: "h", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+				{elem: "Buffer", cmd: "MoveCursorH", mods: "",  key: "l", amt:  1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+				{elem: "Buffer", cmd: "MoveCursorV", mods: "",  key: "k", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+				{elem: "Buffer", cmd: "MoveCursorV", mods: "",  key: "j", amt:  1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+				{elem: "Buffer", cmd: "Backspace",   mods: "S", key: "x", amt:  0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
+				{elem: "Buffer", cmd: "Delete",      mods: "",  key: "x", amt:  0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
+				{elem: "Buffer", cmd: "Undo",        mods: "",  key: "u", amt:  0, flags: ["scrollToCursor", "rehighlight"]},
+				{elem: "Buffer", cmd: "Indent",      mods: "",  key: ">", amt:  0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
+				{elem: "Buffer", cmd: "Unindent",    mods: "",  key: "<", amt:  0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
+			]},
+			
+			{mode: 667, cmd_list: [ // vim insert mode
+				{elem: "Buffer", cmd: "InsertChar", mods: "", key: "VK_Print", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
+			]},
+			
+			{mode: 668, cmd_list: [ // vim replace (overwrite) mode
+				{elem: "Buffer", cmd: "OverwriteChar", mods: "", key: "VK_Print", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
+			]},
+			
 			{elem: "Edit", cmd: "MoveCursorH", mods: "", key: "XK_Right", amt: 1, flags: ['resetCursorBlink']},
 			{elem: "Edit", cmd: "MoveCursorH", mods: "", key: "XK_Left", amt: -1, flags: ['resetCursorBlink']},
 			{elem: "Edit", cmd: "GrowSelectionH", mods: "S", key: "XK_Right", amt: 1, flags: ['resetCursorBlink']},

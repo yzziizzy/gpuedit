@@ -349,79 +349,72 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 }
 
 
-void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
-	
+
 
 	
-	if(root->type != JSON_TYPE_ARRAY) {
-		fprintf(stderr, "Command List json root must be an array.\n");
-		return;
-	}
+static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd, int validate) {
+	char* s;
+	json_value_t* v;
+	GUI_CmdElementInfo* inf, *inf2;
+	int infIndex, infIndex2;
 	
-	
-	
-	
-	int i = 0;
 	uint16_t n16;
 	uint32_t n32;
-	json_link_t* link = root->arr.head;
-	json_value_t* v;
-	for(;link; link = link->next) {
-		char* s;
-		GUI_Cmd cmd = {0};
-		GUI_CmdElementInfo* inf, *inf2;
-		int infIndex, infIndex2;
-		
-		// element name
-		s = json_obj_get_str(link->v, "elem");
-		if(s == NULL) {
-			fprintf(stderr, "Command List entry missing element name\n");
-			continue;
-		}
-		
+	
+	// element name
+	s = json_obj_get_str(entry, "elem");
+	if(s == NULL && validate && cmd->element == 0) {
+		fprintf(stderr, "Command List entry missing element name\n");
+		return 1;
+	}
+	else if(s != NULL) {
 		char* s1 = strdup(s);
 		
 		if(HT_get(&gm->cmdElementLookup, s, &infIndex)) {
 			fprintf(stderr, "Unknown element name: '%s'\n", s);
-			continue;
+			return 1;
 		}
 		inf = &VEC_ITEM(&gm->cmdElements, infIndex);  // TODO IMGUI
-		cmd.element = inf->id;
+		cmd->element = inf->id;
+	}
+	
+	// sub-element name
+	s = json_obj_get_str(entry, "sub_elem");
+	if(s != NULL) {
+		char* s1 = strdup(s);
 		
-		// sub-element name
-		s = json_obj_get_str(link->v, "sub_elem");
-		if(s != NULL) {
-			char* s1 = strdup(s);
-			
-			if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
-				fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
-				continue;
-			}
-			inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2); // TODO IMGUI
-			cmd.sub_elem = inf2->id;
+		if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
+			fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
+			return 1;
 		}
-		
-		// command enum
-		s = json_obj_get_str(link->v, "cmd");
-		if(s == NULL) {
-			fprintf(stderr, "Command List entry missing cmd name\n");
-			continue;
-		}
+		inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2); // TODO IMGUI
+		cmd->sub_elem = inf2->id;
+	}
+	
+	// command enum
+	s = json_obj_get_str(entry, "cmd");
+	if(s == NULL && validate && cmd->cmd == 0) {
+		fprintf(stderr, "Command List entry missing cmd name\n");
+		return 1;
+	}
+	else if(s != NULL) {
 		char* s2 = strdup(s);
 		if(HT_get(&inf->nameLookup, s, &n32)) {
 			fprintf(stderr, "Unknown command enum: '%s'\n", s);
-			continue;
+			return 1;
 		}
-		cmd.cmd = n32;
-		
-		// key
-		cmd.src_type = GUI_CMD_SRC_KEY;
-		
-		s = json_obj_get_str(link->v, "key");
-		if(s == NULL) {
-			fprintf(stderr, "Command List entry missing key\n");
-			continue;
-		}
+		cmd->cmd = n32;
+	}
+	
+	// key
+	cmd->src_type = GUI_CMD_SRC_KEY;
+	
+	s = json_obj_get_str(entry, "key");
+	if(s == NULL && validate && cmd->keysym == 0) {
+		fprintf(stderr, "Command List entry missing key\n");
+		return 1;
+	}
+	else if(s != NULL) {
 		char* s3 = strdup(s);
 		if(*s == 'X' && *(s+1) == 'K') {
 			// X11 key macro
@@ -429,20 +422,20 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 			uint64_t n;
 			if(HT_get(&syms, s, &n)) {
 				fprintf(stderr, "Invalid X11 keysym name: '%s'\n", s);
-				continue;
+				return 1;
 			}
 			
-			cmd.keysym = n;
+			cmd->keysym = n;
 		}
 		else if(*s == 'V' && *(s+1) == 'K') {
 			// virtual key macro
 			uint64_t n;
 			if(HT_get(&syms, s, &n)) {
 				fprintf(stderr, "Invalid virtual keysym name: '%s'\n", s);
-				continue;
+				return 1;
 			}
 			
-			cmd.keysym = n;
+			cmd->keysym = n;
 		}
 		else if(*s == 'R' && *(s+1) == 'A' && *(s+2) == 'T' && *(s+3) == '_')  {
 			// Mouse button
@@ -455,117 +448,128 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 			}
 			
 		//	printf("RAT_%d\n", btn_num);
-			cmd.src_type = GUI_CMD_SRC_CLICK;
-			cmd.keysym = GUI_CMD_RATSYM(btn_num, reps);
+			cmd->src_type = GUI_CMD_SRC_CLICK;
+			cmd->keysym = GUI_CMD_RATSYM(btn_num, reps);
 		//	printf("keysym: %x = %dx%d\n", cmd.keysym, btn_num, reps);
 		}
 		else { // regular character literal
-			cmd.keysym = s[0];
+			cmd->keysym = s[0];
 		}
+	}
+	
+	// optional modifiers
+	s = json_obj_get_str(entry, "mods");
+	if(s) {
+		unsigned int m = 0;
 		
-		
-		// optional modifiers
-		s = json_obj_get_str(link->v, "mods");
-		if(s) {
-			unsigned int m = 0;
-			
-			for(; *s; s++) {
-				if(*s == ' ') { 
-					s++;
-					break;
-				}
-				else if(*s == 'L') {
-					s++;
-						if(*s == 'C') m |= GUIMODKEY_LCTRL | GUIMODKEY_CTRL;
-					else if(*s == 'A') m |= GUIMODKEY_LALT | GUIMODKEY_ALT;
-					else if(*s == 'S') m |= GUIMODKEY_LSHIFT | GUIMODKEY_SHIFT;
-					else if(*s == 'T') m |= GUIMODKEY_LTUX | GUIMODKEY_TUX;
-					else if(*s == 'W') m |= GUIMODKEY_LTUX | GUIMODKEY_TUX;
-				}
-				else if(*s == 'R') {
-					s++;
-						if(*s == 'C') m |= GUIMODKEY_RCTRL | GUIMODKEY_CTRL;
-					else if(*s == 'A') m |= GUIMODKEY_RALT | GUIMODKEY_ALT;
-					else if(*s == 'S') m |= GUIMODKEY_RSHIFT | GUIMODKEY_SHIFT;
-					else if(*s == 'T') m |= GUIMODKEY_RTUX | GUIMODKEY_TUX;
-					else if(*s == 'W') m |= GUIMODKEY_RTUX | GUIMODKEY_TUX;
-				}
-				else if(*s == 'C') m |= GUIMODKEY_CTRL;
-				else if(*s == 'A') m |= GUIMODKEY_ALT;
-				else if(*s == 'S') m |= GUIMODKEY_SHIFT;
-				else if(*s == 'T') m |= GUIMODKEY_TUX;
-				else if(*s == 'W') m |= GUIMODKEY_TUX;
-				else {
-					printf("Unknown character looking for command modifiers: \"%c\"\n", *s);
-					s++;
-				}
+		for(; *s; s++) {
+			if(*s == ' ') { 
+				s++;
+				break;
 			}
-			
-			cmd.mods = m;
-		}
-		
-		// optional amt value (default 0)
-		if(!json_obj_get_key(link->v, "amt", &v)) {
-			if(v->type == JSON_TYPE_STRING) {
-				cmd.str = strdup(v->s);
+			else if(*s == 'L') {
+				s++;
+					if(*s == 'C') m |= GUIMODKEY_LCTRL | GUIMODKEY_CTRL;
+				else if(*s == 'A') m |= GUIMODKEY_LALT | GUIMODKEY_ALT;
+				else if(*s == 'S') m |= GUIMODKEY_LSHIFT | GUIMODKEY_SHIFT;
+				else if(*s == 'T') m |= GUIMODKEY_LTUX | GUIMODKEY_TUX;
+				else if(*s == 'W') m |= GUIMODKEY_LTUX | GUIMODKEY_TUX;
 			}
-			else if(v->type == JSON_TYPE_ARRAY) {
-				// ONLY supports array of strings
-				char** z = malloc(sizeof(*z) * (v->len + 1));
-				
-				int j = 0;
-				json_link_t* link = v->arr.head;
-				while(link) {
-					z[j++] = strdup(link->v->s);
-					
-					link = link->next;
-				}
-				z[j] = NULL;
-				
-				cmd.pstr = z;
+			else if(*s == 'R') {
+				s++;
+					if(*s == 'C') m |= GUIMODKEY_RCTRL | GUIMODKEY_CTRL;
+				else if(*s == 'A') m |= GUIMODKEY_RALT | GUIMODKEY_ALT;
+				else if(*s == 'S') m |= GUIMODKEY_RSHIFT | GUIMODKEY_SHIFT;
+				else if(*s == 'T') m |= GUIMODKEY_RTUX | GUIMODKEY_TUX;
+				else if(*s == 'W') m |= GUIMODKEY_RTUX | GUIMODKEY_TUX;
 			}
+			else if(*s == 'C') m |= GUIMODKEY_CTRL;
+			else if(*s == 'A') m |= GUIMODKEY_ALT;
+			else if(*s == 'S') m |= GUIMODKEY_SHIFT;
+			else if(*s == 'T') m |= GUIMODKEY_TUX;
+			else if(*s == 'W') m |= GUIMODKEY_TUX;
 			else {
-				cmd.amt = json_as_int(v);
+				printf("Unknown character looking for command modifiers: \"%c\"\n", *s);
+				s++;
 			}
 		}
 		
-		// optional mode value (default 0)
-		if(!json_obj_get_key(link->v, "mode", &v)) {
-			cmd.mode = json_as_int(v);
-			/*
-			s = v->s;
-			
-			if(HT_get(&gm->cmdModeLookup, s, &n16)) {
-				fprintf(stderr, "Unknown mode name: '%s'\n", s);
-				continue;
-			}*/
-			cmd.mode = v->n; //n16;
+		cmd->mods = m;
+	}
+	
+	// optional amt value (default 0)
+	if(!json_obj_get_key(entry, "amt", &v)) {
+		if(v->type == JSON_TYPE_STRING) {
+			cmd->str = strdup(v->s);
 		}
+		else if(v->type == JSON_TYPE_ARRAY) {
+			// ONLY supports array of strings
+			char** z = malloc(sizeof(*z) * (v->len + 1));
+			
+			int j = 0;
+			json_link_t* link = v->arr.head;
+			while(link) {
+				z[j++] = strdup(link->v->s);
+				
+				link = link->next;
+			}
+			z[j] = NULL;
+			
+			cmd->pstr = z;
+		}
+		else {
+			cmd->amt = json_as_int(v);
+		}
+	}
+	
+	// optional mode value (default 0)
+	if(!json_obj_get_key(entry, "mode", &v)) {
+		cmd->mode = json_as_int(v);
+		/*
+		s = v->s;
 		
-		// optional flag list
-		if(!json_obj_get_key(link->v, "flags", &v)) {
-			unsigned int flags = 0;
-			
-			if(v->type == JSON_TYPE_ARRAY) {
-			
-				json_link_t* l2 = v->arr.head;
-				for(;l2; l2 = l2->next) {
-					
-					if(l2->v->type == JSON_TYPE_STRING) {
-						uint64_t x;
-						if(!HT_get(&flag_lookup, l2->v->s, &x)) {
-							flags |= x;
-						}
-					}
-					else {
-						fprintf(stderr, "Invalid flag format in command list.\n");
+		if(HT_get(&gm->cmdModeLookup, s, &n16)) {
+			fprintf(stderr, "Unknown mode name: '%s'\n", s);
+			continue;
+		}*/
+		cmd->mode = v->n; //n16;
+	}
+	
+	// optional flag list
+	if(!json_obj_get_key(entry, "flags", &v)) {
+		unsigned int flags = 0;
+		
+		if(v->type == JSON_TYPE_ARRAY) {
+		
+			json_link_t* l2 = v->arr.head;
+			for(;l2; l2 = l2->next) {
+				
+				if(l2->v->type == JSON_TYPE_STRING) {
+					uint64_t x;
+					if(!HT_get(&flag_lookup, l2->v->s, &x)) {
+						flags |= x;
 					}
 				}
-				
-				cmd.flags = flags;
+				else {
+					fprintf(stderr, "Invalid flag format in command list.\n");
+				}
 			}
+			
+			cmd->flags = flags;
 		}
+	}
+	
+	return 0;
+}
+
+
+
+static void read_command_list_defaults(GUIManager* gm, json_value_t* list, GUI_Cmd* defaults) {
+	json_link_t* link = list->arr.head;
+	for(;link; link = link->next) {
+		GUI_Cmd cmd = *defaults;
 		
+		if(read_command_entry(gm, link->v, &cmd, 1)) continue;
 		
 		// TODO: add the command into the hash table 
 		//printf("pushing cmd: %s %s %s %d %x\n", s1, s2, s3, cmd.mode, cmd.mods);
@@ -574,6 +578,44 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 		}
 		else {
 //			VEC_PUSH(&gm->cmdListSubElems, cmd);
+		}
+	
+	}
+}
+
+
+void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
+	
+
+	
+	if(root->type != JSON_TYPE_ARRAY) {
+		fprintf(stderr, "Command List json root must be an array.\n");
+		return;
+	}
+	
+	int i = 0;
+
+	json_link_t* link = root->arr.head;
+	json_value_t* v;
+	for(;link; link = link->next) {
+		GUI_Cmd cmd = {0};
+		
+		
+		
+		if(!json_obj_get_key(link->v, "cmd_list", &v) && v->type == JSON_TYPE_ARRAY) {
+			if(read_command_entry(gm, link->v, &cmd, 0)) continue;
+			read_command_list_defaults(gm, v, &cmd);
+		}
+		else {
+			if(read_command_entry(gm, link->v, &cmd, 1)) continue;
+			// TODO: add the command into the hash table 
+			//printf("pushing cmd: %s %s %s %d %x\n", s1, s2, s3, cmd.mode, cmd.mods);
+			if(cmd.sub_elem == 0) {
+				VEC_PUSH(&gm->cmdList, cmd);
+			}
+			else {
+	//			VEC_PUSH(&gm->cmdListSubElems, cmd);
+			}
 		}
 	}
 }

@@ -148,6 +148,8 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	
 	pcalloc(w->findSet);
 	w->ec->findSet = w->findSet;
+	
+	RING_INIT(&w->macros, 12);
 
 	
 	return w;
@@ -586,10 +588,31 @@ void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t 
 }
 
 
+
+void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index) {
+	int useless;
+	
+	if(index >= RING_LEN(&w->macros)) return;
+	
+	BufferEditorMacro* m = &RING_ITEM(&w->macros, index);
+	
+	VEC_EACHP(&m->cmds, i, cmd) {
+		GUIBufferEditor_ProcessCommand(w, cmd, &useless);
+	}
+}
+
+
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight) {
 //	GUIEdit* e;
 	struct json_file* jsf;
 	GUIManager* gm = w->gm;
+	
+	// keep this command around if a macro is being recorded
+	if(w->isRecording && cmd->cmd != GUICMD_Buffer_MacroToggleRecording) {
+		BufferEditorMacro* m = &RING_HEAD(&w->macros);
+		VEC_PUSH(&m->cmds, *cmd);
+	}
+	
 	
 	switch(cmd->cmd){
 		case GUICMD_Buffer_SetMode:
@@ -609,6 +632,19 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 				w->inputMode = 0;
 			break;
 
+		case GUICMD_Buffer_MacroToggleRecording: 
+			w->isRecording = !w->isRecording;
+			if(w->isRecording) {
+				RING_PUSH(&w->macros, (BufferEditorMacro){0});
+				BufferEditorMacro* m = &RING_HEAD(&w->macros);
+				VEC_TRUNC(&m->cmds);
+			}
+			break;
+			
+		case GUICMD_Buffer_MacroReplay: 
+			GUIBufferEditor_ReplayMacro(w, cmd->amt + w->isRecording);
+			break;
+			
 		case GUICMD_Buffer_ToggleGDBBreakpoint: {
 			w->ec->current->flags ^= BL_BREAKPOINT_FLAG;
 			

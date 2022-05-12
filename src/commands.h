@@ -123,6 +123,8 @@
 	X(Buffer, ScrollScreenPctH) \
 	X(Buffer, NextHighlighter) \
 	X(Buffer, SmartBubbleSelection) \
+	X(Buffer, MacroToggleRecording) \
+	X(Buffer, MacroReplay) \
 	\
 	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \
