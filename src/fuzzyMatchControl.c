@@ -51,7 +51,7 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 			Vector2 mp = GUI_MousePos();
 			int cline = floor((mp.y - 20) / w->lineHeight) - 1;
 			
-			if(cline >= 0 && cline <= w->matchCnt - 1) {
+			if(cline >= 0 && cline <= (int)w->matchCnt - 1) {
 				open_match(w, cline);
 				GUI_CancelInput();
 			}
