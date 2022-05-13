@@ -59,7 +59,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	// draw general background	
 	gm->curZ = z + 0.1;
-	GUI_Rect(V(0,0), gm->curWin->size, &theme->bgColor);
+	GUI_Rect(tl, sz, &theme->bgColor);
+	gm->curZ = z;
 	
 	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	float hsoff = -gbe->scrollCols * tdp->charWidth;

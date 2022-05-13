@@ -357,9 +357,9 @@ typedef struct GUIManager {
 		GUIFont* font;
 		float fontSize;
 		
-		#define X(a) a a;
-			GUI_OPTS_STRUCTS_LIST
-		#undef X
+		#define V(a, ...) a a;
+			GUI_CONTROL_OPS_STRUCT_LIST
+		#undef V
 		
 		float checkboxBoxSize;
 		float sliderHeight;

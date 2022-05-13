@@ -72,6 +72,41 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	gm->multiClickDist = 2.000;
 	
 	
+	#define C4(r,g,b,a) ((Color4){r,g,b,a})
+	
+	#define G(a,b) gm->defaults.a.b
+	#define I0(a,b) a[0].b
+	#define I1(a,b) a[1].b
+	#define I2(a,b) a[2].b
+	#define F0(a,b0,b1,b2) a = b0;
+	#define F1(a,b0,b1,b2) a = b1;
+	#define F2(a,b0,b1,b2) a = b2;
+	#define XX(t,n,v) n = v;
+	
+	#define H0(a, b) I0(a, O(F0)b)
+	#define H1(a, b) I1(a, O(F1)b)
+	#define H2(a, b) I2(a, O(F2)b)
+	#define X(t,n,v1,v2,v3) (n, v1,v2,v3)
+	#define Y(a, b, ...) EX(H0, a, __VA_ARGS__), EX(H1, a, __VA_ARGS__), EX(H2, a, __VA_ARGS__)
+	//#define V(m, ...) __VA_ARGS__
+	#define V(m, ...) EX2(G, m, __VA_ARGS__)
+		GUI_CONTROL_OPS_STRUCT_LIST
+	#undef G
+	#undef H0
+	#undef H1
+	#undef H2
+	#undef I0
+	#undef I1
+	#undef I2
+	#undef F0
+	#undef F1
+	#undef F2
+	#undef XX
+	#undef X
+	#undef Y
+	#undef V
+	
+	#undef C4
 	
 	
 	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
@@ -349,8 +384,7 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev,
 					.modifiers = translateModKeys(gm, iev),
 				};
 					
-				gm->drawMode = 0;
-				gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+				GUIManager_RunRenderPass(gm, pfp, 0);
 			};
 		}
 		
@@ -365,8 +399,7 @@ void GUIManager_HandleMouseMove(GUIManager* gm, InputState* is, InputEvent* iev,
 				.modifiers = translateModKeys(gm, iev),
 			};
 				
-			gm->drawMode = 0;
-			gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+			GUIManager_RunRenderPass(gm, pfp, 0);
 		}
 	}
 	
@@ -406,8 +439,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 				.modifiers = translateModKeys(gm, iev),
 			};
 				
-			gm->drawMode = 0;
-			gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+			GUIManager_RunRenderPass(gm, pfp, 0);
 		
 			
 			gm->mouseIsDragging[b] = 0;
@@ -450,8 +482,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 	};
 		
 	
-	gm->drawMode = 0;
-	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+	GUIManager_RunRenderPass(gm, pfp, 0);
 
 	
 	// buttons: 
@@ -490,8 +521,7 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev, 
 	};
 		
 	
-	gm->drawMode = 0;
-	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+	GUIManager_RunRenderPass(gm, pfp, 0);
 }
 
 
@@ -622,11 +652,6 @@ static void preFrame(PassFrameParams* pfp, void* gm_) {
 //	printf("\n");
 	
 	sort = getCurrentTime();
-	
-	
-
-	
-	// reset the IM gui cache
 
 	
 	GUIManager_RunRenderPass(gm, pfp, 1);
@@ -757,9 +782,9 @@ static void postFrame(void* gm_) {
 	
 	// gc the element data
 	for(int i = 0; i < VEC_LEN(&gm->elementData); i++) {
-		
+		GUIElementData* d;
 	RESTART:
-		GUIElementData* d = &VEC_ITEM(&gm->elementData, i);
+		d = &VEC_ITEM(&gm->elementData, i);
 		
 		if(d->age < 10) {
 			d->age++;

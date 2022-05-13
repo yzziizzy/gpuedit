@@ -637,7 +637,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	d->synthed_change = 0;
 	
 	Vector2 sz = o->size;
-	if(width <= 0) sz.x = width;
+	if(width > 0) sz.x = width;
 	float fontSz = o->fontSize;
 	
 	GUIFont* font = GUI_FindFont(gm, o->fontName);	
@@ -744,7 +744,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	}
 	
 	Vector2 sz = o->size;
-	if(width <= 0) sz.x = width;
+	if(width > 0) sz.x = width;
 	
 	HOVER_HOT(id)
 	CLICK_HOT_TO_ACTIVE(id)
