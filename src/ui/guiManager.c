@@ -52,6 +52,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	gm->fontClipHigh = 0.84;
 	gm->fontClipGap = gm->fontClipHigh - gm->fontClipLow;
 	
+	gm->windowHeap.cnt = 0;
 	gm->windowHeap.alloc = 16;
 	gm->windowHeap.buf = calloc(1, gm->windowHeap.alloc * sizeof(*gm->windowHeap.buf));
 	gm->rootWin = GUIWindow_new(gm, 0);
@@ -560,6 +561,56 @@ void GUIManager_appendWindowVerts(GUIManager* gm, GUIWindow* w) {
 }
 
 
+void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) {
+
+	// clean up the windows from last frame
+	gm->windowHeap.cnt = 0;
+	gm->rootWin = GUIWindow_new(gm, 0);
+	VEC_TRUNC(&gm->windowStack);
+	VEC_PUSH(&gm->windowStack, gm->rootWin);
+	gm->curWin = gm->rootWin;
+	
+	gm->rootWin->absClip = (AABB2){min: {0,0}, max: {pfp->dp->targetSize.x, pfp->dp->targetSize.y}};
+	gm->rootWin->clip = gm->rootWin->absClip;
+	VEC_TRUNC(&gm->clipStack);
+	gm->curClip = gm->rootWin->clip;
+	
+	gm->time = pfp->appTime;
+	gm->timeElapsed = pfp->timeElapsed;
+	
+	gm->curZ = 1.0;
+	gm->fontSize = 20.0f;
+	
+	if(isDraw) {
+		gm->drawMode = isDraw;
+		
+		// reset the IM gui cache
+		gm->totalVerts = 0;
+		gm->vertCount = 0;
+		
+		gm->curEvent = (GUIEvent){0};
+	}
+	
+	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
+	gm->drawMode = 0;
+	
+	if(!isDraw) {
+		// walk last pass' gui info to set window ids
+		float highestZ = -99999999.9;
+		GUIWindow* highestW = gm->windowHeap.buf; // incidentally the root window
+		GUIWindow* w = gm->windowHeap.buf;
+		for(int i = 0; i < gm->windowHeap.cnt; i++, w++) {
+			if(w->z >= highestZ && boxContainsPoint2p(&w->absClip, &gm->lastMousePos)) {
+				highestZ = w->z;
+				highestW = w;
+			}
+		}
+		
+		gm->mouseWinID = highestW->id;
+	}
+	
+}
+
 
 static void preFrame(PassFrameParams* pfp, void* gm_) {
 	GUIManager* gm = (GUIManager*)gm_;
@@ -573,49 +624,12 @@ static void preFrame(PassFrameParams* pfp, void* gm_) {
 	sort = getCurrentTime();
 	
 	
-	// walk last frame's gui info to set window ids
-	float highestZ = -99999999.9;
-	GUIWindow* highestW = gm->windowHeap.buf; // incidentally the root window
-	GUIWindow* w = gm->windowHeap.buf;
-	for(int i = 0; i < gm->windowHeap.cnt; i++, w++) {
-		if(w->z >= highestZ && boxContainsPoint2p(&w->absClip, &gm->lastMousePos)) {
-			highestZ = w->z;
-			highestW = w;
-		}
-	}
-	
-	gm->mouseWinID = highestW->id;
+
 	
 	// reset the IM gui cache
+
 	
-	gm->totalVerts = 0;
-	gm->vertCount = 0;
-	
-	// clean up the windows from last frame
-	gm->windowHeap.cnt = 0;
-	gm->rootWin = GUIWindow_new(gm, 0);
-	VEC_TRUNC(&gm->windowStack);
-	VEC_PUSH(&gm->windowStack, gm->rootWin);
-	gm->curWin = gm->rootWin;
-	
-	gm->rootWin->absClip = (AABB2){min: {0,0}, max: {pfp->dp->targetSize.x, pfp->dp->targetSize.y}};
-	gm->rootWin->clip = gm->rootWin->absClip;
-	VEC_TRUNC(&gm->clipStack);
-	gm->curClip = gm->rootWin->clip;
-	
-	gm->curZ = 1.0;
-	gm->fontSize = 20.0f;
-	gm->defaults.checkboxBoxSize = 15;
-	gm->defaults.sliderHeight = 20;
-	gm->defaults.sliderFontSz = 12;
-	gm->time = pfp->appTime;
-	gm->timeElapsed = pfp->timeElapsed;
-	
-	gm->curEvent = (GUIEvent){0};
-	
-	gm->drawMode = 1;
-	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
-	gm->drawMode = 0;
+	GUIManager_RunRenderPass(gm, pfp, 1);
 	
 	/* soft cursor needs special handling
 	time = timeSince(sort);

@@ -442,6 +442,7 @@ void GUIManager_initGL(GUIManager* gm);
 GUIManager* GUIManager_alloc(GUI_GlobalSettings* gs);
 
 GUIWindow* GUIWindow_new(GUIManager* gm, GUIWindow* parent);
+void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw);
 
 RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
 PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
