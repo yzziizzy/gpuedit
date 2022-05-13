@@ -946,18 +946,20 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	tdp->tabWidth = lgs->Buffer_tabWidth;
 	
 	ThemeDrawParams* theme = pcalloc(theme);
-	decodeHexColorNorm(lgs->GUI_GlobalSettings->bgColor, (float*)&(theme->bgColor));
-	decodeHexColorNorm(lgs->GUI_GlobalSettings->textColor, (float*)&(theme->textColor));
-	decodeHexColorNorm(lgs->GUI_GlobalSettings->cursorColor, (float*)&(theme->cursorColor));
-	decodeHexColorNorm(lgs->Theme->lineNumColor, (float*)&(theme->lineNumColor));
-	decodeHexColorNorm(lgs->Theme->lineNumBgColor, (float*)&(theme->lineNumBgColor));
-	decodeHexColorNorm(lgs->Theme->lineNumBookmarkColor, (float*)&(theme->lineNumBookmarkColor));
-	decodeHexColorNorm(lgs->Theme->hl_bgColor, (float*)&(theme->hl_bgColor));
-	decodeHexColorNorm(lgs->Theme->hl_textColor, (float*)&(theme->hl_textColor));
-	decodeHexColorNorm(lgs->Theme->find_bgColor, (float*)&(theme->find_bgColor));
-	decodeHexColorNorm(lgs->Theme->find_textColor, (float*)&(theme->find_textColor));
-	decodeHexColorNorm(lgs->Theme->outlineCurrentLineBorderColor, (float*)&(theme->outlineCurrentLineBorderColor));
 	
+	theme->bgColor = lgs->GUI_GlobalSettings->bgColor;
+	theme->textColor = lgs->GUI_GlobalSettings->textColor;
+	theme->cursorColor = lgs->GUI_GlobalSettings->cursorColor;
+	theme->lineNumColor = lgs->Theme->lineNumColor;
+	theme->lineNumBgColor = lgs->Theme->lineNumBgColor;
+	theme->lineNumBookmarkColor = lgs->Theme->lineNumBookmarkColor;
+	theme->hl_bgColor = lgs->Theme->hl_bgColor;
+	theme->hl_textColor = lgs->Theme->hl_textColor;
+	theme->find_bgColor = lgs->Theme->find_bgColor;
+	theme->find_textColor = lgs->Theme->find_textColor;
+	theme->outlineCurrentLineBorderColor = lgs->Theme->outlineCurrentLineBorderColor;
+	
+		
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;
 	bdp->theme = theme;

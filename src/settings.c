@@ -119,6 +119,7 @@ void freewidgetspeclist(WidgetSpec* ws) {
 #define set_double(x) x;
 #define set_charp(x) strdup(x);
 #define set_charpp(x) strlistdup(x);
+#define set_Color4(x) x;
 #define set_tabsp(x) tabspeclistdup(x);
 #define set_scrollfn(x) x;
 #define set_widsp(x) widgetspeclistdup(x);
@@ -146,6 +147,7 @@ void ThemeSettings_LoadDefaults(ThemeSettings* s) {
 #define copy_double(x) x;
 #define copy_charp(x) strdup(x);
 #define copy_charpp(x) strlistdup(x);
+#define copy_Color4(x) x;
 #define copy_tabsp(x) tabspeclistdup(x);
 #define copy_scrollfn(x) x;
 #define copy_widsp(x) widgetspeclistdup(x);
@@ -179,6 +181,7 @@ ThemeSettings* ThemeSettings_Copy(ThemeSettings* orig) {
 #define free_charp(x) free(x);
 #define free_charpp(x) freeptrlist(x);
 #define free_tabsp(x) freetabspeclist(x);
+#define free_Color4(x)
 #define free_scrollfn(x)
 #define free_widsp(x) freewidgetspeclist(x);
 #define free_themep(x) ThemeSettings_Free(x);
@@ -202,6 +205,15 @@ void ThemeSettings_Free(ThemeSettings* s) {
 
 
 
+
+static void grab_Color4(Color4* out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		if(v->type == JSON_TYPE_STRING && v->s) {
+			decodeHexColorNorm(v->s, (float*)out);
+		}
+	}
+}
 
 static void grab_charp(char** out, json_value_t* obj, char* prop) {
 	json_value_t* v;

@@ -25,7 +25,7 @@ void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, Pass
 
 	if(!gm->drawMode) return;
 	
-	GUIFont* font = FontManager_findFont(gm->fm, gm->gs->font_fw);
+	GUIFont* font = gm->defaults.font_fw;
 	float fontSize = gm->gs->fontSize_fw;
 	float charWidth = gm->gs->charWidth_fw;
 	float lineHeight = gm->gs->lineHeight_fw;
@@ -71,7 +71,7 @@ void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, Pass
 		GUI_TextLine(
 			item->line, strlen(item->line),
 			tl,
-			gm->gs->font_fw, fontSize,
+			gm->defaults.fontName_fw, fontSize,
 			&gm->defaults.statusBarTextColor
 		);
 	}	

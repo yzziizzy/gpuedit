@@ -15,13 +15,7 @@ struct GUIManager;
 typedef struct GUIManager GUIManager;
 
 
-typedef struct Color4 {
-	float r,g,b,a;
-} Color4;
 
-typedef struct Color3 {
-	float r,g,b;
-} Color3;
 
 
 struct ShaderColor4 {
@@ -352,78 +346,8 @@ typedef struct GUIManager {
 	char useSoftCursor;
 	char* softCursorName;
 	Vector2 softCursorSize;
-		
-	struct {
-		GUIFont* font;
-		float fontSize;
-		
-		#define V(a, ...) a a;
-			GUI_CONTROL_OPS_STRUCT_LIST
-		#undef V
-		
-		float checkboxBoxSize;
-		float sliderHeight;
-		Color4 sliderBarColor;
-		Color4 sliderBgColor;
-		float sliderFontSz;
-		
-		struct Color4 textColor;
-		struct Color4 editBgColor;
-		struct Color4 editBorderColor;
-		struct Color4 editTextColor;
-		struct Color4 editSelBgColor;
-		float         editHeight;
-		float         editWidth;
-		struct Color4 buttonTextColor;
-		struct Color4 buttonHoverTextColor;
-		struct Color4 buttonDisTextColor;
-		struct Color4 buttonBgColor;
-		struct Color4 buttonHoverBgColor;
-		struct Color4 buttonDisBgColor;
-		struct Color4 buttonBorderColor;
-		struct Color4 buttonHoverBorderColor;
-		struct Color4 buttonDisBorderColor;
-		struct Color4 cursorColor;
-		struct Color4 tabTextColor;
-		struct Color4 tabBorderColor;
-		struct Color4 tabActiveBgColor;
-		struct Color4 tabHoverBgColor;
-		struct Color4 tabBgColor;
-		struct Color4 outlineCurrentLineBorderColor;
-		struct Color4 selectedItemTextColor;
-		struct Color4 selectedItemBgColor;
-		struct Color4 windowBgBorderColor;
-		float         windowBgBorderWidth;
-		struct Color4 windowBgColor;
-		struct Color4 windowTitleBorderColor;
-		float         windowTitleBorderWidth;
-		struct Color4 windowTitleColor;
-		struct Color4 windowTitleTextColor;
-		struct Color4 windowCloseBtnBorderColor;
-		float         windowCloseBtnBorderWidth;
-		struct Color4 windowCloseBtnColor;
-		struct Color4 windowScrollbarColor;
-		struct Color4 windowScrollbarBorderColor;
-		float         windowScrollbarBorderWidth;
-		struct Color4 selectBgColor;
-		struct Color4 selectBorderColor;
-		struct Color4 selectTextColor;
-		Vector2       selectSize;
-		struct Color4 trayBgColor;
-		float charWidth_fw;
-		float lineHeight_fw;
-		GUIFont* font_fw;
-		float fontSize_fw;
-		struct Color4 statusBarBgColor;
-		struct Color4 statusBarTextColor;
-		struct Color4 fileBrowserHeaderTextColor;
-		struct Color4 fileBrowserHeaderBorderColor;
-		struct Color4 fileBrowserHeaderBgColor;
-		
-		
-		// TODO: font name, size 
-	} defaults;
 	
+	GUI_GlobalSettings defaults;
 	
 	// temp 
 	GLuint fontAtlasID;

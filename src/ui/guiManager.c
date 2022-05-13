@@ -71,6 +71,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	gm->quadClickTime = 1.500;
 	gm->multiClickDist = 2.000;
 	
+	GUI_GlobalSettings_LoadDefaults(&gm->defaults);
 	
 	#define C4(r,g,b,a) ((Color4){r,g,b,a})
 	
@@ -108,71 +109,15 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 	#undef C4
 	
-	
-	gm->defaults.font = FontManager_findFont(gm->fm, "Arial");
-	gm->defaults.fontSize = 10;
-	decodeHexColorNorm(gs->textColor, (float*)&(gm->defaults.textColor));
+	// TEMP HACK 
+	gm->defaults.font = FontManager_findFont(gm->fm, gm->defaults.fontName);
+	gm->defaults.font_fw = FontManager_findFont(gm->fm, gm->defaults.fontName_fw);
 
-	decodeHexColorNorm(gs->buttonTextColor, (float*)&(gm->defaults.buttonTextColor));
-	decodeHexColorNorm(gs->buttonHoverTextColor, (float*)&(gm->defaults.buttonHoverTextColor));
-	decodeHexColorNorm(gs->buttonDisTextColor, (float*)&(gm->defaults.buttonDisTextColor));
-	decodeHexColorNorm(gs->buttonBgColor, (float*)&(gm->defaults.buttonBgColor));
-	decodeHexColorNorm(gs->buttonHoverBgColor, (float*)&(gm->defaults.buttonHoverBgColor));
-	decodeHexColorNorm(gs->buttonDisBgColor, (float*)&(gm->defaults.buttonDisBgColor));
-	decodeHexColorNorm(gs->buttonBorderColor, (float*)&(gm->defaults.buttonBorderColor));
-	decodeHexColorNorm(gs->buttonHoverBorderColor, (float*)&(gm->defaults.buttonHoverBorderColor));
-	decodeHexColorNorm(gs->buttonDisBorderColor, (float*)&(gm->defaults.buttonDisBorderColor));
-
-	decodeHexColorNorm(gs->editBorderColor, (float*)&(gm->defaults.editBorderColor));
-	decodeHexColorNorm(gs->editBgColor, (float*)&(gm->defaults.editBgColor));
-	decodeHexColorNorm(gs->editTextColor, (float*)&(gm->defaults.editTextColor));
-	decodeHexColorNorm(gs->editSelBgColor, (float*)&(gm->defaults.editSelBgColor));
-	gm->defaults.editWidth = 150;
-	gm->defaults.editHeight = 18;
-
-	decodeHexColorNorm(gs->cursorColor, (float*)&(gm->defaults.cursorColor));
-
-	decodeHexColorNorm(gs->tabTextColor, (float*)&(gm->defaults.tabTextColor));
-	decodeHexColorNorm(gs->tabBorderColor, (float*)&(gm->defaults.tabBorderColor));
-	decodeHexColorNorm(gs->tabActiveBgColor, (float*)&(gm->defaults.tabActiveBgColor));
-	decodeHexColorNorm(gs->tabHoverBgColor, (float*)&(gm->defaults.tabHoverBgColor));
-	decodeHexColorNorm(gs->tabBgColor, (float*)&(gm->defaults.tabBgColor));
-
-	decodeHexColorNorm(gs->outlineCurrentLineBorderColor, (float*)&(gm->defaults.outlineCurrentLineBorderColor));
-	decodeHexColorNorm(gs->selectedItemTextColor, (float*)&(gm->defaults.selectedItemTextColor));
-	decodeHexColorNorm(gs->selectedItemBgColor, (float*)&(gm->defaults.selectedItemBgColor));
-
-	decodeHexColorNorm(gs->windowBgBorderColor, (float*)&(gm->defaults.windowBgBorderColor));
-	gm->defaults.windowBgBorderWidth = 1;
-	decodeHexColorNorm(gs->windowBgColor, (float*)&(gm->defaults.windowBgColor));
-	decodeHexColorNorm(gs->windowTitleBorderColor, (float*)&(gm->defaults.windowTitleBorderColor));
-	gm->defaults.windowTitleBorderWidth = 1;
-	decodeHexColorNorm(gs->windowTitleColor, (float*)&(gm->defaults.windowTitleColor));
-	decodeHexColorNorm(gs->windowTitleTextColor, (float*)&(gm->defaults.windowTitleTextColor));
-	decodeHexColorNorm(gs->windowCloseBtnBorderColor, (float*)&(gm->defaults.windowCloseBtnBorderColor));
-	gm->defaults.windowCloseBtnBorderWidth = 1;
-	decodeHexColorNorm(gs->windowCloseBtnColor, (float*)&(gm->defaults.windowCloseBtnColor));
-	decodeHexColorNorm(gs->windowScrollbarColor, (float*)&(gm->defaults.windowScrollbarColor));
-	decodeHexColorNorm(gs->windowScrollbarBorderColor, (float*)&(gm->defaults.windowScrollbarBorderColor));
-	gm->defaults.windowScrollbarBorderWidth = 1;
-
-	decodeHexColorNorm(gs->selectBgColor, (float*)&(gm->defaults.selectBgColor));
-	decodeHexColorNorm(gs->selectBorderColor, (float*)&(gm->defaults.selectBorderColor));
-	decodeHexColorNorm(gs->selectTextColor, (float*)&(gm->defaults.selectTextColor));
-	
-	decodeHexColorNorm(gs->trayBgColor, (float*)&(gm->defaults.trayBgColor));
 	
 	gm->defaults.charWidth_fw = gs->charWidth_fw;
 	gm->defaults.lineHeight_fw = gs->lineHeight_fw;
-	gm->defaults.font_fw = FontManager_findFont(gm->fm, gs->font_fw);;
 	gm->defaults.fontSize_fw = gs->fontSize_fw;
-	decodeHexColorNorm(gs->statusBarBgColor, (float*)&(gm->defaults.statusBarBgColor));
-	decodeHexColorNorm(gs->statusBarTextColor, (float*)&(gm->defaults.statusBarTextColor));
-	decodeHexColorNorm(gs->fileBrowserHeaderTextColor, (float*)&(gm->defaults.fileBrowserHeaderTextColor));
-	decodeHexColorNorm(gs->fileBrowserHeaderBorderColor, (float*)&(gm->defaults.fileBrowserHeaderBorderColor));
-	decodeHexColorNorm(gs->fileBrowserHeaderBgColor, (float*)&(gm->defaults.fileBrowserHeaderBgColor));
 	
-	gm->defaults.selectSize = (Vector2){80, 25};
 	
 	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
 	

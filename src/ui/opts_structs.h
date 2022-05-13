@@ -7,30 +7,43 @@
 #define STATE_NORMAL 0
 */
 
-/*
-
-#define SH(s,n) ((float)((s) >> n)/255.0)
-#define HEX(s) { \
-    SH(s&0xff000000,24), \
-    SH(s&0xff0000, 16), \
-    SH(s&0xff00,8), \
-    SH(s&0xff,0)}
 
 
-#define P(a,b) a##b
-#define COLOR(s) ((struct c)HEX(P(0x,s)))
+#define C4H_SH(s,n) ((float)((s) >> n)/255.0)
+#define C4H_HEX(s) { \
+	.r = C4H_SH(s&0xff000000,24), \
+	.g = C4H_SH(s&0xff0000, 16), \
+	.b = C4H_SH(s&0xff00,8), \
+	.a = C4H_SH(s&0xff,0)}
 
 
-#define H(s) (((s)[0] >= '0' && (s)[0] <= '9') ? (s)[0] - '0' : (\
+#define C4H_P(a,b) a##b
+#define C4H(s) ((Color4)C4H_HEX(C4H_P(0x,s)))
+
+
+#define C4S_H(s) (((s)[0] >= '0' && (s)[0] <= '9') ? (s)[0] - '0' : (\
     ((s)[0] >= 'a' && (s)[0] <= 'f') ? (s)[0] - 'a' + 10 : ( \
     ((s)[0] >= 'A' && (s)[0] <= 'F') ? (s)[0] - 'A' + 10 : 0)))
 
-#define H2(s) (H(s) * 16 + H(s+1))
-#define COLOR(s) \
+#define C4S_H2(s) (C4S_H(s) * 16 + C4S_H(s+1))
+#define C4S(s) \
     (s[0] == '#' ? \
-        (struct c){H2(s+1)/255.0, H2(s+3)/255.0, H2(s+5)/255.0, H2(s+7)/255.0 }: \
-        (struct c){H2(s)/255.0, H2(s+2)/255.0, H2(s+4)/255.0, H2(s+6)/255.0 })
-*/
+        (Color4){C4S_H2(s+1)/255.0, C4S_H2(s+3)/255.0, C4S_H2(s+5)/255.0, C4S_H2(s+7)/255.0 }: \
+        (Color4){C4S_H2(s)/255.0, C4S_H2(s+2)/255.0, C4S_H2(s+4)/255.0, C4S_H2(s+6)/255.0 })
+
+
+
+// HACK
+#include "../c3dlas/c3dlas.h"
+
+typedef struct Color4 {
+	float r,g,b,a;
+} Color4;
+
+typedef struct Color3 {
+	float r,g,b;
+} Color3;
+
 
 #define charp char*
 
@@ -39,9 +52,9 @@
 #define GUI_CONTROL_OPS_STRUCT_LIST \
 	V(GUIButtonOpts, \
 		Y(colors, 3,\
-			X(Color4, bg, C4(.1,.1,.1,1), C4(.1,.1,.1,1), C4(.1,.1,.1,1)),\
-			X(Color4, border, C4(.7,.7,.7,1), C4(.7,.4,.4,1), C4(.9,.1,.1,1)), \
-			X(Color4, text, C4(1,1,1,1), C4(1,1,1,1), C4(1,1,1,1)) \
+			X(Color4, bg, C4H(0202e1ff), C4H(c8c802ff), C4(.1,.1,.1,1)),\
+			X(Color4, border, C4H(c802e1ff), C4H(02c8e1ff), C4(.9,.1,.1,1)), \
+			X(Color4, text, C4H(c8c8e1ff), C4H(c80202ff), C4(1,1,1,1)) \
 		), \
 		XX(Vector2, size, ((Vector2){150,20})), \
 		XX(float, borderWidth, 2), \

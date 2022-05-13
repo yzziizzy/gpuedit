@@ -111,11 +111,6 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->gui->ta = as->ta;
 	xs->onResize = resize_callback;
 	xs->onResizeData = as->gui;
-	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabBorderColor, (float*)&(as->gui->defaults.tabBorderColor));
-	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabActiveBgColor, (float*)&(as->gui->defaults.tabActiveBgColor));
-	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabHoverBgColor, (float*)&(as->gui->defaults.tabHoverBgColor));
-	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabBgColor, (float*)&(as->gui->defaults.tabBgColor));
-	decodeHexColorNorm(as->globalSettings.GUI_GlobalSettings->tabTextColor, (float*)&(as->gui->defaults.tabTextColor));
 	
 	as->gui->windowTitleSetFn = (void*)XStuff_SetWindowTitle;
 	as->gui->windowTitleSetData = xs;

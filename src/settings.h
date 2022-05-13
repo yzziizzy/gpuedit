@@ -97,17 +97,17 @@ typedef struct WidgetSpec {
 #define THEME_SETTING_LIST \
 	SETTING(charp, name,                          "default dark", NULL, NULL) \
 	SETTING(bool,  is_dark,                       true,        NULL, NULL) \
-	SETTING(charp, bgColor,                       "#0f0f0fff", NULL, NULL) \
-	SETTING(charp, lineNumColor,                  "#ffffffff", NULL, NULL) \
-	SETTING(charp, lineNumBgColor,                "#141414ff", NULL, NULL) \
-	SETTING(charp, lineNumBookmarkColor,          "#32ff32ff", NULL, NULL) \
-	SETTING(charp, hl_bgColor,                    "#00c8c8ff", NULL, NULL) \
-	SETTING(charp, hl_textColor,                  "#fa0032ff", NULL, NULL) \
-	SETTING(charp, find_bgColor,                  "#115511ff", NULL, NULL) \
-	SETTING(charp, find_textColor,                "#660022ff", NULL, NULL) \
-	SETTING(charp, outlineCurrentLineBorderColor, "#323232ff", NULL, NULL) \
-	SETTING(charp, selectedItemTextColor,         "#c8c8c8ff", NULL, NULL) \
-	SETTING(charp, selectedItemBgColor,           "#505050ff", NULL, NULL) \
+	SETTING(Color4, bgColor,                       C4H(0f0f0fff), NULL, NULL) \
+	SETTING(Color4, lineNumColor,                  C4H(ffffffff), NULL, NULL) \
+	SETTING(Color4, lineNumBgColor,                C4H(141414ff), NULL, NULL) \
+	SETTING(Color4, lineNumBookmarkColor,          C4H(32ff32ff), NULL, NULL) \
+	SETTING(Color4, hl_bgColor,                    C4H(00c8c8ff), NULL, NULL) \
+	SETTING(Color4, hl_textColor,                  C4H(fa0032ff), NULL, NULL) \
+	SETTING(Color4, find_bgColor,                  C4H(115511ff), NULL, NULL) \
+	SETTING(Color4, find_textColor,                C4H(660022ff), NULL, NULL) \
+	SETTING(Color4, outlineCurrentLineBorderColor, C4H(323232ff), NULL, NULL) \
+	SETTING(Color4, selectedItemTextColor,         C4H(c8c8c8ff), NULL, NULL) \
+	SETTING(Color4, selectedItemBgColor,           C4H(505050ff), NULL, NULL) \
 	
 
 
@@ -117,6 +117,7 @@ typedef struct ThemeSettings ThemeSettings;
 #define charp char*
 #define charpp char**
 #define bool char
+#define Color4 Color4
 #define tabsp TabSpec*
 #define themep ThemeSettings*
 #define widsp WidgetSpec*
@@ -136,6 +137,7 @@ typedef struct ThemeSettings {
 #undef charp
 #undef charpp
 #undef bool
+#undef Color4
 #undef tabsp
 #undef themep
 #undef widsp

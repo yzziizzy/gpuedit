@@ -49,6 +49,8 @@ static void freeptrlist(void* _p) {
 #define copy_bool(x) x;
 #define copy_float(x) x;
 #define copy_double(x) x;
+#define copy_Color4(x) x;
+#define copy_Font(x) x;
 #define copy_charp(x) strdup(x);
 #define copy_charpp(x) strlistdup(x);
 GUI_GlobalSettings* GUI_GlobalSettings_Copy(GUI_GlobalSettings* orig) {
@@ -66,6 +68,8 @@ GUI_GlobalSettings* GUI_GlobalSettings_Copy(GUI_GlobalSettings* orig) {
 #define free_bool(x)
 #define free_float(x)
 #define free_double(x)
+#define free_Color4(x)
+#define free_Font(x)
 #define free_charp(x) free(x);
 #define free_charpp(x) freeptrlist(x);
 void GUI_GlobalSettings_Free(GUI_GlobalSettings* s) {
@@ -83,11 +87,27 @@ void GUI_GlobalSettings_Free(GUI_GlobalSettings* s) {
 #define set_bool(x) x;
 #define set_float(x) x;
 #define set_double(x) x;
+#define set_Color4(x) x;
+#define set_Font(x) x;
 #define set_charp(x) strdup(x);
 #define set_charpp(x) strlistdup(x);
 
 
 
+
+static void grab_Color4(Color4* out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		if(v->type == JSON_TYPE_STRING && v->s) {
+			decodeHexColorNorm(v->s, (float*)out);
+		}
+	}
+}
+
+static void grab_Font(GUIFont** out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	*out = NULL;
+}
 
 static void grab_charp(char** out, json_value_t* obj, char* prop) {
 	json_value_t* v;
