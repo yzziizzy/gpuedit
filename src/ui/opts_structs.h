@@ -7,8 +7,30 @@
 #define STATE_NORMAL 0
 */
 
+/*
+
+#define SH(s,n) ((float)((s) >> n)/255.0)
+#define HEX(s) { \
+    SH(s&0xff000000,24), \
+    SH(s&0xff0000, 16), \
+    SH(s&0xff00,8), \
+    SH(s&0xff,0)}
 
 
+#define P(a,b) a##b
+#define COLOR(s) ((struct c)HEX(P(0x,s)))
+
+
+#define H(s) (((s)[0] >= '0' && (s)[0] <= '9') ? (s)[0] - '0' : (\
+    ((s)[0] >= 'a' && (s)[0] <= 'f') ? (s)[0] - 'a' + 10 : ( \
+    ((s)[0] >= 'A' && (s)[0] <= 'F') ? (s)[0] - 'A' + 10 : 0)))
+
+#define H2(s) (H(s) * 16 + H(s+1))
+#define COLOR(s) \
+    (s[0] == '#' ? \
+        (struct c){H2(s+1)/255.0, H2(s+3)/255.0, H2(s+5)/255.0, H2(s+7)/255.0 }: \
+        (struct c){H2(s)/255.0, H2(s+2)/255.0, H2(s+4)/255.0, H2(s+6)/255.0 })
+*/
 
 #define charp char*
 

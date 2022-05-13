@@ -178,8 +178,7 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	
 }
 
-
-void GUIManager_initGL(GUIManager* gm) {
+static void init_pcbuffer(PCBuffer* pcb, GLuint* vao, int instances) {
 	static VAOConfig vaoConfig[] = {
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // top, left, bottom, right
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // tlbr clipping planes
@@ -196,14 +195,23 @@ void GUIManager_initGL(GUIManager* gm) {
 	};
 
 	
-	gm->vao = makeVAO(vaoConfig);
-	glBindVertexArray(gm->vao);
+	*vao = makeVAO(vaoConfig);
+	glBindVertexArray(*vao);
 	
 	int stride = calcVAOStride(0, vaoConfig);
 
-	PCBuffer_startInit(&gm->instVB, gm->maxInstances * stride, GL_ARRAY_BUFFER);
+	PCBuffer_startInit(pcb, instances * stride, GL_ARRAY_BUFFER);
 	updateVAO(0, vaoConfig); 
-	PCBuffer_finishInit(&gm->instVB);
+	PCBuffer_finishInit(pcb);
+}
+
+
+
+void GUIManager_initGL(GUIManager* gm) {
+
+	
+	init_pcbuffer(&gm->instVB, &gm->vao, gm->maxInstances);
+
 	
 	///////////////////////////////
 	// font texture
@@ -710,6 +718,23 @@ static void draw(void* gm_, GLuint progID, PassDrawParams* pdp) {
 	}
 
 	GUIManager_appendWindowVerts(gm, gm->rootWin);
+	
+	if(gm->vertCount > gm->maxInstances) {
+		GLuint vao;
+		PCBuffer pcb;
+		
+		int new = nextPOT(gm->vertCount);
+		gm->maxInstances = new;
+		
+		init_pcbuffer(&pcb, &vao, new);
+		
+		PCBuffer_free(&gm->instVB);
+		glDeleteVertexArrays(1, &gm->vao);
+		
+		gm->vao = vao;
+		gm->instVB = pcb;
+	}
+	
 
 	GUIUnifiedVertex* vmem = PCBuffer_beginWrite(&gm->instVB);
 	if(!vmem) {
@@ -717,15 +742,9 @@ static void draw(void* gm_, GLuint progID, PassDrawParams* pdp) {
 		return;
 	}
 
- //	sort = getCurrentTime();
-	for(int i = 0; i < gm->vertCount; i++) {
-		vmem[i] = gm->vertBuffer[i];
-	}
+	size_t maxCnt = MIN(gm->vertCount, gm->maxInstances); 
+	memcpy(vmem, gm->vertBuffer, maxCnt * sizeof(*gm->vertBuffer));
 
-//	memcpy(vmem, gm->vertBuffer, gm->vertCount * sizeof(*gm->vertBuffer));
-	// time = timeSince(sort);
-//	total += time;
-	
 
 // 	if(mdi->uniformSetup) {
 // 		(*mdi->uniformSetup)(mdi->data, progID);

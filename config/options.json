@@ -44,7 +44,7 @@
 	"Theme_path": "default_dark.json",
 	
 	GUI_GlobalSettings: {
-		"maxInstances": 16384,
+		"maxInstances": 8192,
 		"linesPerScrollWheel": 5,
 		"hideScrollbar": 0,
 		"hideStatusBar": 0,
