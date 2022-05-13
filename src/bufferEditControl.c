@@ -34,7 +34,7 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 	int tabwidth = w->bdp->tdp->tabWidth;
 	ptrdiff_t charCol = 0;
 	
-	while(screenCol > 0) {
+	while(screenCol > 0 && charCol < bl->length) {
 		if(bl->buf[charCol] == '\t') screenCol -= tabwidth;
 		else screenCol--;
 		charCol++;
