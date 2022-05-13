@@ -165,6 +165,7 @@
 * Algorithm to detect indent width then convert all spaces to tabs
 
 == BUGS ==
+* Invalidly high column number when ctrl-k deleting a line with a selection on it
 * Sequence cursor moves don't clear the current selection or change it
 * GUIManager should pop focus stack if focused control is deleted
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
