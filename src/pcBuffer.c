@@ -25,7 +25,7 @@ PCBuffer* PCBuffer_alloc(size_t size, GLenum type) {
 void PCBuffer_startInit(PCBuffer* b, size_t size, GLenum type) {
 	GLbitfield flags;
 
-	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_DYNAMIC_STORAGE_BIT;
 	
 	b->type = type;
 	b->bufferSize = size;

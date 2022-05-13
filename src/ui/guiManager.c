@@ -718,7 +718,11 @@ static void draw(void* gm_, GLuint progID, PassDrawParams* pdp) {
 	}
 
  //	sort = getCurrentTime();
-	memcpy(vmem, gm->vertBuffer, gm->vertCount * sizeof(*gm->vertBuffer));
+	for(int i = 0; i < gm->vertCount; i++) {
+		vmem[i] = gm->vertBuffer[i];
+	}
+
+//	memcpy(vmem, gm->vertBuffer, gm->vertCount * sizeof(*gm->vertBuffer));
 	// time = timeSince(sort);
 //	total += time;
 	
