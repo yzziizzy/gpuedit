@@ -30,7 +30,6 @@
 #include "sti/sti.h"
 
 #include "utilities.h"
-#include "config.h"
 #include "shader.h"
 #include "texture.h"
 #include "app.h"
@@ -79,6 +78,8 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	VEC(char*) autoload;
 	VEC_INIT(&autoload);
 	
+	as->gui = GUIManager_alloc();
+
 	
 	as->globalSettings = calloc(1, sizeof(*as->globalSettings));
 	
@@ -143,10 +144,9 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 
 	
 	
-	as->gui = GUIManager_alloc();
+
 	GUISettings* guiSettings = Settings_GetSection(as->globalSettings, SETTINGS_GUI);
 	GUIManager_Init(as->gui, guiSettings);
-	
 	
 	tmp = path_join(homedir, ".gpuedit/commands.json");
 

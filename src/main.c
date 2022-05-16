@@ -24,7 +24,6 @@
 
 
 #include "utilities.h"
-#include "config.h"
 #include "shader.h"
 #include "window.h"
 #include "app.h"

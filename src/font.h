@@ -159,7 +159,7 @@ void FontManager_finalize(FontManager* fm);
 GUIFont* FontManager_findFont(FontManager* fm, char* name);
 GUIFont* FontManager_AssertFont(FontManager* fm, char* name);
 
-FontManager* FontManager_alloc(GUISettings* gs);
+FontManager* FontManager_alloc();
 void FontManager_init(FontManager* fm, GUISettings* gs);
 
 
