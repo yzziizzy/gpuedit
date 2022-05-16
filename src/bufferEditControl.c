@@ -313,10 +313,10 @@ void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParam
 	
 	Buffer* b = w->buffer;
 	
-	float lineNumWidth = ceil(LOGB(w->gs->Buffer_lineNumBase, b->numLines + 0.5)) * w->bdp->tdp->charWidth + w->bdp->lineNumExtraWidth;
+	float lineNumWidth = ceil(LOGB(w->bs->lineNumBase, b->numLines + 0.5)) * w->bdp->tdp->charWidth + w->bdp->lineNumExtraWidth;
 	
-	w->linesOnScreen = sz.y / w->gs->Buffer_lineHeight;
-	w->colsOnScreen = (sz.x - lineNumWidth) / w->gs->Buffer_charWidth;
+	w->linesOnScreen = sz.y / w->bs->lineHeight;
+	w->colsOnScreen = (sz.x - lineNumWidth) / w->bs->charWidth;
 
 	w->scrollCoastMax = 50;
 	// scroll coasting while selection dragging
@@ -453,13 +453,15 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	return w;
 }
 
-void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s) {
+void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, Settings* s) {
 	w->gs = s;
+	w->bs = Settings_GetSection(s, SETTINGS_Buffer);
+	w->ts = Settings_GetSection(s, SETTINGS_Theme);
 	
-	w->linesPerScrollWheel = s->Buffer_linesPerScrollWheel;
-	w->cursorBlinkOnTime = s->Buffer_cursorBlinkOnTime;
-	w->cursorBlinkOffTime = s->Buffer_cursorBlinkOffTime;
-	w->outlineCurLine = s->Buffer_outlineCurrentLine;
+	w->linesPerScrollWheel = w->bs->linesPerScrollWheel;
+	w->cursorBlinkOnTime = w->bs->cursorBlinkOnTime;
+	w->cursorBlinkOffTime = w->bs->cursorBlinkOffTime;
+	w->outlineCurLine = w->bs->outlineCurrentLine;
 	
 }
 

@@ -24,7 +24,7 @@
 
 
 
-TextureAtlas* TextureAtlas_alloc(GlobalSettings* gs) {
+TextureAtlas* TextureAtlas_alloc(Settings* gs) {
 	TextureAtlas* ta;
 	pcalloc(ta);
 	
@@ -33,13 +33,13 @@ TextureAtlas* TextureAtlas_alloc(GlobalSettings* gs) {
 	return ta;
 }
 
-void TextureAtlas_init(TextureAtlas* ta, GlobalSettings* gs) {
+void TextureAtlas_init(TextureAtlas* ta, Settings* gs) {
 	VEC_INIT(&ta->sources);
 	VEC_INIT(&ta->atlas);
 	HT_init(&ta->items, 4);
 }
 
-void TextureAtlas_initGL(TextureAtlas* ta, GlobalSettings* gs) {
+void TextureAtlas_initGL(TextureAtlas* ta, Settings* gs) {
 	
 }
 

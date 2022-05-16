@@ -39,7 +39,7 @@ void sdfgen_new(FontGen* fg);
 
 
 
-FontManager* FontManager_alloc(GUI_GlobalSettings* gs) {
+FontManager* FontManager_alloc(GUISettings* gs) {
 	FontManager* fm;
 	
 	pcalloc(fm);
@@ -54,7 +54,7 @@ FontManager* FontManager_alloc(GUI_GlobalSettings* gs) {
 }
 
 
-void FontManager_init(FontManager* fm, GUI_GlobalSettings* gs) {
+void FontManager_init(FontManager* fm, GUISettings* gs) {
 	int i = 0;
 	int atlas_dirty = 0;
 	char* atlas_path = "./fonts.atlas";
@@ -101,7 +101,22 @@ GUIFont* FontManager_findFont(FontManager* fm, char* name) {
 	return f;
 }
 
+GUIFont* FontManager_AssertFont(FontManager* fm, char* name) {
+	GUIFont* f;
+	
+	if(HT_get(&fm->fonts, name, &f)) {
+		
+		pcalloc(f);
+		f->name = strdup(name);
+		f->empty = 1;
+		
+		HT_set(&fm->fonts, name, f);
+	}
+	
+	return f;
 
+
+}
 
 
 

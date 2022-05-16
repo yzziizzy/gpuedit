@@ -48,38 +48,15 @@ int main(int argc, char* argv[]) {
 	char* wd;
 	
 	
-	GlobalSettings_LoadDefaults(&app.globalSettings);
-	app.globalSettings.Theme = &app.themeSettings;
-	app.globalSettings.GUI_GlobalSettings = calloc(1, sizeof(*app.globalSettings.GUI_GlobalSettings));
-	GUI_GlobalSettings_LoadDefaults(app.globalSettings.GUI_GlobalSettings);
 	
 	
-	GlobalSettings_ReadAllJSONAt(&app.globalSettings, "/etc/gpuedit/");
+	AppState_Init(&app, argc, argv);
 	
-	char* homedir = getenv("HOME");
-	GlobalSettings_ReadDefaultsAt(&app.globalSettings, homedir);
 
-	char* curdir = getenv("PWD");
-	GlobalSettings_ReadDefaultsAt(&app.globalSettings, curdir);
 
-	ThemeSettings_LoadDefaults(&app.themeSettings);
-	char* tmp = path_join(homedir, "/.gpuedit/themes/", app.globalSettings.Theme_path);
-	GlobalSettings_LoadFromFile(&app.globalSettings, tmp);
-	free(tmp);
-
-	
-	// init some path info. 
-// 	wd = getcwd(NULL, 0);
-// 	app.dataDir = path_join(wd, "data");
-	
-// 	free(wd);
-	
-	
-	input.doubleClickTime = 0.200;
-	input.dragMinDist = 4;
 	
 	memset(&xs, 0, sizeof(XStuff));
-	xs.gs = &app.globalSettings;
+	xs.gs = app.globalSettings;
 	clearInputState(&input);
 		
 	xs.targetMSAA = 4;
@@ -91,7 +68,7 @@ int main(int argc, char* argv[]) {
 	initXWindow(&xs);
 	
 	
-	initApp(&xs, &app, argc, argv);
+	
 	
 	
 	// initialization loop
@@ -100,7 +77,7 @@ int main(int argc, char* argv[]) {
 		processEvents(&xs, &input, &iev, -1);
 		
 		if(first && xs.ready) {
-			initAppGL(&xs, &app);
+			AppState_InitGL(&xs, &app);
 			first = 0;
 			
 			appLoop(&xs, &app, &input);

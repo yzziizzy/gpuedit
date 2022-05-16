@@ -347,7 +347,7 @@ typedef struct GUIManager {
 	char* softCursorName;
 	Vector2 softCursorSize;
 	
-	GUI_GlobalSettings defaults;
+	GUISettings defaults;
 	
 	// temp 
 	GLuint fontAtlasID;
@@ -355,15 +355,15 @@ typedef struct GUIManager {
 	
 	VEC(GLuint64) texHandles;
 	
-	GUI_GlobalSettings* gs;
+	GUISettings* gs;
 	
 } GUIManager;
 
 
 
-void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs);
-void GUIManager_initGL(GUIManager* gm);
-GUIManager* GUIManager_alloc(GUI_GlobalSettings* gs);
+void GUIManager_Init(GUIManager* gm, GUISettings* gs);
+void GUIManager_InitGL(GUIManager* gm);
+GUIManager* GUIManager_alloc();
 
 GUIWindow* GUIWindow_new(GUIManager* gm, GUIWindow* parent);
 void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw);
@@ -373,11 +373,6 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
 
 void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title);
 void GUIManager_SetCursor(GUIManager* gm, int cursor);
-
-
-
-void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
-
 
 
 

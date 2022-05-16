@@ -60,7 +60,7 @@ typedef struct FileBrowser {
 	GUIManager* gm;
 	MessagePipe* upstream;
 	
-	GlobalSettings* gs;
+	Settings* gs;
 	char* acceptButtonLabel;
 	
 	float lineHeight;

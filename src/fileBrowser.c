@@ -98,7 +98,7 @@ float col_type_widths[] = {
 
 #include "ui/macros_on.h"
 void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
-	GUI_GlobalSettings* gs = gm->gs;
+	GUISettings* gs = gm->gs;
 	
 	char buffer[256];
 	struct tm tm = {};

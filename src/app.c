@@ -69,71 +69,28 @@ void resize_callback(XStuff* xs, void* gm_) {
 static struct child_process_info* cc;
 
 // nothing in here can use opengl at all.
-void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
-	
+void AppState_Init(AppState* as, int argc, char* argv[]) {
 	srand((unsigned int)time(NULL));
 	
-	char* args[] = {
-		"-al",
-		NULL,
-	};
-	
-	as->lastFrameTime = getCurrentTime();
-	as->lastFrameDrawTime = 0;
-	/*
-	struct child_process_info* cc;
-	cc = AppState_ExecProcessPipe(NULL, "ls", args);
-
-	char buf[1024];
-	while(!feof(cc->f_stdout)) {
-		size_t sz = fread(buf, 1, 1024, cc->f_stdout);
-		if(sz) printf("'%*s'\n", sz, buf);
-	}	
-	*/	
-	// this costs 5mb of ram
-// 	json_gl_init_lookup();
-	
-	
-	as->ta = TextureAtlas_alloc(&as->globalSettings);
-	as->ta->width = 32;
-	TextureAtlas_addFolder(as->ta, "icon", "/usr/share/gpuedit/images", 0);
-	TextureAtlas_finalize(as->ta);
-// 	
-	
-	/*
-	Highlighter* ch = pcalloc(ch);
-	initCStyles(ch);
-	Highlighter_PrintStyles(ch);
-	Highlighter_LoadStyles(ch, "config/c_colors.txt");
-	*/
-	
-	as->gui = GUIManager_alloc(as->globalSettings.GUI_GlobalSettings);
-	as->gui->ta = as->ta;
-	xs->onResize = resize_callback;
-	xs->onResizeData = as->gui;
-	
-	as->gui->windowTitleSetFn = (void*)XStuff_SetWindowTitle;
-	as->gui->windowTitleSetData = xs;
-	
-	as->gui->mouseCursorSetFn = (void*)XStuff_SetMouseCursor;
-	as->gui->mouseCursorSetData = xs;
-	
-	
+	int suppress_config = 0;
 	char* homedir = getenv("HOME");
-	char* tmp = path_join(homedir, ".gpuedit/commands.json");
-
-	CommandList_loadJSONFile(as->gui, "/home/izzy/projects/gpuedit/config/commands.json");
-//	CommandList_loadJSONFile(as->gui, tmp); // TODO IMGUI
-	free(tmp);
-
+	char* curdir = getenv("PWD");
+	
+	VEC(char*) autoload;
+	VEC_INIT(&autoload);
 	
 	
-	as->mc = GUIMainControl_New(as->gui, &as->globalSettings);
-	as->mc->as = as;
-	as->mc->gm = as->gui;
-	as->mc->commands = as->commands;
-	as->gui->renderRootData = as->mc;
-	as->gui->renderRootFn = (void*)GUIMainControl_Render;
+	as->globalSettings = calloc(1, sizeof(*as->globalSettings));
+	
+	#define RS(name, key, data) \
+		Settings_RegisterSection(as->globalSettings, SETTINGS_##name, key, data, (void*)name##Settings_Alloc, (void*)name##Settings_Copy, (void*)name##Settings_Free, (void*)name##Settings_LoadDefaults, (void*)name##Settings_LoadJSON);
+	
+	RS(GUI, "gui", as->gui)
+	RS(Buffer, "buffer", NULL)
+	RS(Theme, "theme", NULL)
+	RS(General, "general", NULL)
+			
+	Settings_LoadDefaults(as->globalSettings, SETTINGS_ALL);
 	
 	// command line args
 	for(int i = 1; i < argc; i++) {
@@ -151,22 +108,74 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		if(a[0] == '-') {
 			if(a[1] == 'f' && a[2] == 0) {
 				i++;
-				if(i < argc) {
-					GUIMainControl_LoadFile(as->mc, argv[i]);
+				if(i < argc) VEC_PUSH(&autoload, argv[i]);
+			}
+				
+			if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {
+				i++;
+				if(i <= argc) {
+					Settings_LoadFile(as->globalSettings, argv[i], SETTINGS_ALL);
 				}
+				
+				suppress_config = 1;
 			}
 			
 			continue;
 		}
 		
-		GUIMainControl_LoadFile(as->mc, a);
+		VEC_PUSH(&autoload, argv[i]);
 	}
+	
+	
+	
+	if(!suppress_config) {
+		Settings_ReadAllJSONAt(as->globalSettings, "/etc/gpuedit/", SETTINGS_ALL);
+		
+		Settings_ReadDefaultFilesAt(as->globalSettings, homedir, SETTINGS_ALL);
+		Settings_ReadDefaultFilesAt(as->globalSettings, curdir, SETTINGS_ALL);
+	}
+	
+	as->gs = Settings_GetSection(as->globalSettings, SETTINGS_General);
+	ThemeSettings* theme = Settings_GetSection(as->globalSettings, SETTINGS_Theme);
+	char* tmp = path_join(homedir, "/.gpuedit/themes/", as->gs->Theme_path);
+	Settings_LoadFile(as->globalSettings, tmp, SETTINGS_ALL);
+	free(tmp);
+
+	
+	
+	as->gui = GUIManager_alloc();
+	GUISettings* guiSettings = Settings_GetSection(as->globalSettings, SETTINGS_GUI);
+	GUIManager_Init(as->gui, guiSettings);
+	
+	
+	tmp = path_join(homedir, ".gpuedit/commands.json");
+
+	CommandList_loadJSONFile(as->gui, "/home/izzy/projects/gpuedit/config/commands.json");
+//	CommandList_loadJSONFile(as->gui, tmp); // TODO IMGUI
+	free(tmp);
+	
+
+	
+	
+	as->mc = GUIMainControl_New(as->gui, as->globalSettings);
+	as->mc->as = as;
+	as->mc->gm = as->gui;
+	as->mc->commands = as->commands;
+	as->gui->renderRootData = as->mc;
+	as->gui->renderRootFn = (void*)GUIMainControl_Render;
+	
+	
+	VEC_EACH(&autoload, i, file) {
+		GUIMainControl_LoadFile(as->mc, file);
+	}
+	
+	VEC_FREE(&autoload);
 	
 //	GUIMainControl_LoadFile(as->mc, "testfile.h");
 //	GUIMainControl_LoadFile(as->mc, "testfile.c");
 	
 	int i = 0;
-	TabSpec* ts = as->globalSettings.MainControl_startupTabs;
+	TabSpec* ts = as->gs->MainControl_startupTabs;
 	while(ts[i].type != MCTAB_NONE) {
 		switch(ts[i].type) {
 			case MCTAB_EDIT:
@@ -185,6 +194,69 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 		i++;
 	}
 	GUIMainControl_GoToTab(as->mc, 0);
+	
+	
+	
+	
+	// set up matrix stacks
+	MatrixStack* view, *proj;
+	
+	view = &as->view;
+	proj = &as->proj;
+	
+	msAlloc(2, view);
+	msAlloc(2, proj);
+
+	msIdent(view);
+	msIdent(proj);
+	
+}
+
+
+void AppState_InitGL(XStuff* xs, AppState* as) {
+	glerr("left over error on app initgl");
+	
+	as->lastFrameTime = getCurrentTime();
+	as->lastFrameDrawTime = 0;
+	/*
+	struct child_process_info* cc;
+	cc = AppState_ExecProcessPipe(NULL, "ls", args);
+
+	char buf[1024];
+	while(!feof(cc->f_stdout)) {
+		size_t sz = fread(buf, 1, 1024, cc->f_stdout);
+		if(sz) printf("'%*s'\n", sz, buf);
+	}	
+	*/	
+	// this costs 5mb of ram
+// 	json_gl_init_lookup();
+	
+	
+	as->ta = TextureAtlas_alloc(as->globalSettings);
+	as->ta->width = 32;
+	TextureAtlas_addFolder(as->ta, "icon", "/usr/share/gpuedit/images", 0);
+	TextureAtlas_finalize(as->ta);
+// 	
+	
+	/*
+	Highlighter* ch = pcalloc(ch);
+	initCStyles(ch);
+	Highlighter_PrintStyles(ch);
+	Highlighter_LoadStyles(ch, "config/c_colors.txt");
+	*/
+	
+	as->gui->ta = as->ta;
+	GUIManager_InitGL(as->gui);
+	
+	xs->onResize = resize_callback;
+	xs->onResizeData = as->gui;
+	
+	as->gui->windowTitleSetFn = (void*)XStuff_SetWindowTitle;
+	as->gui->windowTitleSetData = xs;
+	
+	as->gui->mouseCursorSetFn = (void*)XStuff_SetMouseCursor;
+	as->gui->mouseCursorSetData = xs;
+	
 	
 		
 	
@@ -205,34 +277,17 @@ void initApp(XStuff* xs, AppState* as, int argc, char* argv[]) {
 	as->screen.resized = 0;
 	
 
-	// set up matrix stacks
-	MatrixStack* view, *proj;
 	
-	view = &as->view;
-	proj = &as->proj;
+	TextureAtlas_initGL(as->ta, as->globalSettings);
 	
-	msAlloc(2, view);
-	msAlloc(2, proj);
 
-	msIdent(view);
-	msIdent(proj);
-
-}
-
-void initAppGL(XStuff* xs, AppState* as) {
-	
-	
-	glerr("left over error on app init");
-	
-	TextureAtlas_initGL(as->ta, &as->globalSettings);
-	
-	GUIManager_initGL(as->gui);
 	as->guiPass = GUIManager_CreateRenderPass(as->gui);
 	
 
 	initRenderLoop(as);
 	initRenderPipeline();
-	
+		
+	initTextures();
 
 	/*
 	getPrintGLEnum(GL_MAX_COLOR_ATTACHMENTS, "meh");
@@ -255,42 +310,14 @@ void initAppGL(XStuff* xs, AppState* as) {
 	getPrintGLEnum(GL_MAX_UNIFORM_BLOCK_SIZE, "meh");
 	getPrintGLEnum(GL_MAX_TEXTURE_SIZE, "meh");
 	
-	*/
-	
-	
-	
-	initTextures();
-
-	
-	
-	
-/*	
-	json_file_t* guijsf;
-	
-	guijsf = json_load_path("assets/config/main_ui.json");
-	json_value_t* kids;
-	json_obj_get_key(guijsf->root, "children", &kids);
-	
-	GUICL_LoadChildren(as->gui, as->gui->root, kids);
-	
-	GUIHeader* ps = GUIHeader_findChild(as->gui->root, "perfstats");
-	gt_terrain = GUIHeader_findChild(ps, "terrain");
-	gt_solids = GUIHeader_findChild(ps, "solids");
-	gt_selection = GUIHeader_findChild(ps, "selection");
-	gt_decals = GUIHeader_findChild(ps, "decals");
-	gt_emitters = GUIHeader_findChild(ps, "emitters");
-	gt_effects = GUIHeader_findChild(ps, "effects");
-	gt_lighting = GUIHeader_findChild(ps, "lighting");
-	gt_sunShadow = GUIHeader_findChild(ps, "sunShadow");
-	gt_shading = GUIHeader_findChild(ps, "shading");
-	gt_gui = GUIHeader_findChild(ps, "gui");
-	
-	
-*/
-
-		
-
+	*/	
 }
+
+
+
+
+
+
 
 
 // effectively a better, asynchronous version of system()
@@ -635,9 +662,11 @@ if(len > 0) {
 
 
 
-void AppState_UpdateSettings(AppState* as, GlobalSettings* gs) {
+void AppState_UpdateSettings(AppState* as, Settings* gs) {
 	
-	as->globalSettings = *gs;
+	printf("\n\n-- BROKEN FN: AppState_UpdateSettings --\n\n\n");
+	// TODO: VERY BROKEN
+	as->globalSettings = gs;
 	
 	GUIMainControl_UpdateSettings(as->mc, gs);
 }
@@ -754,7 +783,7 @@ void SetUpPDP(AppState* as, PassDrawParams* pdp) {
 void appLoop(XStuff* xs, AppState* as, InputState* is) {
 	
 	// in seconds
-	double frameTimeTarget = 1.0 / (as->globalSettings.AppState_frameRate);
+	double frameTimeTarget = 1.0 / (as->gs->frameRate);
 	double lastFrameCost = 0.0;
 	double lastFrameStart = getCurrentTime();
 	

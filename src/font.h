@@ -45,6 +45,7 @@ struct charInfo {
 typedef struct GUIFont {
 	
 	char* name;
+	char empty; // indicates is the font was merely requested but never filled in
 	
 	int charsLen;
 	struct charInfo* regular;
@@ -156,9 +157,10 @@ void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic, i
 void FontManager_finalize(FontManager* fm);
 
 GUIFont* FontManager_findFont(FontManager* fm, char* name);
+GUIFont* FontManager_AssertFont(FontManager* fm, char* name);
 
-FontManager* FontManager_alloc(GUI_GlobalSettings* gs);
-void FontManager_init(FontManager* fm, GUI_GlobalSettings* gs);
+FontManager* FontManager_alloc(GUISettings* gs);
+void FontManager_init(FontManager* fm, GUISettings* gs);
 
 
 void gen_sdf_test_samples(char* fontName, int code);

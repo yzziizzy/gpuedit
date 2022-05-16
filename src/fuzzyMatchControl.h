@@ -24,13 +24,13 @@ typedef struct GUIFuzzyMatchControl {
 	float leftMargin;
 	
 	MessagePipe* upstream;
-	GlobalSettings* gs;
+	GeneralSettings* gs;
 //	GUI_Cmd* commands;
 	
 } GUIFuzzyMatchControl;
 
 
-GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, MessagePipe* mp, char* path, char* searchTerm);
+GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* path, char* searchTerm);
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w);
 void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 

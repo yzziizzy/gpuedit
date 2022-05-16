@@ -11,6 +11,8 @@
 #include "buffer.h"
 #include "mainControl.h"
 
+struct json_value_t;
+
 
 typedef struct AppScreen {
 	
@@ -36,6 +38,10 @@ typedef struct PerFrameUniforms {
 } PerFrameUniforms;
 
 
+
+
+
+
 typedef struct AppState {
 	
 	char* dataDir;
@@ -43,8 +49,8 @@ typedef struct AppState {
 	
 	AppScreen screen;
 	
-	GlobalSettings globalSettings;
-	ThemeSettings themeSettings;
+	Settings* globalSettings;
+	GeneralSettings* gs;
 	
 	GUIManager* gui;
 	RenderPass* guiPass;
@@ -130,10 +136,9 @@ void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*
 char* execProcessPipe_charppv(char*** args, char*** charpp_out, size_t* n_out/*,int** code_out*/);
 
 
-void initApp(XStuff* xs, AppState* gs, int argc, char* argv[]);
-void initAppGL(XStuff* xs, AppState* gs);
+void AppState_Init(AppState* as, int argc, char* argv[]);
+void AppState_InitGL(XStuff* xs, AppState* as);
 
-void AppState_UpdateSettings(AppState* as, GlobalSettings* gs);
 
 void appLoop(XStuff* xs, AppState* gs, InputState* is);
 void SetUpPDP(AppState* as, PassDrawParams* pdp);

@@ -9,6 +9,7 @@ gpuedit_SOURCES = main.c \
 	buffer.c \
 	buffer_drawing.c \
 	buffer_raw.c \
+	buffer_settings.c \
 	bufferEditor.c \
 	bufferEditControl.c \
 	bufferLine.c \

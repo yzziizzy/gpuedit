@@ -94,6 +94,8 @@
 * Calculate SDF's on the gpu
 
 == Editor Features ==
+* A sort of smart "word" selector that contextually senses whend to stop: del> BufferSettings_Load = Settings_Load, buffer_settings_load = settings_load
+* Mode to execute macro with each click/keypress. Should show hover-cursor for precision. (Hover-cursor mode?)
 * Drag selection to new place
 * Move selection up/down n lines, shifting existing lines below/above
 * Grow selection by sequence

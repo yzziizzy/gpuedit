@@ -193,10 +193,12 @@ do { \
 
 
 
-void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s) {
+void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s) {
 	w->gs = s;
+	w->bs = Settings_GetSection(s, SETTINGS_Buffer);
+	w->ts = Settings_GetSection(s, SETTINGS_Theme);
 	
-	w->statusBarHeight = w->gs->Buffer_statusBarHeight;
+	w->statusBarHeight = w->bs->statusBarHeight;
 	
 	GUIBufferEditControl_UpdateSettings(w->ec, s);
 }

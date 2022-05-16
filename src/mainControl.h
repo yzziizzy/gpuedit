@@ -82,7 +82,8 @@ typedef struct GUIMainControl {
 	GUI_Cmd* commands;
 	
 	GUIManager* gm;
-	GlobalSettings* gs;
+	Settings* s;
+	GeneralSettings* gs;
 	
 	// TEMP HACK
 	char* projectPath;
@@ -92,8 +93,8 @@ typedef struct GUIMainControl {
 
 
 
-GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs);
-void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s);
+GUIMainControl* GUIMainControl_New(GUIManager* gm, Settings* s);
+void GUIMainControl_UpdateSettings(GUIMainControl* w, Settings* s);
 
 
 void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);

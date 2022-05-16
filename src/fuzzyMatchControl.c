@@ -149,12 +149,13 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 }
 
 
-GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, MessagePipe* mp, char* path, char* searchTerm) {
+GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* path, char* searchTerm) {
 
 	
 	
 	GUIFuzzyMatchControl* w = pcalloc(w);
 	w->upstream = mp;
+	w->gs = Settings_GetSection(s, SETTINGS_General);
 
 //	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 //	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;

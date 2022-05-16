@@ -110,93 +110,38 @@ void freewidgetspeclist(WidgetSpec* ws) {
 
 
 
-#define true 1
-#define false 0
 
-#define set_int(x) x;
-#define set_bool(x) x;
-#define set_float(x) x;
-#define set_double(x) x;
-#define set_charp(x) strdup(x);
-#define set_charpp(x) strlistdup(x);
-#define set_Color4(x) x;
-#define set_tabsp(x) tabspeclistdup(x);
-#define set_scrollfn(x) x;
-#define set_widsp(x) widgetspeclistdup(x);
-#define set_themep(x) x;
-#define set_guisettingsp(x) x;
-void GlobalSettings_LoadDefaults(GlobalSettings* s) {
-	#define SETTING(type, name, val ,min,max) s->name = set_##type(val);
-		GLOBAL_SETTING_LIST
-	#undef SETTING
-}
 
-void ThemeSettings_LoadDefaults(ThemeSettings* s) {
+#include "settings_macros_on.h"
+
+void GeneralSettings_LoadDefaults(void* useless, GeneralSettings* s) {
 	#define SETTING(type, name, val ,min,max) s->name = set_##type(val);
-		THEME_SETTING_LIST
+		GENERAL_SETTING_LIST
 	#undef SETTING
+
 }
 
 
+GeneralSettings* GeneralSettings_Alloc(void* useless) {
+	return calloc(1, sizeof(GeneralSettings));
+}
 
-
-
-#define copy_int(x) x;
-#define copy_bool(x) x;
-#define copy_float(x) x;
-#define copy_double(x) x;
-#define copy_charp(x) strdup(x);
-#define copy_charpp(x) strlistdup(x);
-#define copy_Color4(x) x;
-#define copy_tabsp(x) tabspeclistdup(x);
-#define copy_scrollfn(x) x;
-#define copy_widsp(x) widgetspeclistdup(x);
-#define copy_themep(x) ThemeSettings_Copy(x);
-#define copy_guisettingsp(x) GUI_GlobalSettings_Copy(x);
-GlobalSettings* GlobalSettings_Copy(GlobalSettings* orig) {
-	GlobalSettings* new = calloc(1, sizeof(*new));
+GeneralSettings* GeneralSettings_Copy(void* useless, GeneralSettings* orig) {
+	GeneralSettings* new = calloc(1, sizeof(*new));
 	
 	#define SETTING(type, name, val ,min,max) new->name = copy_##type(orig->name);
-		GLOBAL_SETTING_LIST
+		GENERAL_SETTING_LIST
 	#undef SETTING
 	
 	return new;
 }
 
-ThemeSettings* ThemeSettings_Copy(ThemeSettings* orig) {
-	ThemeSettings* new = calloc(1, sizeof(*new));
-
-	#define SETTING(type, name, val ,min,max) new->name = copy_##type(orig->name);
-		THEME_SETTING_LIST
-	#undef SETTING
-	
-	return new;
-}
-
-
-#define free_int(x)
-#define free_bool(x)
-#define free_float(x)
-#define free_double(x)
-#define free_charp(x) free(x);
-#define free_charpp(x) freeptrlist(x);
-#define free_tabsp(x) freetabspeclist(x);
-#define free_Color4(x)
-#define free_scrollfn(x)
-#define free_widsp(x) freewidgetspeclist(x);
-#define free_themep(x) ThemeSettings_Free(x);
-#define free_guisettingsp(x) GUI_GlobalSettings_Free(x);
-void GlobalSettings_Free(GlobalSettings* s) {
+void GeneralSettings_Free(void* useless, GeneralSettings* s) {
 	#define SETTING(type, name, val ,min,max) free_##type(s->name);
-		GLOBAL_SETTING_LIST
+		GENERAL_SETTING_LIST
 	#undef SETTING
 }
-
-void ThemeSettings_Free(ThemeSettings* s) {
-	#define SETTING(type, name, val ,min,max) free_##type(s->name);
-		THEME_SETTING_LIST
-	#undef SETTING
-}
+#include "settings_macros_off.h"
 
 
 
@@ -206,6 +151,7 @@ void ThemeSettings_Free(ThemeSettings* s) {
 
 
 
+/*
 static void grab_Color4(Color4* out, json_value_t* obj, char* prop) {
 	json_value_t* v;
 	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
@@ -214,6 +160,7 @@ static void grab_Color4(Color4* out, json_value_t* obj, char* prop) {
 		}
 	}
 }
+*/
 
 static void grab_charp(char** out, json_value_t* obj, char* prop) {
 	json_value_t* v;
@@ -394,23 +341,157 @@ static void grab_double(double* out, json_value_t* obj, char* prop) {
 	}
 }
 
-static void grab_themep(ThemeSettings** out, json_value_t* obj, char* prop) {
-	json_value_t* v;
-	
-	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
-		ThemeSettings_LoadFromJSON(*out, v);
-	}
-}
 
-static void grab_guisettingsp(GUI_GlobalSettings** out, json_value_t* obj, char* prop) {
-	json_value_t* v;
-	
-	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
-		GUI_GlobalSettings_LoadFromJSON(*out, v);
-	}
+void GeneralSettings_LoadJSON(void* useless, GeneralSettings* s, struct json_value* jsv) {
+	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, jsv, #name);
+		GENERAL_SETTING_LIST
+	#undef SETTING
+
 }
 
 
+
+
+static SettingsSection* find_section(Settings* s, unsigned long bit) {
+	VEC_EACHP(&s->sections, i, sec) {
+		if(sec->bit == bit) return sec;
+	}
+	
+	return NULL;
+}
+
+static SettingsSection* assert_section(Settings* s, unsigned long bit) {
+	SettingsSection* sec = find_section(s, bit);
+	
+	if(!sec) {
+		VEC_PUSH(&s->sections, ((SettingsSection){0}));
+		sec = &VEC_TAIL(&s->sections);
+		sec->bit = bit;
+	}
+	
+	return sec;
+}
+
+void Settings_RegisterSection(
+	Settings* s, 
+	unsigned long bit, 
+	char* key, 
+	void* userData, 
+	SettingsAllocFn a, 
+	SettingsCopyFn c, 
+	SettingsFreeFn f, 
+	SettingsDefaultsFn d, 
+	SettingsLoaderFn l
+) {
+	SettingsSection* sec = assert_section(s, bit);
+	*sec = (SettingsSection){
+		.key = key,
+		.bit = bit,
+		.dataStore = NULL,
+		.userData = userData,
+		.alloc = a,
+		.copy = c,
+		.free = f,
+		.defaults = d,
+		.loader = l,
+	};
+}
+
+
+Settings* Settings_Copy(Settings* s, unsigned long mask) {
+	Settings* new = calloc(1, sizeof(*new));
+	new->parent = s;
+	VEC_COPY(&new->sections, &s->sections);
+	
+	VEC_EACHP(&new->sections, i, sec) {
+		if(mask && mask & sec->bit == 0) {
+			sec->dataStore = NULL;
+			continue;
+		}
+	
+		if(sec->dataStore && sec->copy) {
+			sec->dataStore = sec->copy(sec->userData, sec->dataStore);
+		}
+	}
+	
+	return new;
+}
+
+void Settings_Free(Settings* s) {
+	
+	VEC_EACHP(&s->sections, i, sec) {	
+		if(sec->dataStore && sec->free) {
+			sec->free(sec->userData, sec->dataStore);
+		}
+	}
+
+	VEC_FREE(&s->sections);
+}
+
+void Settings_LoadDefaults(Settings* s, unsigned long mask) {
+	
+	VEC_EACHP(&s->sections, i, sec) {
+		if(mask && ((mask & sec->bit) == 0)) continue;
+		
+		if(!sec->dataStore) {
+			sec->dataStore = sec->alloc(sec->userData); 
+		}
+		
+		if(sec->defaults) {
+			sec->defaults(sec->userData, sec->dataStore);
+		}
+	}
+}
+
+void Settings_LoadJSON(Settings* s, struct json_value* v, unsigned long mask) {
+	json_value_t* v2;
+	
+	VEC_EACHP(&s->sections, i, sec) {
+		printf("loafing '%s':\n", sec->key);
+		if(mask && ((mask & sec->bit) == 0)) continue;
+	
+		
+		if(!json_obj_get_key(v, sec->key, &v2) && v2 != NULL) {
+			if(!sec->dataStore) {
+				sec->dataStore = sec->alloc(sec->userData); 
+				
+				if(sec->defaults) {
+					sec->defaults(sec->userData, sec->dataStore);
+				}
+			}
+			
+			if(sec->loader) {
+				sec->loader(sec->userData, sec->dataStore, v2);
+			}
+		}
+	}
+}
+
+int Settings_LoadFile(Settings* s, char* path, unsigned long mask) {
+	json_file_t* jsf;
+	
+	jsf = json_load_path(path);
+	if(!jsf) {
+		fprintf(stderr, "Failed to open config file '%s'\n", path);
+		return 1;
+	}
+	
+	printf("Reading config file '%s'\n", path);
+		
+	Settings_LoadJSON(s, jsf->root, mask);
+	
+	json_file_free(jsf);
+	
+	return 0;
+}
+
+void* Settings_GetSection(Settings* s, unsigned long bit) {
+	SettingsSection* sec = find_section(s, bit);
+	return sec ? sec->dataStore : NULL;
+}
+
+
+/*
 // returns 0 if the file was read
 int GlobalSettings_LoadFromFile(GlobalSettings* s, char* path) {
 	json_file_t* jsf;
@@ -434,22 +515,22 @@ void ThemeSettings_LoadFromJSON(ThemeSettings* s, struct json_value* jsv) {
 		THEME_SETTING_LIST
 	#undef SETTING
 }
-
+*/
 
 
 // reads path/.gpuedit.json and path/.gpuedit/*.json
 // returns the number of files read
-int GlobalSettings_ReadDefaultsAt(GlobalSettings* gs, char* path) {
+int Settings_ReadDefaultFilesAt(Settings* s, char* path, unsigned long mask) {
 	int files_read = 0;
 	
 	char* path_2 = resolve_path(path);
 	
 	char* single_path = path_join(path_2, ".gpuedit.json");
-	files_read += !GlobalSettings_LoadFromFile(gs, single_path);
+	files_read += !Settings_LoadFile(s, single_path, mask);
 	free(single_path);
 	
 	char* dir_path = path_join(path, ".gpuedit");
-	files_read += GlobalSettings_ReadAllJSONAt(gs, dir_path);
+	files_read += Settings_ReadAllJSONAt(s, dir_path, mask);
 	free(dir_path);
 	
 	free(path_2);
@@ -460,7 +541,7 @@ int GlobalSettings_ReadDefaultsAt(GlobalSettings* gs, char* path) {
 
 // reads path/*.json
 // returns the number of files read
-int GlobalSettings_ReadAllJSONAt(GlobalSettings* gs, char* path) {
+int Settings_ReadAllJSONAt(Settings* s, char* path, unsigned long mask) {
 	int files_read = 0;
 	
 	char* path_2 = resolve_path(path);
@@ -472,7 +553,7 @@ int GlobalSettings_ReadAllJSONAt(GlobalSettings* gs, char* path) {
 		files = multi_wordexp_dup(conf_glob, &num_files);
 		
 		for(size_t i = 0; i < num_files; i++) {
-			files_read += !GlobalSettings_LoadFromFile(gs, files[i]);
+			files_read += !Settings_LoadFile(s, files[i], mask);
 			free(files[i]);
 		}
 		
@@ -483,3 +564,4 @@ int GlobalSettings_ReadAllJSONAt(GlobalSettings* gs, char* path) {
 	
 	return files_read;
 }
+

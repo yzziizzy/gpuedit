@@ -63,13 +63,13 @@ typedef struct GUIFont GUIFont;
 #define bool char
 #define SETTING(type, name, val ,min,max) type name;
 
-typedef struct GUI_GlobalSettings {
+typedef struct GUISettings {
 	GUI_SETTING_LIST
 	
 	#define V(a, ...) a a;
 		GUI_CONTROL_OPS_STRUCT_LIST
 	#undef V
-} GUI_GlobalSettings;
+} GUISettings;
 
 #undef SETTING
 #undef Font
@@ -78,13 +78,17 @@ typedef struct GUI_GlobalSettings {
 #undef bool
 
 
+struct GUIManager;
+typedef struct GUIManager GUIManager;
+
 struct json_value;
 
-GUI_GlobalSettings* GUI_GlobalSettings_Copy(GUI_GlobalSettings* orig);
-void GUI_GlobalSettings_LoadDefaults(GUI_GlobalSettings* s);
-void GUI_GlobalSettings_LoadFromFile(GUI_GlobalSettings* s, char* path);
-void GUI_GlobalSettings_LoadFromJSON(GUI_GlobalSettings* s, struct json_value* jsv);
-void GUI_GlobalSettings_Free(GUI_GlobalSettings* s);
+GUISettings* GUISettings_Copy(GUIManager* gm, GUISettings* orig);
+void GUISettings_LoadDefaults(GUIManager* gm, GUISettings* s);
+void GUISettings_LoadFromFile(GUIManager* gm, GUISettings* s, char* path);
+void GUISettings_LoadJSON(GUIManager* gm, GUISettings* s, struct json_value* jsv);
+GUISettings* GUISettings_Alloc(GUIManager* gm);
+void GUISettings_Free(GUISettings* s);
 
 
 #endif // __gputk_gui_settings_h__

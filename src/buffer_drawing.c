@@ -44,10 +44,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	float z = gm->curZ;
 	
+	ThemeSettings* ts = gbe->ts;
+	BufferSettings* bs = gbe->bs;
 	BufferDrawParams* bdp = gbe->bdp;
 	TextDrawParams* tdp = bdp->tdp;
-	ThemeDrawParams* theme = bdp->theme;
-	float fsize = tdp->fontSize; 
+	float fsize = bs->fontSize; 
 	GUIFont* f = gbe->font;
 	float ascender = f->ascender * fsize;
 	int line = 1;
@@ -59,10 +60,10 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	// draw general background	
 	gm->curZ = z + 0.1;
-	GUI_Rect(tl, sz, &theme->bgColor);
+	GUI_Rect(tl, sz, &ts->bgColor);
 	gm->curZ = z;
 	
-	float lineNumWidth = ceil(LOGB(gbe->gs->Buffer_lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
+	float lineNumWidth = ceil(LOGB(bs->lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	float hsoff = -gbe->scrollCols * tdp->charWidth;
 	
 	if(bdp->showLineNums) tl.x += lineNumWidth;
@@ -71,7 +72,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 
 	if(bdp->showLineNums) {
 		gm->curZ += 1;
-		GUI_Rect(V(0,0), V(lineNumWidth, edh), &theme->lineNumBgColor);
+		GUI_Rect(V(0,0), V(lineNumWidth, edh), &ts->lineNumBgColor);
 		gm->curZ -= 1;
 	}
 	
@@ -84,17 +85,17 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	int inSelection = 0;
 	int maxCols = 10000;
 	
-	struct Color4* fg = &theme->textColor; 
-	struct Color4* bg = &theme->bgColor;
+	struct Color4* fg = &ts->textColor; 
+	struct Color4* bg = &ts->bgColor;
 	
 	struct Color4 lineColors[] = {
-		theme->lineNumColor,
-		theme->lineNumBookmarkColor,
+		ts->lineNumColor,
+		ts->lineNumBookmarkColor,
 		{.95,.05,.05,1.0}, // breakpoint
 	};
 
 	StyleInfo* styles;
-	if(gbe->gs->Theme->is_dark) {
+	if(ts->is_dark) {
 		styles = gbe->h->stylesDark;
 	} else {
 		styles = gbe->h->stylesLight;
@@ -103,7 +104,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	float ytop = tl.y;
 	float yoff = tl.y + f->ascender * fsize;
-//	printf("%f\n", f->ascender);
 	
 	int xx = 0;
 	// draw lines
@@ -111,8 +111,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		// line numbers
 		if(bdp->showLineNums) {
-			sprintlongb(lnbuf, gbe->gs->Buffer_lineNumBase, bl->lineNum, gbe->gs->Buffer_lineNumCharset);
-			float nw = (floor(LOGB(gbe->gs->Buffer_lineNumBase, bl->lineNum)) + 1) * tdp->charWidth;
+			sprintlongb(lnbuf, bs->lineNumBase, bl->lineNum, bs->lineNumCharset);
+			float nw = (floor(LOGB(bs->lineNumBase, bl->lineNum)) + 1) * tdp->charWidth;
 
 			Color4* lnc = &lineColors[0];
 			if(bl->flags & BL_BOOKMARK_FLAG) lnc = &lnc[1];
@@ -136,10 +136,10 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		if(bl == gbe->current && gbe->outlineCurLine && !gbe->sel) {
 			gm->curZ = z + 10;
 			GUI_Box(
-				V(tl.x - 1, tl.y + gbe->gs->Buffer_outlineCurrentLineYOffset), 
-				V(sz.x - gbe->textAreaOffsetX, tdp->lineHeight + gbe->gs->Buffer_outlineCurrentLineYOffset + 2), // +1 to not cover underscores
+				V(tl.x - 1, tl.y + bs->outlineCurrentLineYOffset), 
+				V(sz.x - gbe->textAreaOffsetX, tdp->lineHeight + bs->outlineCurrentLineYOffset + 2), // +1 to not cover underscores
 				1,
-				&theme->outlineCurrentLineBorderColor
+				&ts->outlineCurrentLineBorderColor
 			);
 		}
 		
@@ -160,20 +160,20 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 				if(BufferRangeSet_test(gbe->selSet, bl, i)) {
 					// inside main selection
 					inSelection = 1;
-					fg = &theme->hl_textColor;
-					bg = &theme->hl_bgColor;
+					fg = &ts->hl_textColor;
+					bg = &ts->hl_bgColor;
 				}
 				else {
 					if(BufferRangeSet_test(gbe->findSet, bl, i)) {
 						// inside other selection
 						inSelection = 1;
-						fg = &theme->find_textColor;
-						bg = &theme->find_bgColor;
+						fg = &ts->find_textColor;
+						bg = &ts->find_bgColor;
 					}
 					else {
 						inSelection = 0;
-						fg = &theme->textColor;
-						bg = &theme->bgColor;	
+						fg = &ts->textColor;
+						bg = &ts->bgColor;	
 					}
 				}
 				
@@ -199,7 +199,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 				
 				// hack before selection theme colors are done
 				Color4 invfg;
-				if(inSelection && gbe->gs->Buffer_invertSelection) {
+				if(inSelection && bs->invertSelection) {
 					invfg.r = 1.0 - fg->r;
 					invfg.g = 1.0 - fg->g;
 					invfg.b = 1.0 - fg->b;
@@ -281,13 +281,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			else {
 				if(BufferRangeSet_test(gbe->selSet, bl, 0)) {
 					inSelection = 1;
-					fg = &theme->hl_textColor;
-					bg = &theme->hl_bgColor;
+					fg = &ts->hl_textColor;
+					bg = &ts->hl_bgColor;
 				}
 				else {
 					inSelection = 0;
-					fg = &theme->textColor;
-					bg = &theme->bgColor;	
+					fg = &ts->textColor;
+					bg = &ts->bgColor;	
 				}
 			}
 		
@@ -321,7 +321,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		
 		gm->curZ = z + 10;
-		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, tdp->lineHeight), &theme->cursorColor);
+		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, tdp->lineHeight), &ts->cursorColor);
 	}
 	
 	

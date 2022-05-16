@@ -18,30 +18,18 @@ static void postFrame(void* gm_);
 
 
 
-GUIManager* GUIManager_alloc(GUI_GlobalSettings* gs) {
+GUIManager* GUIManager_alloc() {
 	GUIManager* gm;
 	pcalloc(gm);
-	
-	GUIManager_init(gm, gs);
-	
-	
-	
+		
 	return gm;
 }
 
 // _init is always called before _initGL
-void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
-	
-	
+void GUIManager_Init(GUIManager* gm, GUISettings* gs) {
 	gm->gs = gs;
-	
+
 	GUIManager_InitCommands(gm);
-	
-//	gm->useSoftCursor = 1;
-//	gm->softCursorName = "icon/folder";
-//	gm->softCursorSize = (Vector2){50,50};
-	
-	gm->maxInstances = gs->maxInstances;
 	
 	gm->vertCount = 0;
 	gm->vertAlloc = 2048;
@@ -57,71 +45,16 @@ void GUIManager_init(GUIManager* gm, GUI_GlobalSettings* gs) {
 	gm->windowHeap.buf = calloc(1, gm->windowHeap.alloc * sizeof(*gm->windowHeap.buf));
 	gm->rootWin = GUIWindow_new(gm, 0);
 	
-	
-	gm->fm = FontManager_alloc(gs);
-	
-// 	gm->ta = TextureAtlas_alloc(gs);
-// 	gm->ta->width = 256;
-// 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
-// 	TextureAtlas_finalize(gm->ta);
-	
 	gm->minDragDist = 2;
 	gm->doubleClickTime = 0.500;
 	gm->tripleClickTime = 1.000;
 	gm->quadClickTime = 1.500;
 	gm->multiClickDist = 2.000;
 	
-	GUI_GlobalSettings_LoadDefaults(&gm->defaults);
-	
-	#define C4(r,g,b,a) ((Color4){r,g,b,a})
-	
-	#define G(a,b) gm->defaults.a.b
-	#define I0(a,b) a[0].b
-	#define I1(a,b) a[1].b
-	#define I2(a,b) a[2].b
-	#define F0(a,b0,b1,b2) a = b0;
-	#define F1(a,b0,b1,b2) a = b1;
-	#define F2(a,b0,b1,b2) a = b2;
-	#define XX(t,n,v) n = v;
-	
-	#define H0(a, b) I0(a, O(F0)b)
-	#define H1(a, b) I1(a, O(F1)b)
-	#define H2(a, b) I2(a, O(F2)b)
-	#define X(t,n,v1,v2,v3) (n, v1,v2,v3)
-	#define Y(a, b, ...) EX(H0, a, __VA_ARGS__), EX(H1, a, __VA_ARGS__), EX(H2, a, __VA_ARGS__)
-	//#define V(m, ...) __VA_ARGS__
-	#define V(m, ...) EX2(G, m, __VA_ARGS__)
-		GUI_CONTROL_OPS_STRUCT_LIST
-	#undef G
-	#undef H0
-	#undef H1
-	#undef H2
-	#undef I0
-	#undef I1
-	#undef I2
-	#undef F0
-	#undef F1
-	#undef F2
-	#undef XX
-	#undef X
-	#undef Y
-	#undef V
-	
-	#undef C4
-	
-	// TEMP HACK 
-	gm->defaults.font = FontManager_findFont(gm->fm, gm->defaults.fontName);
-	gm->defaults.font_fw = FontManager_findFont(gm->fm, gm->defaults.fontName_fw);
-
-	
-	gm->defaults.charWidth_fw = gs->charWidth_fw;
-	gm->defaults.lineHeight_fw = gs->lineHeight_fw;
-	gm->defaults.fontSize_fw = gs->fontSize_fw;
-	
-	
-	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
-	
+	// the font manager itself has no GL parts
+	gm->fm = FontManager_alloc(gs);
 }
+
 
 static void init_pcbuffer(PCBuffer* pcb, GLuint* vao, int instances) {
 	static VAOConfig vaoConfig[] = {
@@ -134,7 +67,7 @@ static void init_pcbuffer(PCBuffer* pcb, GLuint* vao, int instances) {
 		{0, 4, GL_UNSIGNED_BYTE, 0, GL_TRUE}, // fg color
 		{0, 4, GL_UNSIGNED_BYTE, 0, GL_TRUE}, // bg color
 		
-		{0, 4, GL_FLOAT, 0, GL_FALSE}, // z-index, alpha, opts 1-2
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // z-index, alpha, rotation, opt 2
 		
 		{0, 0, 0, 0, 0}
 	};
@@ -152,8 +85,32 @@ static void init_pcbuffer(PCBuffer* pcb, GLuint* vao, int instances) {
 
 
 
-void GUIManager_initGL(GUIManager* gm) {
+void GUIManager_InitGL(GUIManager* gm) {
 
+
+	gm->maxInstances = gm->gs->maxInstances;
+	
+
+	
+// 	gm->ta = TextureAtlas_alloc(gs);
+// 	gm->ta->width = 256;
+// 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
+// 	TextureAtlas_finalize(gm->ta);
+	
+	GUISettings_LoadDefaults(gm, &gm->defaults);
+		
+	// TEMP HACK 
+	gm->defaults.font = FontManager_findFont(gm->fm, gm->defaults.fontName);
+	gm->defaults.font_fw = FontManager_findFont(gm->fm, gm->defaults.fontName_fw);
+
+	
+	gm->defaults.charWidth_fw = gm->gs->charWidth_fw;
+	gm->defaults.lineHeight_fw = gm->gs->lineHeight_fw;
+	gm->defaults.fontSize_fw = gm->gs->fontSize_fw;
+	
+	
+	gm->defaultCursor = GUIMOUSECURSOR_ARROW;
+	
 	
 	init_pcbuffer(&gm->instVB, &gm->vao, gm->maxInstances);
 

@@ -47,7 +47,7 @@ typedef struct GUIMainMenu {
 	
 	VEC(GUIMainMenuItem*) items;
 	
-	GlobalSettings newGS;
+	Settings* newGS;
 	
 	
 } GUIMainMenu;
@@ -69,7 +69,7 @@ GUIMainMenuItem* GUIMainMenu_AddString(GUIMainMenu* w, char* label, char** str);
 
 
 
-void AppState_UpdateSettings(AppState* as, GlobalSettings* gs);
+void AppState_UpdateSettings(AppState* as, Settings* gs);
 
 
 #endif // __gpuedit_mainMenu_h__

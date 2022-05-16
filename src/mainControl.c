@@ -390,14 +390,15 @@ static int message_handler(GUIMainControl* w, Message* m) {
 }
 
 
-GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
+GUIMainControl* GUIMainControl_New(GUIManager* gm, Settings* s) {
 
 		
 	GUIMainControl* w = pcalloc(w);
-	w->gs = gs;
+	w->s = s;
+	w->gs = Settings_GetSection(s, SETTINGS_General);
 	MessagePipe_Listen(&w->rx, (void*)message_handler, w);
 	
-	w->tabHeight = gs->MainControl_tabHeight;
+	w->tabHeight = w->gs->MainControl_tabHeight;
 	
 	// TEMP HACK
 	HT_init(&w->breakpoints, 64);
@@ -412,9 +413,11 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, GlobalSettings* gs) {
 	return w;
 }
 
-void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s) {
+void GUIMainControl_UpdateSettings(GUIMainControl* w, Settings* s) {
 	
-	*w->gs = *s;
+	w->s = s;
+	w->gs = Settings_GetSection(s, SETTINGS_General);
+	
 	
 	VEC_EACH(&w->editors, i, e) {
 		GUIBufferEditor_UpdateSettings(e, s);
@@ -425,7 +428,7 @@ void GUIMainControl_UpdateSettings(GUIMainControl* w, GlobalSettings* s) {
 
 MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, void* client, char* title) {
 	
-	GlobalSettings* gs = w->gs;
+	GeneralSettings* gs = w->gs;
 	
 	MainControlTab* t = pcalloc(t);
 	t->client = client;
@@ -726,7 +729,7 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm) {
 		return;
 	}
 
-	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->gm, &w->rx, "./", searchTerm);
+	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->gm, w->s, &w->rx, "./", searchTerm);
 	fmc->gs = w->gs;
 //	fmc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, fmc, "fuzzy matcher");
@@ -822,7 +825,7 @@ static int gbeBeforeClose(MainControlTab* t) {
 static int gbeAfterClose(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
-	GlobalSettings_Free(gbe->gs);
+	Settings_Free(gbe->gs);
 	GUIBufferEditor_Destroy(gbe);
 	return 0;
 }
@@ -921,50 +924,41 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	}
 	
 	
-	GlobalSettings* lgs = GlobalSettings_Copy(w->gs);
+	Settings* ls = Settings_Copy(w->s, SETTINGS_ALL);
 	
 	// read local settings files
 	if(opt->path) {
 		char* dir = strdup(opt->path);
 		dirname(dir);
-		GlobalSettings_ReadDefaultsAt(lgs, dir);
+		Settings_ReadDefaultFilesAt(ls, dir, SETTINGS_ALL);
 		free(dir);
 	}
+	
+	BufferSettings* bs = Settings_GetSection(ls, SETTINGS_Buffer);
+	ThemeSettings* ts = Settings_GetSection(ls, SETTINGS_Theme);
+	GeneralSettings* gs = Settings_GetSection(ls, SETTINGS_General);
 	
 	// HACK: these structures should be looked up from elsewhere
 	EditorParams* ep = pcalloc(ep);
 	ep->lineCommentPrefix = "// ";
 	ep->selectionCommentPrefix = "/*";
 	ep->selectionCommentPostfix= "* /";
-	ep->tabWidth = lgs->Buffer_tabWidth;
+	ep->tabWidth = bs->tabWidth;
+	
 	
 	TextDrawParams* tdp = pcalloc(tdp);
-	tdp->font = FontManager_findFont(w->gm->fm, lgs->Buffer_font);
-	tdp->fontSize = lgs->Buffer_fontSize;
-	tdp->charWidth = lgs->Buffer_charWidth;
-	tdp->lineHeight = lgs->Buffer_lineHeight;
-	tdp->tabWidth = lgs->Buffer_tabWidth;
-	
-	ThemeDrawParams* theme = pcalloc(theme);
-	
-	theme->bgColor = lgs->GUI_GlobalSettings->bgColor;
-	theme->textColor = lgs->GUI_GlobalSettings->textColor;
-	theme->cursorColor = lgs->GUI_GlobalSettings->cursorColor;
-	theme->lineNumColor = lgs->Theme->lineNumColor;
-	theme->lineNumBgColor = lgs->Theme->lineNumBgColor;
-	theme->lineNumBookmarkColor = lgs->Theme->lineNumBookmarkColor;
-	theme->hl_bgColor = lgs->Theme->hl_bgColor;
-	theme->hl_textColor = lgs->Theme->hl_textColor;
-	theme->find_bgColor = lgs->Theme->find_bgColor;
-	theme->find_textColor = lgs->Theme->find_textColor;
-	theme->outlineCurrentLineBorderColor = lgs->Theme->outlineCurrentLineBorderColor;
-	
+	tdp->font = FontManager_findFont(w->gm->fm, bs->font);
+	tdp->fontSize = bs->fontSize;
+	tdp->charWidth = bs->charWidth;
+	tdp->lineHeight = bs->lineHeight;
+	tdp->tabWidth = bs->tabWidth;
+		
 		
 	BufferDrawParams* bdp = pcalloc(bdp);
 	bdp->tdp = tdp;
-	bdp->theme = theme;
-	bdp->showLineNums = lgs->Buffer_showLineNums;
-	bdp->lineNumExtraWidth = lgs->Buffer_lineNumExtraWidth;
+	bdp->theme = ts;
+	bdp->showLineNums = bs->showLineNums;
+	bdp->lineNumExtraWidth = bs->lineNumExtraWidth;
 	
 	
 	
@@ -972,7 +966,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm);
-	GUIBufferEditor_UpdateSettings(gbe, lgs);
+	GUIBufferEditor_UpdateSettings(gbe, ls);
 
 //	gbe->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 // 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
@@ -987,7 +981,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
-	StatusBar_SetItems(gbe->statusBar, lgs->MainControl_statusWidgets);
+	StatusBar_SetItems(gbe->statusBar, w->gs->MainControl_statusWidgets);
 	
 	// highlighter
 	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
