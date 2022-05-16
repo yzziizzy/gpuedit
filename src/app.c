@@ -781,17 +781,25 @@ void SetUpPDP(AppState* as, PassDrawParams* pdp) {
 
 
 void appLoop(XStuff* xs, AppState* as, InputState* is) {
+	PassDrawParams pdp = {0};		
+	PassFrameParams pfp = {0};
 	
 	// in seconds
 	double frameTimeTarget = 1.0 / (as->gs->frameRate);
 	double lastFrameCost = 0.0;
 	double lastFrameStart = getCurrentTime();
 	
+	// the gui system needs this structure to reasonably exist
+	SetUpPDP(as, &pdp);
+	pfp.timeElapsed = as->frameSpan;
+	pfp.appTime = as->frameTime; // this will get regenerated from save files later
+	pfp.wallTime = as->frameTime;
+	pfp.dp = &pdp;
+		
+	
 	// main running loop
 	while(1) {
 		InputEvent iev;
-		PassDrawParams pdp;		
-		PassFrameParams pfp;
 		double frameCostStart;
 		double frameStart;
 		double lastFrameSpan;
@@ -800,7 +808,6 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		
 		double now;
 		PERF(printf("\n\n"));
-		
 		
 		
 		frameStart = getCurrentTime();
