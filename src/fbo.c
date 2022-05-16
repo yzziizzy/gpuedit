@@ -18,7 +18,6 @@
 #include "c3dlas/meshgen.h"
 
 #include "utilities.h"
-#include "config.h"
 #include "fbo.h"
 
 #include "json_gl.h"

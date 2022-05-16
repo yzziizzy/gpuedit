@@ -21,7 +21,9 @@ static void postFrame(void* gm_);
 GUIManager* GUIManager_alloc() {
 	GUIManager* gm;
 	pcalloc(gm);
-		
+	
+	gm->fm = FontManager_alloc();
+	
 	return gm;
 }
 
@@ -30,6 +32,8 @@ void GUIManager_Init(GUIManager* gm, GUISettings* gs) {
 	gm->gs = gs;
 
 	GUIManager_InitCommands(gm);
+	
+	FontManager_init(gm->fm, gs);
 	
 	gm->vertCount = 0;
 	gm->vertAlloc = 2048;
@@ -51,8 +55,6 @@ void GUIManager_Init(GUIManager* gm, GUISettings* gs) {
 	gm->quadClickTime = 1.500;
 	gm->multiClickDist = 2.000;
 	
-	// the font manager itself has no GL parts
-	gm->fm = FontManager_alloc(gs);
 }
 
 

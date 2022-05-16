@@ -447,7 +447,6 @@ void Settings_LoadJSON(Settings* s, struct json_value* v, unsigned long mask) {
 	json_value_t* v2;
 	
 	VEC_EACHP(&s->sections, i, sec) {
-		printf("loafing '%s':\n", sec->key);
 		if(mask && ((mask & sec->bit) == 0)) continue;
 	
 		

@@ -39,7 +39,7 @@ void sdfgen_new(FontGen* fg);
 
 
 
-FontManager* FontManager_alloc(GUISettings* gs) {
+FontManager* FontManager_alloc() {
 	FontManager* fm;
 	
 	pcalloc(fm);
@@ -48,7 +48,7 @@ FontManager* FontManager_alloc(GUISettings* gs) {
 	fm->maxAtlasSize = 512;
 
 // BUG: split out gl init operations now
-	FontManager_init(fm, gs);
+	
 	
 	return fm;
 }
