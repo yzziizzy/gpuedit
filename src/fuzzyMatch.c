@@ -7,7 +7,7 @@
 
 #include "fuzzyMatch.h"
 
-// #define DEBUG printf
+//#define DEBUG printf
 #define DEBUG(...)
 
 
@@ -62,7 +62,7 @@ int fuzzy_match_fmatch(
 		j_c = matches[i].len_c - 1;
 		j_i = len_i - 1;
 		while(j_c >= 0 && j_i >= 0) {
-			DEBUG("while %d, %d\n", j_c, j_i);
+//			DEBUG("while %d, %d\n", j_c, j_i);
 			if(case_sensitive ? candidates[i].filepath[j_c] == input[j_i] : tolower(candidates[i].filepath[j_c]) == tolower(input[j_i])) {
 				if(matches[i].end == -1) {
 					matches[i].end = j_c;

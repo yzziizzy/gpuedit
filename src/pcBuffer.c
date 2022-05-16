@@ -21,11 +21,21 @@ PCBuffer* PCBuffer_alloc(size_t size, GLenum type) {
 	return b;
 }
 
+void PCBuffer_free(PCBuffer* b) {
+	glDeleteBuffers(1, &b->bo);
+	
+	for(int n = 0; n < PC_BUFFER_DEPTH; n++) {
+		glDeleteSync(b->fences[n]);
+	}
+	
+	if(b->label) free(b->label);
+}
+
 
 void PCBuffer_startInit(PCBuffer* b, size_t size, GLenum type) {
 	GLbitfield flags;
 
-	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_DYNAMIC_STORAGE_BIT;
 	
 	b->type = type;
 	b->bufferSize = size;

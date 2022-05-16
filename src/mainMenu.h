@@ -21,9 +21,9 @@ typedef struct GUIMainMenuItem {
 		char** str;
 	} data;
 	
-	GUIWindow* base; 
-	GUIText* gLabel;
-	GUIHeader* gControl;
+//	GUIWindow* base; 
+//	GUIText* gLabel;
+//	GUIHeader* gControl;
 } GUIMainMenuItem;
 
 
@@ -32,14 +32,14 @@ struct AppState;
 typedef struct AppState AppState;
 
 typedef struct GUIMainMenu {
-	GUIHeader header;
+//	GUIHeader header;
 	
 	AppState* as; 
 	
-	GUIGridLayout* rows; 
-	GUIWindow* scrollbar;
-	GUIWindow* clientArea;
-	GUIButton* saveBtn;
+//	GUIGridLayout* rows; 
+//	GUIWindow* scrollbar;
+//	GUIWindow* clientArea;
+//	GUIButton* saveBtn;
 	float sbMinHeight;
 	intptr_t scrollOffset;
 	
@@ -47,7 +47,7 @@ typedef struct GUIMainMenu {
 	
 	VEC(GUIMainMenuItem*) items;
 	
-	GlobalSettings newGS;
+	Settings* newGS;
 	
 	
 } GUIMainMenu;
@@ -69,7 +69,7 @@ GUIMainMenuItem* GUIMainMenu_AddString(GUIMainMenu* w, char* label, char** str);
 
 
 
-void AppState_UpdateSettings(AppState* as, GlobalSettings* gs);
+void AppState_UpdateSettings(AppState* as, Settings* gs);
 
 
 #endif // __gpuedit_mainMenu_h__

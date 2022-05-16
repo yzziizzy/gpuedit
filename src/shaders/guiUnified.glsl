@@ -262,6 +262,8 @@ in vec3 gs_bary;
 
 uniform sampler2DArray fontTex;
 uniform sampler2DArray atlasTex;
+uniform float fontClipLow;
+uniform float fontClipHigh;
 
 
 void main(void) {
@@ -302,7 +304,8 @@ void main(void) {
 		}
 		d = 1 - d;
 
-		a = smoothstep(0.35, 0.9, abs(d));
+		//               0.45          0.8
+		a = smoothstep(fontClipLow, fontClipHigh, abs(d));
 // 		a = step(0.65, abs(d));
 		
 		if(a < 0.01) {

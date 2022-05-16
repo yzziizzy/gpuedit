@@ -1,4 +1,7 @@
 {
+
+general: {
+
 	AppState_frameRate: 30,
 	
 	"GUIManager_maxInstances": 16384,
@@ -18,43 +21,46 @@
 	MainControl_tabNameScrollEndLinger: 2.0,
 	MainControl_tabNameScrollAnimTime: 3.0,
 	
-	"Buffer_linesPerScrollWheel": 3,
-	"Buffer_cursorBlinkEnable": 1,
-	"Buffer_cursorBlinkOffTime": 0.600,
-	"Buffer_cursorBlinkOnTime": 0.600,
-	"Buffer_highlightCurrentLine": 1,
-	"Buffer_outlineCurrentLine": 1,
-	"Buffer_outlineCurrentLineYOffset": 0,
-	"Buffer_lineNumExtraWidth": 10,
-	"Buffer_lineNumBase": 10, // 2-36
-	"Buffer_lineNumCharset": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	"Buffer_showLineNums": 1,
-	"Buffer_charWidth": 8,
-	"Buffer_lineHeight": 17,
-	"Buffer_tabWidth": 4,
-	
-	"Buffer_font": "Courier New",
-	"Buffer_fontSize": 16,
-	"Buffer_invertSelection": 1,
-	"Buffer_maxUndo": 4096,
-	"Buffer_statusBarHeight": 20,
-	// "MainControl_searchPaths": ["foo", "bar"],
-
 	// Theme Settings
-	"Theme_path": "default_dark.json",
+	"Theme_path": "default_dark.json",	
+},
+
+buffer: {
+	"linesPerScrollWheel": 3,
+	"cursorBlinkEnable": 1,
+	"cursorBlinkOffTime": 0.600,
+	"cursorBlinkOnTime": 0.600,
+	"highlightCurrentLine": 1,
+	"outlineCurrentLine": 1,
+	"outlineCurrentLineYOffset": 0,
+	"lineNumExtraWidth": 10,
+	"lineNumBase": 10, // 2-36
+	"lineNumCharset": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	"showLineNums": 1,
+	"charWidth": 8,
+	"lineHeight": 17,
+	"tabWidth": 4,
 	
-	GUI_GlobalSettings: {
-		"maxInstances": 16384,
-		"linesPerScrollWheel": 5,
-		"hideScrollbar": 0,
-		"hideStatusBar": 0,
-		
-		"fontList": [
-			"Arial",
-			"Courier New"
-		],
-		
-		"fontSize_fw": 16,
-	},
+	"font": "Courier New",
+	"fontSize": 14,
+	"invertSelection": 1,
+	"maxUndo": 4096,
+	"statusBarHeight": 20,
+	// "MainControl_searchPaths": ["foo", "bar"],
+},
+	
+gui: {
+	"maxInstances": 8192,
+	"linesPerScrollWheel": 5,
+	"hideScrollbar": 0,
+	"hideStatusBar": 0,
+	
+	"fontList": [
+		"Arial",
+		"Courier New"
+	],
+	
+	"fontSize_fw": 14,
+},
 	
 }

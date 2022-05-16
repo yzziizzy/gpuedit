@@ -5,6 +5,7 @@
 #include <pcre2.h>
 
 
+#include "commands.h"
 #include "ui/gui.h"
 #include "font.h"
 #include "highlight.h"
@@ -17,6 +18,12 @@
 #define BL_BREAKPOINT_FLAG (1<<1)
 
 struct hlinfo;
+struct BufferSettings;
+typedef struct BufferSettings BufferSettings;
+struct ThemeSettings;
+typedef struct ThemeSettings ThemeSettings;
+
+
 
 typedef struct BufferLine {
 	
@@ -195,7 +202,7 @@ typedef struct TextDrawParams {
 	// colors
 } TextDrawParams;
 
-
+/*
 typedef struct ThemeDrawParams {
 	struct Color4 bgColor; 
 	struct Color4 textColor; 
@@ -209,7 +216,7 @@ typedef struct ThemeDrawParams {
 	struct Color4 find_textColor;
 	struct Color4 outlineCurrentLineBorderColor;
 } ThemeDrawParams;
-
+*/
 
 
 typedef struct BufferDrawParams {
@@ -217,7 +224,7 @@ typedef struct BufferDrawParams {
 	float lineNumExtraWidth;
 	
 	TextDrawParams* tdp;
-	ThemeDrawParams* theme;
+	ThemeSettings* theme;
 } BufferDrawParams;
 
 
@@ -227,7 +234,6 @@ typedef struct BufferDrawParams {
 
 // drawing and mouse controls
 typedef struct GUIBufferEditControl {
-	GUIHeader header;
 
 	Buffer* buffer;
 	BufferDrawParams* bdp;
@@ -280,14 +286,22 @@ typedef struct GUIBufferEditControl {
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
 	int colsOnScreen; // number of *full* columns that fit on screen
+	
+	// cached during event processing
+	Vector2 tl, sz;
+	
+	int* inputMode;
+	
 	// TODO: padding lines on vscroll
 
 	int linesPerScrollWheel;
 	
-	GUIWindow* scrollbar;
+//	GUIWindow* scrollbar;
 	float sbMinHeight;
 
-	GlobalSettings* gs;
+	Settings* gs;
+	BufferSettings* bs;
+	ThemeSettings* ts;
 // 	Cmd* commands;
 	
 } GUIBufferEditControl;
@@ -355,11 +369,15 @@ typedef struct GUIFindOpt {
 } GUIFindOpt;
 
 
+typedef struct BufferEditorMacro {
+	VEC(GUI_Cmd) cmds;
+} BufferEditorMacro;
+
 
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
-	GUIHeader header;
 	
+	GUIManager* gm;
 	
 	GUIBufferEditControl* ec;
 	
@@ -369,14 +387,11 @@ typedef struct GUIBufferEditor {
 	
 	char* sourceFile; // issues with undo-save
 	
-	BufferInputMode_t inputMode; 
+//	BufferInputMode_t inputMode; 
 	
-	GUIEdit* lineNumEntryBox;
-	GUIEdit* findBox;
-	GUIEdit* replaceBox;
-	GUIEdit* loadBox;
+	GUIString findQuery;
+	GUIString replaceText;
 	
-	char* findQuery;
 	GUIFindOpt find_opt;
 	pcre2_code* findRE;
 	pcre2_match_data* findMatch;
@@ -391,25 +406,34 @@ typedef struct GUIBufferEditor {
 	
 	BufferRangeSet* findSet;
 	long findIndex;
-	GUIText* findResultsText;
+//	GUIText* findResultsText;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
 	void* setBreakpointData;
 	
 	char trayOpen;
-	GUIWindow* trayRoot;
+	float trayHeight;
+//	GUIWindow* trayRoot;
 	
 	// status bar
 	char showStatusBar;
 	float statusBarHeight;
-	GUIStatusBar* statusBar;
+	StatusBar* statusBar;
+	
+	int inputMode;
+	VEC(int) inputModeStack;
 	
 	HighlighterManager* hm;
 	
-	GUISimpleWindow* menu;
+//	GUISimpleWindow* menu;
 	
-	GlobalSettings* gs;
+	Settings* gs;
+	BufferSettings* bs;
+	ThemeSettings* ts;
 	GUI_Cmd* commands;
+	
+	char isRecording;
+	RING(BufferEditorMacro) macros;
 
 } GUIBufferEditor;
 
@@ -656,11 +680,15 @@ int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 // GUIBufferEditor
 
 
-void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, GlobalSettings* s);
-void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s);
+void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
-void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp);
-static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl, float z, AABB2* clip);
+
+void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, Settings* s);
+void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s);
+
+void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz, int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
 GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm);
 void GUIBufferEditor_Destroy(GUIBufferEditor* w);
@@ -688,6 +716,8 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height); 
 
+void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index);
+
 
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
@@ -696,6 +726,81 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w);
 intptr_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, intptr_t wanted);
 intptr_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, intptr_t col);
 
+
+
+
+
+
+
+
+
+#define BUFFER_SETTING_LIST \
+	SETTING(int,   linesPerScrollWheel,  3,     1,    100) \
+	SETTING(bool,  cursorBlinkEnable,    true,  NULL, NULL) \
+	SETTING(float, cursorBlinkOffTime,   0.600, 0,    300000) \
+	SETTING(float, cursorBlinkOnTime,    0.600, 0,    300000) \
+	SETTING(bool,  highlightCurrentLine, true,  NULL, NULL) \
+	SETTING(bool,  outlineCurrentLine,   true,  NULL, NULL) \
+	SETTING(float, outlineCurrentLineYOffset,   0,     -999, 999) \
+	SETTING(float, lineNumExtraWidth,    10,    0,    1920*16) \
+	SETTING(bool,  showLineNums,         true,  NULL, NULL) \
+	SETTING(int,   lineNumBase,          10,    2,    36) \
+	SETTING(charp, lineNumCharset,       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", NULL, NULL) \
+	SETTING(float, charWidth,            10,    1,    1920*16) \
+	SETTING(float, lineHeight,           20,    1,    1920*16) \
+	SETTING(int,   tabWidth,             4,     0,    INT_MAX) \
+	SETTING(charp, font,                 "Courier New", NULL, NULL) \
+	SETTING(float, fontSize,             12,    1,    1920*16) \
+	SETTING(bool,  invertSelection,      true,  NULL,  NULL) \
+	SETTING(int,   maxUndo,              4096,  0,    INT_MAX) \
+	SETTING(int,   statusBarHeight,      20,    0,    INT_MAX) \
+
+
+
+#define THEME_SETTING_LIST \
+	SETTING(charp,  name,                          "default dark",NULL, NULL) \
+	SETTING(bool,   is_dark,                       true,          NULL, NULL) \
+	SETTING(Color4, cursorColor,                   C4H(ffffffff), NULL, NULL) \
+	SETTING(Color4, textColor,                     C4H(8f8f8fff), NULL, NULL) \
+	SETTING(Color4, bgColor,                       C4H(0f0f0fff), NULL, NULL) \
+	SETTING(Color4, lineNumColor,                  C4H(ffffffff), NULL, NULL) \
+	SETTING(Color4, lineNumBgColor,                C4H(141414ff), NULL, NULL) \
+	SETTING(Color4, lineNumBookmarkColor,          C4H(32ff32ff), NULL, NULL) \
+	SETTING(Color4, hl_bgColor,                    C4H(00c8c8ff), NULL, NULL) \
+	SETTING(Color4, hl_textColor,                  C4H(fa0032ff), NULL, NULL) \
+	SETTING(Color4, find_bgColor,                  C4H(115511ff), NULL, NULL) \
+	SETTING(Color4, find_textColor,                C4H(660022ff), NULL, NULL) \
+	SETTING(Color4, outlineCurrentLineBorderColor, C4H(323232ff), NULL, NULL) \
+	SETTING(Color4, selectedItemTextColor,         C4H(c8c8c8ff), NULL, NULL) \
+	SETTING(Color4, selectedItemBgColor,           C4H(505050ff), NULL, NULL) \
+
+
+#include "settings_macros_on.h"
+#define SETTING(type, name, val ,min,max) type name;
+
+typedef struct BufferSettings {
+	BUFFER_SETTING_LIST
+} BufferSettings;
+
+typedef struct ThemeSettings {
+	THEME_SETTING_LIST
+} ThemeSettings;
+
+#undef SETTING
+#include "settings_macros_off.h"
+
+
+ThemeSettings* ThemeSettings_Alloc(void* useless);
+ThemeSettings* ThemeSettings_Copy(void* useless, ThemeSettings* s);
+void ThemeSettings_Free(void* useless, ThemeSettings* s);
+void ThemeSettings_LoadDefaults(void* useless, ThemeSettings* s);
+void ThemeSettings_LoadJSON(void* useless, ThemeSettings* s, struct json_value* jsv);
+
+BufferSettings* BufferSettings_Alloc(void* useless);
+BufferSettings* BufferSettings_Copy(void* useless, BufferSettings* s);
+void BufferSettings_Free(void* useless, BufferSettings* s);
+void BufferSettings_LoadDefaults(void* useless, BufferSettings* s);
+void BufferSettings_LoadJSON(void* useless, BufferSettings* s, struct json_value* jsv);
 
 
 #endif // __gpuedit_buffer_h__

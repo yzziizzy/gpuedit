@@ -103,9 +103,12 @@
 * Calculate SDF's on the gpu
 
 == Editor Features ==
+* A sort of smart "word" selector that contextually senses whend to stop: del> BufferSettings_Load = Settings_Load, buffer_settings_load = settings_load
+* Mode to execute macro with each click/keypress. Should show hover-cursor for precision. (Hover-cursor mode?)
 * Drag selection to new place
 * Move selection up/down n lines, shifting existing lines below/above
 * Grow selection by sequence
+* A quick hotkey to save the current cursor pos then another to jump back to it
 * Extract selection to its own function in open file space
 * Magic to add a function declaration to the appropriate header
 * Speed scrolling with ctrl
@@ -163,6 +166,7 @@
 * Jump to line of last edit
 * Notify when semicolons appear to be missing
 * Algorithm to detect indent width then convert all spaces to tabs
+* Command to fix all whitespacing on a line according to defined rules
 
 == BUGS ==
 * Invalidly high column number when ctrl-k deleting a line with a selection on it

@@ -61,7 +61,7 @@ typedef struct XStuff {
 	Bool ready;
 	
 	
-	GlobalSettings* gs;
+	Settings* gs;
 } XStuff;
 
 

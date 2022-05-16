@@ -1,15 +1,18 @@
 #ifndef __gpuedit_fuzzyMatchControl_h__
 #define __gpuedit_fuzzyMatchControl_h__
 
+
+#include "commands.h"
 #include "ui/gui.h"
 #include "fuzzyMatch.h"
+#include "msg.h"
 
 
 typedef struct GUIFuzzyMatchControl {
-	GUIHeader header;
 	
-	GUIEdit* searchBox;
-	char* searchTerm;
+	GUIString searchTerm;
+//	char* searchTerm;
+
 	fcandidate* matches;
 	size_t matchCnt;
 	int cursorIndex;
@@ -20,14 +23,16 @@ typedef struct GUIFuzzyMatchControl {
 	float lineHeight;
 	float leftMargin;
 	
-	GlobalSettings* gs;
-	GUI_Cmd* commands;
+	MessagePipe* upstream;
+	GeneralSettings* gs;
+//	GUI_Cmd* commands;
 	
 } GUIFuzzyMatchControl;
 
 
-GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, char* path, char* searchTerm);
+GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* path, char* searchTerm);
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w);
+void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
 void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd);
 

@@ -196,9 +196,9 @@ typedef struct TextureAtlas {
 } TextureAtlas;
 
 
-TextureAtlas* TextureAtlas_alloc(GlobalSettings* gs);
-void TextureAtlas_init(TextureAtlas* ta, GlobalSettings* gs); 
-void TextureAtlas_initGL(TextureAtlas* ta, GlobalSettings* gs); 
+TextureAtlas* TextureAtlas_alloc(Settings* gs);
+void TextureAtlas_init(TextureAtlas* ta, Settings* gs); 
+void TextureAtlas_initGL(TextureAtlas* ta, Settings* gs); 
 
 void TextureAtlas_addPNG(TextureAtlas* ta, char* name, char* path);
 void TextureAtlas_addFolder(TextureAtlas* ta, char* prefix, char* dirPath, int recursive);

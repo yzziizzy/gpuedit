@@ -9,13 +9,13 @@ gpuedit_SOURCES = main.c \
 	buffer.c \
 	buffer_drawing.c \
 	buffer_raw.c \
+	buffer_settings.c \
 	bufferEditor.c \
 	bufferEditControl.c \
 	bufferLine.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
-	calcControl.c \
 	clipboard.c \
 	dumpImage.c \
 	fbo.c \
@@ -24,13 +24,12 @@ gpuedit_SOURCES = main.c \
 	font.c \
 	fuzzyMatch.c \
 	fuzzyMatchControl.c \
-	grepOpenControl.c \
 	highlight.c \
 	input.c \
 	json_gl.c \
 	mainControl.c \
-	mainMenu.c \
 	mdi.c \
+	msg.c \
 	pass.c \
 	pcBuffer.c \
 	qsort_r.c \
@@ -38,38 +37,13 @@ gpuedit_SOURCES = main.c \
 	shader.c \
 	statusBar.c \
 	sti/sti.c \
-	terminal.c \
 	texture.c \
 	textureAtlas.c \
-	ui/animations/pulse.c \
-	ui/button.c \
-	ui/columnLayout.c \
 	ui/commands.c \
-	ui/configLoader.c \
-	ui/debugAdjuster.c \
-	ui/edit.c \
-	ui/fileViewer.c \
-	ui/formControl.c \
-	ui/gridLayout.c \
 	ui/gui.c \
 	ui/gui_settings.c \
 	ui/guiManager.c \
-	ui/image.c \
-	ui/imgButton.c \
-	ui/list.c \
-	ui/monitors.c \
-	ui/performanceGraph.c \
-	ui/selectBox.c \
-	ui/scrollWindow.c \
-	ui/simpleWindow.c \
-	ui/slider.c \
-	ui/structAdjuster.c \
-	ui/tabBar.c \
-	ui/tabControl.c \
-	ui/text.c \
-	ui/textf.c \
-	ui/tree.c \
-	ui/window.c \
+	ui/imgui.c \
 	utilities.c \
 	window.c 
 

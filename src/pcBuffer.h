@@ -31,6 +31,7 @@ typedef struct PCBuffer {
 
 
 PCBuffer* PCBuffer_alloc(size_t size, GLenum type);
+void PCBuffer_free(PCBuffer* b);
 void PCBuffer_startInit(PCBuffer* b, size_t size, GLenum type);
 void PCBuffer_finishInit(PCBuffer* b);
 

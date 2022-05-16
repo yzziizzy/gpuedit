@@ -3,65 +3,84 @@
 
 #include "statusBar.h"
 #include "ui/gui_internal.h"
+#include "buffer.h"
 
 
 
 
 static int sort_items_fn(void* a_, void* b_) {
-	GUIStatusBarItem* a = *((GUIStatusBarItem**)a_);
-	GUIStatusBarItem* b = *((GUIStatusBarItem**)b_);
+	StatusBarItem* a = *((StatusBarItem**)a_);
+	StatusBarItem* b = *((StatusBarItem**)b_);
 
 	return a->order - b->order;
 }
 
+static void setLine(StatusBar* w, StatusBarItem* item);
+static size_t strflinecol(char* s, size_t max, const char* format, GUIBufferEditControl* ec);
 
 
-static void render(GUIStatusBar* w, PassFrameParams* pfp) {
-	GUIManager* gm = w->header.gm;
+#include "ui/macros_on.h" 
+
+void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
+
+	if(!gm->drawMode) return;
 	
-	GUIHeader* h = &w->header;
-	Vector2 tl = h->absTopLeft;
-	
-	GUIFont* font = FontManager_findFont(gm->fm, gm->gs->font_fw);
+	GUIFont* font = gm->defaults.font_fw;
 	float fontSize = gm->gs->fontSize_fw;
 	float charWidth = gm->gs->charWidth_fw;
 	float lineHeight = gm->gs->lineHeight_fw;
 	struct Color4 bg = gm->defaults.statusBarBgColor;
 	struct Color4 text = gm->defaults.statusBarTextColor;
 	
-	gui_drawBox(gm, h->absTopLeft, h->size, &h->absClip, h->absZ + 0.0001, &bg); 
 	
+	// update sizes
+	VEC_SORT(&w->left, sort_items_fn);
+	VEC_SORT(&w->center, sort_items_fn);
+	VEC_SORT(&w->right, sort_items_fn);
+	
+	float off = 0;
+	VEC_EACH(&w->left, i, item) {
+		item->offset = off;
+		off += item->size * charWidth;
+		setLine(w, item);
+	}	
+	
+	off = sz.x;
+	VEC_EACH(&w->right, i, item) {
+		off -= item->size * charWidth;
+		item->offset = off;
+		setLine(w, item);
+	}
+	
+	
+	
+	GUI_Rect(tl, sz, &gm->defaults.statusBarBgColor);
+	
+	gm->curZ++;
 	// draw widgets
 //	Vector2 tl = w->header.absTopLeft;
 //	tl.y -= 500;
-	Vector2 size = { .x=0, .y=lineHeight };
-	Vector2 offset = h->absTopLeft;
+	Vector2 size = {0, lineHeight };
+	Vector2 offset = tl;
+	
 	VEC_EACH(&w->items, i, item) {
 		size.x = item->size * charWidth;
 		offset.x = item->offset;
 //		printf("widget '%s', size: %ld [%.2f,%.2f] at (%.2f, %.2f)\n", item->line, item->size, size.x, size.y, offset.x, offset.y);
-		gui_drawTextLineAdv(
-			h->gm,
-			offset,
-			size,
-			&h->absClip,
-			&text,
-			font,
-			7.2 / fontSize, // magic
-			GUI_TEXT_ALIGN_LEFT,
-			9001,
-			item->line,
-			strlen(item->line)
+
+		GUI_TextLine(
+			item->line, strlen(item->line),
+			tl,
+			gm->defaults.fontName_fw, fontSize,
+			&gm->defaults.statusBarTextColor
 		);
 	}	
 	
-	GUIHeader_renderChildren(h, pfp);
+	gm->curZ--;
 }
 
 
-static void delete(GUIStatusBar* w) {
-	
-}
+#include "ui/macros_off.h" 
 
 
 static size_t strflinecol(char* s, size_t max, const char* format, GUIBufferEditControl* ec) {
@@ -69,63 +88,73 @@ static size_t strflinecol(char* s, size_t max, const char* format, GUIBufferEdit
 	char buffer[20];
 	int len = 0;
 	
-	for(int i=0;format[i] != '\0';i++) {
+	for(int i = 0; format[i] != '\0'; i++) {
 		switch(format[i]) {
 			case '%':
-				switch(format[i+1]) {
+				switch(format[i + 1]) {
 					case 'L':
 						len = snprintf(buffer, 20, "%ld", ec->current->lineNum);
-						for(int j=0;j<len;j++) memcpy(&s[copied], buffer, len);
+						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 						copied += len;
 						i++;
 						break;
+						
 					case 'C':
 						len = snprintf(buffer, 20, "%ld", ec->curCol);
-						for(int j=0;j<len;j++) memcpy(&s[copied], buffer, len);
+						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 						copied += len;
 						i++;
 						break;
+						
 					case 'T':
 						len = snprintf(buffer, 20, "%ld", ec->buffer->numLines);
-						for(int j=0;j<len;j++) memcpy(&s[copied], buffer, len);
+						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 						copied += len;
 						i++;
 						break;
+						
 					case '%':
 						s[copied++] = '%';
 						i++;
 				}
 				break;
+				
 			default:
 				s[copied++] = format[i];
 		}
 	}
+	
 	s[copied++] = '\0';
 	
 	return copied;
 }
 
 
-static void setLine(GUIStatusBar* w, GUIStatusBarItem* item) {
+static void setLine(StatusBar* w, StatusBarItem* item) {
 	switch(item->type) {
 		case MCWID_HELLO:
 			strcpy(item->line, "hello world");
 			break;
+			
 		case MCWID_PING:
 			strcpy(item->line, "ping stats");
 			break;
+			
 		case MCWID_CLOCK: {
 			time_t timer = time(NULL);
 			struct tm* tm = localtime(&timer);
 			strftime(item->line, 100, item->format, tm);
 			break;
 		}
+		
 		case MCWID_BATTERY:
-			strcpy(item->line, "batt: 100%");
+			strcpy(item->line, "batt: over 9000%");
 			break;
+			
 		case MCWID_LINECOL:
 			strflinecol(item->line, 100, item->format, w->ec);
 			break;
+			
 		case MCWID_NONE:
 		default:
 			break;
@@ -133,56 +162,20 @@ static void setLine(GUIStatusBar* w, GUIStatusBarItem* item) {
 }
 
 
-static void updatePos(GUIStatusBar* w, GUIRenderParams* grp, PassFrameParams* pfp) {
-	GUIHeader* h = &w->header;
-	float charWidth = h->gm->gs->charWidth_fw;
-	
-	VEC_SORT(&w->left, sort_items_fn);
-	VEC_SORT(&w->center, sort_items_fn);
-	VEC_SORT(&w->right, sort_items_fn);
-	
-	float offset = 0;
-	VEC_EACH(&w->left, i, item) {
-		item->offset = offset;
-		offset += item->size * charWidth;
-		setLine(w, item);
-	}	
-	
-	offset = h->size.x;
-	VEC_EACH(&w->right, i, item) {
-		offset -= item->size * charWidth;
-		item->offset = offset;
-		setLine(w, item);
-	}
-	
-	gui_defaultUpdatePos(h, grp, pfp);
-}
 
+StatusBar* StatusBar_New(GUIManager* gm, GUIBufferEditor* ed) {
+	
+	StatusBar* w = pcalloc(w);
+	w->ed = ed;
+	w->ec = ed->ec;
 
-GUIStatusBar* GUIStatusBar_New(GUIManager* gm) {
-	
-	
-	static struct gui_vtbl static_vt = {
-		.Render = (void*)render,
-// 		.Delete = (void*)delete,
-		.UpdatePos = (void*)updatePos,
-	};
-	
-	static struct GUIEventHandler_vtbl event_vt = {
-// 		.Click = click,
-	};
-	
-	GUIStatusBar* w = pcalloc(w);
-	
-	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	
 	return w;
 }
 
 
-GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, WidgetSpec* spec, int order) {
+StatusBarItem* StatusBar_AddItem(StatusBar* w, WidgetSpec* spec, int order) {
 	
-	GUIStatusBarItem* it = pcalloc(it);
+	StatusBarItem* it = pcalloc(it);
 	
 	it->type = spec->type;
 	it->size = spec->size;
@@ -211,9 +204,9 @@ GUIStatusBarItem* GUIStatusBar_AddItem(GUIStatusBar* w, WidgetSpec* spec, int or
 }
 
 
-GUIStatusBar* GUIStatusBar_SetItems(GUIStatusBar* w, WidgetSpec* widgets) {
-	for(int i=0; widgets[i].type;i++) {
-		GUIStatusBar_AddItem(w, &widgets[i], i);
+StatusBar* StatusBar_SetItems(StatusBar* w, WidgetSpec* widgets) {
+	for(int i = 0; widgets[i].type; i++) {
+		StatusBar_AddItem(w, &widgets[i], i);
 	}
 	
 	return w;

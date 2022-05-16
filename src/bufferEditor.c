@@ -18,95 +18,122 @@
 extern int g_DisableSave;
 
 
-    //////////////////////////////////
-   //                              //
-  //       GUIBufferEditor        //
- //                              //
-//////////////////////////////////
+#include "ui/macros_on.h"
 
-static void render(GUIBufferEditor* w, PassFrameParams* pfp) {
-// HACK
-// 	GUIBufferEditor_Draw(w, w->header.gm, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100);
+void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
+	// GUI_BeginWindow()
 	
-//	char* statusLine = "hello world";
-//	printf("status line: %s\n", statusLine);
+	w->trayHeight = 60;
 	
+	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
 	
-	GUIHeader_renderChildren(&w->header, pfp);
-}
-
-
-static void keyDown(GUIHeader* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	int needRehighlight = 0;
-
-	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		GUIBufferEditControl_ProcessCommand(w->ec, &(GUI_Cmd){
-			.cmd = BufferCmd_InsertChar, .amt = gev->character
-		}, &needRehighlight);
+	float sbh = w->statusBarHeight * w->showStatusBar;
+	Vector2 ecsz = V(sz.x, sz.y - sbh - w->trayOpen * 60);
 		
-		GUIBufferEditControl_RefreshHighlight(w->ec);
-	}
-	
-}
+	// forward activeness to the edit control
+	if(gm->activeID == w) ACTIVE(w->ec);
 
-static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	int needRehighlight = 0;
-//static void keyDown(GUIHeader* w_, GUIEvent* gev) {
-//	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-//	int needRehighlight = 0;
-	/*
-	if(isprint(gev->character) && (gev->modifiers & (~(GUIMODKEY_SHIFT | GUIMODKEY_LSHIFT | GUIMODKEY_RSHIFT))) == 0) {
-		GUIBufferEditControl_ProcessCommand(w->ec, &(BufferCmd){
-			BufferCmd_InsertChar, gev->character
-		}, &needRehighlight);
-		
-		GUIBufferEditControl_RefreshHighlight(w->ec);
-		GBEC_scrollToCursor(w->ec);
-	}
-	else {*/
-		// special commands
-	
-		// GUIBufferEditor will pass on commands to the buffer
-		GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
-}
+	GUI_PushClip(V(0,0), ecsz);
+	GBEC_Render(w->ec, gm, V(0,0), ecsz, pfp);
+	GUI_PopClip();
 
-static void parentResize(GUIBufferEditor* w, GUIEvent* gev) {
-	w->header.size = gev->size;
-	if(w->trayRoot) {
-		w->trayRoot->header.size.x = w->header.size.x;
+	if(w->showStatusBar) {
+		StatusBar_Render(w->statusBar, gm, V(0, sz.y - sbh), V(sz.x, sbh), pfp);
 	}
-}
-
-static void updatePos(GUIBufferEditor* w, GUIRenderParams* grp, PassFrameParams* pfp) {
-	Vector2 wsz = w->header.size; 
-	
-	float sbHeight = w->statusBarHeight;
-	if(!w->showStatusBar) {
-		sbHeight = 0;
-	}
-	
 	
 	if(w->trayOpen) {
-		w->trayRoot->header.size.x = w->header.size.x;
-		w->trayRoot->header.z = 500;
-		sbHeight += w->trayRoot->header.size.y;
-		w->trayRoot->header.topleft.y = wsz.y - sbHeight;
+		gm->curZ += 10;
+		int update = 0;
 		
-		w->trayRoot->color = w->header.gm->defaults.trayBgColor;
-		w->trayRoot->padding = (AABB2){{5,5}, {5,5}};
+		GUI_Rect(V(0, sz.y - sbh - 60), V(sz.x, 60), &gm->defaults.trayBgColor);
+		
+		if(GUI_Edit(&w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery)){
+			update = 1;
+		}
+		if(GUI_Edit(&w->replaceText, V(10, sz.y - sbh - 25), sz.x - 10 - 200, &w->replaceText)) {
+			
+		}
+		
+
+		
+		DEFAULTS(GUIButtonOpts, bo)
+		bo.size = V(90, 20);
+		bo.fontSize = 12;
+		
+		if(GUI_Button_(gm, ID(&w->findQuery)+1, V(sz.x - 200 + 10, sz.y - sbh - 55), "Find Next", &bo)) {
+			update = 1;
+		}
+		if(GUI_Button_(gm, ID(&w->replaceText)+1, V(sz.x - 200 + 10, sz.y - sbh - 25), "Replace", &bo)) {
+		
+		}
+		if(GUI_Button_(gm, ID(&w->replaceText)+2, V(sz.x - 200 + 10 + 95, sz.y - sbh - 25), "Replace All", &bo)) {
+		
+		}
+
+		gm->curZ -= 10;
+		
+		
+		if(update) {
+			GUIBufferEditor_StopFind(w);
+				
+			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery.data, &w->find_opt);
+			w->ec->findSet = w->findSet;
+			
+			GUIBufferEditor_RelativeFindMatch(w, 0, 1);
+			GUIBufferEditor_scrollToCursor(w);
+		}
+		
+		if(!gm->drawMode && 
+			gm->curEvent.type == GUIEVENT_KeyDown && gm->curEvent.modifiers == 0 && 
+			(gm->curEvent.keycode == XK_ISO_Left_Tab || gm->curEvent.keycode == XK_Tab)
+		) {
+			if(gm->activeID == &w->findQuery) ACTIVE(&w->replaceText);
+			else if(gm->activeID == &w->replaceText) ACTIVE(&w->findQuery);
+			GUI_CancelInput();
+		}
 	}
 	
-	w->statusBar->header.hidden = !w->showStatusBar;
-	w->statusBar->header.size = (Vector2){wsz.x, w->statusBarHeight};
-	w->statusBar->header.topleft = (Vector2){0, 0};
 	
-	w->ec->header.size = (Vector2){wsz.x, wsz.y - sbHeight};
-	w->ec->header.topleft = (Vector2){0, 0};
+
 	
-	gui_defaultUpdatePos(&w->header, grp, pfp);
+	if(!gm->drawMode && GUI_InputAvailable()) {
+		
+		int mode = w->inputMode;
+		if(w->trayOpen && gm->activeID != w->ec) mode = 1;
+	
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
+		int needRehighlight = 0;
+		
+		if(cmd) { 
+			GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
+		
+			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+				GUIBufferEditControl_RefreshHighlight(w->ec);
+			}
+			
+			GUI_CancelInput();
+		}
+	}
+	
+	
+	// --------- drawing code ---------
+	if(gm->drawMode) {	
+		
+		// the little red recording circle
+		if(w->isRecording) {
+			gm->curZ += 100;
+			GUI_CircleFilled(V(sz.x - 30, sz.y - (sbh) + 2), (sbh - 4), 0, C4(1,0,0,1), C4(1,0,0,1));
+			gm->curZ -= 100;
+		}
+	}
+	
+	
+	GUI_EndWindow();
 }
+
+#include "ui/macros_off.h"
+
+
 
 
 void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
@@ -114,110 +141,25 @@ void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
 	GUIBufferEditControl_SetBuffer(w->ec, b);
 }
 
-static void userEvent(GUIHeader* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	
-	if(w->trayOpen && (GUIEdit*)gev->originalTarget == w->findBox) {
-		if(0 == strcmp(gev->userType, "change")) {
-			// because userData is not null terminated from the Edit
-			if(w->findQuery) {
-				free(w->findQuery);
-			}
-			w->findQuery = strndup(gev->userData, gev->userSize);
-			
-			GUIBufferEditor_StopFind(w);
-			
-			w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
-			w->ec->findSet = w->findSet;
-			
-			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
-			GUIBufferEditor_scrollToCursor(w);
-		}
-	} else if(0 == strcmp(gev->userType, "SaveTray_save_click")) {
-		if(!g_DisableSave) {
-			Buffer_SaveToFile(w->buffer, w->sourceFile);
-		}
-		else {
-			printf("Buffer saving disabled.\n");
-		}
-		GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
-	} else if(0 == strcmp(gev->userType, "SaveTray_discard_click")) {
-		GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
-	} else if(0 == strcmp(gev->userType, "SaveTray_cancel_click")) {
-		if(w->trayOpen) {
-			GUIBufferEditor_CloseTray(w);
-		}
-	}
-}
-
-static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
-	GUIBufferEditor* w = (GUIBufferEditor*)w_;
-	
-	if(w->inputMode == BIM_Find || w->inputMode == BIM_Replace) {
-		GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
-	}
-}
 
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
-	
-	static struct gui_vtbl static_vt = {
-		.Render = (void*)render,
-		.UpdatePos = (void*)updatePos,
-		.HandleCommand = (void*)handleCommand,
-	};
-	
-	static struct GUIEventHandler_vtbl event_vt = {
-		.KeyDown = keyDown,
-// 		.Click = click,
-// 		.ScrollUp = scrollUp,
-// 		.ScrollDown = scrollDown,
-// 		.DragStart = dragStart,
-// 		.DragStop = dragStop,
-// 		.DragMove = dragMove,
-		.ParentResize = (void*)parentResize,
-		.User = userEvent,
-		.GainedFocus = gainedFocus,
-	};
-	
+
 	
 	GUIBufferEditor* w = pcalloc(w);
-	
-	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	
-	w->header.cursor = GUIMOUSECURSOR_TEXT;
-	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Buffer;
+	w->gm = gm;	GUIString_Init(&w->findQuery);
+	GUIString_Init(&w->replaceText);
 	
 	w->ec = GUIBufferEditControl_New(gm);
-// 	w->ec->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-	GUI_RegisterObject(w, w->ec);
 	
-	
+	w->statusBar = StatusBar_New(gm, w);
 	w->showStatusBar = !gm->gs->hideStatusBar;
-	w->statusBar = GUIStatusBar_New(gm);
-// 	w->statusBar->header.flags = GUI_MAXIMIZE_X;
-	w->statusBar->header.gravity = GUI_GRAV_BOTTOM_LEFT;
-	w->statusBar->header.size.y = 30; 
-	w->statusBar->header.size.x = w->header.size.x;
-	w->statusBar->header.z = 500;
-	
-	w->statusBar->padding = (AABB2){{5,5}, {5,5}};
-	w->statusBar->spacing = 3;
-	
-	w->statusBar->ec = w->ec;
-	
-	GUI_RegisterObject(w, w->statusBar);
-	
 	
 	
 	pcalloc(w->findSet);
 	w->ec->findSet = w->findSet;
 	
-// 	GUITextF* textf;
-	
-// 	textf = GUITextF_new(w->header.gm);
-// 	textf->header.topleft = (Vector2){4, 0};
-// 	GUITextF_setString(textf, "Column %>ld", &w->ec->ec->curCol);
-// 	GUI_RegisterObject(w->header.parent, textf);
+	RING_INIT(&w->macros, 12);
+
 	
 	return w;
 }
@@ -238,13 +180,7 @@ do { \
 	
 	// this is internally reference counted
 	Buffer_Delete(w->buffer);
-	
-	// TODO gui cleanup
-// 	w->scrollbar;
-// 	w->lineNumEntryBox;
-// 	w->findBox;
-// 	w->loadBox;
-// 	w->trayRoot;
+
 	
 	// TODO more regex cleanup
 	GUIBufferEditor_StopFind(w);
@@ -252,19 +188,17 @@ do { \
 //	VEC_FREE(&w->findRanges);
 	
 	
-	// TODO: free gui stuff
-	//
-	//TODO: free edit control
-	
 	free(w);
 }
 
 
 
-void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, GlobalSettings* s) {
+void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s) {
 	w->gs = s;
+	w->bs = Settings_GetSection(s, SETTINGS_Buffer);
+	w->ts = Settings_GetSection(s, SETTINGS_Theme);
 	
-	w->statusBarHeight = w->gs->Buffer_statusBarHeight;
+	w->statusBarHeight = w->bs->statusBarHeight;
 	
 	GUIBufferEditControl_UpdateSettings(w->ec, s);
 }
@@ -277,21 +211,6 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe) {
 
 
 
-
-static void SaveTray_save_click(GUIHeader* w_, GUIEvent* gev) {
-	GUIManager_BubbleUserEvent(w_->gm, w_, "SaveTray_save_click");
-	gev->cancelled = 1;
-}
-
-static void SaveTray_discard_click(GUIHeader* w_, GUIEvent* gev) {
-	GUIManager_BubbleUserEvent(w_->gm, w_, "SaveTray_discard_click");
-	gev->cancelled = 1;
-}
-
-static void SaveTray_cancel_click(GUIHeader* w_, GUIEvent* gev) {
-	GUIManager_BubbleUserEvent(w_->gm, w_, "SaveTray_cancel_click");
-	gev->cancelled = 1;
-}
 
 
 
@@ -346,12 +265,12 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	
 	w->inputMode = BIM_Find;
 	w->trayOpen = 1;
-	w->header.cmdMode = BIM_Find;
+//	w->header.cmdMode = BIM_Find;
 	
-	w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
-	GUI_RegisterObject(w, w->trayRoot);
-	w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
-	w->findResultsText = (GUIText*)GUI_FindChild(w->trayRoot, "results");
+//	w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "find_tray");
+//	GUI_RegisterObject(w, w->trayRoot);
+//	w->findBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "find");
+//	w->findResultsText = (GUIText*)GUI_FindChild(w->trayRoot, "results");
 	
 	BufferRange sel = {};
 	Buffer* b = w->ec->buffer;
@@ -370,21 +289,23 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 			str = Buffer_StringFromSelection(b, &sel, NULL);
 		}
 	}
-					
+		
+	/*	TODO IMGUI		
 	if(str) {
+		
 		if(w->findQuery) {
-			free(w->findQuery);
+//			free(w->findQuery);
 		}
 		w->findQuery = str;
 	} else if(!w->findQuery) {
 		w->findQuery = strdup("");
 	}
-	GUIEdit_SetText(w->findBox, w->findQuery);
+	*/
 	
 	w->findIndex = -1;
 	
 	w->find_opt.match_mode = GFMM_PCRE;
-	w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
+	w->findSet = GUIBufferEditor_FindAll(w, w->findQuery.data, &w->find_opt);
 	w->ec->findSet = w->findSet;
 
 	// locate the match at/after the cursor
@@ -393,7 +314,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 //	GUIBufferEditor_scrollToCursor(w);
 	
 	w->ec->cursorBlinkPaused = 1;
-	GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
+//	GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 	
 	return 0;
 }
@@ -401,12 +322,12 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor) {
 	if(!w->findSet || w->findSet && !VEC_LEN(&w->findSet->ranges)) {
-		GUIText_setString(w->findResultsText, "No results");
+//		GUIText_setString(w->findResultsText, "No results");
 		return 1;
 	}
 	
 	if(w->findSet->changeCounter != w->buffer->changeCounter) {
-		w->findSet = GUIBufferEditor_FindAll(w, w->findQuery, &w->find_opt);
+		w->findSet = GUIBufferEditor_FindAll(w, w->findQuery.data, &w->find_opt);
 		w->findIndex = -1;
 		printf("reset find index\n");
 	}
@@ -416,29 +337,31 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 	intptr_t line = w->ec->current->lineNum;
 	intptr_t col = w->ec->curCol;
 	
-	if(continueFromCursor && (offset > 0)) {
-		VEC_EACH(&w->findSet->ranges, i, range) {
-			if(range->startLine->lineNum < line) {
-				continue;
-			} else if((range->startLine->lineNum == line) && (range->startCol <= col)) {
-				continue;
+	if(w->findIndex == -1) {
+		if(continueFromCursor && (offset > 0)) {
+			VEC_EACH(&w->findSet->ranges, i, range) {
+				if(range->startLine->lineNum < line) {
+					continue;
+				} else if((range->startLine->lineNum == line) && (range->startCol < col)) {
+					continue;
+				}
+				
+				w->findIndex = i;
+				r = range;
+				break;
 			}
-			
-			w->findIndex = i;
-			r = range;
-			break;
-		}
-	} else if(continueFromCursor && (offset < 0)) {
-		VEC_R_EACH(&w->findSet->ranges, i, range) {
-			if(range->startLine->lineNum > line) {
-				continue;
-			} else if((range->startLine->lineNum == line) && (range->startCol >= col)) {
-				continue;
+		} else if(continueFromCursor && (offset < 0)) {
+			VEC_R_EACH(&w->findSet->ranges, i, range) {
+				if(range->startLine->lineNum > line) {
+					continue;
+				} else if((range->startLine->lineNum == line) && (range->startCol >= col)) {
+					continue;
+				}
+				
+				w->findIndex = i;
+				r = range;
+				break;
 			}
-			
-			w->findIndex = i;
-			r = range;
-			break;
 		}
 	}
 	
@@ -449,7 +372,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 	}
 	char fmt_buffer[420];
 	snprintf(fmt_buffer, 420, "%ld of %ld", w->findIndex + 1, VEC_LEN(&w->findSet->ranges));
-	GUIText_setString(w->findResultsText, fmt_buffer);
+//	GUIText_setString(w->findResultsText, fmt_buffer);
 	
 	GBEC_MoveCursorTo(w->ec, r->startLine, r->startCol);
 	GBEC_SetCurrentSelection(w->ec, r->startLine, r->startCol, r->endLine, r->endCol);
@@ -676,36 +599,64 @@ void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t 
 }
 
 
+
+void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index) {
+	int useless;
+	
+	if(index >= RING_LEN(&w->macros)) return;
+	
+	BufferEditorMacro* m = &RING_ITEM(&w->macros, index);
+	
+	VEC_EACHP(&m->cmds, i, cmd) {
+		GUIBufferEditor_ProcessCommand(w, cmd, &useless);
+	}
+}
+
+
 void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight) {
-	GUIEdit* e;
+//	GUIEdit* e;
 	struct json_file* jsf;
+	GUIManager* gm = w->gm;
+	
+	// keep this command around if a macro is being recorded
+	if(w->isRecording && cmd->cmd != GUICMD_Buffer_MacroToggleRecording) {
+		BufferEditorMacro* m = &RING_HEAD(&w->macros);
+		VEC_PUSH(&m->cmds, *cmd);
+	}
+	
 	
 	switch(cmd->cmd){
-		case BufferCmd_ToggleMenu:
-				
-			jsf = json_load_path("/etc/gpuedit/buffer_menu.json");
-			w->menu = (GUISimpleWindow*)GUICL_CreateFromConfig(w->header.gm, jsf->root);
+		case GUICMD_Buffer_SetMode:
+			w->inputMode = cmd->amt;
+			break;
 			
-			// TODO: free json 
+		case GUICMD_Buffer_PushMode:
+			VEC_PUSH(&w->inputModeStack, w->inputMode);
+			w->inputMode = cmd->amt;
+			break;
 			
-			GUI_RegisterObject(w, w->menu);
-			
-			
-			GUISelectBox* hlsel = (GUISelectBox*)GUI_FindChild(w->menu, "highlighter");
-			GUISelectBoxOption opts[] = {
-				{.label = "C", .data = "c"},
-				{.label = "C++", .data = "cpp"},
-				{.label = "JavaScript", .data = "javascript"},
-			};
-			
-			if(hlsel) GUISelectBox_SetOptions(hlsel, opts, 3);
-			
-			
-			
-			
+		case GUICMD_Buffer_PopMode:
+			if(VEC_LEN(&w->inputModeStack)) {
+				VEC_POP(&w->inputModeStack, w->inputMode);
+			}
+			else
+				w->inputMode = 0;
 			break;
 
-		case BufferCmd_ToggleGDBBreakpoint: {
+		case GUICMD_Buffer_MacroToggleRecording: 
+			w->isRecording = !w->isRecording;
+			if(w->isRecording) {
+				RING_PUSH(&w->macros, (BufferEditorMacro){});
+				BufferEditorMacro* m = &RING_HEAD(&w->macros);
+				VEC_TRUNC(&m->cmds);
+			}
+			break;
+			
+		case GUICMD_Buffer_MacroReplay: 
+			GUIBufferEditor_ReplayMacro(w, cmd->amt + w->isRecording);
+			break;
+			
+		case GUICMD_Buffer_ToggleGDBBreakpoint: {
 			w->ec->current->flags ^= BL_BREAKPOINT_FLAG;
 			
 			//if(w->ec->current->flags & BL_BREAKPOINT_FLAG) {
@@ -716,7 +667,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			
 			break;
 		}
-		case BufferCmd_MovePage:
+		case GUICMD_Buffer_MovePage:
 			GBEC_MoveCursorV(w->ec, cmd->amt * w->ec->linesOnScreen);
 			
 			w->ec->scrollLines = MAX(0, MIN(w->ec->scrollLines + cmd->amt * w->ec->linesOnScreen, w->buffer->numLines - 1));
@@ -724,7 +675,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		
 			
 			// TODO: init selectoin and pivots if no selection active
-		case BufferCmd_GrowSelectionH:
+		case GUICMD_Buffer_GrowSelectionH:
 // 			if(!w->selectPivotLine) {
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
@@ -735,7 +686,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToNextSequence:
+		case GUICMD_Buffer_GrowSelectionToNextSequence:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -744,7 +695,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToPrevSequence:
+		case GUICMD_Buffer_GrowSelectionToPrevSequence:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -753,7 +704,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToSOL:
+		case GUICMD_Buffer_GrowSelectionToSOL:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -762,7 +713,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_GrowSelectionToEOL:
+		case GUICMD_Buffer_GrowSelectionToEOL:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -772,7 +723,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 			
 		
-		case BufferCmd_GrowSelectionV:
+		case GUICMD_Buffer_GrowSelectionV:
 			if(!w->ec->sel) {
 				w->ec->selectPivotLine = w->ec->current;
 				w->ec->selectPivotCol = w->ec->curCol;
@@ -782,48 +733,48 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
-		case BufferCmd_ClearSelection:
+		case GUICMD_Buffer_ClearSelection:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			break;
 			
-		case BufferCmd_SelectSequenceUnder:
+		case GUICMD_Buffer_SelectSequenceUnder:
 			GBEC_SelectSequenceUnder(w->ec, w->ec->current, w->ec->curCol, cmd->str); 
 			w->ec->selectPivotLine = w->ec->sel->startLine;
 			w->ec->selectPivotCol = w->ec->sel->startCol;
 			break;
 			
-		case BufferCmd_MoveToNextSequence:
+		case GUICMD_Buffer_MoveToNextSequence:
 			GBEC_MoveToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_MoveToPrevSequence:
+		case GUICMD_Buffer_MoveToPrevSequence:
 			GBEC_MoveToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_DeleteToNextSequence:
+		case GUICMD_Buffer_DeleteToNextSequence:
 			GBEC_DeleteToNextSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_DeleteToPrevSequence:
+		case GUICMD_Buffer_DeleteToPrevSequence:
 			GBEC_DeleteToPrevSequence(w->ec, w->ec->current, w->ec->curCol, cmd->str);
 			break;
 			
-		case BufferCmd_GoToEOL:
+		case GUICMD_Buffer_GoToEOL:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			w->ec->curCol = w->ec->current->length;
 			break;
 			
-		case BufferCmd_GoToSOL:
+		case GUICMD_Buffer_GoToSOL:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			w->ec->curCol = 0;
 			break;
 		
-		case BufferCmd_GoToAfterIndent:
+		case GUICMD_Buffer_GoToAfterIndent:
 			if(w->ec->sel) GBEC_ClearAllSelections(w->ec);
 			GBEC_MoveCursorTo(w->ec, w->ec->current, BufferLine_GetIndentCol(w->ec->current));
 			break;
 			
-		case BufferCmd_GoToLineLaunch:
+		case GUICMD_Buffer_GoToLineLaunch: /*
 			if(w->inputMode != BIM_GoTo) {
 				if(w->trayOpen) {
 					GUIBufferEditor_CloseTray(w);
@@ -844,11 +795,11 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 				GUIBufferEditor_CloseTray(w);
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
-			}
+			}*/
 		// TODO: change hooks
 			break;
 		
-		case BufferCmd_GoToLineSubmit:
+		case GUICMD_Buffer_GoToLineSubmit: /*
 			if(w->inputMode == BIM_GoTo) {
 				intptr_t line_num = strtol(GUIEdit_GetText(w->lineNumEntryBox), NULL, w->gs->Buffer_lineNumBase);
 				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
@@ -861,10 +812,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 				GUIBufferEditor_CloseTray(w);
 				w->inputMode = BIM_Buffer;
 				GUIManager_popFocusedObject(w->header.gm);
-			}
+			}*/
 			break;
 		
-		case BufferCmd_ReplaceNext: { // TODO put this all in a better spot
+		case GUICMD_Buffer_ReplaceNext: { // TODO put this all in a better spot
 			Buffer* b = w->ec->buffer;
 			GUIBufferEditControl* ec = w->ec;
 			
@@ -875,8 +826,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			if(r) {
 				Buffer_DeleteSelectionContents(b, r);
 				
-				char* rtext = GUIEdit_GetText(w->replaceBox);
-				size_t len = strlen(rtext);
+				char* rtext = w->replaceText.data;
+				size_t len = w->replaceText.len;
 				
 				Buffer_LineInsertChars(b, r->startLine, rtext, r->startCol, len);
 				GBEC_MoveCursorTo(ec, r->startLine, r->startCol);
@@ -887,9 +838,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 		}
 		
-		case BufferCmd_ReplaceAll: {
-			char* rtext = GUIEdit_GetText(w->replaceBox);
-//			size_t len = strlen(rtext);
+		case GUICMD_Buffer_ReplaceAll: {
+			char* rtext = w->replaceText.data;
+			size_t len = w->replaceText.len;
 			
 			GUIBufferEditor_ReplaceAll(w, w->findSet, rtext);
 		
@@ -899,7 +850,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 		}
 		
-		case BufferCmd_ReplaceStart:
+		case GUICMD_Buffer_ReplaceStart:
+		/*
 			if(w->inputMode != BIM_Replace) {
 				char* preserved = NULL;
 				if(w->trayOpen) {
@@ -929,57 +881,64 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 				GUIBufferEditor_CloseTray(w);
 				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
-			}
+			}*/
 			break;
 			
-		case BufferCmd_FindStartSequenceUnderCursor:
+		case GUICMD_Buffer_FindStartSequenceUnderCursor:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
 			break;
 			
-		case BufferCmd_FindStartFromSelection:
+		case GUICMD_Buffer_FindStartFromSelection:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION);
 			break;
 			
-		case BufferCmd_FindStart:			
-		case BufferCmd_FindResume:
+		case GUICMD_Buffer_FindStart:			
+		case GUICMD_Buffer_FindResume:
+			w->inputMode = 1;
+		
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_NONE);
+			
+			GUI_SetActive(&w->findQuery);
+			
 			break;
-		case BufferCmd_SmartFind:
+		case GUICMD_Buffer_SmartFind:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION|FM_SEQUENCE);
 			break;
 		
-		case BufferCmd_FindNext:
+		case GUICMD_Buffer_FindNext:
 			GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 			break;
 			
-		case BufferCmd_FindPrev:
+		case GUICMD_Buffer_FindPrev:
 			GUIBufferEditor_RelativeFindMatch(w, -1, 1);
 			break;
 			
-		case BufferCmd_CollapseWhitespace:
+		case GUICMD_Buffer_CollapseWhitespace:
 			Buffer_CollapseWhitespace(w->buffer, w->ec->current, w->ec->curCol);
 			break;
 			
-		case BufferCmd_CloseTray:
+		case GUICMD_Buffer_CloseTray:
+			w->inputMode = 0;
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);
 				w->inputMode = BIM_Buffer;
 				w->ec->cursorBlinkPaused = 0;
-				GUIManager_popFocusedObject(w->header.gm);
+//				GUIManager_popFocusedObject(w->header.gm);
 				
 				// HACK
 				if(w->findSet) VEC_TRUNC(&w->findSet->ranges);
 			}
 			break;
 			
-// 		case BufferCmd_CloseBuffer: {
+// 		case GUICMD_Buffer_CloseBuffer: {
 // 			GUIHeader* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
 // 			GUI_RegisterObject(NULL, oo); // register to root window
 			
 			
 // 			break;
 // 		}
-		case BufferCmd_SmartBubbleSelection: {
+		case GUICMD_Buffer_SmartBubbleSelection: {
+			/*
 			GUIBubbleOpt opt = {};
 			GUIEvent gev2 = {};
 			
@@ -1000,13 +959,15 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			gev2.userType = "SmartBubble";
 		
 			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
+			
 			free(opt.ev);
 			free(opt.sel);
+			*/
 			break;
 		}
 			
 
-		case BufferCmd_Save: 
+		case GUICMD_Buffer_Save: 
 			if(!g_DisableSave) {
 				Buffer_SaveToFile(w->buffer, w->sourceFile);
 			}
@@ -1015,17 +976,17 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			}
 			break;
 		
-		case BufferCmd_SaveAndClose:
+		case GUICMD_Buffer_SaveAndClose:
 			if(!g_DisableSave) {
 				Buffer_SaveToFile(w->buffer, w->sourceFile);
 			}
 			else {
 				printf("Buffer saving disabled.\n");
 			}
-			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+//			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
 			break;
 		
-		case BufferCmd_PromptAndClose:
+		case GUICMD_Buffer_PromptAndClose:
 			// launch save_tray
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);
@@ -1033,12 +994,12 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			
 			if(w->buffer->undoSaveIndex == w->buffer->undoCurrent) {
 				// changes are saved, so just close
-				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+//				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
 				break;
 			}
 			
 			w->trayOpen = 1;
-			
+			/*
 			w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "save_tray");
 			GUI_RegisterObject(w, w->trayRoot);
 			GUIText* saveTrayFilename = (GUIText*)GUI_FindChild(w->trayRoot, "filename");
@@ -1052,12 +1013,12 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			
 			GUIEdit* btn_cancel = (GUIEdit*)GUI_FindChild(w->trayRoot, "cancel");
 			GUIHeader_AddHandler(&btn_cancel->header, GUIEVENT_Click, SaveTray_cancel_click);
-			
+			*/
 			w->ec->cursorBlinkPaused = 1;
 			
 			break;
 		
-		case BufferCmd_Reload:
+		case GUICMD_Buffer_Reload:
 		{
 			struct hlinfo* hl = w->buffer->hl; // preserve the meta info
 			EditorParams* ep = w->buffer->ep;
@@ -1083,36 +1044,21 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 	}
 	
 	
-#define flag_setup(x) \
-	static unsigned int x = 9999999; \
-	if(x == 9999999) { \
-		HT_get(&gm->cmdFlagLookup, #x, &x); \
-	}
+
 	
-	
-	GUIManager* gm = w->header.gm;
-	flag_setup(scrollToCursor)
-	flag_setup(rehighlight)
-	flag_setup(resetCursorBlink)
-	flag_setup(undoSeqBreak)
-	flag_setup(hideMouse)
-	flag_setup(centerOnCursor)
-	
-	
-	
-	if(cmd->flags & scrollToCursor) {
+	if(cmd->flags & GUICMD_FLAG_scrollToCursor) {
 		GBEC_scrollToCursor(w->ec);
 	}
 	
-	if(cmd->flags & rehighlight) {
+	if(cmd->flags & GUICMD_FLAG_rehighlight) {
 		GUIBufferEditControl_RefreshHighlight(w->ec);
 	}
 	
-	if(cmd->flags & resetCursorBlink) {
+	if(cmd->flags & GUICMD_FLAG_resetCursorBlink) {
 		w->ec->cursorBlinkTimer = 0;
 	}
 	
-	if(cmd->flags & undoSeqBreak) {
+	if(cmd->flags & GUICMD_FLAG_undoSeqBreak) {
 		if(!w->ec->sel) {
 //					printf("seq break without selection\n");
 			Buffer_UndoSequenceBreak(
@@ -1132,12 +1078,10 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		}			
 	}
 	
-	if(cmd->flags & centerOnCursor) {
+	if(cmd->flags & GUICMD_FLAG_centerOnCursor) {
 		GBEC_scrollToCursorOpt(w->ec, 1);
 	}
 	
-	
-// 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
 }
 
 
@@ -1150,12 +1094,12 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 	w->inputMode = BIM_Buffer;
 	
 	
-	w->header.cmdMode = BIM_Buffer;
+//	w->header.cmdMode = BIM_Buffer;
 	
-	GUI_Delete(w->trayRoot);
-	w->trayRoot = NULL;
-	w->findBox = NULL;
-	w->replaceBox = NULL;
+//	GUI_Delete(w->trayRoot);
+//	w->trayRoot = NULL;
+//	w->findBox = NULL;
+//	w->replaceBox = NULL;
 }
 
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height) {

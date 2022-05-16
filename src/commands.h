@@ -8,7 +8,7 @@
 
 
 
-#define COMMANDELEMTYPE_LIST \
+#define EXTERN_GUI_ELEMENT_LIST \
 	X(Buffer) \
 	X(Main) \
 	X(FileBrowser) \
@@ -23,8 +23,11 @@
 // EOL = End of Line
 // SOL = Start of Line
 
-#define COMMANDTYPE_LIST \
+#define EXTERN_GUI_COMMAND_LIST \
 	X(Buffer, Debug) \
+	X(Buffer, PushMode) \
+	X(Buffer, PopMode) \
+	X(Buffer, SetMode) \
 	X(Buffer, KeyStroke) \
 	X(Buffer, MoveCursorV) \
 	X(Buffer, MoveCursorH) \
@@ -119,6 +122,8 @@
 	X(Buffer, ScrollScreenPctH) \
 	X(Buffer, NextHighlighter) \
 	X(Buffer, SmartBubbleSelection) \
+	X(Buffer, MacroToggleRecording) \
+	X(Buffer, MacroReplay) \
 	\
 	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \
@@ -127,6 +132,9 @@
 	X(FileBrowser, SmartOpen) \
 	X(FileBrowser, ToggleSelect) \
 	X(FileBrowser, JumpToLetter) \
+	X(FileBrowser, MoveCursorV) \
+	X(FileBrowser, ParentDir) \
+	X(FileBrowser, OpenUnderCursor) \
 	\
 	X(FuzzyMatcher, Exit) \
 	X(FuzzyMatcher, CursorMove) \
@@ -160,6 +168,10 @@
 	X(Main, GoToTab) \
 	X(Main, MainMenu) \
 	X(Main, ToggleGDBBreakpoint) \
+	X(Main, FontNudgeLow) \
+	X(Main, FontNudgeHigh) \
+	X(Main, FontNudgeWidth) \
+	X(Main, FontNudgeCenter) \
 	
 	
 	/*
@@ -179,7 +191,7 @@
 
 
 
-#define COMMANDFLAG_LIST \
+#define EXTERN_GUI_COMMAND_FLAG_LIST \
 	X(scrollToCursor) \
 	X(rehighlight) \
 	X(resetCursorBlink) \
@@ -188,6 +200,8 @@
 	X(centerOnCursor) \
 
 
+
+/*
 #define X(a, b) a##Cmd_##b,
 enum  {
 	CUSTOMCMD_STARTVALUE = GUICMD_MAXVALUE,
@@ -204,11 +218,11 @@ enum  {
 	CUSTOMCMDELEM_MAXVALUE,
 };
 #undef X
+*/
 
 
 
-
-
+/*
 #define X(a) CMD_FLAG_ORD_##a,
 enum {
 	COMMANDFLAG_FIRSTVALUE = GUICMD_FLAG_ORD_MAXVALUE - 1,
@@ -221,7 +235,7 @@ enum {
 	COMMANDFLAG_LIST
 };
 #undef X
-
+*/
 
 
 
