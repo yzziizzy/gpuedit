@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/sysinfo.h>
 
 // link with -lutil
 
@@ -29,6 +30,7 @@ char* g_gcc_opts_flat;
 char* g_gcc_include;
 char* g_gcc_libs;
 
+int g_nprocs;
 
 
 struct child_process_info {
@@ -535,66 +537,88 @@ void read_cpi(struct child_process_info* cpi) {
 	return ;
 }
 
- //
+char* printpct(float f) {
+	static char buf[32];
+	if(f != 100) sprintf(buf, "\e[1;33m %2.0f%%\e[0m", f); 
+	else sprintf(buf, "\e[1;32m100%%\e[0m", f); 
+	
+	return buf;
+}
 
-int compile_cache_execute() {
+
+int execute_mt(strlist* cmds, int threads, char* fmt, struct child_process_info*** cpis) {
 	int ret = 0;
-//	printf("compile cache length %d", compile_cache.len);
-
-	struct child_process_info** procs = calloc(1, compile_cache.len * sizeof(*procs));
-
-	for(int i = 0; i < compile_cache.len; i++) {
-//		printf("%s\n", compile_cache.entries[i]);
-		procs[i] = exec_cmdline_pipe(compile_cache.entries[i]);
-		procs[i]->state = 'r';
-		
-		free(compile_cache.entries[i]);
-	}
+	int running = 0;
 	
+	struct child_process_info** procs = calloc(1, cmds->len * sizeof(*procs));
+	if(cpis) *cpis = procs;
 	
-	int waiting = compile_cache.len;
+	if(fmt) printf(fmt, printpct(0)), fflush(stdout);
+	
+	int waiting = cmds->len;
 	while(waiting > 0) {
-		for(int i = 0; i < compile_cache.len; i++) {	
-			if(procs[i]->state == 'd') continue;
+		for(int i = 0; i < cmds->len; i++) {	
 			
-//			fread(procs[i]->output_buffer, procs[i]->stdout_file)
+			// keep the cores full
+			if(!ret && !procs[i] && running < threads) {
+				procs[i] = exec_cmdline_pipe(cmds->entries[i]);
+				procs[i]->state = 'r';
+				running++;
+			}
+			
+			if(!procs[i] || procs[i]->state == 'd') continue;
+			
+			
 			read_cpi(procs[i]);	
 			
 			int status;
 			// returns 0 if nothing happened, -1 on error, childpid if it exited
 			int pid = waitpid(procs[i]->pid, &status, WNOHANG);
-//			printf("hung #%d: %d \n", i, pid);
 			if(pid != 0) {
 				procs[i]->state = 'd';
 				waiting--;
+				running--;
 				
-				//waitpid(procs[i]->pid, &status, 0);
+				if(fmt) printf("\r"), printf(fmt, printpct((cmds->len - waiting) * 100.0f / (float)cmds->len)), fflush(stdout);
+				
 				read_cpi(procs[i]);
 				
 				procs[i]->output_buffer[procs[i]->buf_len] = 0;
 				procs[i]->exit_status = WEXITSTATUS(status);
 				
 				if(!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-					printf("error on pid %d/%d = %d\n", pid, procs[i]->pid, WEXITSTATUS(status));	
-					printf("%s\n", procs[i]->output_buffer);
-					
+//					printf("error on pid %d/%d = %d\n", pid, procs[i]->pid, WEXITSTATUS(status));	
+//					printf("%s\n", procs[i]->output_buffer);
 					ret = 1;
 				}
-				
-//				printf("output: '%s'\n", procs[i]->output_buffer);
-//				printf("dead process, %d waiting\n", waiting);
 			}
-			
 			
 			
 		}
 		
-//		printf("%d waiting\n", waiting);
+		
 		usleep(100);
 	}
 	
+	if(fmt) printf("\r"), printf(fmt, printpct(100)), fflush(stdout);
 	
-	compile_cache.len = 0;
+	printf("\n");
+	
+	
+	return ret;
+}
+
+
+
+int compile_cache_execute() {
+	int ret = 0;
+//	printf("compile cache length %d", compile_cache.len);
+
+	ret = execute_mt(&compile_cache, g_nprocs, "Compiling...              %s", NULL);
+	
+	// TODO free compile cache
+	// TODO free cpis
+
 	return ret;
 }
 
@@ -667,7 +691,7 @@ int gen_deps(char* src_path, char* dep_path, time_t src_mtime, time_t obj_mtime)
 	char* real_dep_path = resolve_path(dep_path, &dep_mtime);
 	if(dep_mtime < src_mtime) {
 		//gcc -MM -MG -MT $1 -MF "build/$1.d" $1 $CFLAGS $LDADD
-		printf("  generating deps\n"); 
+//		printf("  generating deps\n"); 
 		char* cmd = sprintfdup("gcc -MM -MG -MT '' -MF %s %s %s", dep_path, src_path, g_gcc_opts_flat);
 		system(cmd);
 		free(cmd);

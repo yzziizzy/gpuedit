@@ -256,7 +256,7 @@ void Highlighter_LoadStyles(Highlighter* h, char* path) {
 // 		printf("line: '%s' = '%s'\n", name, value);
 		style = get_style(h, name, prefix[0]);
 		if(!style) {
-			fprintf(stderr, "Unknown style name '%s' in %s:%d\n", name, path, ln);
+//			fprintf(stderr, "Unknown style name '%s' in %s:%d\n", name, path, ln);
 			continue;
 		}
 		

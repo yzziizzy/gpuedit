@@ -74,9 +74,6 @@ char* cflags[] = {
 	"-march=native",
 	"-mtune=native", 
 	"-DSTI_C3DLAS_NO_CONFLICT",
-	"-DEACSMB_USE_SIMD",
-	"-DEACSMB_HAVE_SSE4",
-	"-DEACSMB_HAVE_AVX",
 	"-fno-math-errno", 
 	"-fexcess-precision=fast", 
 	"-fno-signed-zeros",
@@ -153,16 +150,17 @@ void check_source(char* raw_src_path, strlist* objs) {
 	
 	char* real_obj_path = resolve_path(obj_path, &obj_mtime);
 	if(obj_mtime < src_mtime) {
-		printf("  objtime compile\n");
+//		printf("  objtime compile\n");
 		compile_source(src_path, real_obj_path);
 		return;
 	}
 	
 	
 	if(gen_deps(src_path, dep_path, src_mtime, obj_mtime)) {
-		printf("  deep dep compile\n");
+//		printf("  deep dep compile\n");
 		compile_source(src_path, real_obj_path);
 	}
+	
 	
 	
 	//gcc -c -o $2 $1 $CFLAGS $LDADD
@@ -175,6 +173,7 @@ int main(int argc, char* argv[]) {
 	realname_cache_init();
 	strlist_init(&compile_cache);
 	hash_init(&mkdir_cache, 128);
+	g_nprocs = get_nprocs();
 	
 	char* tmp;
 	
@@ -197,28 +196,37 @@ int main(int argc, char* argv[]) {
 	strlist objs;
 	strlist_init(&objs);
 	
+	float source_count = list_len(sources);
+	
 	for(int i = 0; sources[i]; i++) {
-		printf("%i: checking %s\n", i, sources[i]);
+//		printf("%i: checking %s\n", i, sources[i]);
 		char* t = path_join("src", sources[i]);
 		check_source(t, &objs);
 		free(t);
+		
+		printf("\rChecking dependencies...  %s", printpct((i * 100) / source_count));
 	}
-	printf("Executing compile cache..."); fflush(stdout);
+	printf("\rChecking dependencies...  %s\n", printpct(100.0));
+	fflush(stdout);
+	
 	if(compile_cache_execute()) {
-		printf("Build halted due to errors.\n");
+		printf("\e[1;31mBuild failed.\e[0m\n");
 		return 1;
 	}
-	printf(" DONE.\n");
 	
 	
-	printf("Linking final executable..."); fflush(stdout);
+	printf("Linking executable...    "); fflush(stdout);
 	char* objects_flat = join_str_list(objs.entries, " ");
 //	gcc -o imcalc $objlist $CFLAGS $LDADD
 	char* cmd = sprintfdup("gcc -o %s %s %s %s", exe_path, objects_flat, g_gcc_libs, g_gcc_opts_flat);
 //	printf("cmd: %s\n", cmd );
-	system(cmd);
-	printf(" DONE.\n");
-	
+	if(system(cmd)) {
+		printf(" \e[1;31mFAIL\e[0m\n");
+		return 1;
+	}
+	else {
+		printf(" \e[1;32mDONE\e[0m\n");
+	}
 	
 //	printf("%d: %s\n", err, strerror(errno));
 	return 0;

@@ -40,8 +40,8 @@ void GUIManager_Init(GUIManager* gm, GUISettings* gs) {
 	gm->vertBuffer = calloc(1, sizeof(*gm->vertBuffer) * gm->vertAlloc);
 	
 		
-	gm->fontClipLow = 0.46;
-	gm->fontClipHigh = 0.84;
+	gm->fontClipLow = 0.41;
+	gm->fontClipHigh = 0.88;
 	gm->fontClipGap = gm->fontClipHigh - gm->fontClipLow;
 	
 	gm->windowHeap.cnt = 0;
