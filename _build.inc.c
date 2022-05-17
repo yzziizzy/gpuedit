@@ -560,7 +560,7 @@ int execute_mt(strlist* cmds, int threads, char* fmt, struct child_process_info*
 		for(int i = 0; i < cmds->len; i++) {	
 			
 			// keep the cores full
-			if(!ret && !procs[i] && running < threads) {
+			if(!procs[i] && running < threads) {
 				procs[i] = exec_cmdline_pipe(cmds->entries[i]);
 				procs[i]->state = 'r';
 				running++;
