@@ -5,6 +5,10 @@ general: {
 	AppState_frameRate: 30,
 	
 	"GUIManager_maxInstances": 16384,
+	
+	imagesPath: "./images",
+	commandsPath: "./config/commands.json",
+	highlightersPath: "./src/highlighters/",
 
 	"MainControl_startupTabs": [
 		{ "type": "Edit", "path": "./testfile.c", },
@@ -50,6 +54,8 @@ buffer: {
 },
 	
 gui: {
+	shaderPath: "./src/shaders/guiUnified.glsl",
+	
 	"maxInstances": 8192,
 	"linesPerScrollWheel": 5,
 	"hideScrollbar": 0,

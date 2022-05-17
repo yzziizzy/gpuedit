@@ -2,4 +2,4 @@
 
 gcc -lutil _build.c -o ._build -ggdb \
 	&& ./._build \
-	&& gpuedit $@
+	&& ./gpuedit --config config/options.json $@

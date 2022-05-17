@@ -20,7 +20,7 @@ clean up debug file/line info
 capture compile errors and translat to actual file and line
 */
 
-const char* SHADER_BASE_PATH = "/usr/lib64/gpuedit/shaders/";
+
 
 
 typedef VEC(char*) stringlist;
@@ -392,17 +392,10 @@ void compileShader(ShaderSource* ss) {
 ShaderProgram* loadCombinedProgram(char* path) {
 	ShaderProgram* sp;
 	ShaderSource* ss;
-	char* spath;
-	int bplen = strlen(SHADER_BASE_PATH);
-	
-
-	// grab the source
-	spath = (char*)malloc(bplen + strlen(path) + 6);
-	sprintf(spath, "%s%s.glsl", SHADER_BASE_PATH, path);
 	
 	sp = makeShaderProgram();
 	
-	ss = loadShaderSource(spath);
+	ss = loadShaderSource(path);
 	
 	processIncludes(sp, ss);
 	extractShaders(sp, ss);

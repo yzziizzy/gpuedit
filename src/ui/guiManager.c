@@ -762,7 +762,7 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 	static ShaderProgram* prog = NULL;
 	
 	if(!prog) {
-		prog = loadCombinedProgram("guiUnified");
+		prog = loadCombinedProgram(gm->gs->shaderPath);
 		glexit("");
 	}
 	

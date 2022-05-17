@@ -118,7 +118,6 @@ void BufferSettings_LoadDefaults(void* useless, BufferSettings* s) {
 }
 
 void BufferSettings_LoadJSON(void* useless, BufferSettings* s, struct json_value* jsv) {
-	printf("\n\n\n---------------\n\n\nloading json\n");
 	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, jsv, #name);
 		BUFFER_SETTING_LIST
 	#undef SETTING

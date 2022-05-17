@@ -577,6 +577,8 @@ int compile_cache_execute() {
 				if(!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
 					printf("error on pid %d/%d = %d\n", pid, procs[i]->pid, WEXITSTATUS(status));	
 					printf("%s\n", procs[i]->output_buffer);
+					
+					ret = 1;
 				}
 				
 //				printf("output: '%s'\n", procs[i]->output_buffer);

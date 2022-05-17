@@ -148,11 +148,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	GUISettings* guiSettings = Settings_GetSection(as->globalSettings, SETTINGS_GUI);
 	GUIManager_Init(as->gui, guiSettings);
 	
-	tmp = path_join(homedir, ".gpuedit/commands.json");
-
-	CommandList_loadJSONFile(as->gui, "/home/izzy/projects/gpuedit/config/commands.json");
-//	CommandList_loadJSONFile(as->gui, tmp); // TODO IMGUI
-	free(tmp);
+	CommandList_loadJSONFile(as->gui, as->gs->commandsPath);
 	
 
 	
@@ -234,7 +230,7 @@ void AppState_InitGL(XStuff* xs, AppState* as) {
 	
 	as->ta = TextureAtlas_alloc(as->globalSettings);
 	as->ta->width = 32;
-	TextureAtlas_addFolder(as->ta, "icon", "/usr/share/gpuedit/images", 0);
+	TextureAtlas_addFolder(as->ta, "icon", as->gs->imagesPath, 0);
 	TextureAtlas_finalize(as->ta);
 // 	
 	

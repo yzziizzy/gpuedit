@@ -406,8 +406,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, Settings* s) {
 	// ----
 	
 	HighlighterManager_Init(&w->hm);
-	Highlighter_ScanDirForModules(&w->hm, "/usr/lib64/gpuedit/highlighters/");
-	Highlighter_ScanDirForModules(&w->hm, "~/.gpuedit/highlighters/");
+	Highlighter_ScanDirForModules(&w->hm, w->gs->highlightersPath);
 	
 	
 	return w;
