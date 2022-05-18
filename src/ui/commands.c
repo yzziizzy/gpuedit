@@ -189,6 +189,13 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 	}
 //	printf("^^^^\n");
 
+
+	GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, mode);
+	if(cmi && cmi->parent != -1) {
+		return Commands_ProbeCommand(gm, elemType, gev, cmi->parent);
+	}
+
+
 	return NULL; // no match
 }
 /*
@@ -236,7 +243,7 @@ int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t i
 	int infIndex;
 	
 	if(HT_get(&gm->cmdElementLookup, elemname, &infIndex)) {
-		fprintf(stderr, "Unknown command element name: '%s' trying to add '%s'\n", elemname, name);
+		L1("Unknown command element name: '%s' trying to add '%s'\n", elemname, name);
 		return 1;
 	}
 	inf = &VEC_ITEM(&gm->cmdElements, infIndex);
@@ -253,7 +260,7 @@ int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) {
 	int infIndex;
 	
 	if(id > 0xfff0) {
-		printf("GUI: Too many command elements trying to add '%s'\n", name);
+		L1("GUI: Too many command elements trying to add '%s'\n", name);
 		return 0;
 	}
 	
@@ -299,6 +306,15 @@ uint32_t GUIManager_AddCommandFlag(GUIManager* gm, char* name) {
 	*/ return 0;
 }
 
+GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id) {
+	// TODO: better data structure
+	VEC_EACHP(&gm->commandModes, i, mp) {
+		if(mp->id == id) return mp;
+	}
+
+	return NULL;
+}
+
 
 void CommandList_loadJSONFile(GUIManager* gm, char* path) {
 	json_file_t* jsf;
@@ -309,7 +325,7 @@ void CommandList_loadJSONFile(GUIManager* gm, char* path) {
 }
 
 void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
-	json_value_t* cmds_v, *elems_v, *keys_v;
+	json_value_t* cmds_v, *elems_v, *modes_v, *keys_v;
 	
 	cmds_v = json_obj_get_val(root, "commands");
 	if(!cmds_v) return;
@@ -331,11 +347,52 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 			if(!ename) continue;
 			
 			if(HT_get(&gm->cmdElementLookup, ename, &infIndex)) {
-				fprintf(stderr, "Unknown element name: '%s'\n", ename);
+				L1("Unknown element name: '%s'\n", ename);
 				continue;
 			}
 			inf = &VEC_ITEM(&gm->cmdElements, infIndex); // TODO IMGUI
 			
+		}
+	}
+	
+	
+	// modes metadata
+	modes_v = json_obj_get_val(cmds_v, "modes");
+	if(modes_v && modes_v->type == JSON_TYPE_OBJ) {
+		json_value_t* v;
+		
+		char* key;
+		void* iter = NULL;
+		while(json_obj_next(modes_v, &iter, &key, &v)) {
+		
+			int id = strtol(key, NULL, 10);
+			
+			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, id);
+			if(!cmi) {
+				VEC_PUSH(&gm->commandModes, (GUI_CmdModeInfo){0});
+				cmi = &VEC_TAIL(&gm->commandModes);
+				cmi->id = id;
+				cmi->parent = -1;
+			}
+		
+			
+			// look for a mode name string
+			char* mname = json_obj_get_str(v, "name");
+			if(mname) {
+				if(cmi->name) {
+					if(strcmp(mname, cmi->name)) {
+						L2("Overwriting command mode %d name '%s' with '%s'\n", id, cmi->name, mname);
+						free(cmi->name);
+						cmi->name = strdup(mname);
+					}
+				}
+				else {
+					cmi->name = strdup(mname);
+				}
+			}
+			
+			// check for a parent node to fall back to
+			cmi->parent = json_obj_get_int(v, "parent", -1);
 		}
 	}
 
@@ -364,14 +421,14 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 	// element name
 	s = json_obj_get_str(entry, "elem");
 	if(s == NULL && validate && cmd->element == 0) {
-		fprintf(stderr, "Command List entry missing element name\n");
+		L1("Command List entry missing element name\n");
 		return 1;
 	}
 	else if(s != NULL) {
 		char* s1 = strdup(s);
 		
 		if(HT_get(&gm->cmdElementLookup, s, &infIndex)) {
-			fprintf(stderr, "Unknown element name: '%s'\n", s);
+			L1("Unknown element name: '%s'\n", s);
 			return 1;
 		}
 		inf = &VEC_ITEM(&gm->cmdElements, infIndex);  // TODO IMGUI
@@ -384,7 +441,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 		char* s1 = strdup(s);
 		
 		if(HT_get(&gm->cmdElementLookup, s, &infIndex2)) {
-			fprintf(stderr, "Unknown sub-element name: '%s'\n", s);
+			L1("Unknown sub-element name: '%s'\n", s);
 			return 1;
 		}
 		inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2); // TODO IMGUI
@@ -394,13 +451,13 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 	// command enum
 	s = json_obj_get_str(entry, "cmd");
 	if(s == NULL && validate && cmd->cmd == 0) {
-		fprintf(stderr, "Command List entry missing cmd name\n");
+		L1("Command List entry missing cmd name\n");
 		return 1;
 	}
 	else if(s != NULL) {
 		char* s2 = strdup(s);
 		if(HT_get(&inf->nameLookup, s, &n32)) {
-			fprintf(stderr, "Unknown command enum: '%s'\n", s);
+			L1("Unknown command enum: '%s'\n", s);
 			return 1;
 		}
 		cmd->cmd = n32;
@@ -411,7 +468,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 	
 	s = json_obj_get_str(entry, "key");
 	if(s == NULL && validate && cmd->keysym == 0) {
-		fprintf(stderr, "Command List entry missing key\n");
+		L1("Command List entry missing key\n");
 		return 1;
 	}
 	else if(s != NULL) {
@@ -421,7 +478,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 			// cat keysymdef.h | grep '#define' | egrep -o 'XK_[^ ]* *[x0-9a-f]*' | sed 's/  */", /g;s/^/{"/;s/$/},/'
 			uint64_t n;
 			if(HT_get(&syms, s, &n)) {
-				fprintf(stderr, "Invalid X11 keysym name: '%s'\n", s);
+				L1("Invalid X11 keysym name: '%s'\n", s);
 				return 1;
 			}
 			
@@ -431,7 +488,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 			// virtual key macro
 			uint64_t n;
 			if(HT_get(&syms, s, &n)) {
-				fprintf(stderr, "Invalid virtual keysym name: '%s'\n", s);
+				L1("Invalid virtual keysym name: '%s'\n", s);
 				return 1;
 			}
 			
@@ -489,7 +546,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 			else if(*s == 'T') m |= GUIMODKEY_TUX;
 			else if(*s == 'W') m |= GUIMODKEY_TUX;
 			else {
-				printf("Unknown character looking for command modifiers: \"%c\"\n", *s);
+				L1("Unknown character looking for command modifiers: \"%c\"\n", *s);
 				s++;
 			}
 		}
@@ -551,7 +608,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 					}
 				}
 				else {
-					fprintf(stderr, "Invalid flag format in command list.\n");
+					L1("Invalid flag format in command list.\n");
 				}
 			}
 			
@@ -589,7 +646,7 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 
 	
 	if(root->type != JSON_TYPE_ARRAY) {
-		fprintf(stderr, "Command List json root must be an array.\n");
+		L1("Command List json root must be an array.\n");
 		return;
 	}
 	

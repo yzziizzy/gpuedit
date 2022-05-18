@@ -28,6 +28,7 @@ char* sources[] = { "main.c",
 	"highlight.c",
 	"input.c",
 	"json_gl.c",
+	"log.c",
 	"mainControl.c",
 	"mdi.c",
 	"msg.c",
@@ -210,6 +211,8 @@ int main(int argc, char* argv[]) {
 	printf("\rChecking dependencies...  \e[32mDONE\e[0m\n");
 	fflush(stdout);
 	
+	
+	
 	if(compile_cache_execute()) {
 		printf("\e[1;31mBuild failed.\e[0m\n");
 		return 1;
@@ -237,6 +240,14 @@ int main(int argc, char* argv[]) {
 	else {
 		printf(" \e[32mDONE\e[0m\n");
 	}
+	
+	// erase the build output if it succeeded
+	printf("\e[F\e[K");
+	printf("\e[F\e[K");
+	printf("\e[F\e[K");
+	printf("\e[F\e[K");
+	
+	printf("\e[32mBuild successful:\e[0m %s\n\n", exe_path);
 	
 	return 0;
 }

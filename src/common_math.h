@@ -2,7 +2,6 @@
 #define __EACSMB_common_math_h__
 
 
-
 #include <stdio.h> 
 #include <math.h> 
 #include <stdint.h> 
@@ -11,6 +10,9 @@
 
 #include "c3dlas/c3dlas.h" 
 #include "c3dlas/meshgen.h"
+
+// a very high level place to include this file
+#include "log.h"
 
 
 // basic vertex formats for general use

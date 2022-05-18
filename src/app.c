@@ -112,13 +112,17 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 				if(i < argc) VEC_PUSH(&autoload, argv[i]);
 			}
 				
-			if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {
+			else if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {
 				i++;
 				if(i <= argc) {
 					Settings_LoadFile(as->globalSettings, argv[i], SETTINGS_ALL);
 				}
 				
 				suppress_config = 1;
+			}
+			
+			else if(a[1] == 'v' && a[2] >= '0' && a[2] <= '5' && a[3] == 0) {
+				g_log_verbosity_level = a[2] - '0';
 			}
 			
 			continue;

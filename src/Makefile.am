@@ -27,6 +27,7 @@ gpuedit_SOURCES = main.c \
 	highlight.c \
 	input.c \
 	json_gl.c \
+	log.c \
 	mainControl.c \
 	mdi.c \
 	msg.c \

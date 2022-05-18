@@ -5,6 +5,18 @@
 		
 		],
 		
+		modes: {
+			// -1 is the default parent mode
+			"0": {name: "Normal", parent: -1, },
+			"1": {name: "Find", parent: 0, },
+			"2": {name: "Replace", parent: 1, },
+			
+			"666": {name: "VIM", },
+			"667": {name: "VIM Insert", },
+			"668": {name: "VIM Replace", },
+			"669": {name: "VIM Visual", },
+		},
+		
 		keyConfig: [
 			{elem: "Main", cmd: "NextTab",  mods: "A",  key: "XK_Right", amt: 1},
 			{elem: "Main", cmd: "PrevTab",  mods: "A",  key: "XK_Left", amt: 1},

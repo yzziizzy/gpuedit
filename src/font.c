@@ -653,7 +653,7 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 			fread(&u32, 1, 4, f);
 			fm->atlasSize = u32;
 			
-			printf("atlas size: %d\n", u32);
+//			printf("atlas size: %d\n", u32);
 
 			// atlas data
 			for(int i = 0; i < layerNum; i++) {
