@@ -7,6 +7,7 @@
 
 #include "sti/sti.h"
 #include "common_math.h"
+#include "settings.h"
 
 
 #include "highlighterAPI.h"
@@ -57,10 +58,13 @@ typedef struct HighlighterManager {
 	VEC(Highlighter*) plugins;
 	
 	HT(Highlighter*) extLookup;
+	
+	Settings* s;
+	GeneralSettings* gs;
 } HighlighterManager;
 
 
-void HighlighterManager_Init(HighlighterManager* hm);
+void HighlighterManager_Init(HighlighterManager* hm, Settings* s);
 void HighlighterManager_Destroy(HighlighterManager* hm);
 
 HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path);

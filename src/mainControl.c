@@ -405,7 +405,7 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, Settings* s) {
 	w->projectPath =  "/home/steve/projects/gpuedit";
 	// ----
 	
-	HighlighterManager_Init(&w->hm);
+	HighlighterManager_Init(&w->hm, s);
 	Highlighter_ScanDirForModules(&w->hm, w->gs->highlightersPath);
 	
 	

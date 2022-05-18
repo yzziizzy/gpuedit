@@ -600,7 +600,12 @@ int execute_mt(strlist* cmds, int threads, char* fmt, struct child_process_info*
 		usleep(100);
 	}
 	
-	if(fmt) printf("\r"), printf(fmt, printpct(100)), fflush(stdout);
+	if(fmt) {
+		printf("\r");
+		if(ret) printf(fmt, "\e[1;31mFAIL\e[0m");
+		else printf(fmt, "\e[32mDONE\e[0m");
+		fflush(stdout);
+	}
 	
 	printf("\n");
 	
@@ -612,9 +617,19 @@ int execute_mt(strlist* cmds, int threads, char* fmt, struct child_process_info*
 
 int compile_cache_execute() {
 	int ret = 0;
+	struct child_process_info** cpis;
 //	printf("compile cache length %d", compile_cache.len);
 
-	ret = execute_mt(&compile_cache, g_nprocs, "Compiling...              %s", NULL);
+	ret = execute_mt(&compile_cache, g_nprocs, "Compiling...              %s", &cpis);
+	
+	if(ret) {
+		for(int i = 0; i < compile_cache.len; i++ ) {
+			if(cpis[i]->exit_status) {
+				printf("%.*s\n", (int)cpis[i]->buf_len, cpis[i]->output_buffer);
+			}
+		}
+	
+	}
 	
 	// TODO free compile cache
 	// TODO free cpis

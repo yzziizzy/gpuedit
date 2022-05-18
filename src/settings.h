@@ -68,6 +68,7 @@ typedef struct WidgetSpec {
 	SETTING(charp, imagesPath,         "/usr/local/share/gpuedit/images", NULL, NULL) \
 	SETTING(charp, commandsPath,       "/usr/local/share/gpuedit/cmmands.json", NULL, NULL) \
 	SETTING(charp, highlightersPath,   "/usr/local/lib/gpuedit/highlighters/", NULL, NULL) \
+	SETTING(charp, highlightStylesPath,"/usr/local/share/gpuedit/highlight_styles/", NULL, NULL) \
 	SETTING(bool,  enableVSync,        false,  NULL, NULL) \
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
 	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l', .format="line: %L:%C"}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \

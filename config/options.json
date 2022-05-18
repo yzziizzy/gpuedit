@@ -9,6 +9,7 @@ general: {
 	imagesPath: "./images",
 	commandsPath: "./config/commands.json",
 	highlightersPath: "./src/highlighters/",
+	highlightStylesPath: "./config/",
 
 	"MainControl_startupTabs": [
 		{ "type": "Edit", "path": "./testfile.c", },

@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
 		
 		printf("\rChecking dependencies...  %s", printpct((i * 100) / source_count));
 	}
-	printf("\rChecking dependencies...  %s\n", printpct(100.0));
+	printf("\rChecking dependencies...  \e[32mDONE\e[0m\n");
 	fflush(stdout);
 	
 	if(compile_cache_execute()) {
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	else {
-		printf(" \e[1;32mDONE\e[0m\n");
+		printf(" \e[32mDONE\e[0m\n");
 	}
 	
 	
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	else {
-		printf(" \e[1;32mDONE\e[0m\n");
+		printf(" \e[32mDONE\e[0m\n");
 	}
 	
 	return 0;
