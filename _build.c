@@ -70,6 +70,7 @@ char* ld_add[] = {
 char* cflags[] = {
 	"-std=gnu11", 
 	"-ggdb", 
+	"-ffunction-sections", "-fdata-sections",
 	"-DLINUX",
 	"-march=native",
 	"-mtune=native", 
@@ -214,12 +215,21 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	
+	char* objects_flat = join_str_list(objs.entries, " ");
+	
+	
+	printf("Creating archive...      "); fflush(stdout);
+	if(system(sprintfdup("ar rcs build/tmp.a %s", objects_flat))) {
+		printf(" \e[1;31mFAIL\e[0m\n");
+		return 1;
+	}
+	else {
+		printf(" \e[1;32mDONE\e[0m\n");
+	}
+	
 	
 	printf("Linking executable...    "); fflush(stdout);
-	char* objects_flat = join_str_list(objs.entries, " ");
-//	gcc -o imcalc $objlist $CFLAGS $LDADD
-	char* cmd = sprintfdup("gcc -o %s %s %s %s", exe_path, objects_flat, g_gcc_libs, g_gcc_opts_flat);
-//	printf("cmd: %s\n", cmd );
+	char* cmd = sprintfdup("gcc -Wl,--gc-sections build/tmp.a -o %s %s %s", exe_path, g_gcc_libs, g_gcc_opts_flat);
 	if(system(cmd)) {
 		printf(" \e[1;31mFAIL\e[0m\n");
 		return 1;
@@ -228,7 +238,6 @@ int main(int argc, char* argv[]) {
 		printf(" \e[1;32mDONE\e[0m\n");
 	}
 	
-//	printf("%d: %s\n", err, strerror(errno));
 	return 0;
 }
 
