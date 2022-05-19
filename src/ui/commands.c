@@ -130,8 +130,6 @@ static unsigned int get_index(unsigned int mods) {
 }
 
 GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode) {
-//	printf("probing\n");
-	
 	
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
@@ -141,7 +139,7 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 	unsigned int i = 0;
 
 	VEC_EACHP(&gm->cmdList, i, cp) {
- 			//printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
+ 		
 		int extMode = 0;
 		int32_t c = gev->keycode;
 		
@@ -182,14 +180,12 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
 		// TODO: specific mods
 		
-		// found
-		//printf("found command: %d, %d, %x\n", cp->element, cp->mode, cp->mods);
+
 		return cp;
 		
 	}
-//	printf("^^^^\n");
 
-
+	// fall back to the parent mode if it exists
 	GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, mode);
 	if(cmi && cmi->parent != -1) {
 		return Commands_ProbeCommand(gm, elemType, gev, cmi->parent);

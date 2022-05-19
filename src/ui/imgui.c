@@ -1039,6 +1039,8 @@ void GUI_TextLine_(
 	GUIFont* font = GUI_FindFont(gm, fontName);
 	if(!font) font = gm->defaults.font;
 	
+	if(textLen == 0) textLen = strlen(text);
+	
 	gui_drawTextLineAdv(gm, 
 		tl, (Vector2){99999999,99999999},
 		&gm->curClip,
@@ -1048,6 +1050,39 @@ void GUI_TextLine_(
 		gm->curZ,
 		text, textLen
 	);
+}
+
+
+
+// no wrapping
+void GUI_Printf_(
+	GUIManager* gm,  
+	Vector2 tl, 
+	char* fontName, 
+	float size, 
+	Color4* color,
+	char* fmt,
+	...
+) {
+	va_list ap;
+	
+	if(!gm->drawMode) return; // this function is only for drawing mode
+	
+	GUIFont* font = GUI_FindFont(gm, fontName);
+	if(!font) font = gm->defaults.font;
+	
+	va_start(ap, fmt);
+	int sz = vsnprintf(NULL, 0, fmt, ap) + 1;
+	va_end(ap);
+	
+	char* tmp = malloc(sz);
+	va_start(ap, fmt);
+	vsnprintf(tmp, sz, fmt, ap);
+	va_end(ap);
+	
+	GUI_TextLine_(gm, tmp, sz, tl, fontName, size, color);
+	
+	free(tmp);
 }
 
 // no wrapping
@@ -1066,10 +1101,25 @@ void GUI_TextLineCentered_(
 	GUIFont* font = GUI_FindFont(gm, fontName);
 	if(!font) font = gm->defaults.font;
 	
+	if(textLen == 0) textLen = strlen(text);
 	
 	float b = (sz.y - (font->ascender * size)) / 2;
 	
 	gui_drawTextLineAdv(gm, (Vector2){tl.x, tl.y + b}, sz, &gm->curClip, color, font, size, GUI_TEXT_ALIGN_CENTER, gm->curZ, text, textLen);
+}
+
+
+
+void GUI_Double_(GUIManager* gm, double d, int precision, Vector2 tl, char* fontName, float size, Color4* color) {
+	char buf[64];
+	int n = snprintf(buf, 64, "%.*f", precision, d);
+	GUI_TextLine(buf, n, tl, fontName, size, color);
+}
+
+void GUI_Integer_(GUIManager* gm, int64_t i, Vector2 tl, char* fontName, float size, Color4* color) {
+	char buf[64];
+	int n = snprintf(buf, 64, "%ld", i);
+	GUI_TextLine(buf, n, tl, fontName, size, color);
 }
 
 

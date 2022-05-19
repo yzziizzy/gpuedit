@@ -42,6 +42,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	if(!b) return;
 	if(!b->first) return;
 	
+//	BufferUndo_DebugRender(gm, b, V(500, 20), V(200, 800), pfp);
+	
+	
 	float z = gm->curZ;
 	
 	ThemeSettings* ts = gbe->ts;

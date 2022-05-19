@@ -1,6 +1,8 @@
 #ifndef __EACSMB_gui_internal_h__
 #define __EACSMB_gui_internal_h__
 
+#include <stdarg.h>
+
 // this file is for gui element implementations, not for general outside usage
 
 
@@ -83,9 +85,27 @@ void GUI_TextLineCentered_(
 	Color4* color
 );
 
-#define GUI_TextLineCentered(a,b, c,d, e,f,g) GUI_TextLineCentered_(gm, a,b, c,d, e,f,g)
+#define GUI_TextLineCentered(...) GUI_TextLineCentered_(gm, __VA_ARGS__)
 
 
+// no wrapping
+void GUI_Printf_(
+	GUIManager* gm,  
+	Vector2 tl, 
+	char* fontName, 
+	float size, 
+	Color4* color,
+	char* fmt,
+	...
+);
+#define GUI_Printf(...) GUI_Printf_(gm, __VA_ARGS__)
+
+
+
+void GUI_Double_(GUIManager* gm, double d, int precision, Vector2 tl, char* fontName, float size, Color4* color);
+#define GUI_Double(...) GUI_Double_(gm, __VA_ARGS__)
+void GUI_Integer_(GUIManager* gm, int64_t i, Vector2 tl, char* fontName, float size, Color4* color);
+#define GUI_Integer(...) GUI_Integer_(gm, __VA_ARGS__)
 
 void gui_drawBox(
 	GUIManager* gm, 
@@ -108,16 +128,15 @@ void gui_drawBoxBorder(
 );
 
 
-void gui_drawTriangle(
+void GUI_Triangle_(
 	GUIManager* gm, 
 	Vector2 centroid, 
 	float baseWidth, 
 	float height, 
 	float rotation,
-	AABB2* clip, 
-	float z, 
 	Color4* bgColor
 );
+#define GUI_Triangle(...) GUI_Triangle_(gm, __VA_ARGS__)
 
 void gui_drawTriangleBorder(
 	GUIManager* gm, 

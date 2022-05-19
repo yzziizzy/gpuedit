@@ -69,39 +69,32 @@ void GUI_SetData_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*)) {
 }
 
 
-/*
-
-
-
-
-
-void gui_drawTriangle(
+void GUI_Triangle_(
 	GUIManager* gm, 
 	Vector2 centroid, 
 	float baseWidth, 
 	float height, 
 	float rotation,
-	AABB2* clip, 
-	float z, 
 	Color4* bgColor
 ) {
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 	
 	*v++ = (GUIUnifiedVertex){
 		.pos = {centroid.x, centroid.y, baseWidth, height},
-		.clip = GUI_AABB2_TO_SHADER(*clip),
+		.clip = GUI_AABB2_TO_SHADER(gm->curClip),
 		
 		.guiType = 6, // triangle
 		
-		.texIndex1 = 0,
+		.texIndex1 = 0, // borderWidth,
 		
 		.fg = GUI_COLOR4_TO_SHADER(*bgColor), 
 		.bg = GUI_COLOR4_TO_SHADER(*bgColor), 
-		.z = z,
+		.z = gm->curZ,
 		.alpha = 1,
 		.rot = rotation,
 	};
 }
+/*
 
 void gui_drawTriangleBorder(
 	GUIManager* gm, 

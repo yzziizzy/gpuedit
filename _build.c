@@ -11,6 +11,7 @@ char* sources[] = { "main.c",
 	"buffer_drawing.c",
 	"buffer_raw.c",
 	"buffer_settings.c",
+	"buffer_undo.c",
 	"bufferEditor.c",
 	"bufferEditControl.c",
 	"bufferLine.c",
@@ -183,6 +184,9 @@ int main(int argc, char* argv[]) {
 	unlink(exe_path);
 	
 	mkdirp_cached("build", 0755);
+	
+	system("cp src/buffer.h ./testfile.h");
+	system("cp src/buffer.c ./testfile.c");
 	
 	g_gcc_opts_list = concat_lists(ld_add, cflags);
 	g_gcc_opts_flat = join_str_list(g_gcc_opts_list, " ");

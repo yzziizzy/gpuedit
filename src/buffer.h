@@ -87,19 +87,28 @@ typedef struct EditorParams {
 // http://texteditors.org/cgi-bin/wiki.pl?Implementing_Undo_For_Text_Editors
 
 // these represent what was done and must be reversed when using the undo feature
-enum UndoActions {
-	UndoAction_InsertText = 0,
-	UndoAction_DeleteText,
-	UndoAction_InsertChar,
-	UndoAction_DeleteChar,
-	UndoAction_InsertLineAt, // the new line will have the given line number
-	UndoAction_DeleteLine,
-	UndoAction_MoveCursorTo,
-	UndoAction_SetSelection,
+
+#define UNDO_ACTION_LIST \
+	X(InsertText) \
+	X(DeleteText) \
+	X(InsertChar) \
+	X(DeleteChar) \
+	X(InsertLineAt) /* the new line will have the given line number */ \
+	X(DeleteLine) \
+	X(MoveCursorTo) \
+	X(SetSelection) \
+	X(SequenceBreak) \
+
 // 	UndoAction_UnmodifiedFlag,
-	UndoAction_SequenceBreak,
-	
+
+
+enum UndoActions {
+#define X(a) UndoAction_##a,
+	UNDO_ACTION_LIST
+#undef X
 };
+
+extern char* undo_actions_names[];
 
 
 typedef struct BufferUndo {
@@ -165,9 +174,13 @@ typedef struct Buffer {
 	int undoOldest; // the oldest undo item in the buffer; the end of undo
 	int undoCurrent; // the current state of the Buffer; goes backwards with undo, forwards with redo
 	                 // current is the next index to be ovewritten; the last action 'undone'
-	int undoNext; // the index after the newest item; the end of redo
+	int undoNewest; // the index after the newest item; the end of redo
+	
+	int undoFill; // the number of undo slots used in any fashion in the ring buffer
+	int undoUndoLen; // the number of undo-able actions in the buffer, between undoOldest and undoCurrent
+	int undoRedoLen; // the number of redo-able action in the buffer, between undoCurrent and undoNewest;
+	
 	int undoMax; // the size of the ring buffer
-	int undoFill; // the number of undo slots used in the ring buffer
 	BufferUndo* undoRing;
 // 	VEC(BufferUndo) undoStack;
 	int undoSaveIndex; // index of the undo position matching the file on disk
@@ -516,6 +529,11 @@ void Buffer_FreeAllUndo(Buffer* b);
 
 void Buffer_RedoReplayToSeqBreak(Buffer* b);
 int Buffer_RedoReplay(Buffer* b, BufferUndo* u);
+
+
+// debug visualization functions
+void BufferUndo_DebugRender(GUIManager* gm, Buffer* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void BufferUndo_DebugRenderItem(GUIManager* gm, BufferUndo* u, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
 
 // -----

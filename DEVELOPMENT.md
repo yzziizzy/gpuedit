@@ -4,14 +4,11 @@
 * WantedCol is broken, especially across tabs, pastes, line deletes
 * Basic autocomplete
 * Resume search is broken
-* Able to refocus on the editor while finding
 * NULL-inserting bug related to line splitting after movign from long line to short
 
 == Needed before fractal dogfooding ==
-* clicking out of find switches input to edit buffer
 * old find term highlighted on findreplace resume
 * sequence commands in findreplace input box
-* cursor/focus rendering in findreplace needs help
 * highlight findset while valid even if find tray closes (opt)
 * no centeroncursor for selection/sequence matches (opt?)
 * find modes: plain|fuzzy|pcre|escape
@@ -35,7 +32,6 @@
 
 
 == TODO ==
-* GUIListControl
 * s/GUIBufferEditControl_*()/GBEC_*()/
 * Fix scrollbar, make size configurable
 * Horizontal scrollbar
@@ -48,7 +44,6 @@
 * Open file command
 * RAT_ parsing in commnds.json
 * Shortcut config presets
-* Slide-out windows
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
 * Monitor file changes on disk
@@ -59,7 +54,7 @@
 * Track indentation level per line
 * Settings editor
 * CLI, ENV options parsing
-* Wire options through gui manager
+* Purge hardcoded values
 * Hide mouse cursor when typing
 * Unsaved changes crash recovery
 * New Buffer/file
@@ -81,9 +76,6 @@
 * stdatomic types in C highlighter
 
 == GUI Improvements ==
-* Garbage collection in GUI
-* Z-index is messed up some places in the GUI
-* Make all gui font rendering by em's - maybe not; the problem is scaling on high-res displays.
 * GUIEdit right and center justify
 * GUIEdit int/float
 * GUIEdit scroll increment
@@ -91,7 +83,6 @@
 * GUIButton enabled/disabled
 * Color selector control
 * Notify style popups
-* Calculate SDF's on the gpu
 
 == Editor Features ==
 * A sort of smart "word" selector that contextually senses whend to stop: del> BufferSettings_Load = Settings_Load, buffer_settings_load = settings_load
@@ -162,7 +153,6 @@
 == BUGS ==
 * Invalidly high column number when ctrl-k deleting a line with a selection on it
 * Sequence cursor moves don't clear the current selection or change it
-* GUIManager should pop focus stack if focused control is deleted
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
 * Should not be able to delete the last line
 * Check all column usage for correct 1/0 basing

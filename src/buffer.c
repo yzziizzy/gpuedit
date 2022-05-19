@@ -87,18 +87,29 @@ static int undo_avail(Buffer* b) {
 	return b->undoMax - b->undoFill;
 }
 
+// adds a new undo-able event to the undo stack
+// wipes out any redo-able events above the current stack point
 static BufferUndo* undo_inc(Buffer* b, int changeCount) {
 	// TODO: adjust size dynamically sometimes
 	BufferUndo* u = b->undoRing + b->undoCurrent;
+	memset(u, 0, sizeof(*u));
 	
+	// handle initialization
 	if(b->undoFill == 0) {
-		b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
-		b->undoNext = b->undoCurrent;
+		b->undoCurrent = (b->undoCurrent + 1) % b->undoMax; //the top of undo
+		b->undoNewest = b->undoCurrent; // the top of redo
+		
 		b->undoFill++;
+		b->undoUndoLen++;
+//		b->undoRedoLen = 0;
 		return u;
 	}
 	
-	if(undo_avail(b) <= 0) {
+	if(b->undoMax - b->undoFill <= 0) {
+		// the undo ring is full
+		// handle wrapping of the ring buffer
+		// the oldest item slips off the stack
+		
 		// clean up the old data
 		switch(u->action) {
 			case UndoAction_DeleteText:
@@ -108,45 +119,69 @@ static BufferUndo* undo_inc(Buffer* b, int changeCount) {
 				if(u->text) free(u->text);
 				u->text = NULL;
 		}
+		
 		b->undoOldest = (b->undoOldest + 1) % b->undoMax;
+//		printf("oldest adjustment\n");
+		
+		// undoFill remains the same.
+		// undoUndoLen will be recalculated below because the redo stack might be truncated
 	}
 	else {
+		// the undo ring is not full yet
 		b->undoFill++;
+//		b->undoUndoLen++;
 	}
 	
 	b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
-	b->undoNext = b->undoCurrent;
-	b->changeCounter += changeCount;
 	
-	memset(u, 0, sizeof(*u));
+	// the redo stack is wiped out
+	b->undoNewest = b->undoCurrent;
+	b->undoRedoLen = 0;
 	
+	b->undoUndoLen = b->undoCurrent > b->undoOldest ? b->undoCurrent - b->undoOldest : b->undoMax - b->undoOldest + b->undoCurrent;
+	
+	b->changeCounter += changeCount;	
 	return u;
 }
 
+// pointer to the next position to be overwritte
+// one past the most recent undoable action
 static BufferUndo* undo_current(Buffer* b) {
 	return b->undoRing + b->undoCurrent;
 }
 
+// the most recent undo-able action
 static BufferUndo* undo_prev(Buffer* b) { // the one before the current one
 	return b->undoRing + ((b->undoCurrent - 1 + b->undoMax) % b->undoMax);
 }
 
+// called while undoing a change
+// move the current pointer backwards
+// newest remains at the end of the redo stack
+// returns the most recent undo-able action, which is now what current points to
 static BufferUndo* undo_dec(Buffer* b) {
-	if(b->undoFill <= 0) return NULL;
-	if(b->undoOldest == b->undoCurrent) return NULL;
+	if(b->undoUndoLen <= 0) return NULL;
+	
+//	if(b->undoOldest == b->undoCurrent && undo_avail(b) != 0) {
+//		printf("wrap around undo\n");
+//		return NULL;
+//	}
 	
 	b->undoCurrent = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
 	
 	// next is not moved; it is the end of the redo stack
 // 	b->undoNext = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
 	
+	b->undoUndoLen--;
+	b->undoRedoLen++;
+	
 	return b->undoRing + b->undoCurrent;
 }
 
 // like dec but doesn't move current
 static BufferUndo* undo_peek(Buffer* b) {
-	if(b->undoFill <= 0) return NULL;
-	if(b->undoOldest == b->undoCurrent) return NULL;
+	if(b->undoUndoLen <= 0) return NULL;
+//	if(b->undoOldest == b->undoCurrent) return NULL;
 	
 	size_t c = (b->undoCurrent - 1 + b->undoMax) % b->undoMax;
 	
@@ -303,8 +338,10 @@ void Buffer_UndoTruncateStack(Buffer* b) {
 	
 	b->undoFill = 0;
 	b->undoOldest = 0;
-	b->undoNext = 0;
+	b->undoNewest = 0;
 	b->undoCurrent = 0;
+	b->undoUndoLen = 0;
+	b->undoRedoLen = 0;
 }
 
 // rolls back to the previous sequence break
@@ -319,7 +356,7 @@ void Buffer_UndoReplayToSeqBreak(Buffer* b) {
 
 // rolls forward until a sequence break or undoNext
 void Buffer_RedoReplayToSeqBreak(Buffer* b) {
-	if(b->undoCurrent == b->undoNext) {
+	if(b->undoRedoLen == 0) {
 // 		printf("redo: current reached next\n");
 		return;
 	}
@@ -327,7 +364,8 @@ void Buffer_RedoReplayToSeqBreak(Buffer* b) {
 	BufferUndo* u;
 	u = b->undoRing + b->undoCurrent;
 	b->undoCurrent = (b->undoCurrent + 1) % b->undoMax;
-	
+	b->undoRedoLen--;
+	b->undoUndoLen++;
 	
 	Buffer_RedoReplay(b, u);
 	
@@ -343,10 +381,13 @@ void Buffer_RedoReplayToSeqBreak(Buffer* b) {
 int Buffer_UndoReplayTop(Buffer* b) {
 	BufferLine* bl;
 	
-	if(b->undoFill == 0) return 0;
+//	printf("undo top\n");
+	if(b->undoUndoLen == 0) return 0;
 // 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
 	BufferUndo* u = undo_dec(b);
 	if(u == NULL) return 0;
+	
+//	printf("  undo good\n");
 	
 	// these all need to be the inverse
 	switch(u->action) {
