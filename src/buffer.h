@@ -270,7 +270,7 @@ typedef struct GUIBufferEditControl {
 
 	
 	BufferLine* current; // line of the cursor
-	intptr_t curCol; // characters into the line
+	intptr_t curCol; // characters into the line of the internal edit cursor
 	intptr_t curColDisp; // the visible display column, including tabstops, etc.
 	intptr_t curColWanted; // the visible display column to use, if it existed.
 

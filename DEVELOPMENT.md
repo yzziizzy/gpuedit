@@ -1,10 +1,10 @@
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
-* WantedCol is broken, especially across tabs, pastes, line deletes
+* WantedCol is broken, especially across tabs,
 * Basic autocomplete
 * Resume search is broken
-* NULL-inserting bug related to line splitting after movign from long line to short
+* command to append text to end of characters on line (;)
 
 == Needed before fractal dogfooding ==
 * old find term highlighted on findreplace resume
@@ -50,7 +50,6 @@
 * Small shade variation on matching pairs of brackets
 * Visible glyph for tabs
 * Wanted column rounding on moving across tabs
-* Status bar
 * Track indentation level per line
 * Settings editor
 * CLI, ENV options parsing
@@ -149,24 +148,25 @@
 * Notify when semicolons appear to be missing
 * Algorithm to detect indent width then convert all spaces to tabs
 * Command to fix all whitespacing on a line according to defined rules
+* ...
+* Read email
+* Send email
+* "Arctic Hell" theme
+* 3D animated flying pigs background
+* "tabs as spaces" mode
 
 == BUGS ==
-* Invalidly high column number when ctrl-k deleting a line with a selection on it
 * Sequence cursor moves don't clear the current selection or change it
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
 * Should not be able to delete the last line
 * Check all column usage for correct 1/0 basing
 * Mouse drag start params need tuning 
-* Need warnings and protection against overrunning the persistent gpu vertex buffers
-* Tabbing between edit boxes in the Replace tray causes the buffer to jump to the top.
 * Undo breaks with CollapseWhitespace after deleting a selected word.
-* Fuzzy matcher does not refresh on backspace
 
 == Low Priority ==
 * Built-in terminal
 * Cursor position on reverse selections after line duplicate is wrong
 * Pause render loop on X window losing focus (optional)
-* Split GUIManager draw calls into layers for less sorting
 * Optimize all buffer operations for minimal line renumbering
 * dlopen(): libpng, libalsa, libvorbis
 * Optimize Buffer_raw_GetLine starting point and direction

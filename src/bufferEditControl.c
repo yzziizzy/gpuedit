@@ -257,8 +257,6 @@ static void click(GUIBufferEditControl* w, GUIManager* gm) {
 	else if(gm->curEvent.button == 7) { // scroll right	
 	}
 	
-	
-	
 
 }
 
@@ -309,7 +307,6 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 
 
 void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
-//static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	Buffer* b = w->buffer;
 	
@@ -441,12 +438,7 @@ void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel) {
 
 GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	
-	
 	GUIBufferEditControl* w = pcalloc(w);
-	
-	
-//	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Buffer;
-	
 	
 	pcalloc(w->selSet);
 	
@@ -1015,11 +1007,8 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 				// TODO: undo
 				BufferRange pasteRange;
 				Buffer_InsertBufferAt(b, b2, w->current, w->curCol, &pasteRange);
-				// TODO: move cursor to end of pasted text
 				
-				w->current = pasteRange.endLine;
-				w->curCol = pasteRange.endCol;
-				
+				GBEC_MoveCursorTo(w, pasteRange.endLine, pasteRange.endCol);
 			}
 			break;
 		
@@ -1458,8 +1447,9 @@ void GBEC_MoveCursorHSel(GUIBufferEditControl* w, ptrdiff_t cols) {
 void GBEC_MoveCursorTo(GUIBufferEditControl* w, BufferLine* bl, intptr_t col) {
 	// TODO: undo
 	w->current = bl;
-	w->curCol = col;
-	w->curColWanted = getDisplayColFromActual(w, bl, col);
+	w->curCol = MIN(col, bl->length);
+	w->curColDisp = getDisplayColFromActual(w, bl, col);
+	w->curColWanted = col;
 }
 
 
