@@ -228,8 +228,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 						1
 					};
 					
-					// TODO IMGUI
-					
 					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + sz.x) {
 						gm->curZ = z + 4;
 						GUI_CharFont_NoGuard('0', V(tl.x + hsoff + adv, yoff), f, fsize, &pulseColor);
@@ -296,11 +294,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		}
 
-//         not sure if long-dead code
-//		if(inSelection) {
-//			gm->curZ = z + 2;
-//			GUI_Rect(V(tl.x + adv + hsoff, yoff), V(adv + hsoff + MAX(5, (float)tdp->charWidth / 1.0), tdp->lineHeight), &theme->hl_bgColor);
-//		}
+        // draw a little half-width selection background at the end of selected lines (and empty ones)
+		if(inSelection) {
+			gm->curZ = z + 2;
+			GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)tdp->charWidth / 1.0), tdp->lineHeight), &ts->hl_bgColor);
+		}
 
 		if(ytop > edh) break; // end of buffer control
 

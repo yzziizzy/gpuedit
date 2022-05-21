@@ -480,10 +480,6 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 	
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;
-	
-	//GUIManager_popFocusedObject(w->header.gm);
-//	GUIManager_pushFocusedObject(w->header.gm, t->client);
-//	GUIManager_SetMainWindowTitle(w->header.gm, t->title);
 }
 
 
@@ -654,7 +650,6 @@ GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, TabType_t type, int n)
 				
 			w->currentIndex = i;
 			
-//			GUIManager_pushFocusedObject(w->header.gm, tab->client);
 //			GUIManager_SetMainWindowTitle(w->header.gm, tab->title);
 			tab->isActive = 1;
 
@@ -824,7 +819,7 @@ static int gbeBeforeClose(MainControlTab* t) {
 static int gbeAfterClose(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
-	Settings_Free(gbe->gs);
+	Settings_Free(gbe->s);
 	GUIBufferEditor_Destroy(gbe);
 	return 0;
 }

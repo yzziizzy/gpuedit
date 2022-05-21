@@ -22,24 +22,45 @@ extern int g_DisableSave;
 
 void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	// GUI_BeginWindow()
-	
+	float top = 0;
 	w->trayHeight = 60;
+	
+	if(w->gotoLineTrayOpen) top += 40;
 	
 	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
 	
 	float sbh = w->statusBarHeight * w->showStatusBar;
-	Vector2 ecsz = V(sz.x, sz.y - sbh - w->trayOpen * 60);
+	Vector2 ecsz = V(sz.x, sz.y - sbh - w->trayOpen * 60 - top);
 		
 	// forward activeness to the edit control
 	if(gm->activeID == w) ACTIVE(w->ec);
 
 	GUI_PushClip(V(0,0), ecsz);
-	GBEC_Render(w->ec, gm, V(0,0), ecsz, pfp);
+	GBEC_Render(w->ec, gm, V(0,top), ecsz, pfp);
 	GUI_PopClip();
 
 	if(w->showStatusBar) {
 		StatusBar_Render(w->statusBar, gm, V(0, sz.y - sbh), V(sz.x, sbh), pfp);
 	}
+	
+	if(w->gotoLineTrayOpen) {
+		gm->curZ += 20;
+		GUI_Rect(V(0, 0), V(sz.x, 40), &gm->defaults.trayBgColor);
+		
+		DEFAULTS(GUIEditOpts, eo);
+		
+		if(GUI_IntEdit_(gm, &w->gotoLineNum, V(10,10), sz.x - 20, &w->gotoLineNum, &eo)) {
+			BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, w->gotoLineNum);
+				
+			if(bl) {
+				GBEC_MoveCursorTo(w->ec, bl, 0);
+				GBEC_scrollToCursorOpt(w->ec, 1);
+			}
+		
+		}
+		gm->curZ -= 20;
+	}
+	
 	
 	if(w->trayOpen) {
 		gm->curZ += 10;
@@ -194,7 +215,8 @@ do { \
 
 
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s) {
-	w->gs = s;
+	w->s = s;
+	w->gs = Settings_GetSection(s, SETTINGS_General);
 	w->bs = Settings_GetSection(s, SETTINGS_Buffer);
 	w->ts = Settings_GetSection(s, SETTINGS_Theme);
 	
@@ -774,7 +796,11 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			GBEC_MoveCursorTo(w->ec, w->ec->current, BufferLine_GetIndentCol(w->ec->current));
 			break;
 			
-		case GUICMD_Buffer_GoToLineLaunch: /*
+		case GUICMD_Buffer_GoToLineLaunch: 
+			w->gotoLineTrayOpen = 1;
+			
+			GUI_SetActive(&w->gotoLineNum);
+		/*
 			if(w->inputMode != BIM_GoTo) {
 				if(w->trayOpen) {
 					GUIBufferEditor_CloseTray(w);
@@ -799,20 +825,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		// TODO: change hooks
 			break;
 		
-		case GUICMD_Buffer_GoToLineSubmit: /*
-			if(w->inputMode == BIM_GoTo) {
-				intptr_t line_num = strtol(GUIEdit_GetText(w->lineNumEntryBox), NULL, w->gs->Buffer_lineNumBase);
-				BufferLine* bl = Buffer_raw_GetLine(w->ec->buffer, line_num);
-				
-				if(bl) {
-					GBEC_MoveCursorTo(w->ec, bl, 0);
-					GBEC_scrollToCursorOpt(w->ec, 1);
-				}
-				
-				GUIBufferEditor_CloseTray(w);
-				w->inputMode = BIM_Buffer;
-				GUIManager_popFocusedObject(w->header.gm);
-			}*/
+		case GUICMD_Buffer_GoToLineSubmit: 
+			w->gotoLineTrayOpen = 1;
+			w->inputMode = 0;
 			break;
 		
 		case GUICMD_Buffer_ReplaceNext: { // TODO put this all in a better spot

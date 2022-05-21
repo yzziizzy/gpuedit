@@ -723,13 +723,18 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 
 
 struct intedit_data {
+	struct edit_data ed;
 	int cursorPos;
 	float blinkTimer;
 	
 	long lastValue;
-	char buffer[64];
+	GUIString str;
 };
 
+static void intedit_free(struct intedit_data* d) {
+	free(d->str.data);
+	free(d);
+}
 
 // returns true on a change
 int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o) {
@@ -739,72 +744,43 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	
 	if(!(d = GUI_GetData_(gm, id))) {
 		d = calloc(1, sizeof(*d));
-		GUI_SetData_(gm, id, d, free);
+		GUI_SetData_(gm, id, d, (void*)intedit_free);
+		
+		d->str.alloc = 64;
+		d->str.data = calloc(1, d->str.alloc * sizeof(*d->str.data));
 		firstRun = 1;
 	}
+	
+	GUIFont* font = GUI_FindFont(gm, o->fontName);
 	
 	Vector2 sz = o->size;
 	if(width > 0) sz.x = width;
 	
 	HOVER_HOT(id)
-	CLICK_HOT_TO_ACTIVE(id)
 
+	if(gm->hotID == id) {
+		MOUSE_DOWN_ACTIVE(id)
+		
+		if(GUI_MouseWentUp(1)) {
+			// position the cursor
+			Vector2 mp = GUI_MousePos();
+			d->ed.cursor.cursorPos = gui_charFromPixel(gm, font, o->fontSize, d->str.data, mp.x - tl.x);
+		}
+	}
+	
 	// handle input
 	if(gm->activeID == id) {
 		if(gm->curEvent.type == GUIEVENT_KeyDown) {
-			switch(gm->curEvent.character) {
-				case '0': case '1': case '2':
-				case '3': case '4': case '5':
-				case '6': case '7': case '8': case '9':
-					memmove(d->buffer + d->cursorPos + 1, d->buffer + d->cursorPos, strlen(d->buffer) - d->cursorPos + 1);
-					d->buffer[d->cursorPos] = gm->curEvent.character;
-					d->cursorPos++;
-					*num = strtol(d->buffer, NULL, 10);
-					d->blinkTimer = 0;
-					GUI_CancelInput();
-					
-					ret = 1;
-					break;
-			}
-			
-			switch(gm->curEvent.keycode) {
-				case XK_Left: 
-					d->cursorPos = d->cursorPos < 1 ? 0 : d->cursorPos - 1; 
-					d->blinkTimer = 0;
-					GUI_CancelInput();
-					break;
-				case XK_Right: 
-					d->cursorPos = d->cursorPos + 1 > strlen(d->buffer) ? strlen(d->buffer) : d->cursorPos + 1; 
-					d->blinkTimer = 0;
-					GUI_CancelInput();
-					break;
-					
-				case XK_BackSpace: 
-					memmove(d->buffer + d->cursorPos - 1, d->buffer + d->cursorPos, strlen(d->buffer) - d->cursorPos + 1);
-					d->cursorPos = d->cursorPos > 0 ? d->cursorPos - 1 : 0;
-					*num = strtol(d->buffer, NULL, 10);
-					d->blinkTimer = 0;
-					GUI_CancelInput();
-					
-					ret = 1;
-					break;
-					
-				case XK_Delete: 
-					memmove(d->buffer + d->cursorPos, d->buffer + d->cursorPos + 1, strlen(d->buffer) - d->cursorPos);
-					*num = strtol(d->buffer, NULL, 10);
-					d->blinkTimer = 0;
-					GUI_CancelInput();
-					
-					ret = 1;
-					break;
-					
-				case XK_Return: 
-					ACTIVE(NULL); 
-					GUI_CancelInput();
-					break;
+			if(!isprint(gm->curEvent.character) || ('0' <= gm->curEvent.character && gm->curEvent.character <= '9')) {
+				ret |= handle_input(gm, &d->ed.cursor, &d->str, &gm->curEvent);
 			}
 		}
 	}
+	
+	if(ret) {
+		*num = strtol(d->str.data, NULL, 10);
+	}
+
 	
 	// bail early if not drawing
 	if(!gm->drawMode) return ret;
@@ -819,20 +795,18 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 
 	// refresh the buffer, maybe
 	if(*num != d->lastValue || firstRun) {
-		snprintf(d->buffer, 64, "%ld", *num);
+		d->str.len = snprintf(d->str.data, 64, "%ld", *num);
 		d->lastValue = *num;
 	}
 	
 		
 	float fontSz = o->fontSize;
 	
-	GUIFont* font = GUI_FindFont(gm, o->fontName);
-	
 	
 	// draw cursor
 	if(gm->activeID == id) {
 		if(d->blinkTimer < 0.5) { 
-			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->buffer, d->cursorPos);
+			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->cursorPos);
 			GUI_Rect(V(tl.x + cursorOff, tl.y), V(2,sz.y), &o->cursorColor);
 		}
 		
@@ -841,7 +815,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	}
 	
 	gm->curZ += 0.01;
-	GUI_TextLine_(gm, d->buffer, strlen(d->buffer), V(tl.x, tl.y ), o->fontName, fontSz, &o->colors[st].text);
+	GUI_TextLine_(gm, d->str.data, d->str.len, V(tl.x, tl.y ), o->fontName, fontSz, &o->colors[st].text);
 	gm->curZ -= 0.01;
 	
 	return ret;

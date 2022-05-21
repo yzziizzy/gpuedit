@@ -16,6 +16,7 @@
 
 #define BL_BOOKMARK_FLAG   (1<<0)
 #define BL_BREAKPOINT_FLAG (1<<1)
+#define BL_UTF8_FLAG       (1<<2)
 
 struct hlinfo;
 struct BufferSettings;
@@ -312,7 +313,8 @@ typedef struct GUIBufferEditControl {
 //	GUIWindow* scrollbar;
 	float sbMinHeight;
 
-	Settings* gs;
+	Settings* s;
+	GeneralSettings* gs;
 	BufferSettings* bs;
 	ThemeSettings* ts;
 // 	Cmd* commands;
@@ -402,6 +404,9 @@ typedef struct GUIBufferEditor {
 	
 //	BufferInputMode_t inputMode; 
 	
+	char gotoLineTrayOpen;
+	long gotoLineNum;
+	
 	GUIString findQuery;
 	GUIString replaceText;
 	
@@ -440,7 +445,8 @@ typedef struct GUIBufferEditor {
 	
 //	GUISimpleWindow* menu;
 	
-	Settings* gs;
+	Settings* s;
+	GeneralSettings* gs;
 	BufferSettings* bs;
 	ThemeSettings* ts;
 	GUI_Cmd* commands;

@@ -446,7 +446,8 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 }
 
 void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, Settings* s) {
-	w->gs = s;
+	w->s = s;
+	w->gs = Settings_GetSection(s, SETTINGS_General);
 	w->bs = Settings_GetSection(s, SETTINGS_Buffer);
 	w->ts = Settings_GetSection(s, SETTINGS_Theme);
 	
@@ -657,10 +658,8 @@ void GBEC_SetHighlighter(GUIBufferEditControl* w, Highlighter* h) {
 	w->h = h;
 	
 	char* ext = h->plugin->name;
-	char* homedir = getenv("HOME");
 	
-	char* tmp = sprintfdup("%s/.gpuedit/%s_colors.txt", homedir, ext);
-	
+	char* tmp = sprintfdup("%s/%s_colors.txt", w->gs->highlightStylesPath, ext);
 	Highlighter_LoadStyles(w->h, tmp);
 	free(tmp);
 

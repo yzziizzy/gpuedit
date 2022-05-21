@@ -125,7 +125,7 @@
 			{elem: "Buffer", cmd: "SelectNone", mods: "CS", key: "a", amt: 0, },
 			{elem: "Buffer", cmd: "SelectToEOL", mods: "C", key: "l", amt: 0, },
 			{elem: "Buffer", cmd: "SelectFromSOL", mods: "CS", key: "l", amt: 0, },
-			{elem: "Buffer", cmd: "GoToLine", mods: "C", key: "g", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
+//			{elem: "Buffer", cmd: "GoToLine", mods: "C", key: "g", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "GoToSOL", mods: "C", key: "XK_Home", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "GoToEOL", mods: "C", key: "XK_End", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "GoToAfterIndent", mods: "T", key: "XK_Home", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
