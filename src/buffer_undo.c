@@ -72,14 +72,14 @@ void BufferUndo_DebugRenderItem(GUIManager* gm, BufferUndo* u, Vector2 tl, Vecto
 			break;
 			
 		case UndoAction_InsertText:
-			sprintf(buf, "%ld:%ld", u->lineNum, u->colNum);
+			sprintf(buf, "%ld:%ld", (uint64_t)u->lineNum, (uint64_t)u->colNum);
 			GUI_TextLine(buf, 0, V(tl.x + 70, tl.y), "Arial", 12, &C4H(88ff88ff));
 			
 			GUI_TextLine(u->text, u->length, V(tl.x + 100, tl.y), "Arial", 12, &C4H(ff8888ff));
 			break;
 
 		case UndoAction_DeleteText:
-			sprintf(buf, "%ld:%ld", u->lineNum, u->colNum);
+			sprintf(buf, "%ld:%ld", (uint64_t)u->lineNum, (uint64_t)u->colNum);
 			GUI_TextLine(buf, 0, V(tl.x + 70, tl.y), "Arial", 12, &C4H(88ff88ff));
 			
 			GUI_TextLine(u->text, u->length, V(tl.x + 100, tl.y), "Arial", 12, &C4H(ff8888ff));

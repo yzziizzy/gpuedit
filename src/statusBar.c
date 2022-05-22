@@ -93,21 +93,21 @@ static size_t strflinecol(char* s, size_t max, const char* format, GUIBufferEdit
 			case '%':
 				switch(format[i + 1]) {
 					case 'L':
-						len = snprintf(buffer, 20, "%ld", ec->current->lineNum);
+						len = snprintf(buffer, 20, "%ld", (int64_t)ec->sel->startLine->lineNum);
 						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 						copied += len;
 						i++;
 						break;
 						
 					case 'C':
-						len = snprintf(buffer, 20, "%ld", ec->curCol);
+						len = snprintf(buffer, 20, "%ld", (int64_t)ec->sel->startCol);
 						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 						copied += len;
 						i++;
 						break;
 						
 					case 'T':
-						len = snprintf(buffer, 20, "%ld", ec->buffer->numLines);
+						len = snprintf(buffer, 20, "%ld", (int64_t)ec->b->numLines);
 						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 						copied += len;
 						i++;

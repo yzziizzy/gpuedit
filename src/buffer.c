@@ -27,6 +27,7 @@ extern int g_DisableSave;
 Buffer* Buffer_New() {
 	Buffer* b = pcalloc(b);
 	
+	b->nextLineID = 1;
 	b->refs = 1;
 	
 	b->undoMax = 4096; // TODO: settings
@@ -58,7 +59,7 @@ void Buffer_Delete(Buffer* b) {
 	
 	while(bl) {
 		bln = bl->next;
-		BufferLine_Delete(bl);
+		BufferLine_Delete(b, bl);
 		bl = bln;
 		
 	}
@@ -72,7 +73,7 @@ void Buffer_Delete(Buffer* b) {
 }
 
 void Buffer_InitEmpty(Buffer* b) {
-	b->first = BufferLine_New();
+	b->first = BufferLine_New(b);
 	b->last = b->first;
 	b->first->lineNum = 1;
 }
@@ -205,8 +206,8 @@ void Buffer_FreeAllUndo(Buffer* b) {
 
 void Buffer_UndoInsertText(
 	Buffer* b, 
-	intptr_t line, 
-	intptr_t col, 
+	linenum_t line, 
+	colnum_t col, 
 	char* txt, 
 	intptr_t len
 ) {
@@ -248,7 +249,7 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 }
 
 
-void Buffer_UndoSetSelection(Buffer* b, intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC) {
+void Buffer_UndoSetSelection(Buffer* b, linenum_t startL, colnum_t startC, linenum_t endL, colnum_t endC) {
 	BufferUndo* u = undo_inc(b, 0);
 	
 	u->action = UndoAction_SetSelection;
@@ -259,7 +260,7 @@ void Buffer_UndoSetSelection(Buffer* b, intptr_t startL, intptr_t startC, intptr
 }
 
 void Buffer_UndoSequenceBreak(Buffer* b, int saved, 
-	intptr_t startL, intptr_t startC, intptr_t endL, intptr_t endC, char isReverse) {
+	linenum_t startL, colnum_t startC, linenum_t endL, colnum_t endC, char isReverse) {
 	
 	// don't add duplicates
 	if(b->undoFill > 0) {
@@ -392,22 +393,22 @@ int Buffer_UndoReplayTop(Buffer* b) {
 	// these all need to be the inverse
 	switch(u->action) {
 		case UndoAction_InsertText: // delete text
-			bl = Buffer_raw_GetLine(b, u->lineNum);
-			LOG_UNDO(printf("UNDO: deleting text at col %d '%.*s'\n", (int)u->colNum, (int)u->length, bl->buf));
+			bl = Buffer_raw_GetLineByNum(b, u->lineNum);
+			LOG_UNDO(printf("UNDO: deleting text at col %ld '%.*s'\n", (int64_t)u->colNum, (int)u->length, bl->buf));
 			Buffer_raw_DeleteChars(b, bl, u->colNum, u->length);
 			break;
 			
 		case UndoAction_DeleteText: // re-insert the text
-			bl = Buffer_raw_GetLine(b, u->lineNum);
-			LOG_UNDO(printf("UNDO: inserting text at col %d '%.*s'\n", (int)u->colNum, (int)u->length, u->text));
+			bl = Buffer_raw_GetLineByNum(b, u->lineNum);
+			LOG_UNDO(printf("UNDO: inserting text at col %ld '%.*s'\n", (int64_t)u->colNum, (int)u->length, u->text));
 			Buffer_raw_InsertChars(b, bl, u->text, u->colNum, u->length);
 			//b->current = bl; // BUG not right after <delete> key
 			//b->curCol = u->colNum + u->length;
 			break;
 			
 		case UndoAction_InsertLineAt: // delete the line
-			bl = Buffer_raw_GetLine(b, u->lineNum);
-			LOG_UNDO(printf("UNDO: deleting line number (%ld) '%.*s'\n", u->lineNum, (int)bl->length, bl->buf));
+			bl = Buffer_raw_GetLineByNum(b, u->lineNum);
+			LOG_UNDO(printf("UNDO: deleting line number (%ld) '%.*s'\n", (int64_t)u->lineNum, (int)bl->length, bl->buf));
 			
 			Buffer_NotifyLineDeletion(b, bl, bl);
 			Buffer_raw_DeleteLine(b, bl);
@@ -420,8 +421,8 @@ int Buffer_UndoReplayTop(Buffer* b) {
 				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
 			}
 			else {
-				LOG_UNDO(printf("UNDO: insert line before (%ld) '%.*s'\n", u->lineNum, (int)u->length, u->text));
-				bl = Buffer_raw_GetLine(b, u->lineNum);
+				LOG_UNDO(printf("UNDO: insert line before (%ld) '%.*s'\n", (int64_t)u->lineNum, (int)u->length, u->text));
+				bl = Buffer_raw_GetLineByNum(b, u->lineNum);
 				BufferLine* bln = Buffer_raw_InsertLineBefore(b, bl);
 				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
 			}
@@ -448,17 +449,17 @@ int Buffer_UndoReplayTop(Buffer* b) {
 			// move cursor back
 			if(u->endLine > 0) {
 				printf("undo notify selection %ld:%ld -> %ld:%ld\n",
-					u->lineNum, u->colNum,
-					u->endLine, u->endCol
+					(int64_t)u->lineNum, (int64_t)u->colNum,
+					(int64_t)u->endLine, (int64_t)u->endCol
 				);
 				Buffer_NotifyUndoSetSelection(b, 
-					Buffer_raw_GetLine(b, u->lineNum), u->colNum,
-					Buffer_raw_GetLine(b, u->endLine), u->endCol,
+					Buffer_raw_GetLineByNum(b, u->lineNum), u->colNum,
+					Buffer_raw_GetLineByNum(b, u->endLine), u->endCol,
 					u->isReverse
 				);
 			}
 			else if(u->lineNum > 0) {
-				Buffer_NotifyUndoMoveCursor(b, Buffer_raw_GetLine(b, u->lineNum), u->colNum);
+				Buffer_NotifyUndoMoveCursor(b, Buffer_raw_GetLineByNum(b, u->lineNum), u->colNum);
 			}
 			
 			return 0;
@@ -484,19 +485,19 @@ int Buffer_RedoReplay(Buffer* b, BufferUndo* u) {
 	// these all need to be the inverse
 	switch(u->action) {
 		case UndoAction_DeleteText:
-			bl = Buffer_raw_GetLine(b, u->lineNum);
+			bl = Buffer_raw_GetLineByNum(b, u->lineNum);
 			Buffer_raw_DeleteChars(b, bl, u->colNum, u->length);
 			break;
 			
 		case UndoAction_InsertText:
-			bl = Buffer_raw_GetLine(b, u->lineNum);
+			bl = Buffer_raw_GetLineByNum(b, u->lineNum);
 			Buffer_raw_InsertChars(b, bl, u->text, u->colNum, u->length);
 			//b->current = bl; // BUG not right after <delete> key
 			//b->curCol = u->colNum + u->length;
 			break;
 			
 		case UndoAction_DeleteLine: 
-			bl = Buffer_raw_GetLine(b, u->lineNum);
+			bl = Buffer_raw_GetLineByNum(b, u->lineNum);
 			Buffer_raw_DeleteLine(b, bl);
 			break; 
 			
@@ -508,7 +509,7 @@ int Buffer_RedoReplay(Buffer* b, BufferUndo* u) {
 				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
 			}
 			else {
-				bl = Buffer_raw_GetLine(b, u->lineNum);
+				bl = Buffer_raw_GetLineByNum(b, u->lineNum);
 				BufferLine* bln = Buffer_raw_InsertLineBefore(b, bl);
 				Buffer_raw_InsertChars(b, bln, u->text, 0, u->length);
 			}
@@ -597,7 +598,7 @@ void Buffer_LineAppendLine(Buffer* b, BufferLine* target, BufferLine* src) {
 	Buffer_LineAppendText(b, target, src->buf, src->length);
 }
 
-void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, intptr_t col, intptr_t length) {
+void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, colnum_t col, intptr_t length) {
 	
 	intptr_t len = MIN(bl->length - col, length);
 	if(len <= 0) return;
@@ -607,13 +608,13 @@ void Buffer_LineDeleteChars(Buffer* b, BufferLine* bl, intptr_t col, intptr_t le
 }
 
 
-void Buffer_LineTruncateAfter(Buffer* b, BufferLine* bl, intptr_t col) {
+void Buffer_LineTruncateAfter(Buffer* b, BufferLine* bl, colnum_t col) {
 	Buffer_LineDeleteChars(b, bl, col, bl->length - col); // BUG: off by 1?
 }
 
 // deletes chars but also handles line removal and edge cases
 // does not move the cursor
-void Buffer_BackspaceAt(Buffer* b, BufferLine* l, intptr_t col) {
+void Buffer_BackspaceAt(Buffer* b, BufferLine* l, colnum_t col) {
 	if(!b->first) return; // empty buffer
 	
 	
@@ -641,7 +642,7 @@ void Buffer_BackspaceAt(Buffer* b, BufferLine* l, intptr_t col) {
 
 // deletes chars but also handles line removal and edge cases
 // does not move the cursor
-void Buffer_DeleteAt(Buffer* b, BufferLine* l, intptr_t col) {
+void Buffer_DeleteAt(Buffer* b, BufferLine* l, colnum_t col) {
 	if(!b->first) return; // empty buffer
 	
 	Buffer_LineDeleteChars(b, l, col, 1);
@@ -807,47 +808,15 @@ void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl) {
 	bl->flags ^= BL_BOOKMARK_FLAG;
 }
 
-// make sure a range goes in the right direction
-// delete selections that are zero
-// returns 0 if the selection is still valid, 1 if it was deleted
-int BufferRange_Normalize(BufferRange** pbr) {
-	BufferRange* br = *pbr;
-	if(!br) return 0;
-	
-	if(br->startLine == br->endLine) {
-		if(br->startCol == br->endCol) {
-			free(br); // delete empty ranges
-			*pbr = NULL;
-			return 1;
-		}
-		else if(br->startCol > br->endCol) {
-			intptr_t t = br->startCol;
-			br->startCol = br->endCol;
-			br->endCol = t;
-		}
-	}
-	else if(br->startLine->lineNum > br->endLine->lineNum) {
-		void* tl = br->startLine;
-		br->startLine = br->endLine;
-		br->endLine = tl;
-		intptr_t t = br->startCol;
-		br->startCol = br->endCol;
-		br->endCol = t;
-	}
-	
-// 	printf("sel: %d:%d -> %d:%d\n", br->startLine->lineNum, br->startCol, br->endLine->lineNum, br->endCol);
-	return 0;
-}
-
 
 
 void Buffer_RelPosH(
 	Buffer* b, 
 	BufferLine* startL, 
-	intptr_t startC, 
-	intptr_t cols,
+	colnum_t startC, 
+	colnum_t cols,
 	BufferLine** outL,
-	intptr_t* outC
+	colnum_t* outC
 ) {
 	
 	BufferLine* bl = startL;
@@ -894,10 +863,10 @@ void Buffer_RelPosH(
 void Buffer_RelPosV(
 	Buffer* b, 
 	BufferLine* startL, 
-	intptr_t startC, 
-	intptr_t lines,
+	colnum_t startC, 
+	linenum_t lines,
 	BufferLine** outL,
-	intptr_t* outC
+	colnum_t* outC
 ) {
 	intptr_t i = lines;
 	BufferLine* bl = startL;
@@ -1030,7 +999,7 @@ Buffer* Buffer_Copy(Buffer* src) {
 	
 	if(src->first) {
 		bl = src->first;
-		blc = BufferLine_Copy(src->first);
+		blc = BufferLine_Copy(b, src->first);
 		
 		b->first = blc;
 		bl = bl->next;
@@ -1038,7 +1007,7 @@ Buffer* Buffer_Copy(Buffer* src) {
 		
 		while(bl) {
 			
-			blc = BufferLine_Copy(bl);
+			blc = BufferLine_Copy(b, bl);
 			
 			blc->prev = blc_prev;
 			blc_prev->next = blc; 
@@ -1064,7 +1033,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	
 	// single-line selection
 	if(sel->startLine == sel->endLine) {
-		blc = BufferLine_FromStr(sel->startLine->buf + sel->startCol, sel->endCol - sel->startCol);
+		blc = BufferLine_FromStr(b, sel->startLine->buf + sel->startCol, sel->endCol - sel->startCol);
 		
 		b->first = blc;
 		b->last = blc;
@@ -1076,12 +1045,12 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	// multi-line selection
 	bl = sel->startLine;
 	if(sel->startCol == 0) {
-		blc = BufferLine_Copy(sel->startLine);
+		blc = BufferLine_Copy(b, sel->startLine);
 		LOG_UNDO(printf("copy entire first line\n"));
 	}
 	else {
 		// copy only the end
-		blc = BufferLine_FromStr(sel->startLine->buf + sel->startCol, sel->startLine->length - sel->startCol);
+		blc = BufferLine_FromStr(b, sel->startLine->buf + sel->startCol, sel->startLine->length - sel->startCol);
 		LOG_UNDO(printf("copying end of the first line\n"));
 	}
 	
@@ -1092,7 +1061,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	
 	while(bl && bl != sel->endLine) {
 		
-		blc = BufferLine_Copy(bl);
+		blc = BufferLine_Copy(b, bl);
 		
 		blc->prev = blc_prev;
 		blc_prev->next = blc; 
@@ -1104,7 +1073,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	
 
 	// copy the beginning of the last line
-	blc = BufferLine_FromStr(sel->endLine->buf, MIN(sel->endCol, sel->endLine->length));
+	blc = BufferLine_FromStr(b, sel->endLine->buf, MIN(sel->endCol, sel->endLine->length));
 	blc->prev = blc_prev;
 	blc_prev->next = blc;
 
@@ -1133,7 +1102,7 @@ void Buffer_DebugPrint(Buffer* b) {
 	
 	bl = b->first;
 	while(bl) {
-		printf("%ld: [%ld/%ld] '%.*s'\n", i, bl->length, bl->allocSz, (int)bl->length, bl->buf);
+		printf("%ld: [%ld/%ld] '%.*s'\n", i, (int64_t)bl->length, (uint64_t)bl->allocSz, (int)bl->length, bl->buf);
 		bl = bl->next;
 		i++;
 	}
@@ -1141,7 +1110,7 @@ void Buffer_DebugPrint(Buffer* b) {
 
 
 
-void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, intptr_t tcol, BufferRange* outRange) {
+void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, colnum_t tcol, BufferRange* outRange) {
 	size_t tmplen = 0;
 	char* tmp = NULL;
 	BufferLine* blc, *bl;
@@ -1571,7 +1540,7 @@ char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen) {
 	return out;
 }
 
-void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charSet, BufferRange* out) {
+void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, colnum_t col, char* charSet, BufferRange* out) {
 	intptr_t start, end;
 	
 	for(start = col; start >= 0; start--) {
@@ -1596,7 +1565,7 @@ void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, intptr_t col, char* charS
 }
 
 
-int Buffer_FindEndOfSequence(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+int Buffer_FindEndOfSequence(Buffer* b, BufferLine** linep, colnum_t* colp, char* charSet) {
 	intptr_t col = *colp;
 	BufferLine* l = *linep;
 	
@@ -1633,7 +1602,7 @@ int Buffer_FindEndOfSequence(Buffer* b, BufferLine** linep, intptr_t* colp, char
 	return 1;
 }
 
-int Buffer_FindEndOfInvSequence(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+int Buffer_FindEndOfInvSequence(Buffer* b, BufferLine** linep, colnum_t* colp, char* charSet) {
 	intptr_t col = *colp;
 	BufferLine* l = *linep;
 	
@@ -1671,7 +1640,7 @@ int Buffer_FindEndOfInvSequence(Buffer* b, BufferLine** linep, intptr_t* colp, c
 	return 1;
 }
 
-int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, colnum_t* colp, char* charSet) {
 	intptr_t col = *colp;
 	BufferLine* l = *linep;
 	
@@ -1727,7 +1696,7 @@ int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, intptr_t* colp
 	return 1;
 }
 
-int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, intptr_t* colp, char* charSet) {
+int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, colnum_t* colp, char* charSet) {
 	intptr_t col = *colp;
 	BufferLine* l = *linep;
 	
@@ -1816,13 +1785,13 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 			case UndoAction_DeleteLine:
 			case UndoAction_InsertLineAt:
 				printf("%c%d [%s] {line:%ld:%ld} len:%ld:'%.*s'\n", c, i, names[u->action], 
-					u->lineNum, u->colNum, u->length, (int)u->length, u->text);
+					(uint64_t)u->lineNum, (uint64_t)u->colNum, u->length, (int)u->length, u->text);
 				break;
 				
 			case UndoAction_MoveCursorTo:
 			case UndoAction_SequenceBreak:
 				printf("%c%d [%s] {line:%ld:%ld} len:%ld\n", c, i, names[u->action],
-					u->lineNum, u->colNum, u->length);
+					(uint64_t)u->lineNum, (uint64_t)u->colNum, u->length);
 				break;
 				
 			default:
@@ -1837,7 +1806,7 @@ void Buffer_DebugPrintUndoStack(Buffer* b) {
 
 
 
-void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, intptr_t col) {
+void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, colnum_t col) {
 	intptr_t start, end;
 	
 	if(col > l->length) return;
@@ -1944,7 +1913,7 @@ void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l) {
 }
 
 
-void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, intptr_t startC, BufferLine* endL, intptr_t endC, char isReverse) {
+void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, colnum_t startC, BufferLine* endL, colnum_t endC, char isReverse) {
 	BufferChangeNotification note = {
 		.b = b,
 		.sel.startLine = startL,
@@ -1959,7 +1928,7 @@ void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, intptr_t start
 }
 
 
-void Buffer_NotifyUndoMoveCursor(Buffer* b, BufferLine* line, intptr_t col) {
+void Buffer_NotifyUndoMoveCursor(Buffer* b, BufferLine* line, colnum_t col) {
 	BufferChangeNotification note = {
 		.b = b,
 		.sel.startLine = line,
@@ -1998,68 +1967,6 @@ void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* dat
 	VEC_INC(&b->changeListeners);
 	VEC_TAIL(&b->changeListeners).fn = fn;
 	VEC_TAIL(&b->changeListeners).data = data;
-}
-
-
-int BufferRange_CompleteLinesOnly(BufferRange* sel) {
-	if(!sel) return 0;
-	
-	if(sel->startCol != 0 && sel->startCol != sel->startLine->length) return 0;
-	if(sel->endCol != 0 && sel->endCol != sel->endLine->length) return 0;
-	
-	return 1;
-}
-
-
-
-// returns 1 for inside, 0 for outside
-int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, intptr_t col) {
-	if(!s) return 0;
-	
-	VEC_EACH(&s->ranges, i, r) {
-		if(!r->startLine || !r->endLine) continue;
-		
-		if(r->startLine->lineNum > bl->lineNum) continue;
-		if(r->endLine->lineNum < bl->lineNum) continue; // TODO possible optimization
-		
-		// within the line range
-		if(r->startLine == bl && r->startCol > col) continue;
-		if(r->endLine == bl && r->endCol <= col) continue;
-		
-		return 1;
-	}
-	
-	return 0;
-}
-
-
-void BufferRangeSet_FreeAll(BufferRangeSet* s) {
-	if(!s) return;
-	
-	VEC_EACH(&s->ranges, i, r) {
-		if(r) free(r);
-	}
-	VEC_FREE(&s->ranges);
-	VEC_LEN(&s->ranges) = 0;
-}
-
-
-long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, intptr_t col) {
-	BufferLine* bl = line;
-	intptr_t c = col;
-	
-	if(!rs) return -1;
-	
-	if(!VEC_LEN(&rs->ranges)) return -1;
-	
-	VEC_EACH(&rs->ranges, i, r) {
-		if(r->endLine->lineNum > bl->lineNum) continue;
-		if(r->startLine->lineNum >= bl->lineNum) {
-			return i;
-		}
-	}
-	
-	return 0;
 }
 
 

@@ -37,7 +37,7 @@ size_t getColOffset(char* txt, int col, int tabWidth) {
 // draws the editor's text area and line numbers
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz,
 	 int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp) {
-	Buffer* b = gbe->buffer;
+	Buffer* b = gbe->b;
 	
 	if(!b) return;
 	if(!b->first) return;
@@ -136,7 +136,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		float adv = 0;
 		
 		// highlight current line
-		if(bl == gbe->current && gbe->outlineCurLine && !gbe->sel) {
+		if(bl == gbe->sel->startLine && gbe->outlineCurLine && !gbe->sel->endLine) {
 			gm->curZ = z + 10;
 			GUI_Box(
 				V(tl.x - 1, tl.y + bs->outlineCurrentLineYOffset), 
@@ -318,8 +318,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	// draw cursor
 	if(gbe->cursorBlinkPaused || gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
 		//tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
-		float cursorOff = hsoff + getColOffset(gbe->current->buf, gbe->curCol, tdp->tabWidth) * tdp->charWidth;
-		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		float cursorOff = hsoff + getColOffset(gbe->sel->startLine->buf, gbe->sel->startCol, tdp->tabWidth) * tdp->charWidth;
+		float cursory = (gbe->sel->startLine->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		
 		gm->curZ = z + 10;
 		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, tdp->lineHeight), &ts->cursorColor);
@@ -332,7 +332,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		size_t popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
 		
-		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		float cursory = (gbe->sel->startLine->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
 		
 		

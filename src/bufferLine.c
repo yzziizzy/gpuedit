@@ -49,9 +49,60 @@ void BufferLine_SetText(BufferLine* l, char* text, intptr_t len) {
 }
 
 
+static void insert_line(Buffer* b, BufferLine* l) {
+	l->id = b->nextLineID++;
+	
+	// resize the table if needed
+	if(b->idTableFill >= b->idTableAlloc * .75) {
+		
+		size_t newAlloc = b->idTableAlloc * 2;
+		size_t newMask = newAlloc - 1;
+		
+		BufferLine** new = calloc(1, sizeof(*new) * newAlloc);
+		
+		long f = 0;
+		for(long i = 0; i < b->idTableAlloc; i++) {
+			BufferLine* bl = b->idTable[i];
+			if(!bl) continue;
+			
+			uint64_t hash = lineIDHash(bl->id) & newMask;
+			for(long i = 0; i < newAlloc; i++) {
+				if(new[hash] == 0) {
+					new[hash] = bl;
+					f++;
+					if(f >= b->idTableFill) goto DONE;
+					break;
+				}
+				
+				hash = (hash + 1) & newMask;
+			}
+		}
+		
+	DONE:
+		free(b->idTable);
+		b->idTable = new;
+		b->idTableAlloc = newAlloc;
+		b->idTableMask = newMask;
+	}
+	
+	uint64_t hash = lineIDHash(l->id) & b->idTableMask;
+	for(long i = 0; i < b->idTableAlloc; i++) {
+		if(b->idTable[hash] == 0) {
+			b->idTable[hash] = l;
+			b->idTableFill++;
+			break;
+		}
+		
+		hash = (hash + 1) & b->idTableMask;
+	}
+	
+}
 
-BufferLine* BufferLine_New() {
+
+BufferLine* BufferLine_New(Buffer* b) {
 	BufferLine* l = pcalloc(l);
+	insert_line(b, l);
+	
 	l->allocSz = 32;
 	l->buf = malloc(sizeof(*l->buf) * l->allocSz);
 	l->flagBuf = malloc(sizeof(*l->flagBuf) * l->allocSz);
@@ -61,7 +112,22 @@ BufferLine* BufferLine_New() {
 }
 
 
-void BufferLine_Delete(BufferLine* l) {
+void BufferLine_Delete(Buffer* b, BufferLine* l) {
+	
+	// remove it from the id hash table
+	uint64_t hash = lineIDHash(l->id) & b->idTableMask;
+	for(long i = 0; i < b->idTableAlloc; i++) {
+		if(b->idTable[hash] == 0) break;
+		if(b->idTable[hash]->id == l->id) {
+			b->idTable[hash] = 0;
+			b->idTableFill--;
+			break;
+		}
+		
+		hash = (hash + 1) & b->idTableMask;
+	}
+	
+	
 	if(l->buf) free(l->buf);
 	if(l->flagBuf) {
 		free(l->flagBuf);
@@ -71,14 +137,14 @@ void BufferLine_Delete(BufferLine* l) {
 	free(l);
 }
 
-BufferLine* BufferLine_FromStr(char* text, intptr_t len) {
-	BufferLine* l = BufferLine_New();
+BufferLine* BufferLine_FromStr(Buffer* b, char* text, intptr_t len) {
+	BufferLine* l = BufferLine_New(b);
 	BufferLine_SetText(l, text, len);
 	return l;
 }
 
-BufferLine* BufferLine_Copy(BufferLine* orig) {
-	BufferLine* l = BufferLine_New();
+BufferLine* BufferLine_Copy(Buffer* b, BufferLine* orig) {
+	BufferLine* l = BufferLine_New(b);
 	
 	l->length = orig->length;
 	l->allocSz = orig->allocSz;
@@ -113,7 +179,7 @@ void BufferLine_EnsureAlloc(BufferLine* l, intptr_t len) {
 
 
 // does NOT handle embedded linebreak chars
-void BufferLine_InsertChars(BufferLine* l, char* text, intptr_t col, intptr_t len) {
+void BufferLine_InsertChars(BufferLine* l, char* text, colnum_t col, intptr_t len) {
 	if(text == NULL) return;
 	if(len == 0) return;
 	
@@ -161,13 +227,13 @@ void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len) {
 }
 
 
-void BufferLine_TruncateAfter(BufferLine* l, intptr_t col) {
+void BufferLine_TruncateAfter(BufferLine* l, colnum_t col) {
 	if(l->length < col) return;
 	l->buf[col - 1] = 0;
 	l->length = col - 1;
 }
 
-intptr_t BufferLine_GetIndentCol(BufferLine* l) {
+colnum_t BufferLine_GetIndentCol(BufferLine* l) {
 	intptr_t i = 0;
 	for(; i < l->length; i++) {
 		switch(l->buf[i]) {

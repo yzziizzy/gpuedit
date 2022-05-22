@@ -828,7 +828,7 @@ static int gbeAfterClose(MainControlTab* t) {
 static void gbeEveryFrame(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
-	t->isStarred = gbe->buffer->undoSaveIndex != gbe->buffer->undoCurrent;
+	t->isStarred = gbe->b->undoSaveIndex != gbe->b->undoCurrent;
 	
 }
 
@@ -1013,10 +1013,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	}
 */
 	
-	BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
-	if(bl) {
-		GBEC_MoveCursorTo(gbe->ec, bl, 0);
-		GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
-	}
+	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
+	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
 }
 
