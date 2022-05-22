@@ -248,12 +248,12 @@ colnum_t BufferLine_GetIndentCol(BufferLine* l) {
 
 
 int BufferLine_IsInRange(BufferLine* bl, BufferRange* sel) {
-	BufferLine* line = sel->startLine;
+	BufferLine* line = sel->line[0];
 	
 	while(line) {
 		if(line == bl) return 1;
 		
-		if(line == sel->endLine) break;
+		if(line == sel->line[1]) break;
 		line = line->next;
 	}
 

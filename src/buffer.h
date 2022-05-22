@@ -51,24 +51,24 @@ typedef struct BufferLine {
 } BufferLine;
 
 
+#define CURSOR_LINE(r) ((r)->line[(r)->cursor])
+#define CURSOR_COL(r) ((r)->col[(r)->cursor])
+
 typedef struct BufferRange {
 	union {
-		BufferLine* startLine;
-		lineid_t startLineID;
-	};
-	union {
-		BufferLine* endLine;
-		lineid_t endLineID;
+		BufferLine* line[2];
+		lineid_t lineID[2];
 	};
 	
-	colnum_t startCol, endCol;
+	colnum_t col[2];
 	
 //	colnum_t colDisp; // column to display the cursor on
 	colnum_t colWanted; // column to place the cursor on, if it existed
 	
 	intptr_t charLength; // not implemented atm
-	int reverse : 1; // DEAD CODE? // cursor at: 0 = end, 1 = start
+	int cursor : 1; // cursor at: 0 = start, 1 = end
 	int usesIDs : 1;
+	int frozen : 1;
 	
 	// type?
 } BufferRange;
@@ -600,7 +600,9 @@ void Buffer_SurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* en
 int Buffer_UnsurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* end);
 int BufferRange_CompleteLinesOnly(BufferRange* sel);
 BufferRange* BufferRange_New(GUIBufferEditControl* w);
+void BufferRange_MoveCursorH(BufferRange* r, colnum_t cols);
 
+void GBEC_MoveRangeCursorTo(BufferRange* r, BufferLine* bl, colnum_t col);
 void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, colnum_t startC, BufferLine* endL, colnum_t endC);
 void GBEC_SetCurrentSelectionRange(GUIBufferEditControl* w, BufferRange* r);
 void GBEC_ClearCurrentSelection(GUIBufferEditControl* w);
@@ -701,6 +703,11 @@ void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char*
 void GBEC_MoveToFirstCharOrSOL(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
+
+void GBEC_PushCursor(GUIBufferEditControl* w, BufferLine* bl, colnum_t col);
+
+void GBEC_InsertCharsMC(GUIBufferEditControl* w, char* s, size_t cnt);
+void GBEC_MoveCursorHMC(GUIBufferEditControl* w, intptr_t cols);
 
 void GBEC_ReplaceLineWithSelectionTransform(
 	GUIBufferEditControl* w, 

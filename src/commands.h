@@ -125,6 +125,7 @@
 	X(Buffer, SmartBubbleSelection) \
 	X(Buffer, MacroToggleRecording) \
 	X(Buffer, MacroReplay) \
+	X(Buffer, PushCursor) \
 	\
 	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \

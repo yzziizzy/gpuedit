@@ -99,6 +99,7 @@
 			{elem: "Buffer", cmd: "GrowSelectionV", mods: "CS", key: "XK_Up", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "GrowSelectionV", mods: "CS", key: "XK_Down", amt: 1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "ClearSelection", mods: "", key: "XK_Escape", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "PushCursor", mods: "A", key: "c", amt: 0, flags: []},
 			{elem: "Buffer", cmd: "Indent", mods: "", key: "XK_Tab", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "GrowSelectionToSOL", mods: "S", key: "XK_Home", amt: 0, },
 			{elem: "Buffer", cmd: "GrowSelectionToEOL", mods: "S", key: "XK_End", amt: 0, },
