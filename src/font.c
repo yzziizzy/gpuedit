@@ -124,7 +124,7 @@ GUIFont* FontManager_AssertFont(FontManager* fm, char* name) {
 
 // new font rendering info
 static char* defaultCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 `~!@#$%^&*()_+|-=\\{}[]:;<>?,./'\"";
-//static char* defaultCharset = "Q";
+//static char* defaultCharset = "7";
 //static char* defaultCharset = "g0123456789.+-*/()";
 
 // 16.16 fixed point to float conversion
@@ -230,16 +230,15 @@ static FontGen* addChar(int magnitude, FT_Face* ff, int code, int fontSize, char
 	// back to sdf generation
 	Vector2i rawImgSz = {(slot->metrics.width >> 6), (slot->metrics.height >> 6)};
 	
-	fg->rawGlyphSize.x = (slot->metrics.width >> 6) + 2; 
-	fg->rawGlyphSize.y = (slot->metrics.height >> 6) + 2; 
+	fg->rawGlyphSize.x = (slot->metrics.width >> 6); 
+	fg->rawGlyphSize.y = (slot->metrics.height >> 6); 
 	printf("[%c] FT glyph size: %d,%d\n", code, fg->rawGlyphSize.x, fg->rawGlyphSize.y);
 	
-	// the raw glyph is copied to the middle of a larger buffer to make the sdf algorithm simpler 
 	fg->rawGlyph = calloc(1, sizeof(*fg->rawGlyph) * fg->rawGlyphSize.x * fg->rawGlyphSize.y);
 	
 	blit(
 		0, 0, // src x and y offset for the image
-		1, 1, // dst offset
+		0, 0, // dst offset
 		rawImgSz.x, rawImgSz.y, // width and height
 		slot->bitmap.pitch, fg->rawGlyphSize.x, // src and dst row widths
 		slot->bitmap.buffer, // source
@@ -515,7 +514,7 @@ void FontManager_createAtlas(FontManager* fm) {
 
 
 // bump on format changes. there is no backward compatibility. saving is for caching only.
-static uint16_t GUIFONT_ATLAS_FILE_VERSION = 4;
+static uint16_t GUIFONT_ATLAS_FILE_VERSION = 5;
 
 void FontManager_saveAtlas(FontManager* fm, char* path) {
 	FILE* f;
@@ -698,7 +697,7 @@ void sdfgen_new(FontGen* fg) {
 
 	// number of input pixels inside each output pixel
 	int io_ratio = fg->ioRatio;
-	printf("io_ratio: %d\n", io_ratio);
+//	printf("io_ratio: %d\n", io_ratio);
 	
 	
 	// how big the core of the output needs to be, in real-valued output pixels
@@ -758,26 +757,27 @@ void sdfgen_new(FontGen* fg) {
 	// are to pixel centers.   
 	
 	
-	// The input image has a 1px border to avoid bounds checking
-	for(int iy = 1; iy < in_size_y - 1; iy++) {
-	
-		
-		for(int ix = 1; ix < in_size_x - 1; ix++) {
+	for(int iy = 0; iy < in_size_y; iy++) {
+		for(int ix = 0; ix < in_size_x; ix++) {
+			
 			int is_diff = 0;
 			
 			int p = INPX(ix, iy);
-			//if(p == 1) continue; // the center pixel should be the white (foreground) one
 			
 			int t_off_x = 0;
 			int t_off_y = 0;
 			
 			
-			do {
-				if(p != INPX(ix, iy - 1)) { is_diff = 1; t_off_y = -1; break; }
-				if(p != INPX(ix, iy + 1)) { is_diff = 1; t_off_y =  1; break; }
-				if(p != INPX(ix - 1, iy)) { is_diff = 1; t_off_x = -1; break; }
-				if(p != INPX(ix + 1, iy)) { is_diff = 1; t_off_x =  1; break; }
+			int ym = iy > 0             ? INPX(ix, iy - 1) : 0;
+			int yp = iy < in_size_y - 1 ? INPX(ix, iy + 1) : 0;
+			int xm = ix > 0             ? INPX(ix - 1, iy) : 0;
+			int xp = ix < in_size_x - 1 ? INPX(ix + 1, iy) : 0;
 				
+			do {
+				if(p != ym) { is_diff = 1; t_off_y = -1; break; }
+				if(p != yp) { is_diff = 1; t_off_y =  1; break; }
+				if(p != xm) { is_diff = 1; t_off_x = -1; break; }
+				if(p != xp) { is_diff = 1; t_off_x =  1; break; }
 			} while(0);		
 			if(!is_diff) continue;
 			
@@ -807,8 +807,8 @@ void sdfgen_new(FontGen* fg) {
 				float i_cur_out_y = out_cy * io_ratio;
 				
 				// input pixels from the output image's edge to the test pixel
-				float i_from_out_edge_x = ix + i_padding/* + t_off_x*/;  
-				float i_from_out_edge_y = iy + i_padding/* + t_off_y*/;  
+				float i_from_out_edge_x = ix + i_padding;  
+				float i_from_out_edge_y = iy + i_padding;  
 				
 				// input pixels from the output image's edge to the output cell center being updated
 				float i_out_center_x = (ox) * io_ratio + io_center_off;
@@ -842,13 +842,6 @@ void sdfgen_new(FontGen* fg) {
 				// output pixels that are outside the glyph should have values from 0 to 191
 				int clamped;
 				
-				
-//				if(inside) norm = -norm;
-			
-//			o = (norm * 192) + 64;
-			
-//			return o < 0 ? 0 : (o > 255 ? 255 : o);
-			
 			
 				
 				if(p == 0) { // this is the background pixel next to an edge
@@ -890,63 +883,7 @@ void sdfgen_new(FontGen* fg) {
 //						OUTPX(ox, oy) = 0x8f;
 					
 					}
-				}
-				
-				
-				
-				
-//				float norm = d / 192.0f;
-//				float scaled = norm * 256;
-//				int clamped = d > 192 ? 192 : d;
-				
-				
-				// output encode the distance, overwrite if lower
-				
-				
-				
-				
-				
-//				if(p == p_target) {
-			
-//				}
-	
-				/*
-				if(p == 1 && p == p_target) {
-					
-					
-					//existing = 64 - existing;
-					//printf("clamped:%d \n", clamped);
-					if(clamped < existing) { 
-						OUTPX(ox, oy) = clamped;
-					}
-					
-				}
-				else {
-//					clamped += 64;	
-					
-					//clamped = d > 64 ? 64 : d; 
-					//clamped = 64 - clamped;
-					
-					if(clamped < existing) { 
-						//if(clamped < 64) printf("oops\n");
-						OUTPX(ox, oy) = 64;//clamped;
-					}
-				}
-				*/
-	/*		
-		static uint8_t sdfEncode(float d, int inside, float maxDist) {
-			int o;
-			d = sqrt(d);
-			float norm = d / maxDist;
-			if(inside) norm = -norm;
-			
-			o = (norm * 192) + 64;
-			
-			return o < 0 ? 0 : (o > 255 ? 255 : o);
-		}
-	*/							
-									
-				
+				}				
 			}}
 			
 					
@@ -1019,22 +956,7 @@ void sdfgen_new(FontGen* fg) {
 	
 	float fontScaler = (float)out_mag / (float)fg->nominalRawSize; // the ratio of output pixels to nominal font pixels 
 	
-	/* // somehow broken
 	
-	// this is where to draw the quad relative to the current cursor position
-	// it must subtract the empty margins and the sdf padding pixels 
-	
-	fg->charinfo.topLeftOffset.x = (fg->sdfBounds.min.x - out_padding) * fontScaler;
-	fg->charinfo.topLeftOffset.y = (fg->sdfBounds.max.y - out_padding) * fontScaler;
-	fg->charinfo.bottomRightOffset.x = fg->charinfo.topLeftOffset.x + (fg->sdfDataSize.x + out_padding + out_padding) * fontScaler;
-	fg->charinfo.bottomRightOffset.y = fg->charinfo.topLeftOffset.y + (fg->sdfDataSize.y + out_padding + out_padding) * fontScaler;
-	*/
-	
-	//fg->charinfo.topLeftOffset.x = 0;
-	//fg->charinfo.topLeftOffset.y = 0;
-//	fg->charinfo.bottomRightOffset.x = ((float)fg->sdfGlyphSize.x * (float)out_mag) / (float)fg->nominalRawSize;
-//	fg->charinfo.bottomRightOffset.y = ((float)fg->sdfGlyphSize.y * (float)out_mag) / (float)fg->nominalRawSize;
-	//fg->charinfo.bottomRightOffset.x = 1.0 * (float)fg->sdfDataSize.x / (float)fg->sdfDataSize.y;/// (float)fg->nominalRawSize;
 	
 	// if the input glyph was rendered at em 1.0, then:
 	
@@ -1076,9 +998,8 @@ void sdfgen_new(FontGen* fg) {
 	// the input and output images are y-down; 0,0 is the top left corner
 	
 	// origin location, in input pixels, relative to the input image's bottom left corner (opposite of the gl)
-	// the input image has 1px of padding on all sides
-	float ii_origin_x = -fg->rawBearing.x + 1;
-	float ii_origin_y = in_size_y - fg->rawBearing.y + 1; 
+	float ii_origin_x = -fg->rawBearing.x;
+	float ii_origin_y = in_size_y - fg->rawBearing.y; 
 	
 	// origin location, in input pixels, relative to the output image's bottom left corner
 	float io_origin_x = ii_origin_x + i_padding;
