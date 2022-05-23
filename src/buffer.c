@@ -811,7 +811,6 @@ void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl) {
 
 
 void Buffer_RelPosH(
-	Buffer* b, 
 	BufferLine* startL, 
 	colnum_t startC, 
 	colnum_t cols,
@@ -861,7 +860,6 @@ void Buffer_RelPosH(
 
 // TODO: fix max col
 void Buffer_RelPosV(
-	Buffer* b, 
 	BufferLine* startL, 
 	colnum_t startC, 
 	linenum_t lines,
@@ -878,7 +876,7 @@ void Buffer_RelPosV(
 		bl = bl->prev;
 	}
 	
-	if(outC) *outC = startC;
+	if(outC) *outC = MIN(startC, bl->length);
 	if(outL) *outL = bl;
 }
 

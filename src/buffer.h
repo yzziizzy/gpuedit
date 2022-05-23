@@ -53,6 +53,10 @@ typedef struct BufferLine {
 
 #define CURSOR_LINE(r) ((r)->line[(r)->cursor])
 #define CURSOR_COL(r) ((r)->col[(r)->cursor])
+#define PIVOT_LINE(r) ((r)->line[!(r)->cursor])
+#define PIVOT_COL(r) ((r)->col[!(r)->cursor])
+//#define HAS_SELECTION(r) ((r)->line[!(r)->cursor])
+#define HAS_SELECTION(r) (!!(r)->selecting)
 
 typedef struct BufferRange {
 	union {
@@ -66,9 +70,10 @@ typedef struct BufferRange {
 	colnum_t colWanted; // column to place the cursor on, if it existed
 	
 	intptr_t charLength; // not implemented atm
-	int cursor : 1; // cursor at: 0 = start, 1 = end
-	int usesIDs : 1;
-	int frozen : 1;
+	unsigned int cursor : 1; // cursor at: 0 = start, 1 = end
+	unsigned int usesIDs : 1;
+	unsigned int selecting : 1;
+	unsigned int frozen : 1;
 	
 	// type?
 } BufferRange;
@@ -299,8 +304,8 @@ typedef struct GUIBufferEditControl {
 	long findIndex;
 	
 	// starting point of a mouse-drag selection
-	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
-	intptr_t selectPivotCol;
+//	BufferLine* selectPivotLine; // BUG: dead pointers on line deletion?
+//	intptr_t selectPivotCol;
 
 	float scrollCoastTimer;
 	float scrollCoastStrength;
@@ -600,7 +605,18 @@ void Buffer_SurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* en
 int Buffer_UnsurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* end);
 int BufferRange_CompleteLinesOnly(BufferRange* sel);
 BufferRange* BufferRange_New(GUIBufferEditControl* w);
+
+void BufferRange_MoveMarkerH(BufferRange* r, int c, colnum_t cols);
 void BufferRange_MoveCursorH(BufferRange* r, colnum_t cols);
+void BufferRange_MovePivotH(BufferRange* r, colnum_t cols);
+void BufferRange_MoveStartH(BufferRange* r, colnum_t cols);
+void BufferRange_MoveEndH(BufferRange* r, colnum_t cols);
+
+void BufferRange_MoveMarkerV(BufferRange* r, int c, linenum_t lines);
+void BufferRange_MoveCursorV(BufferRange* r, linenum_t lines);
+void BufferRange_MovePivotV(BufferRange* r, linenum_t lines);
+void BufferRange_MoveStartV(BufferRange* r, linenum_t lines);
+void BufferRange_MoveEndV(BufferRange* r, linenum_t lines);
 
 void GBEC_MoveRangeCursorTo(BufferRange* r, BufferLine* bl, colnum_t col);
 void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, colnum_t startC, BufferLine* endL, colnum_t endC);
@@ -646,10 +662,11 @@ void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_RemoveBookmarkAt(Buffer* b, BufferLine* bl);
 void Buffer_ToggleBookmarkAt(Buffer* b, BufferLine* bl);
 
-void Buffer_RelPosH(Buffer* b, BufferLine* startL, colnum_t startC, colnum_t cols, BufferLine** outL, colnum_t* outC);
-void Buffer_RelPosV(Buffer* b, BufferLine* startL, colnum_t startC, linenum_t lines, BufferLine** outL, colnum_t* outC);
+void Buffer_RelPosH(BufferLine* startL, colnum_t startC, colnum_t cols, BufferLine** outL, colnum_t* outC);
+void Buffer_RelPosV(BufferLine* startL, colnum_t startC, linenum_t lines, BufferLine** outL, colnum_t* outC);
 
-int BufferRange_Normalize(BufferRange** pbr);
+int BufferRange_Normalize(BufferRange* r);
+int BufferRangeSet_Normalize(BufferRangeSet* rs);
 colnum_t BufferLine_GetIndentCol(BufferLine* l);
 
 
@@ -700,6 +717,8 @@ int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, colnum_t* colp
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, colnum_t* colp, char* charSet);
 void GBEC_SurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
 void GBEC_UnsurroundCurrentSelection(GUIBufferEditControl* w, char* begin, char* end);
+void GBEC_SurroundRange(GUIBufferEditControl* w, BufferRange* r, char* begin, char* end);
+void GBEC_UnsurroundRange(GUIBufferEditControl* w, BufferRange* r, char* begin, char* end);
 void GBEC_MoveToFirstCharOrSOL(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);

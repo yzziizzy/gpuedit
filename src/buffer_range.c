@@ -33,41 +33,48 @@ void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel) {
 
 }
 
-void BufferRange_MoveCursorH(BufferRange* r, colnum_t cols) {
-	int i = cols;
+	
+void BufferRange_MoveMarkerH(BufferRange* r, int c, colnum_t cols) {
 	// TODO: undo
 	
-	if(i < 0) while(i++ < 0) {
-		if(r->col[0] <= 0) {
-			
-			if(r->line[0]->prev == NULL) {
-				r->col[0] = 0;
-				break;
-			}
-			
-			r->line[0] = r->line[0]->prev;
-			r->col[0] = r->line[0]->length;
-		}
-		else {
-			r->col[0]--;
-		}
-	}
-	else while(i-- > 0) {
-		if(r->col[0] >= r->line[0]->length) {
-			
-			if(r->line[0]->next == NULL) {
-				break;
-			}
-			
-			r->line[0] = r->line[0]->next;
-			r->col[0] = 0;
-		}
-		else {
-			r->col[0]++;
-		}
-	}
+	Buffer_RelPosH(r->line[c], r->col[c], cols, &r->line[c], &r->col[c]);
+	r->colWanted = r->col[c];
 	
-	r->colWanted = r->col[0];
+	BufferRange_Normalize(r);
+}
+
+void BufferRange_MoveCursorH(BufferRange* r, colnum_t cols) {
+	BufferRange_MoveMarkerH(r, r->cursor, cols);
+}
+void BufferRange_MovePivotH(BufferRange* r, colnum_t cols) {
+	BufferRange_MoveMarkerH(r, !r->cursor, cols);
+}
+void BufferRange_MoveStartH(BufferRange* r, colnum_t cols) {
+	BufferRange_MoveMarkerH(r, 0, cols);
+}
+void BufferRange_MoveEndH(BufferRange* r, colnum_t cols) {
+	BufferRange_MoveMarkerH(r, 1, cols);
+}
+
+
+void BufferRange_MoveMarkerV(BufferRange* r, int c, linenum_t lines) {
+	// TODO: undo
+	
+	Buffer_RelPosV(r->line[c], r->col[c], lines, &r->line[c], &r->col[c]);
+	BufferRange_Normalize(r);
+}
+
+void BufferRange_MoveCursorV(BufferRange* r, linenum_t lines) {
+	BufferRange_MoveMarkerV(r, r->cursor, lines);
+}
+void BufferRange_MovePivotV(BufferRange* r, linenum_t lines) {
+	BufferRange_MoveMarkerV(r, !r->cursor, lines);
+}
+void BufferRange_MoveStartV(BufferRange* r, linenum_t lines) {
+	BufferRange_MoveMarkerV(r, 0, lines);
+}
+void BufferRange_MoveEndV(BufferRange* r, linenum_t lines) {
+	BufferRange_MoveMarkerV(r, 1, lines);
 }
 
 
@@ -80,31 +87,30 @@ BufferRange* BufferRange_New(GUIBufferEditControl* w) {
 }
 
 // make sure a range goes in the right direction
-// delete selections that are zero
-// returns 0 if the selection is still valid, 1 if it was deleted
-int BufferRange_Normalize(BufferRange** pbr) {
-	BufferRange* br = *pbr;
-	if(!br) return 0;
+int BufferRange_Normalize(BufferRange* r) {
+	if(!r) return 0;
+	if(!r->line[0] || !r->line[1]) return 0;
 	
-	if(br->line[0] == br->line[1]) {
-		if(br->col[0] == br->col[1]) {
-			free(br); // delete empty ranges
-			*pbr = NULL;
-			return 1;
+	if(r->line[0] == r->line[1]) {
+		if(r->col[0] == r->col[1]) {
+			// doesn't matter.
 		}
-		else if(br->col[0] > br->col[1]) {
-			intptr_t t = br->col[0];
-			br->col[0] = br->col[1];
-			br->col[1] = t;
+		else if(r->col[0] > r->col[1]) {
+			intptr_t t = r->col[0];
+			r->col[0] = r->col[1];
+			r->col[1] = t;
+			r->cursor = !r->cursor; // flip the cursor/pivot flag
 		}
 	}
-	else if(br->line[0]->lineNum > br->line[1]->lineNum) {
-		void* tl = br->line[0];
-		br->line[0] = br->line[1];
-		br->line[1] = tl;
-		intptr_t t = br->col[0];
-		br->col[0] = br->col[1];
-		br->col[1] = t;
+	else if(r->line[0]->lineNum > r->line[1]->lineNum) {
+		void* tl = r->line[0];
+		r->line[0] = r->line[1];
+		r->line[1] = tl;
+		intptr_t t = r->col[0];
+		r->col[0] = r->col[1];
+		r->col[1] = t;
+		
+		r->cursor = !r->cursor; // flip the cursor/pivot flag
 	}
 	
 // 	printf("sel: %d:%d -> %d:%d\n", br->line[0]->lineNum, br->col[0], br->line[1]->lineNum, br->col[1]);
