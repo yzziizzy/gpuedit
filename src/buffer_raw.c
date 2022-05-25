@@ -14,8 +14,8 @@
 
 
 
-BufferLine* Buffer_raw_GetLine(Buffer* b, intptr_t line) {
-	if(line > b->numLines) return b->last;
+BufferLine* Buffer_raw_GetLineByNum(Buffer* b, linenum_t num) {
+	if(num > b->numLines) return b->last;
 	
 	// TODO: faster algorithm
 	
@@ -25,10 +25,27 @@ BufferLine* Buffer_raw_GetLine(Buffer* b, intptr_t line) {
 		while(bl->lineNum > line && bl->prev) bl = bl->prev; 
 	}
 	else if(line > b->current->lineNum) { */
-		while(bl->lineNum <= line - 1 && bl->next) bl = bl->next;
+		while(bl->lineNum <= num - 1 && bl->next) bl = bl->next;
 	//}
 	
 	return bl;
+}
+
+BufferLine* Buffer_raw_GetLineByID(Buffer* b, lineid_t id) {
+	
+	uint64_t hash = lineIDHash(id) & b->idTableMask;
+	
+	
+	for(long i = 0; i < b->idTableAlloc; i++) {
+		BufferLine* bl = b->idTable[hash];
+		if(!bl) return NULL;
+		
+		if(bl->id == id) return bl;
+		
+		hash = (hash + 1) & b->idTableMask;
+	}
+	
+	return NULL;
 }
 
 
@@ -54,7 +71,7 @@ BufferLine* Buffer_raw_InsertLineAfter(Buffer* b, BufferLine* before) {
 	}
 	
 	b->numLines++;
-	BufferLine* after = BufferLine_New();
+	BufferLine* after = BufferLine_New(b);
 		
 	if(b->first == NULL) {
 		b->first = after;
@@ -88,7 +105,7 @@ BufferLine* Buffer_raw_InsertLineBefore(Buffer* b, BufferLine* after) {
 	}
 	
 	b->numLines++;
-	BufferLine* before = BufferLine_New();
+	BufferLine* before = BufferLine_New(b);
 	
 	if(b->first == NULL) {
 		b->first = before;
@@ -129,7 +146,7 @@ void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl) {
 	
 	if(b->useDict) Buffer_RemoveLineFromDict(b, bl);
 	
-	BufferLine_Delete(bl);
+	BufferLine_Delete(b, bl);
 	
 	b->numLines--;
 };

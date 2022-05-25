@@ -5,6 +5,18 @@
 		
 		],
 		
+		modes: {
+			// -1 is the default parent mode
+			"0": {name: "Normal", parent: -1, },
+			"1": {name: "Find", parent: 0, },
+			"2": {name: "Replace", parent: 1, },
+			
+			"666": {name: "VIM", },
+			"667": {name: "VIM Insert", },
+			"668": {name: "VIM Replace", },
+			"669": {name: "VIM Visual", },
+		},
+		
 		keyConfig: [
 			{elem: "Main", cmd: "NextTab",  mods: "A",  key: "XK_Right", amt: 1},
 			{elem: "Main", cmd: "PrevTab",  mods: "A",  key: "XK_Left", amt: 1},
@@ -87,6 +99,7 @@
 			{elem: "Buffer", cmd: "GrowSelectionV", mods: "CS", key: "XK_Up", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "GrowSelectionV", mods: "CS", key: "XK_Down", amt: 1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "ClearSelection", mods: "", key: "XK_Escape", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "PushCursor", mods: "A", key: "c", amt: 0, flags: []},
 			{elem: "Buffer", cmd: "Indent", mods: "", key: "XK_Tab", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "GrowSelectionToSOL", mods: "S", key: "XK_Home", amt: 0, },
 			{elem: "Buffer", cmd: "GrowSelectionToEOL", mods: "S", key: "XK_End", amt: 0, },
@@ -113,6 +126,7 @@
 			{elem: "Buffer", cmd: "SelectNone", mods: "CS", key: "a", amt: 0, },
 			{elem: "Buffer", cmd: "SelectToEOL", mods: "C", key: "l", amt: 0, },
 			{elem: "Buffer", cmd: "SelectFromSOL", mods: "CS", key: "l", amt: 0, },
+//			{elem: "Buffer", cmd: "GoToLine", mods: "C", key: "g", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "GoToSOL", mods: "C", key: "XK_Home", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "GoToEOL", mods: "C", key: "XK_End", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "GoToAfterIndent", mods: "T", key: "XK_Home", amt: 0, flags: ["scrollToCursor", "resetCursorBlink"]},

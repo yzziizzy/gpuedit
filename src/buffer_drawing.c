@@ -37,10 +37,13 @@ size_t getColOffset(char* txt, int col, int tabWidth) {
 // draws the editor's text area and line numbers
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz,
 	 int lineFrom, int lineTo, int colFrom, int colTo, PassFrameParams* pfp) {
-	Buffer* b = gbe->buffer;
+	Buffer* b = gbe->b;
 	
 	if(!b) return;
 	if(!b->first) return;
+	
+//	BufferUndo_DebugRender(gm, b, V(500, 20), V(200, 800), pfp);
+	
 	
 	float z = gm->curZ;
 	
@@ -133,7 +136,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		float adv = 0;
 		
 		// highlight current line
-		if(bl == gbe->current && gbe->outlineCurLine && !gbe->sel) {
+		if(bl == CURSOR_LINE(gbe->sel) && gbe->outlineCurLine && !gbe->sel->line[0]) {
 			gm->curZ = z + 10;
 			GUI_Box(
 				V(tl.x - 1, tl.y + bs->outlineCurrentLineYOffset), 
@@ -225,8 +228,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 						1
 					};
 					
-					// TODO IMGUI
-					
 					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + sz.x) {
 						gm->curZ = z + 4;
 						GUI_CharFont_NoGuard('0', V(tl.x + hsoff + adv, yoff), f, fsize, &pulseColor);
@@ -293,11 +294,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		}
 
-//         not sure if long-dead code
-//		if(inSelection) {
-//			gm->curZ = z + 2;
-//			GUI_Rect(V(tl.x + adv + hsoff, yoff), V(adv + hsoff + MAX(5, (float)tdp->charWidth / 1.0), tdp->lineHeight), &theme->hl_bgColor);
-//		}
+        // draw a little half-width selection background at the end of selected lines (and empty ones)
+		if(inSelection) {
+			gm->curZ = z + 2;
+			GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)tdp->charWidth / 1.0), tdp->lineHeight), &ts->hl_bgColor);
+		}
 
 		if(ytop > edh) break; // end of buffer control
 
@@ -314,24 +315,28 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	
 	
-	// draw cursor
-	if(gbe->cursorBlinkPaused || gbe->cursorBlinkTimer <= gbe->cursorBlinkOnTime) {
+	// draw cursors
+	VEC_EACH(&gbe->selSet->ranges, i, r) {
+		if(r == gbe->sel && (gbe->cursorBlinkPaused || gbe->cursorBlinkTimer > gbe->cursorBlinkOnTime)) continue;
+		
 		//tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
-		float cursorOff = hsoff + getColOffset(gbe->current->buf, gbe->curCol, tdp->tabWidth) * tdp->charWidth;
-		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		float cursorOff = hsoff + getColOffset(CURSOR_LINE(r)->buf, CURSOR_COL(r), tdp->tabWidth) * tdp->charWidth;
+		float cursory = (CURSOR_LINE(r)->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		
 		gm->curZ = z + 10;
 		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, tdp->lineHeight), &ts->cursorColor);
 	}
+
+	gm->curZ = z;
 	
 	
 	// autocomplete box
 	if(gbe->showAutocomplete) {
 		
 		
-		size_t popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
+//		size_t popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
 		
-		float cursory = (gbe->current->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+//		float cursory = (gbe->sel->startLine->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
 		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
 		
 		

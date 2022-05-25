@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "log.h"
 #include "settings.h"
 #include "sti/sti.h"
 
@@ -471,11 +472,11 @@ int Settings_LoadFile(Settings* s, char* path, unsigned long mask) {
 	
 	jsf = json_load_path(path);
 	if(!jsf) {
-		fprintf(stderr, "Failed to open config file '%s'\n", path);
+		L4("Failed to open config file '%s'\n", path);
 		return 1;
 	}
 	
-	printf("Reading config file '%s'\n", path);
+	L5("Reading config file '%s'\n", path);
 		
 	Settings_LoadJSON(s, jsf->root, mask);
 	

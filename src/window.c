@@ -766,6 +766,6 @@ void initGLEW() {
 		exit(1);
 	}
 	
-	fprintf(stdout, "Initialized GLEW %s\n", glewGetString(GLEW_VERSION));
+//	fprintf(stdout, "Initialized GLEW %s\n", glewGetString(GLEW_VERSION));
 	glerr("existing error on glew init");
 }

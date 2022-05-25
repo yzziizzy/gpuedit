@@ -112,13 +112,17 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 				if(i < argc) VEC_PUSH(&autoload, argv[i]);
 			}
 				
-			if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {
+			else if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {
 				i++;
 				if(i <= argc) {
 					Settings_LoadFile(as->globalSettings, argv[i], SETTINGS_ALL);
 				}
 				
 				suppress_config = 1;
+			}
+			
+			else if(a[1] == 'v' && a[2] >= '0' && a[2] <= '5' && a[3] == 0) {
+				g_log_verbosity_level = a[2] - '0';
 			}
 			
 			continue;
@@ -148,11 +152,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	GUISettings* guiSettings = Settings_GetSection(as->globalSettings, SETTINGS_GUI);
 	GUIManager_Init(as->gui, guiSettings);
 	
-	tmp = path_join(homedir, ".gpuedit/commands.json");
-
-	CommandList_loadJSONFile(as->gui, "/home/izzy/projects/gpuedit/config/commands.json");
-//	CommandList_loadJSONFile(as->gui, tmp); // TODO IMGUI
-	free(tmp);
+	CommandList_loadJSONFile(as->gui, as->gs->commandsPath);
 	
 
 	
@@ -234,7 +234,7 @@ void AppState_InitGL(XStuff* xs, AppState* as) {
 	
 	as->ta = TextureAtlas_alloc(as->globalSettings);
 	as->ta->width = 32;
-	TextureAtlas_addFolder(as->ta, "icon", "/usr/share/gpuedit/images", 0);
+	TextureAtlas_addFolder(as->ta, "icon", as->gs->imagesPath, 0);
 	TextureAtlas_finalize(as->ta);
 // 	
 	

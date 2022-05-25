@@ -405,9 +405,8 @@ GUIMainControl* GUIMainControl_New(GUIManager* gm, Settings* s) {
 	w->projectPath =  "/home/steve/projects/gpuedit";
 	// ----
 	
-	HighlighterManager_Init(&w->hm);
-	Highlighter_ScanDirForModules(&w->hm, "/usr/lib64/gpuedit/highlighters/");
-	Highlighter_ScanDirForModules(&w->hm, "~/.gpuedit/highlighters/");
+	HighlighterManager_Init(&w->hm, s);
+	Highlighter_ScanDirForModules(&w->hm, w->gs->highlightersPath);
 	
 	
 	return w;
@@ -481,10 +480,6 @@ void GUIMainControl_CloseTab(GUIMainControl* w, int index) {
 	
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;
-	
-	//GUIManager_popFocusedObject(w->header.gm);
-//	GUIManager_pushFocusedObject(w->header.gm, t->client);
-//	GUIManager_SetMainWindowTitle(w->header.gm, t->title);
 }
 
 
@@ -655,7 +650,6 @@ GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, TabType_t type, int n)
 				
 			w->currentIndex = i;
 			
-//			GUIManager_pushFocusedObject(w->header.gm, tab->client);
 //			GUIManager_SetMainWindowTitle(w->header.gm, tab->title);
 			tab->isActive = 1;
 
@@ -825,7 +819,7 @@ static int gbeBeforeClose(MainControlTab* t) {
 static int gbeAfterClose(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
-	Settings_Free(gbe->gs);
+	Settings_Free(gbe->s);
 	GUIBufferEditor_Destroy(gbe);
 	return 0;
 }
@@ -834,7 +828,7 @@ static int gbeAfterClose(MainControlTab* t) {
 static void gbeEveryFrame(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
-	t->isStarred = gbe->buffer->undoSaveIndex != gbe->buffer->undoCurrent;
+	t->isStarred = gbe->b->undoSaveIndex != gbe->b->undoCurrent;
 	
 }
 
@@ -1019,10 +1013,7 @@ void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt) {
 	}
 */
 	
-	BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
-	if(bl) {
-		GBEC_MoveCursorTo(gbe->ec, bl, 0);
-		GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
-	}
+	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
+	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
 }
 

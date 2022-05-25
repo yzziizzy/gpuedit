@@ -8,6 +8,7 @@
 
 #define GUI_SETTING_LIST \
 	SETTING(int,   maxInstances,                  8192, 64, 9999999999999) \
+	SETTING(charp, shaderPath,                    "/usr/local/lib/gpuedit/shaders/guiUnified.glsl", NULL, NULL) \
 	SETTING(charp, name,                          "default dark", NULL, NULL) \
 	\
 	SETTING(charpp,fontList,             ((char*[]){"Arial","Courier New", NULL}), NULL, NULL) \

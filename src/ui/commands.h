@@ -118,6 +118,11 @@ typedef struct GUI_Cmd {
 	};
 } GUI_Cmd;
 
+typedef struct GUI_CmdModeInfo {
+	int id;
+	int parent; // -1 for no parent
+	char* name;
+} GUI_CmdModeInfo;
 
 typedef struct GUI_CmdList {
 	VEC(GUI_Cmd) mods[16]; // ctl, alt, shift, tux
@@ -145,6 +150,7 @@ typedef struct GUIHeader GUIHeader;
 
 GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode);
 GUI_Cmd* Commands_ProbeSubCommand(GUIManager* gm, int sub_elem, GUIEvent* gev);
+GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);
 

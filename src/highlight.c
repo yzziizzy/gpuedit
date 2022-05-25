@@ -12,11 +12,14 @@
 
 
 
-void HighlighterManager_Init(HighlighterManager* hm) {
+void HighlighterManager_Init(HighlighterManager* hm, Settings* s) {
 	VEC_INIT(&hm->modules);
 	VEC_INIT(&hm->plugins);
 	
 	HT_init(&hm->extLookup, 16);
+	
+	hm->s = s;
+	hm->gs = Settings_GetSection(s, SETTINGS_General);
 }
 
 void HighlighterManager_Destroy(HighlighterManager* hm) {
@@ -89,12 +92,7 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 		hpi->getStyleDefaults(h->stylesDark, h->numStyles);
 		hpi->getStyleDefaults(h->stylesLight, h->numStyles);
 		
-		char* homedir = getenv("HOME");
-		char* tmp;
-		size_t n = snprintf(NULL, 0, "%s/.gpuedit/%s_colors.txt", homedir, hpi->name);
-		tmp = malloc(n + 1);
-		snprintf(tmp, n+1, "%s/.gpuedit/%s_colors.txt", homedir, hpi->name);
-
+		char* tmp = sprintfdup("%s/%s_colors.txt", hm->gs->highlightStylesPath, hpi->name);
 		Highlighter_LoadStyles(h, tmp);
 		free(tmp);
 
@@ -256,7 +254,7 @@ void Highlighter_LoadStyles(Highlighter* h, char* path) {
 // 		printf("line: '%s' = '%s'\n", name, value);
 		style = get_style(h, name, prefix[0]);
 		if(!style) {
-			fprintf(stderr, "Unknown style name '%s' in %s:%d\n", name, path, ln);
+//			fprintf(stderr, "Unknown style name '%s' in %s:%d\n", name, path, ln);
 			continue;
 		}
 		

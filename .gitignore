@@ -73,7 +73,9 @@ Makefile
 # too much junk in the untracked list
 /assets/**/*
 
-
+._build
+build/**
+gpuedit
 
 # this is a symlink that was needed to get the game to run in nvidia's profiler
 /src/assets
