@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 here="$( cd "$( dirname "$0" )" &> /dev/null && pwd )"
 
