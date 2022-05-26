@@ -540,7 +540,7 @@ void read_cpi(struct child_process_info* cpi) {
 char* printpct(float f) {
 	static char buf[32];
 	if(f != 100) sprintf(buf, "\e[1;33m %2.0f%%\e[0m", f); 
-	else sprintf(buf, "\e[1;32m100%%\e[0m", f); 
+	else sprintf(buf, "\e[1;32m100%%\e[0m");
 	
 	return buf;
 }

@@ -7,6 +7,18 @@
 * command to append text to end of characters on line (;)
 
 == Needed before fractal dogfooding ==
+* render whitespace characters
+* insert <n> spaces on keypress
+* ctrl+l/r jumps across tabs (sequence break on newline)
+* sequence breaks that actually make sense
+* cursor down on last line -> goto end of line
+* maybe a bug: selection buffer pastes always at the mouse cursor
+  * selection paste option: mouse|latest/cursors
+* return to previously active tab if opener is closed without opening
+* redirect debug output to a logfile
+* lockup with multi-line selection when fuzzy-matcher is spawned
+
+* clicking out of find switches input to edit buffer
 * old find term highlighted on findreplace resume
 * sequence commands in findreplace input box
 * highlight findset while valid even if find tray closes (opt)
@@ -15,12 +27,10 @@
 * find match/ignore case
 
 * highlighter/theme colors from system colorX definitions
-* ctrl+l/r jumps across tabs (sequence break on newline)
 
 * copy cannot paste to pgadmin3 (INCR? mime type?), godbolt.org in FF
 * undo breaks if selection reaches end of file
 * paste: cursor at start/end of inserted text
-* return to previously active tab if opener is closed without opening
 * undo system selection not recreated based on selection direction?
 
 

@@ -53,7 +53,6 @@
 	X(Buffer, GoToLineLaunch) \
 	X(Buffer, GoToLineSubmit) \
 	X(Buffer, GoToLineCancel) \
-	X(Buffer, GoToLine) \
 	X(Buffer, GoToEOL) \
 	X(Buffer, GoToSOL) \
 	X(Buffer, GoToAfterIndent) \

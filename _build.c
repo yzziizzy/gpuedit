@@ -58,7 +58,7 @@ char* libs_needed[] = {
 	"gl", "glu", "glew",
 	"freetype2", "fontconfig", 
 	"libpcre2-8", 
-	"libpng", 
+	"libpng",
 	"x11", "xfixes",
 	NULL,
 };
