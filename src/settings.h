@@ -66,7 +66,7 @@ typedef struct WidgetSpec {
 #define GENERAL_SETTING_LIST \
 	SETTING(int,   frameRate,          30,    15,   INT_MAX) \
 	SETTING(charp, imagesPath,         "/usr/local/share/gpuedit/images", NULL, NULL) \
-	SETTING(charp, commandsPath,       "/usr/local/share/gpuedit/cmmands.json", NULL, NULL) \
+	SETTING(charp, commandsPath,       "/usr/local/share/gpuedit/commands.json", NULL, NULL) \
 	SETTING(charp, highlightersPath,   "/usr/local/lib/gpuedit/highlighters/", NULL, NULL) \
 	SETTING(charp, highlightStylesPath,"/usr/local/share/gpuedit/highlight_styles/", NULL, NULL) \
 	SETTING(bool,  enableVSync,        false,  NULL, NULL) \

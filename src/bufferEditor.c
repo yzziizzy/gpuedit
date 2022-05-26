@@ -1076,11 +1076,11 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 	}
 	
 	if(cmd->flags & GUICMD_FLAG_undoSeqBreak) {
-		if(!w->ec->sel) {
+		if(!HAS_SELECTION(w->ec->sel)) {
 //					printf("seq break without selection\n");
 			Buffer_UndoSequenceBreak(
 				w->b, 0, 
-				w->ec->sel->line[0]->lineNum, w->ec->sel->col[0],
+				CURSOR_LINE(w->ec->sel)->lineNum, CURSOR_COL(w->ec->sel),
 				0, 0, 0
 			);
 		}
@@ -1088,8 +1088,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 //					printf("seq break with selection\n");
 			Buffer_UndoSequenceBreak(
 				w->b, 0, 
-				w->ec->sel->line[0]->lineNum, w->ec->sel->col[0],
-				w->ec->sel->line[1]->lineNum, w->ec->sel->col[1],
+				CURSOR_LINE(w->ec->sel)->lineNum, CURSOR_COL(w->ec->sel),
+				PIVOT_LINE(w->ec->sel)->lineNum, PIVOT_COL(w->ec->sel),
 				1 // TODO check pivot locations
 			);
 		}			
