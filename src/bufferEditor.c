@@ -918,6 +918,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 		case GUICMD_Buffer_SmartFind:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION|FM_SEQUENCE);
+			GUI_SetActive(&w->findQuery);
 			break;
 		
 		case GUICMD_Buffer_FindNext:
@@ -1009,7 +1010,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			
 			if(w->b->undoSaveIndex == w->b->undoCurrent) {
 				// changes are saved, so just close
-//				GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+				// MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
 				break;
 			}
 			
