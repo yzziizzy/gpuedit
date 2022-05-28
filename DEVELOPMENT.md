@@ -7,6 +7,14 @@
 * command to append text to end of characters on line (;)
 
 == Needed before fractal dogfooding ==
+* bugz: number input has a persistent zero
+* bugz: statusbar widgets drawn on top of each other
+* bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
+* bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
+* bugz: cursor not reset to SoL on delete selection
+* bugz: selection pre-populate of fuzzy/grep openers not working
+* bugz: unable to change theme
+
 * render whitespace characters
 * insert <n> spaces on keypress
 * ctrl+l/r jumps across tabs (sequence break on newline)

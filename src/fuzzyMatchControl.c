@@ -129,7 +129,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 
 	switch(cmd->cmd) {
 		case GUICMD_FuzzyMatcher_Exit:
-//			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");			
+			MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
 			break;
 			
 		case GUICMD_FuzzyMatcher_CursorMove:
