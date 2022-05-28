@@ -15,7 +15,7 @@
 
 #include "fileBrowser.h"
 #include "fuzzyMatchControl.h"
-//#include "grepOpenControl.h"
+#include "grepOpenControl.h"
 //#include "calcControl.h"
 //#include "terminal.h"
 
@@ -270,7 +270,7 @@ void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd) {
 		break;
 	
 	case GUICMD_Main_GrepOpen:
-//		GUIMainControl_GrepOpen(w, NULL);
+		GUIMainControl_GrepOpen(w, NULL);
 		break;
 
 	case GUICMD_Main_Calculator:
@@ -590,7 +590,6 @@ GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic) {
 	
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
-	
 	GUI_SetActive_(w->gm, a->client, NULL, NULL);
 	
 	return a->client;
@@ -611,7 +610,6 @@ GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic) {
 	
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
-	
 	GUI_SetActive_(w->gm, a->client, NULL, NULL);
 	
 	return a->client;
@@ -652,7 +650,8 @@ GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, TabType_t type, int n)
 			
 //			GUIManager_SetMainWindowTitle(w->header.gm, tab->title);
 			tab->isActive = 1;
-
+			GUI_SetActive_(w->gm, tab->client, NULL, NULL);
+			
 			return tab->client;
 		}
 	}
@@ -739,30 +738,32 @@ void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm) {
 	GUIFuzzyMatchControl_Refresh(fmc);
 }
 
-/*
+
 void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm) {
 	GUIHeader* o = GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
 
-	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->header.gm, searchTerm);
+	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->gm, w->s, &w->rx, searchTerm);
 	goc->gs = w->gs;
-	goc->commands = w->commands;
-	MainControlTab* tab = GUIMainControl_AddGenericTab(w, &goc->header, "grep opener");
+//	goc->commands = w->commands;
+	MainControlTab* tab = GUIMainControl_AddGenericTab(w, goc, "grep opener");
 	tab->type = MCTAB_GREPOPEN;
+	tab->render = (void*)GUIGrepOpenControl_Render;
+	tab->client = goc;
 	//tab->beforeClose = gbeBeforeClose;
 	//tab->beforeClose = gbeAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
-	goc->header.parent = (GUIHeader*)w;
+	// goc->header.parent = (GUIHeader*)w;
 
 	GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 	
 	GUIGrepOpenControl_Refresh(goc);
 }
 
-
+/*
 void GUIMainControl_Calculator(GUIMainControl* w) {
 	
 
