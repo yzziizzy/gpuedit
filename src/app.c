@@ -121,7 +121,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 				suppress_config = 1;
 			}
 			
-			else if(a[1] == 'v' && a[2] >= '0' && a[2] <= '5' && a[3] == 0) {
+			else if(a[1] == 'v' && a[2] >= '0' && a[2] <= '9' && a[3] == 0) {
 				g_log_verbosity_level = a[2] - '0';
 			}
 			
@@ -146,6 +146,12 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	Settings_LoadFile(as->globalSettings, tmp, SETTINGS_ALL);
 	free(tmp);
 
+
+	BufferSettings* bs = Settings_GetSection(as->globalSettings, SETTINGS_Buffer);
+	FontManager_AssertBitmpSize(as->gui->fm, bs->font, bs->fontSize);
+	
+	
+	FontManager_AssertDefaultCodeRange(as->gui->fm, ' ', '~'); // all of printable 7-bit ascii
 	
 	
 

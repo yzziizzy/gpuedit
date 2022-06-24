@@ -278,6 +278,10 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	HOVER_HOT(id);
 	CLICK_HOT_TO_ACTIVE(id);
 	
+	w->sbMinHeight = 50;
+	float sb_line_range = w->b->numLines - w->linesOnScreen;
+	float sb_px_range = sz.y - w->sbMinHeight;
+	float sb_pos = sb_px_range * (w->scrollLines / sb_line_range);
 
 	if(!gm->drawMode) {
 	
@@ -308,6 +312,14 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	GBEC_Update(w, tl, sz, pfp);
 	
 	GUIBufferEditControl_Draw(w, gm, (Vector2){0,0}, sz, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100, pfp);
+	
+	gm->curZ += 200;
+	
+
+	
+	GUI_Rect(V(tl.x + sz.x - 10, tl.y + sb_pos), V(10, w->sbMinHeight), &C4H(ffffffff));
+	
+	gm->curZ -= 200;
 }
 #include "ui/macros_off.h"
 

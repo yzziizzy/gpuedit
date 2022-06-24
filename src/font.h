@@ -32,12 +32,9 @@ struct charInfo {
 	// The following metrics are all "normalized" to a 1px font. Multiply them by your desired font
 	//   size in pixels, not 'points' or any other such archaic nonsense. 
 	
-	float advance; // horizontal distance to advance after this char
+	double advance; // horizontal distance to advance after this char
 	Vector2 topLeftOffset; // offset from the baseline to the top left vertex of the *quad*
 	Vector2 bottomRightOffset;
-	
-	// BROKEN: wire through the dimensions of the character
-	//float size; // wtf?
 };
 
 
@@ -46,6 +43,7 @@ typedef struct GUIFont {
 	
 	char* name;
 	char empty; // indicates is the font was merely requested but never filled in
+	int bitmapSize; // only for bitmap fonts
 	
 	int charsLen;
 	struct charInfo* regular;
@@ -53,10 +51,16 @@ typedef struct GUIFont {
 	struct charInfo* bold;
 	struct charInfo* boldItalic;
 	
-	float ascender;
-	float descender;
-	float height;
+	double ascender;
+	double descender;
+	double height;
 	// TODO: kerning info
+	
+	uint64_t bitmapSizes;
+	VEC(struct GUIFont*) bitmapFonts;
+	
+	int sdfGenSize;
+	VEC(struct {int min; int max;}) codeRanges;
 	
 } GUIFont;
 
@@ -86,9 +90,10 @@ typedef struct FontGen {
 	GUIFont* font;
 	
 	int code;
-	char italic;
-	char bold;
 	
+	unsigned int italic : 1;
+	unsigned int bold : 1;
+	unsigned int bitmap : 1;
 	
 	// the raw glyph is oversampled by FontManager.oversample times
 	int magnitude; // this is the maximum range of the Distance Field from the edge of
@@ -116,11 +121,8 @@ typedef struct FontGen {
 	
 	// The following metrics are all "normalized" to a 1px font. Multiply them by your desired font
 	//   size in pixels, not 'points' or any other such archaic nonsense. 
-	
-	
 	Vector3 sdfBearing; // distance from the origin to the top left corner of the clipped sdf data
 	float sdfAdvance; // horizontal advance, in pixels
-	
 	
 	// final texture data
 	struct charInfo charinfo;
@@ -146,6 +148,7 @@ typedef struct FontManager {
 	// temp hacky stuff
 	GUIFont* helv;
 	
+	VEC(struct {int min; int max;}) codeRanges;
 } FontManager;
 
 
@@ -158,6 +161,9 @@ void FontManager_finalize(FontManager* fm);
 
 GUIFont* FontManager_findFont(FontManager* fm, char* name);
 GUIFont* FontManager_AssertFont(FontManager* fm, char* name);
+void FontManager_AssertBitmpSize(FontManager* fm, char* name, int size);
+void FontManager_AssertCodeRange(FontManager* fm, char* name, int minCode, int maxCode);
+void FontManager_AssertDefaultCodeRange(FontManager* fm, int minCode, int maxCode);
 
 FontManager* FontManager_alloc();
 void FontManager_init(FontManager* fm, GUISettings* gs);

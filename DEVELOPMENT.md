@@ -99,6 +99,7 @@
 * Bulk comment and uncomment 
 * Option: Autocomplete recurse into #include 
 * Option: always use ML comments
+* Remove any comments on the current line
 * Smart merge of overlapping ml comments
 * Color sequence for vertical indentation helper lines
 * Select/replace/do to all other instances visible on screen
@@ -162,6 +163,7 @@
 * Check all column usage for correct 1/0 basing
 * Mouse drag start params need tuning 
 * Undo breaks with CollapseWhitespace after deleting a selected word.
+* Free the freetype and fontconfig libraries after use
 
 == Low Priority ==
 * Built-in terminal

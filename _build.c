@@ -54,9 +54,20 @@ char* sources[] = { "main.c",
 };
 
 // these are run through pkg-config
+char* lib_headers_needed[] = {
+	// freetype and fontconfig are dynamically loaded only when needed
+	"freetype2", "fontconfig",
+	
+	"gl", "glu", "glew",
+	"libpcre2-8", 
+	"libpng", 
+	"x11", "xfixes",
+	NULL
+};
+
+// these are run through pkg-config
 char* libs_needed[] = {
 	"gl", "glu", "glew",
-	"freetype2", "fontconfig", 
 	"libpcre2-8", 
 	"libpng", 
 	"x11", "xfixes",
@@ -191,7 +202,7 @@ int main(int argc, char* argv[]) {
 	
 	g_gcc_opts_list = concat_lists(ld_add, cflags);
 	g_gcc_opts_flat = join_str_list(g_gcc_opts_list, " ");
-	g_gcc_include = pkg_config(libs_needed, "I");
+	g_gcc_include = pkg_config(lib_headers_needed, "I");
 	g_gcc_libs = pkg_config(libs_needed, "L");
 	tmp = g_gcc_opts_flat;
 	g_gcc_opts_flat = strjoin(" ", g_gcc_opts_flat, g_gcc_include);

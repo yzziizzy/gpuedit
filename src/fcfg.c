@@ -5,6 +5,7 @@
 #include <fontconfig/fontconfig.h>
 
 #include "fcfg.h"
+#include "log.h"
 
 
 static FcConfig* config = NULL;
@@ -27,7 +28,7 @@ void initFontConfig() {
 	lib = dlopen("libfontconfig.so", RTLD_LAZY | RTLD_GLOBAL);
 	liberr = dlerror();
 	if(liberr) {
-		fprintf(stderr, "Could not load libfontconfig: %s\n", liberr);
+		L1("Could not load libfontconfig: %s\n", liberr);
 		exit(1);
 	}
 	
@@ -66,7 +67,7 @@ char* getFontFile2(char* fontName, char bold, char italic) {
 	font = _FcFontMatch(config, pattern, &result);
 	
 	if(!(font && _FcPatternGetString(font, FC_FILE, 0, (FcChar8**)&fileName) == FcResultMatch)) {
-		fprintf(stderr, "Could not find a font file for '%s'\n", fontName);
+		L1("Could not find a font file for '%s'\n", fontName);
 	}
 	
 	_FcPatternDestroy(pattern);
