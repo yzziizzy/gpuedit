@@ -1532,6 +1532,7 @@ char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen) {
 		
 		strcat(out, "\n");
 		len++;
+		bl = bl->next;
 	}
 	
 	if(outLen) *outLen = len;

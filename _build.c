@@ -27,6 +27,7 @@ char* sources[] = { "main.c",
 	"font.c",
 	"fuzzyMatch.c",
 	"fuzzyMatchControl.c",
+	"grepOpenControl.c",
 	"highlight.c",
 	"input.c",
 	"json_gl.c",
@@ -69,7 +70,7 @@ char* lib_headers_needed[] = {
 char* libs_needed[] = {
 	"gl", "glu", "glew",
 	"libpcre2-8", 
-	"libpng", 
+	"libpng",
 	"x11", "xfixes",
 	NULL,
 };

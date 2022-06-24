@@ -1,8 +1,10 @@
 #ifndef __gpuedit_grepOpenControl_h__
 #define __gpuedit_grepOpenControl_h__
 
-#include "ui/gui.h"
 
+#include "ui/gui.h"
+#include "msg.h"
+#include "buffer.h" // for lineNum settings
 
 typedef struct {
 	char* basepath;
@@ -14,10 +16,11 @@ typedef struct {
 
 
 typedef struct GUIGrepOpenControl {
-	GUIHeader header;
+	// GUIHeader header;
 	
-	GUIEdit* searchBox;
-	char* searchTerm;
+	// GUIEdit* searchBox;
+	GUIString searchTerm;
+	// char* searchTerm;
 	gocandidate* matches;
 	size_t matchCnt;
 	int cursorIndex;
@@ -27,14 +30,17 @@ typedef struct GUIGrepOpenControl {
 	float lineHeight;
 	float leftMargin;
 	
-	GlobalSettings* gs;
-	GUI_Cmd* commands;
+	MessagePipe* upstream;
+	BufferSettings* bs;
+	GeneralSettings* gs;
+	// GUI_Cmd* commands;
 	
 } GUIGrepOpenControl;
 
 
-GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, char* searchTerm);
+GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* searchTerm);
 void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w);
+void GUIGrepOpenControl_Render(GUIGrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
 void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, GUI_Cmd* cmd);
 
