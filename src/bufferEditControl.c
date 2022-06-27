@@ -338,8 +338,24 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	GUIBufferEditControl_Draw(w, gm, (Vector2){0,0}, sz, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100, pfp);
 	
 	// scrollbar 
-	gm->curZ += 200;	
-	GUI_Rect(V(tl.x + sz.x - 10, tl.y + sb_pos), V(10, w->sbMinHeight), &C4H(ffffffff));
+	gm->curZ += 200;
+	
+	int skipScrollbar = 0;
+	Color4 sbColor = w->ts->scrollbarColor;
+	
+	if(w->bs->scrollbarFadeDistance > 0 && !w->isDragScrolling) {
+		Vector2 mp = GUI_MousePos();
+		if(mp.x < tl.x + sz.x - w->bs->scrollbarFadeDistance) {
+			skipScrollbar = 1;
+		}
+		else {
+			sbColor.a *= MAX(0.0, MIN(1.0, (mp.x - tl.x - (sz.x - w->bs->scrollbarFadeDistance)) / w->bs->scrollbarFadeDistance));
+		}
+	}
+	
+	if(!skipScrollbar)
+		GUI_Rect(V(tl.x + sz.x - 10, tl.y + sb_pos), V(10, w->sbMinHeight), &sbColor);
+	
 	gm->curZ -= 200;
 }
 #include "ui/macros_off.h"

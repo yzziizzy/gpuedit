@@ -821,6 +821,7 @@ static inline uint64_t lineIDHash(uint64_t i) {
 
 #define BUFFER_SETTING_LIST \
 	SETTING(int,   linesPerScrollWheel,  3,     1,    100) \
+	SETTING(float, scrollbarFadeDistance, 100,  1,    INT_MAX) \
 	SETTING(bool,  cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, cursorBlinkOffTime,   0.600, 0,    300000) \
 	SETTING(float, cursorBlinkOnTime,    0.600, 0,    300000) \
@@ -851,6 +852,7 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(Color4, lineNumColor,                  C4H(ffffffff), NULL, NULL) \
 	SETTING(Color4, lineNumBgColor,                C4H(141414ff), NULL, NULL) \
 	SETTING(Color4, lineNumBookmarkColor,          C4H(32ff32ff), NULL, NULL) \
+	SETTING(Color4, scrollbarColor,                C4H(ffffffff), NULL, NULL) \
 	SETTING(Color4, hl_bgColor,                    C4H(00c8c8ff), NULL, NULL) \
 	SETTING(Color4, hl_textColor,                  C4H(fa0032ff), NULL, NULL) \
 	SETTING(Color4, find_bgColor,                  C4H(115511ff), NULL, NULL) \
