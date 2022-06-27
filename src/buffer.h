@@ -821,6 +821,7 @@ static inline uint64_t lineIDHash(uint64_t i) {
 
 #define BUFFER_SETTING_LIST \
 	SETTING(int,   linesPerScrollWheel,  3,     1,    100) \
+	SETTING(bool,  disableScrollbar,     false, NULL, NULL) \
 	SETTING(float, scrollbarFadeDistance, 100,  1,    INT_MAX) \
 	SETTING(bool,  cursorBlinkEnable,    true,  NULL, NULL) \
 	SETTING(float, cursorBlinkOffTime,   0.600, 0,    300000) \

@@ -83,7 +83,7 @@ static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 		float sb_pos = sb_px_range * (w->scrollLines / sb_line_range);
 		
 		// scrollbar dragging
-		if(GUI_PointInBoxVABS(V(tl.x + sz.x - 10, tl.y + 0 /*sb_pos*/), V(10, w->sbMinHeight), mp)) {
+		if(!w->bs->disableScrollbar && GUI_PointInBoxVABS(V(tl.x + sz.x - 10, tl.y + 0 /*sb_pos*/), V(10, w->sbMinHeight), mp)) {
 			w->isDragScrolling = 1;
 			
 			w->scrollDragStartOffset = mp.y - tl.y + sb_pos;
@@ -340,7 +340,7 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	// scrollbar 
 	gm->curZ += 200;
 	
-	int skipScrollbar = 0;
+	int skipScrollbar = w->bs->disableScrollbar;
 	Color4 sbColor = w->ts->scrollbarColor;
 	
 	if(w->bs->scrollbarFadeDistance > 0 && !w->isDragScrolling) {
