@@ -393,6 +393,8 @@ int GUI_PointInBoxV_(GUIManager* gm, Vector2 tl, Vector2 size, Vector2 testPos);
 int GUI_PointInBox_(GUIManager* gm, AABB2 box, Vector2 testPos);
 #define GUI_PointInBox(a, b) GUI_PointInBox_(gm, a, b)
 
+// just straight math
+int GUI_PointInBoxVABS(Vector2 tl, Vector2 size, Vector2 testPos);
 
 
 

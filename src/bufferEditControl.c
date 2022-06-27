@@ -50,7 +50,7 @@ size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 
 
 
-
+#include "ui/macros_on.h"
 
 static void scrollUp(GUIBufferEditControl* w) {
 	w->scrollLines = MAX(0, w->scrollLines - w->linesPerScrollWheel);
@@ -74,14 +74,31 @@ static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 	Vector2 mp = GUI_EventPos();
 	
 	if(gm->curEvent.button == 1) {
-		BufferLine* bl = Buffer_raw_GetLineByNum(b, GBEC_lineFromPos(w, mp));
-		size_t col = GBEC_getColForPos(w, bl, mp.x);
+		Vector2 tl = w->tl;
+		Vector2 sz = w->sz;
 		
-		PIVOT_LINE(w->sel) = bl;
-		PIVOT_COL(w->sel) = col;
-		w->sel->selecting = 1;
+		w->sbMinHeight = 50;
+		float sb_line_range = w->b->numLines - w->linesOnScreen;
+		float sb_px_range = sz.y - w->sbMinHeight;
+		float sb_pos = sb_px_range * (w->scrollLines / sb_line_range);
 		
-		w->isDragSelecting = 1;
+		// scrollbar dragging
+		if(GUI_PointInBoxVABS(V(tl.x + sz.x - 10, tl.y + 0 /*sb_pos*/), V(10, w->sbMinHeight), mp)) {
+			w->isDragScrolling = 1;
+			
+			w->scrollDragStartOffset = mp.y - tl.y + sb_pos;
+		}
+		else {
+			// normal text traging
+			BufferLine* bl = Buffer_raw_GetLineByNum(b, GBEC_lineFromPos(w, mp));
+			size_t col = GBEC_getColForPos(w, bl, mp.x);
+			
+			PIVOT_LINE(w->sel) = bl;
+			PIVOT_COL(w->sel) = col;
+			w->sel->selecting = 1;
+			
+			w->isDragSelecting = 1;
+		}
 	}
 }
 
@@ -90,6 +107,9 @@ static void dragStop(GUIBufferEditControl* w, GUIManager* gm) {
 	if(gm->curEvent.button == 1) {
 		w->isDragSelecting = 0;
 		w->isDragScrollCoasting = 0;
+		w->isDragScrolling = 0;
+		
+		w->scrollDragStartOffset = 0;
 	}
 	
 // 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
@@ -101,21 +121,25 @@ static void dragMove(GUIBufferEditControl* w, GUIManager* gm) {
 
 	Vector2 mp = GUI_EventPos();
 	
-	/* handle scrollbar dragging
-	if(gev->originalTarget == (void*)w->scrollbar) {
-		gev->cancelled = 1;
+	
+	if(w->isDragScrolling) {
+		Vector2 tl = w->tl;
+		Vector2 sz = w->sz;
+	
+		w->sbMinHeight = 50;
+		float sb_line_range = w->b->numLines - w->linesOnScreen;
+		float sb_px_range = sz.y - w->sbMinHeight;
 		
-		float val;
+		float y = mp.y - tl.y - w->scrollDragStartOffset;
 		
-		val = /*gev->dragStartPos.y -* / mp.y / w->sz.y;
+		float sb_line_ratio = (y - tl.y) / sb_px_range;
+		int sb_line = sb_line_range * sb_line_ratio;
 		
-		
-		w->scrollLines = MIN(MAX(0, b->numLines * val), b->numLines);
+		w->scrollLines = MIN(MAX(0, sb_line), sb_line_range);
 		
 		return;
 	}
-	*/
-
+	
 	
 	if(w->isDragSelecting) {
 		BufferLine* bl = Buffer_raw_GetLineByNum(b, GBEC_lineFromPos(w, mp));
@@ -267,7 +291,7 @@ static void click(GUIBufferEditControl* w, GUIManager* gm) {
 }
 
 
-#include "ui/macros_on.h"
+
 
 void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	void* id = w;
@@ -290,7 +314,7 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 		if(gm->activeID == w || gm->hotID == w) {
 			
 			Vector2 mp = GUI_EventPos();
-			int inbox = GUI_PointInBoxV(tl, sz, mp);
+			int inbox = GUI_PointInBoxVABS(tl, sz, mp);
 			
 			switch(gm->curEvent.type) {
 				case GUIEVENT_MouseUp: if(inbox) click(w, gm); break;
@@ -313,12 +337,9 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	
 	GUIBufferEditControl_Draw(w, gm, (Vector2){0,0}, sz, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100, pfp);
 	
-	gm->curZ += 200;
-	
-
-	
+	// scrollbar 
+	gm->curZ += 200;	
 	GUI_Rect(V(tl.x + sz.x - 10, tl.y + sb_pos), V(10, w->sbMinHeight), &C4H(ffffffff));
-	
 	gm->curZ -= 200;
 }
 #include "ui/macros_off.h"

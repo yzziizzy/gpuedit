@@ -745,12 +745,12 @@ void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm) {
 		return;
 	}
 
-	GUIGrepOpenControl* goc = GUIGrepOpenControl_New(w->gm, w->s, &w->rx, searchTerm);
+	GrepOpenControl* goc = GrepOpenControl_New(w->gm, w->s, &w->rx, searchTerm);
 	goc->gs = w->gs;
 //	goc->commands = w->commands;
 	MainControlTab* tab = GUIMainControl_AddGenericTab(w, goc, "grep opener");
 	tab->type = MCTAB_GREPOPEN;
-	tab->render = (void*)GUIGrepOpenControl_Render;
+	tab->render = (void*)GrepOpenControl_Render;
 	tab->client = goc;
 	//tab->beforeClose = gbeBeforeClose;
 	//tab->beforeClose = gbeAfterClose;
@@ -760,7 +760,7 @@ void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm) {
 
 	GUIMainControl_nthTabOfType(w, MCTAB_GREPOPEN, 1);
 	
-	GUIGrepOpenControl_Refresh(goc);
+	GrepOpenControl_Refresh(goc);
 }
 
 /*

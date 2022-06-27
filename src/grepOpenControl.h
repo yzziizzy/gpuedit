@@ -15,12 +15,8 @@ typedef struct {
 } gocandidate;
 
 
-typedef struct GUIGrepOpenControl {
-	// GUIHeader header;
-	
-	// GUIEdit* searchBox;
+typedef struct GrepOpenControl {
 	GUIString searchTerm;
-	// char* searchTerm;
 	gocandidate* matches;
 	size_t matchCnt;
 	int cursorIndex;
@@ -33,16 +29,15 @@ typedef struct GUIGrepOpenControl {
 	MessagePipe* upstream;
 	BufferSettings* bs;
 	GeneralSettings* gs;
-	// GUI_Cmd* commands;
 	
-} GUIGrepOpenControl;
+} GrepOpenControl;
 
 
-GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* searchTerm);
-void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w);
-void GUIGrepOpenControl_Render(GUIGrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* searchTerm);
+void GrepOpenControl_Refresh(GrepOpenControl* w);
+void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
-void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, GUI_Cmd* cmd);
+void GrepOpenControl_ProcessCommand(GrepOpenControl* w, GUI_Cmd* cmd);
 
 
 

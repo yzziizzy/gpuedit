@@ -310,9 +310,12 @@ typedef struct GUIBufferEditControl {
 	float scrollCoastTimer;
 	float scrollCoastStrength;
 	float scrollCoastMax;
-	char isDragSelecting;
-	char isDragScrollCoasting;
+	float scrollDragStartOffset; // offset from the top of the scrollbar to the drag start position
+	char isDragSelecting; // normal text selection
+	char isDragScrollCoasting; // middle-click-hold scroll coasting
+	char isDragScrolling; // dragging the scrollbar
 	char scrollCoastDir;
+	
 	
 	char showAutocomplete;
 	size_t maxAutocompleteLines; // lines to show in the popup

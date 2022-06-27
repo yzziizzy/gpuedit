@@ -18,7 +18,7 @@
 #include "ui/gui_internal.h"
 
 
-static void open_match(GUIGrepOpenControl* w, int i);
+static void open_match(GrepOpenControl* w, int i);
 
 
 // #define DEBUG(...) printf(__VA_ARGS__)
@@ -27,11 +27,11 @@ static void open_match(GUIGrepOpenControl* w, int i);
 
 #include "ui/macros_on.h"
 
-void GUIGrepOpenControl_Render(GUIGrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
+void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 
 	gm->curZ += 10;
 	if(GUI_Edit(&w->searchTerm, tl, sz.x, &w->searchTerm)) {
-		GUIGrepOpenControl_Refresh(w);
+		GrepOpenControl_Refresh(w);
 	}
 	gm->curZ -= 10;
 
@@ -40,7 +40,7 @@ void GUIGrepOpenControl_Render(GUIGrepOpenControl* w, GUIManager* gm, Vector2 tl
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_GrepOpen, &gm->curEvent, 0);
 		
 		if(cmd) {
-			GUIGrepOpenControl_ProcessCommand(w, cmd);
+			GrepOpenControl_ProcessCommand(w, cmd);
 			GUI_CancelInput();
 		}
 		
@@ -167,7 +167,7 @@ COLON_FOUND:
 }
 
 
-void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, GUI_Cmd* cmd) {
+void GrepOpenControl_ProcessCommand(GrepOpenControl* w, GUI_Cmd* cmd) {
 	long amt;
 
 	switch(cmd->cmd) {
@@ -193,9 +193,9 @@ void GUIGrepOpenControl_ProcessCommand(GUIGrepOpenControl* w, GUI_Cmd* cmd) {
 }
 
 
-GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* searchTerm) {
+GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* searchTerm) {
 
-	GUIGrepOpenControl* w = pcalloc(w);
+	GrepOpenControl* w = pcalloc(w);
 	w->upstream = mp;
 	w->bs = Settings_GetSection(s, SETTINGS_Buffer); // lineNumBase, lineNumCharset
 	w->gs = Settings_GetSection(s, SETTINGS_General);
@@ -213,7 +213,7 @@ GUIGrepOpenControl* GUIGrepOpenControl_New(GUIManager* gm, Settings* s, MessageP
 	return w;
 }
 
-void GUIGrepOpenControl_Refresh(GUIGrepOpenControl* w) {
+void GrepOpenControl_Refresh(GrepOpenControl* w) {
 	//printf("seearch term: '%s'\n", w->searchTerm);
 	size_t max_candidates = 1024;
 	gocandidate* candidates = NULL;
@@ -316,7 +316,7 @@ CLEANUP:
 }
 
 
-static void open_match(GUIGrepOpenControl* w, int i) {
+static void open_match(GrepOpenControl* w, int i) {
 
 	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);
 	char* path = resolve_path(path_raw);

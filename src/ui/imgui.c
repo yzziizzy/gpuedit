@@ -1111,6 +1111,19 @@ Vector2 GUI_EventPos_(GUIManager* gm) {
 	return vSub2(gm->curEvent.pos, V(gm->curWin->absClip.min.x, gm->curWin->absClip.min.y));
 }
 
+int GUI_PointInBoxVABS(Vector2 tl, Vector2 size, Vector2 testPos) {
+	
+	if(!(testPos.x >= tl.x && 
+		testPos.y >= tl.y &&
+		testPos.x <= (tl.x + size.x) && 
+		testPos.y <= (tl.y + size.y))) {
+		
+		return 0;
+	}
+	
+	return 1;
+}
+
 int GUI_PointInBoxV_(GUIManager* gm, Vector2 tl, Vector2 size, Vector2 testPos) {
 	tl.x += gm->curWin->absClip.min.x;
 	tl.y += gm->curWin->absClip.min.y;
