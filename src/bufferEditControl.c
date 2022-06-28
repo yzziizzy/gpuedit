@@ -345,7 +345,7 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	
 	if(w->bs->scrollbarFadeDistance > 0 && !w->isDragScrolling) {
 		Vector2 mp = GUI_MousePos();
-		if(mp.x < tl.x + sz.x - w->bs->scrollbarFadeDistance) {
+		if(mp.x < tl.x + sz.x - w->bs->scrollbarFadeDistance || mp.x > sz.x) {
 			skipScrollbar = 1;
 		}
 		else {

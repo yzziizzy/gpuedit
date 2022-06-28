@@ -167,6 +167,7 @@
 	X(Main, MoveTabL) \
 	X(Main, SortTabs) \
 	X(Main, GoToTab) \
+	X(Main, SplitPane) \
 	X(Main, MainMenu) \
 	X(Main, ToggleGDBBreakpoint) \
 	X(Main, FontNudgeLow) \

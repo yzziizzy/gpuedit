@@ -163,35 +163,35 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 
 	
 	
-	as->mc = GUIMainControl_New(as->gui, as->globalSettings);
+	as->mc = MainControl_New(as->gui, as->globalSettings);
 	as->mc->as = as;
 	as->mc->gm = as->gui;
 	as->mc->commands = as->commands;
 	as->gui->renderRootData = as->mc;
-	as->gui->renderRootFn = (void*)GUIMainControl_Render;
+	as->gui->renderRootFn = (void*)MainControl_Render;
 	
 	
 	VEC_EACH(&autoload, i, file) {
-		GUIMainControl_LoadFile(as->mc, file);
+		MainControl_LoadFile(as->mc, file);
 	}
 	
 	VEC_FREE(&autoload);
 	
-//	GUIMainControl_LoadFile(as->mc, "testfile.h");
-//	GUIMainControl_LoadFile(as->mc, "testfile.c");
+//	MainControl_LoadFile(as->mc, "testfile.h");
+//	MainControl_LoadFile(as->mc, "testfile.c");
 	
 	int i = 0;
 	TabSpec* ts = as->gs->MainControl_startupTabs;
 	while(ts[i].type != MCTAB_NONE) {
 		switch(ts[i].type) {
 			case MCTAB_EDIT:
-				GUIMainControl_LoadFile(as->mc, ts[i].path);
+				MainControl_LoadFile(as->mc, ts[i].path);
 				break;
 			case MCTAB_FILEOPEN:
-				GUIMainControl_OpenFileBrowser(as->mc, ts[i].path);
+				MainControl_OpenFileBrowser(as->mc, ts[i].path);
 				break;
 			case MCTAB_FUZZYOPEN:
-				GUIMainControl_FuzzyOpener(as->mc, NULL);
+				MainControl_FuzzyOpener(as->mc, NULL);
 				break; /*
 			case MCTAB_GREPOPEN:
 				GUIMainControl_GrepOpen(as->mc, NULL);
@@ -199,9 +199,11 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 		}
 		i++;
 	}
-	GUIMainControl_GoToTab(as->mc, 0);
+	MainControlPane_GoToTab(as->mc->focusedPane, 0);
 	
-	
+//	as->mc->focusedPane = as->mc->paneSet[1];
+//	MainControl_LoadFile(as->mc, "testfile.c");
+//	MainControl_LoadFile(as->mc, "testfile.h");
 	
 	
 	// set up matrix stacks
@@ -674,7 +676,7 @@ void AppState_UpdateSettings(AppState* as, Settings* gs) {
 	// TODO: VERY BROKEN
 	as->globalSettings = gs;
 	
-	GUIMainControl_UpdateSettings(as->mc, gs);
+	MainControl_UpdateSettings(as->mc, gs);
 }
 
 

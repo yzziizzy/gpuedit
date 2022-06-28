@@ -1,7 +1,7 @@
 #ifndef __gpuedit_mainControl_h__
 #define __gpuedit_mainControl_h__
 
-// this is effectively the root ui element of a gpuedit window (the real root is a dummy window)
+// this is effectively the root ui element of a gpuedit window
 
 
 
@@ -12,13 +12,12 @@
 #include "highlight.h"
 #include "msg.h"
 
-/*
-typedef struct MainCmd {
-	int type;
-	int n;
-	char* path;
-} MainCmd;
-*/
+
+
+struct MainControl;
+struct AppState;
+typedef struct AppState AppState;
+
 
 typedef struct MainControlTab {
 	char* title;
@@ -47,12 +46,17 @@ typedef struct MainControlTab {
 } MainControlTab;
 
 
-struct AppState;
-typedef struct AppState AppState;
-
-typedef struct GUIMainControl {
-//	GUIHeader header;
+typedef struct MainControlPane {
+	struct MainControl* mc;
 	
+	int currentIndex;
+	VEC(MainControlTab*) tabs;
+	char tabAutoSortDirty;
+} MainControlPane;
+
+
+
+typedef struct MainControl {
 	AppState* as; 
 	
 	int showFullPathInTitlebar : 1;
@@ -66,9 +70,13 @@ typedef struct GUIMainControl {
 	// extra tab dropdown
 	
 	float tabHeight;
-	int currentIndex;
-	VEC(MainControlTab*) tabs;
-	char tabAutoSortDirty;
+//	int currentIndex;
+//	VEC(MainControlTab*) tabs;
+//	char tabAutoSortDirty;
+	MainControlPane** paneSet;
+	MainControlPane* focusedPane; // always a tabbed pane
+	int xDivisions;
+	int yDivisions;
 	
 	float editorOffset;
 	float editorHeight;
@@ -89,47 +97,57 @@ typedef struct GUIMainControl {
 	char* projectPath;
 	HT(char*) breakpoints;
 	
-} GUIMainControl;
+} MainControl;
+
+
+MainControlPane* MainControlPane_New(MainControl* mc);
 
 
 
-GUIMainControl* GUIMainControl_New(GUIManager* gm, Settings* s);
-void GUIMainControl_UpdateSettings(GUIMainControl* w, Settings* s);
+MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, char* title);
+void MainControlPane_CloseTab(MainControlPane* w, int index);
+int MainControlPane_FindTabIndexByClient(MainControlPane* w, void* client);
+int MainControlPane_FindTabIndexByBufferPath(MainControlPane* w, char* path);
+
+MainControl* MainControl_New(GUIManager* gm, Settings* s);
+void MainControl_UpdateSettings(MainControl* w, Settings* s);
 
 
-void GUIMainControl_Render(GUIMainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
+
+void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p);
+MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
+void MainControl_CloseTab(MainControl* w, int index);
+
+int MainControl_FindTabIndexByBufferPath(MainControl* w, char* path);
+int MainControl_FindTabIndexByClient(MainControl* w, void* client);
+
+void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b);
+void MainControlPane_SortTabs(MainControlPane* w);
+void* MainControlPane_NextTab(MainControlPane* w, char cyclic);
+void* MainControlPane_PrevTab(MainControlPane* w, char cyclic);
+void* MainControlPane_GoToTab(MainControlPane* w, int i);
+void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n);
+
+void MainControl_SplitPane(MainControl* w, int xDivs, int yDivs);
 
 
-MainControlTab* GUIMainControl_AddGenericTab(GUIMainControl* w, void* client, char* title);
-void GUIMainControl_CloseTab(GUIMainControl* w, int index);
-
-int GUIMainControl_FindTabIndexByBufferPath(GUIMainControl* w, char* path);
-int GUIMainControl_FindTabIndexByClient(GUIMainControl* w, void* client);
-
-void GUIMainControl_SwapTabs(GUIMainControl* w, int ind_a, int ind_b);
-void GUIMainControl_SortTabs(GUIMainControl* w);
-GUIHeader* GUIMainControl_NextTab(GUIMainControl* w, char cyclic);
-GUIHeader* GUIMainControl_PrevTab(GUIMainControl* w, char cyclic);
-GUIHeader* GUIMainControl_GoToTab(GUIMainControl* w, int i);
-GUIHeader* GUIMainControl_nthTabOfType(GUIMainControl* w, TabType_t type, int n);
+void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd);
 
 
+void MainControl_OpenMainMenu(MainControl* w);
 
-void GUIMainControl_ProcessCommand(GUIMainControl* w, GUI_Cmd* cmd);
-
-
-void GUIMainControl_OpenMainMenu(GUIMainControl* w);
-
-void GUIMainControl_NewEmptyBuffer(GUIMainControl* w);
-void GUIMainControl_LoadFile(GUIMainControl* w, char* path);
-void GUIMainControl_LoadFileOpt(GUIMainControl* w, GUIFileOpt* opt);
-void GUIMainControl_OpenFileBrowser(GUIMainControl* w, char* path);
-void GUIMainControl_FuzzyOpener(GUIMainControl* w, char* searchTerm);
-void GUIMainControl_GrepOpen(GUIMainControl* w, char* searchTerm);
-void GUIMainControl_Calculator(GUIMainControl* w);
-void GUIMainControl_Terminal(GUIMainControl* w);
-void GUIMainControl_CloseBuffer(GUIMainControl* w, int index);
-void GUIMainControl_CloseAllBufferPtr(GUIMainControl* w, Buffer* p);
+void MainControl_NewEmptyBuffer(MainControl* w);
+void MainControl_LoadFile(MainControl* w, char* path);
+void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt);
+void MainControl_OpenFileBrowser(MainControl* w, char* path);
+void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
+void MainControl_GrepOpen(MainControl* w, char* searchTerm);
+void MainControl_Calculator(MainControl* w);
+void MainControl_Terminal(MainControl* w);
+void MainControl_CloseBuffer(MainControl* w, int index);
+void MainControl_CloseAllBufferPtr(MainControl* w, Buffer* p);
 
 
 #endif //__gpuedit_mainControl_h__

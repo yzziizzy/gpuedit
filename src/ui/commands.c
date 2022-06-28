@@ -316,6 +316,12 @@ void CommandList_loadJSONFile(GUIManager* gm, char* path) {
 	json_file_t* jsf;
 
 	jsf = json_load_path(path);
+	
+	if(!jsf) {
+		fprintf(stderr, "Fatal error: could not load commands file '%s'.\n", path);
+		exit(1);
+	}
+	
 	CommandList_loadJSON(gm, jsf->root);
 	json_file_free(jsf);
 }
