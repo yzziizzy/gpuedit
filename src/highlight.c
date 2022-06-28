@@ -20,6 +20,30 @@ void HighlighterManager_Init(HighlighterManager* hm, Settings* s) {
 	
 	hm->s = s;
 	hm->gs = Settings_GetSection(s, SETTINGS_General);
+	
+	
+	// add a default hightlighter that does nothing
+	Highlighter* h = pcalloc(h);
+	h->plugin = NULL;
+	h->numStyles = 1;
+	h->stylesDark = calloc(1, sizeof(*h->stylesDark) * 1);
+	h->stylesLight = calloc(1, sizeof(*h->stylesLight) * 1);
+	
+	h->stylesDark[0] = (StyleInfo){
+		.fgColor = {.9,.9,.9, 1.0},
+		.bgColor = {.1,.1,.1, 1.0},
+		.fgSelColor = {.2,.2,.2, 1.0},
+		.bgSelColor = {.5,.5,.8, 1.0},
+	};
+	
+	h->stylesLight[0] = (StyleInfo){
+		.fgColor = {.1,.1,.1, 1.0},
+		.bgColor = {1,1,1, 1.0},
+		.fgSelColor = {.3,.3,.3, 1.0},
+		.bgSelColor = {.5,.5,.8, 1.0},
+	};
+	
+	VEC_PUSH(&hm->plugins, h);
 }
 
 void HighlighterManager_Destroy(HighlighterManager* hm) {

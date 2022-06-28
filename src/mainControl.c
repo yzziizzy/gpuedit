@@ -1215,8 +1215,14 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 	StatusBar_SetItems(gbe->statusBar, w->gs->MainControl_statusWidgets);
 	
 	// highlighter
-	gbe->h = VEC_ITEM(&w->hm.plugins, 0);
-	gbe->ec->h = gbe->h;
+	
+	if(VEC_LEN(&w->hm.plugins)) {
+		gbe->h = VEC_ITEM(&w->hm.plugins, 0);
+		gbe->ec->h = gbe->h;
+	}
+	else {
+		fprintf(stderr, "Error: no highlighter modules loaded.\n");
+	}
 	// 	initCStyles(gbe->h);
 //	char* homedir = getenv("HOME");
 //	char* tmp = pathJoin(homedir, ".gpuedit/c_colors.txt");

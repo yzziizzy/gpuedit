@@ -4,7 +4,7 @@
 * WantedCol is broken, especially across tabs,
 * Basic autocomplete
 * Resume search is broken
-* command to append text to end of characters on line (;)
+* Command to append text to end of characters on line (;)
 
 == Needed before fractal dogfooding ==
 * bugz: number input has a persistent zero
@@ -26,7 +26,7 @@
 * redirect debug output to a logfile
 * lockup with multi-line selection when fuzzy-matcher is spawned
 
-* clicking out of find switches input to edit buffer
+* clicking out of find switches input to edit buffer (cursor not shown...)
 * old find term highlighted on findreplace resume
 * sequence commands in findreplace input box
 * highlight findset while valid even if find tray closes (opt)
@@ -51,7 +51,7 @@
 
 == TODO ==
 * s/GUIBufferEditControl_*()/GBEC_*()/
-* Fix scrollbar, make size configurable
+* Make scrollbar size configurable
 * Horizontal scrollbar
 * Multiple MC tab rows
 * Tab Bar scrolling
@@ -60,7 +60,6 @@
 * Proper tabstops
 * Ability to change the highlighter
 * Open file command
-* RAT_ parsing in commnds.json
 * Shortcut config presets
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
@@ -69,6 +68,7 @@
 * Visible glyph for tabs
 * Wanted column rounding on moving across tabs
 * Track indentation level per line
+* Pause cursor blink on lost focus 
 * Settings editor
 * CLI, ENV options parsing
 * Purge hardcoded values
@@ -82,15 +82,17 @@
 * Save-as and save dialog
 * Breadcrumbs/path in file browser
 * Wire all the settings updates through the app
-* Split windows
 * Adjustable scroll lines in fileBrowser, get from OS if possible
 * MIME type probing of some sort
 * Persist bookmarks
-* Polish scrollbar dragging
 * Horizontal scrollbar
 * Clean up C highlighter with provided allocators
 * Warn about duplicate key bindings
 * stdatomic types in C highlighter
+* *_t types in C highlighter
+* Configurable pane borders 
+* UI for pane layout mode
+* GUI command mode config should be per-element?
 
 == GUI Improvements ==
 * GUIEdit right and center justify
@@ -165,6 +167,7 @@
 * Increase value of number under cursor by: 1, order of mag, power of 2
 * File browser gives SLOC/git/etc stats in detail mode
 * Jump to line of last edit
+* Fixed size bitmap text rendering for precision at selected sizes
 * Notify when semicolons appear to be missing
 * Algorithm to detect indent width then convert all spaces to tabs
 * Command to fix all whitespacing on a line according to defined rules

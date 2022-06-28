@@ -833,11 +833,11 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(bool,  showLineNums,         true,  NULL, NULL) \
 	SETTING(int,   lineNumBase,          10,    2,    36) \
 	SETTING(charp, lineNumCharset,       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", NULL, NULL) \
-	SETTING(float, charWidth,            10,    1,    1920*16) \
-	SETTING(float, lineHeight,           20,    1,    1920*16) \
+	SETTING(float, charWidth,            8,     1,    1920*16) \
+	SETTING(float, lineHeight,           17,    1,    1920*16) \
 	SETTING(int,   tabWidth,             4,     0,    INT_MAX) \
 	SETTING(charp, font,                 "Courier New", NULL, NULL) \
-	SETTING(float, fontSize,             12,    1,    1920*16) \
+	SETTING(float, fontSize,             14,    1,    1920*16) \
 	SETTING(bool,  invertSelection,      true,  NULL,  NULL) \
 	SETTING(int,   maxUndo,              4096,  0,    INT_MAX) \
 	SETTING(int,   statusBarHeight,      20,    0,    INT_MAX) \
