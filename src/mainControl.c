@@ -133,11 +133,14 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 
 		// set this pane to be focused if any mouse button went up in it,
 		//   regardless of if a deeper element traps the event
-		if(gm->curEvent.type == GUIEVENT_MouseUp) {
+		// Don't refocus on wheel scrolling
+//		if(gm->curEvent.type == GUIEVENT_MouseUp && (gm->curEvent.button == 1 || gm->curEvent.button == 2 || gm->curEvent.button == 3)) {
+			
+			// hover focus
 			if(GUI_PointInBoxV_(gm, ptl, psz, gm->lastMousePos)) {
 				MainControl_SetFocusedPane(w, pane);
 			}
-		}
+//		}
 		
 		MainControlPane_Render(pane, gm, ptl, psz, pfp);
 	}}
@@ -325,8 +328,11 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		MainControl_ExpandPanes(w, w->xDivisions, w->yDivisions + cmd->amt);
 		break;
 	
-	case GUICMD_Main_SplitPane:
-		MainControl_SplitPane(w, 1, 0);
+	case GUICMD_Main_FocusPaneRelX:
+		MainControl_FocusPane(w, w->focusedPos.x + cmd->amt, w->focusedPos.y);
+		break;
+	case GUICMD_Main_FocusPaneRelY:
+		MainControl_FocusPane(w, w->focusedPos.x, w->focusedPos.y + cmd->amt);
 		break;
 		
 	case GUICMD_Main_OpenFileBrowser:
@@ -463,8 +469,6 @@ MainControlPane* MainControlPane_New(MainControl* mc) {
 	w->mc = mc;
 	w->currentIndex = -1;
 	
-	L5("created pane %p \n", w);
-	
 	return w;
 }
 
@@ -532,7 +536,21 @@ void MainControl_UpdateSettings(MainControl* w, Settings* s) {
 
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 	w->focusedPane = p;
+	
+	int x, y;
+	for(y = 0; y < w->yDivisions; y++) {
+	for(x = 0; x < w->xDivisions; x++) {
+		if(p == w->paneSet[x + w->xDivisions * y]) {
+			w->focusedPos.x = x; 
+			w->focusedPos.y = y;
+			
+			return; 
+		}
+	}}
+	
+	fprintf(stderr, "Tried to focus a pane not part of the set (%p).\n", p);
 }
+
 
 void MainControl_ExpandPanes(MainControl* w, int newX, int newY) {
 	newX = MAX(1, MIN(newX, 6));
@@ -601,11 +619,21 @@ void MainControl_ExpandPanes(MainControl* w, int newX, int newY) {
 	w->xDivisions = newX;
 	w->yDivisions = newY;
 	
-	// HACK
-	w->focusedPane = w->paneSet[0];
+	// focus the closest pane to the previously focused pane
+	MainControl_FocusPane(w, w->focusedPos.x, w->focusedPos.y);
 }
 
 
+void MainControl_FocusPane(MainControl* w, int x, int y) {
+	
+	x = MAX(0, MIN(x, w->xDivisions - 1));
+	y = MAX(0, MIN(y, w->yDivisions - 1));
+	
+	w->focusedPane = w->paneSet[x + y * w->xDivisions];
+	
+	w->focusedPos.x = x;
+	w->focusedPos.y = y;
+}
 
 
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title) {
@@ -856,14 +884,6 @@ void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n) {
 	}
 	return NULL;
 }
-
-
-
-void MainControl_SplitPane(MainControl* w, int xDivs, int yDivs) {
-
-
-}
-
 
 
 

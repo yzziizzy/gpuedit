@@ -75,6 +75,7 @@ typedef struct MainControl {
 //	char tabAutoSortDirty;
 	MainControlPane** paneSet;
 	MainControlPane* focusedPane; // always a tabbed pane
+	Vector2i focusedPos;
 	int xDivisions;
 	int yDivisions;
 	
@@ -119,6 +120,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 
 void MainControl_ExpandPanes(MainControl* w, int newX, int newY);
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p);
+void MainControl_FocusPane(MainControl* w, int x, int y);
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
 void MainControl_CloseTab(MainControl* w, int index);
 
@@ -131,8 +133,6 @@ void* MainControlPane_NextTab(MainControlPane* w, char cyclic);
 void* MainControlPane_PrevTab(MainControlPane* w, char cyclic);
 void* MainControlPane_GoToTab(MainControlPane* w, int i);
 void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n);
-
-void MainControl_SplitPane(MainControl* w, int xDivs, int yDivs);
 
 
 void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd);

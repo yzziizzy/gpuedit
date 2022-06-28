@@ -145,11 +145,13 @@
 	X(GrepOpen, CursorMove) \
 	X(GrepOpen, OpenFile) \
 	\
-	X(Main, SimpleWindowTest) \
 	X(Main, EnterLayoutMode) \
 	X(Main, ExitLayoutMode) \
 	X(Main, ExpandPanesX) \
 	X(Main, ExpandPanesY) \
+	\
+	X(Main, FocusPaneRelX) \
+	X(Main, FocusPaneRelY) \
 	X(Main, OpenFileBrowser) \
 	X(Main, FuzzyOpener) \
 	X(Main, GrepOpen) \
