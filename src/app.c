@@ -166,7 +166,6 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	as->mc = MainControl_New(as->gui, as->globalSettings);
 	as->mc->as = as;
 	as->mc->gm = as->gui;
-	as->mc->commands = as->commands;
 	as->gui->renderRootData = as->mc;
 	as->gui->renderRootFn = (void*)MainControl_Render;
 	

@@ -87,8 +87,9 @@ typedef struct MainControl {
 	HighlighterManager hm;
 	
 	MessagePipe rx;
-	GUI_Cmd* commands;
+//	GUI_Cmd* commands;
 	
+	int inputMode;
 	GUIManager* gm;
 	Settings* s;
 	GeneralSettings* gs;
@@ -101,7 +102,7 @@ typedef struct MainControl {
 
 
 MainControlPane* MainControlPane_New(MainControl* mc);
-
+void MainControlPane_Free(MainControlPane* w, int freeTabContent);
 
 
 MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, char* title);
@@ -116,6 +117,7 @@ void MainControl_UpdateSettings(MainControl* w, Settings* s);
 void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
+void MainControl_ExpandPanes(MainControl* w, int newX, int newY);
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p);
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
 void MainControl_CloseTab(MainControl* w, int index);
@@ -142,7 +144,10 @@ void MainControl_NewEmptyBuffer(MainControl* w);
 void MainControl_LoadFile(MainControl* w, char* path);
 void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt);
 void MainControl_OpenFileBrowser(MainControl* w, char* path);
+
 void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
+void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
+
 void MainControl_GrepOpen(MainControl* w, char* searchTerm);
 void MainControl_Calculator(MainControl* w);
 void MainControl_Terminal(MainControl* w);

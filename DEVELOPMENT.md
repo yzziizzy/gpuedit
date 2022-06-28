@@ -142,6 +142,7 @@
 * Comment autocomplete
 * Remap selected key codes, only for editor 
 * Jump to declaration
+* Skip to next function
 * Swap current and next word
 * Option for automatic real-time whitespace collapse
 * Scroll half the distance in a direction as can be scrolled (log2 scroll)

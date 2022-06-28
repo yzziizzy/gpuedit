@@ -149,10 +149,27 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	
 	Vector2 tab_sz = {sz.x, sz.y - mc->tabHeight - 1};
 	
+	// layout mode traps all input
+	if(!gm->drawMode && mc->inputMode == 10) {
+	
+		if(GUI_InputAvailable()) {
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode);	
+			if(cmd) MainControl_ProcessCommand(mc, cmd);
+		}
+		
+		// no input escapes to the tabs
+		// BUG: does not trap mouse input; need "GUI_VoidInput()" that kills the input type and clears the flags
+		GUI_CancelInput();
+		gm->curEvent.type = 0;
+	}
+	
 	// only render the active tab
 	if(w->currentIndex > -1) {
 		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		if(a && a->render) a->render(a->client, gm, V(tl.x, tl.y + mc->tabHeight + 1), tab_sz, pfp);
+		
+		if(gm->drawMode || w == w->mc->focusedPane) {
+			if(a && a->render) a->render(a->client, gm, V(tl.x, tl.y + mc->tabHeight + 1), tab_sz, pfp);
+		}
 	}
 	
 	
@@ -176,7 +193,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		
 		if(GUI_InputAvailable()) {
 			
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, 0);
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode);
 			
 			if(cmd) {
 				MainControl_ProcessCommand(mc, cmd);
@@ -292,6 +309,21 @@ void* args[4];
 void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 	
 	switch(cmd->cmd) {
+	
+	case GUICMD_Main_EnterLayoutMode:
+		w->inputMode = 10;
+		break;
+		
+	case GUICMD_Main_ExitLayoutMode:
+		w->inputMode = 0;
+		break;
+		
+	case GUICMD_Main_ExpandPanesX:
+		MainControl_ExpandPanes(w, w->xDivisions + cmd->amt, w->yDivisions);
+		break;
+	case GUICMD_Main_ExpandPanesY:
+		MainControl_ExpandPanes(w, w->xDivisions, w->yDivisions + cmd->amt);
+		break;
 	
 	case GUICMD_Main_SplitPane:
 		MainControl_SplitPane(w, 1, 0);
@@ -431,8 +463,27 @@ MainControlPane* MainControlPane_New(MainControl* mc) {
 	w->mc = mc;
 	w->currentIndex = -1;
 	
+	L5("created pane %p \n", w);
+	
 	return w;
 }
+
+
+void MainControlPane_Free(MainControlPane* w, int freeTabContent) {
+	
+	if(freeTabContent) {
+		VEC_EACH(&w->tabs, i, t) {
+			if(t->onDestroy) t->onDestroy(t);
+			if(t->title) free(t->title);
+			free(t);
+		}
+	}
+	
+	VEC_FREE(&w->tabs);
+	free(w);
+}
+
+
 
 
 MainControl* MainControl_New(GUIManager* gm, Settings* s) {
@@ -453,7 +504,7 @@ MainControl* MainControl_New(GUIManager* gm, Settings* s) {
 	HighlighterManager_Init(&w->hm, s);
 	Highlighter_ScanDirForModules(&w->hm, w->gs->highlightersPath);
 	
-	w->xDivisions = 2;
+	w->xDivisions = 1;
 	w->yDivisions = 1;
 	int numPanes = w->xDivisions * w->yDivisions;
 	
@@ -482,6 +533,79 @@ void MainControl_UpdateSettings(MainControl* w, Settings* s) {
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 	w->focusedPane = p;
 }
+
+void MainControl_ExpandPanes(MainControl* w, int newX, int newY) {
+	newX = MAX(1, MIN(newX, 6));
+	newY = MAX(1, MIN(newY, 6));
+	
+	if(newX == w->xDivisions && newY == w->yDivisions) return;
+	 
+	int newTotal = newX * newY;
+	MainControlPane** newPanes = malloc(newTotal * sizeof(*newPanes));
+	
+	int biggerX = MAX(w->xDivisions, newX);
+	int biggerY = MAX(w->yDivisions, newY);
+	int smallerX = MIN(w->xDivisions, newX);
+	int smallerY = MIN(w->yDivisions, newY);
+
+	// There are 3 possible situations for each pane:
+	// 1) initial overlap
+	// 2) old size is larger; combine to highest level
+	// 3) new size is larger; spawn empty pane
+
+	// 1: copy the overlap region panes
+	for(int y = 0; y < smallerY; y++) { 
+	for(int x = 0; x < smallerX; x++) { 
+		newPanes[x + newX * y] = w->paneSet[x + w->xDivisions * y];
+	}}
+	
+	
+	// 2: squash old pane tabs into the highest new pane, on new existing rows
+	for(int y = 0; y < smallerY; y++) { 
+	for(int x = newX; x < w->xDivisions; x++) { 
+		VEC_CAT(&newPanes[newX - 1 + newX * y]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
+		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
+	}}
+	
+	// 2: squash old pane tabs into the highest new pane, on new existing columns
+	for(int x = 0; x < smallerX; x++) { 
+	for(int y = newY; y < w->yDivisions; y++) { 
+		VEC_CAT(&newPanes[x + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
+		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
+	}}
+	
+	// 2: squash old pane tabs into the highest new pane, in the clipped-off corner
+	for(int x = newX; x < w->xDivisions; x++) { 
+	for(int y = newY; y < w->yDivisions; y++) { 
+		VEC_CAT(&newPanes[newX - 1 + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
+		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
+	}}
+	
+	// 3: create empty panes in newly created space, on the ends of all the rows
+	for(int y = 0; y < newY; y++) {
+	for(int x = w->xDivisions; x < newX; x++) {
+		newPanes[x + newX * y] = MainControlPane_New(w);
+		MainControlPane_FuzzyOpener(newPanes[x + newX * y], NULL);
+	}}
+	
+	// 3: create empty panes in newly created space, below the existing data
+	for(int y = w->yDivisions; y < newY; y++) {
+	for(int x = 0; x < w->xDivisions; x++) {
+		newPanes[x + newX * y] = MainControlPane_New(w);
+		MainControlPane_FuzzyOpener(newPanes[x + newX * y], NULL);
+	}}
+	
+	
+	free(w->paneSet);
+	w->paneSet = newPanes;
+	w->xDivisions = newX;
+	w->yDivisions = newY;
+	
+	// HACK
+	w->focusedPane = w->paneSet[0];
+}
+
+
 
 
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title) {
@@ -805,15 +929,19 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path) {
 
 
 void MainControl_FuzzyOpener(MainControl* w, char* searchTerm) {
-	void* o = MainControlPane_nthTabOfType(w->focusedPane, MCTAB_FUZZYOPEN, 1);
+	MainControlPane_FuzzyOpener(w->focusedPane, searchTerm);
+}
+
+void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
+	void* o = MainControlPane_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 	if(o != NULL) {
 		return;
 	}
 
-	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->gm, w->s, &w->rx, "./", searchTerm);
-	fmc->gs = w->gs;
+	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->mc->gm, w->mc->s, &w->mc->rx, "./", searchTerm);
+	fmc->gs = w->mc->gs;
 //	fmc->commands = w->commands;
-	MainControlTab* tab = MainControl_AddGenericTab(w, fmc, "fuzzy matcher");
+	MainControlTab* tab = MainControlPane_AddGenericTab(w, fmc, "fuzzy matcher");
 	tab->type = MCTAB_FUZZYOPEN;
 	tab->render = (void*)GUIFuzzyMatchControl_Render;
 	tab->client = fmc;
@@ -821,7 +949,7 @@ void MainControl_FuzzyOpener(MainControl* w, char* searchTerm) {
 	//tab->beforeClose = gbeAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
-	MainControlPane_nthTabOfType(w->focusedPane, MCTAB_FUZZYOPEN, 1);
+	MainControlPane_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
 
 	GUIFuzzyMatchControl_Refresh(fmc);
 }
@@ -1061,7 +1189,7 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 //	gbe->header.name = opt->path ? strdup(opt->path) : strdup("<new buffer>");
 //	gbe->header.parent = (GUIHeader*)w; // important for bubbling
 	gbe->sourceFile = opt->path ? strdup(opt->path) : NULL;
-	gbe->commands = w->commands;
+//	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
 	StatusBar_SetItems(gbe->statusBar, w->gs->MainControl_statusWidgets);

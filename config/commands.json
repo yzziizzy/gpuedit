@@ -18,6 +18,14 @@
 		},
 		
 		keyConfig: [
+			{elem: "Main", cmd: "EnterLayoutMode",  mods: "A",  key: "l", amt: 1},
+			{mode: 10, elem: "Main", cmd: "ExitLayoutMode", mods: "",   key: "XK_Escape", amt: 1},
+			{mode: 10, elem: "Main", cmd: "ExpandPanesX",   mods: "",   key: "x", amt: 1},
+			{mode: 10, elem: "Main", cmd: "ExpandPanesX",   mods: "S",  key: "x", amt: -1},
+			{mode: 10, elem: "Main", cmd: "ExpandPanesY",   mods: "",   key: "y", amt: 1},
+			{mode: 10, elem: "Main", cmd: "ExpandPanesY",   mods: "S",  key: "y", amt: -1},
+			
+			
 			{elem: "Main", cmd: "NextTab",  mods: "A",  key: "XK_Right", amt: 1},
 			{elem: "Main", cmd: "PrevTab",  mods: "A",  key: "XK_Left", amt: 1},
 			{elem: "Main", cmd: "MoveTabR", mods: "AS", key: "XK_Right", amt: 1},
