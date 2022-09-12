@@ -83,10 +83,10 @@ static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 		float sb_pos = sb_px_range * (w->scrollLines / sb_line_range);
 		
 		// scrollbar dragging
-		if(!w->bs->disableScrollbar && GUI_PointInBoxVABS(V(tl.x + sz.x - 10, tl.y + 0 /*sb_pos*/), V(10, w->sbMinHeight), mp)) {
+		if(!w->bs->disableScrollbar && GUI_PointInBoxVABS(V(tl.x + sz.x - 10, tl.y + sb_pos), V(10, w->sbMinHeight), mp)) {
 			w->isDragScrolling = 1;
 			
-			w->scrollDragStartOffset = mp.y - tl.y + sb_pos;
+			w->scrollDragStartOffset = mp.y - tl.y - sb_pos;
 		}
 		else {
 			// normal text traging

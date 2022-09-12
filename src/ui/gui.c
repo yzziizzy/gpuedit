@@ -265,12 +265,12 @@ void gui_drawCharacter(
 	float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
 	float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
 	
-	v->pos.t = off.y + hoff - ci->topLeftOffset.y * fontsize;
+	v->pos.t = off.y + hoff + ci->topLeftOffset.y * fontsize;
 	v->pos.l = off.x + ci->topLeftOffset.x * fontsize;
-	v->pos.b = off.y + hoff - ci->topLeftOffset.y * fontsize;
+	v->pos.b = off.y + hoff + ci->topLeftOffset.y * fontsize;
 	v->pos.r = off.x + ci->topLeftOffset.x * fontsize;
 	
-	v->guiType = 1; // text
+	v->guiType = font->bitmapSize > 0 ? 20 : 1; // text
 	
 	v->texOffset1.x = offx * 65535.0;
 	v->texOffset1.y = offy * 65535.0;
@@ -369,7 +369,7 @@ void gui_drawTextLineAdv(
 			//printf("adv:%f  tlo: [%f,%f]  off: [%f,%f, %f,%f]  pos: [%f,%f,%f,%f]\n", 
 			//	adv, ci->topLeftOffset.x, ci->topLeftOffset.x, off.x, off.y, hoff, alignoff, v->pos.t,v->pos.l,v->pos.b,v->pos.r);
 			
-			v->guiType = 1; // text
+			v->guiType = font->bitmapSize > 0 ? 20 : 1; // text
 			
 			v->texOffset1.x = offx * 65535.0;
 			v->texOffset1.y = offy * 65535.0;
@@ -382,6 +382,7 @@ void gui_drawTextLineAdv(
 			v->clip.b = clip->max.y;
 			v->clip.r = clip->max.x;
 			v->fg = GUI_COLOR4_TO_SHADER(*color);
+			v->bg = (struct ShaderColor4){0};
 			v->z = z;
 			
 			adv += ci->advance * fontsize; // BUG: needs sdfDataSize added in?
