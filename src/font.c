@@ -68,8 +68,10 @@ void FontManager_init(FontManager* fm, GUISettings* gs) {
 	char* atlas_path = "./fonts.atlas";
 	GUIFont* font;
 
+
 	FontManager_loadAtlas(fm, atlas_path);
 
+	// TODO: check bitmap sizes too
 	while(gs->fontList[i] != NULL) {
 		// printf("checking font: %s\n", gs->Buffer_fontList[i]);
 		if(HT_get(&fm->fonts, gs->fontList[i], &font)) {
@@ -83,7 +85,7 @@ void FontManager_init(FontManager* fm, GUISettings* gs) {
 	if(/*1 ||*/ atlas_dirty) {
 		i = 0;
 		while(gs->fontList[i] != NULL) {
-			printf("building font: %s\n", gs->fontList[i]);
+			L1("building font: %s\n", gs->fontList[i]);
 			
 			
 			FontManager_AssertFont(fm, gs->fontList[i]);
@@ -130,14 +132,32 @@ GUIFont* FontManager_AssertFont(FontManager* fm, char* name) {
 }
 
 
-void FontManager_AssertBitmpSize(FontManager* fm, char* name, int size) {
+// returns the sub-font struct
+GUIFont* FontManager_AssertBitmapSize(FontManager* fm, char* name, int size) {
 	
-//	L1("sz: %d\n", size);
-	if(size > 36 || size < 4) return;
+	L1("sz: %d\n", size);
+	if(size > 70 || size < 4) return NULL;
+	uint64_t mask = (1ul << (size - 4));
 	
 	GUIFont* f = FontManager_AssertFont(fm, name);
 	
-	f->bitmapSizes |= (1ul << (size - 4));
+	if(f->bitmapSizes & mask) {
+		// find and return the correct bitmap font object
+		VEC_EACH(&f->bitmapFonts, i, bf) {
+			if(bf->bitmapSize == size) return bf;
+		};
+	}
+	
+	
+	f->bitmapSizes |= mask;
+	
+	GUIFont* bf = GUIFont_alloc(name);
+	bf->bitmapSize = size;
+	bf->empty = 1;
+	
+	VEC_PUSH(&f->bitmapFonts, bf);
+	
+	return bf;
 }
 
 
@@ -266,8 +286,50 @@ static FontGen* addBmpChar(FT_Face* ff, int code, int fontSize, char bold, char 
 		slot->bitmap.buffer, // source
 		fg->sdfGlyph); // destination
 	
+	// fills in sdfDataSize
+//	calc_sdf_data_size(fg);
 	
-	calc_sdf_data_size(fg);
+	fg->sdfBounds.min.x = 0;
+	fg->sdfBounds.min.y = 0;
+	fg->sdfBounds.max.x = fg->sdfGlyphSize.x;
+	fg->sdfBounds.max.y = fg->sdfGlyphSize.y;
+	fg->sdfDataSize = fg->sdfGlyphSize;
+
+	/*
+	c->texIndex = VEC_LEN(&fm->atlas);
+	c->texelOffset.x = rowWidth;
+	c->texelOffset.y = hext;
+	c->texelSize = gen->sdfDataSize;
+	c->texNormOffset.x = (float)rowWidth / (float)pot;
+	c->texNormOffset.y = (float)hext / (float)pot;
+	c->texNormSize.x = (float)gen->sdfDataSize.x / (float)pot;
+	c->texNormSize.y = (float)gen->sdfDataSize.y / (float)pot;
+	*/
+	
+	
+		
+	float bearing_o_x = fg->rawBearing.x;
+	float bearing_o_y = fg->rawBearing.y;
+	
+	L4(" '%c' bearing_o: %f,%f\n", code, bearing_o_x, bearing_o_y);
+	
+	fg->charinfo.topLeftOffset.x = (bearing_o_x) /*- out_padding */+ fg->sdfBounds.min.x;
+	fg->charinfo.topLeftOffset.y = (-bearing_o_y) /*- out_padding */+ fg->sdfBounds.min.y;
+	       
+	fg->charinfo.bottomRightOffset.x = fg->charinfo.topLeftOffset.x + (fg->sdfBounds.max.x - fg->sdfBounds.min.x);
+	fg->charinfo.bottomRightOffset.y = fg->charinfo.topLeftOffset.y + (fg->sdfBounds.max.y - fg->sdfBounds.min.y);
+	
+	
+	L4("[raw] tl: %f,%f, br: %f,%f\n", fg->charinfo.topLeftOffset.x, fg->charinfo.topLeftOffset.y, fg->charinfo.bottomRightOffset.x, fg->charinfo.bottomRightOffset.y);
+	
+	fg->charinfo.topLeftOffset.x /= (float)fg->nominalRawSize;
+	fg->charinfo.topLeftOffset.y /= (float)fg->nominalRawSize;
+	fg->charinfo.bottomRightOffset.x /= (float)fg->nominalRawSize;
+	fg->charinfo.bottomRightOffset.y /= (float)fg->nominalRawSize;
+	        
+	fg->charinfo.advance = (float)fg->rawAdvance / (float)fg->nominalRawSize;
+		
+	
 	
 	return fg;
 }
@@ -451,15 +513,15 @@ void FontManager_finalize(FontManager* fm) {
 			return;
 		}
 		
-		for(int b = 0; b < 32; b++) {
-			uint64_t m = 1ul << b;
-			if(!(m & f->bitmapSizes)) continue;
+		VEC_EACH(&f->bitmapFonts, bfi, fbmp) {
+		
+			fbmp->ascender = 1.0;//f->ascender;//(double)(fontFace->ascender) / (double)fontFace->units_per_EM;
+			fbmp->descender = (double)(fontFace->descender) / (double)fontFace->units_per_EM;
+			fbmp->height = (double)(fontFace->height) / (double)fontFace->units_per_EM;
 			
-			int sz = b + 4;
+			
+			int sz = fbmp->bitmapSize;
 			L2("Generating bitmap font for %s, size %d\n", name, sz);
-			
-			GUIFont* fbmp = GUIFont_alloc(name);
-			fbmp->bitmapSize = sz;
 			
 			// default code ranges
 			VEC_EACH(&fm->codeRanges, j, cr) {
@@ -469,6 +531,8 @@ void FontManager_finalize(FontManager* fm) {
 					
 	//				fm->maxRawSize.x = MAX(fm->maxRawSize.x, fg->rawGlyphSize.x);
 	//				fm->maxRawSize.y = MAX(fm->maxRawSize.y, fg->rawGlyphSize.y);
+	
+					
 					
 					VEC_PUSH(&bmps, fg);
 				}
@@ -601,6 +665,8 @@ void FontManager_addFont(FontManager* fm, char* name, int genSize) {
 
 void FontManager_createAtlas(FontManager* fm) {
 	char buf[32];
+	int padding = 1; // in pixels, on all sides
+	
 	
 	// order the characters by height then width, tallest and widest first.
 	VEC_SORT(&fm->gen, gen_comp);
@@ -696,6 +762,7 @@ void FontManager_createAtlas(FontManager* fm) {
 		c->texNormSize.x = (float)gen->sdfDataSize.x / (float)pot;
 		c->texNormSize.y = (float)gen->sdfDataSize.y / (float)pot;
 		
+		
 		c->advance = gen->charinfo.advance;
 		c->topLeftOffset.x = (gen->charinfo.topLeftOffset.x);// + (float)gen->sdfBounds.min.x;
 		c->topLeftOffset.y = (gen->charinfo.topLeftOffset.y);// - (float)gen->sdfBounds.min.y;
@@ -731,7 +798,7 @@ void FontManager_createAtlas(FontManager* fm) {
 
 
 // bump on format changes. there is no backward compatibility. saving is for caching only.
-static uint16_t GUIFONT_ATLAS_FILE_VERSION = 6;
+static uint16_t GUIFONT_ATLAS_FILE_VERSION = 70;
 
 void FontManager_saveAtlas(FontManager* fm, char* path) {
 	FILE* f;
@@ -763,6 +830,14 @@ void FontManager_saveAtlas(FontManager* fm, char* path) {
 		fwrite(&font->descender, 1, 8, f);
 		fwrite(&font->height, 1, 8, f);
 		
+		// number of bitmap fonts
+		uint32_t nbfonts = VEC_LEN(&font->bitmapFonts);
+		fwrite(&nbfonts, 1, 4, f);
+		
+		// bitmap bit field
+		fwrite(&font->bitmapSizes, 1, 8, f);
+		
+		
 		// number of charInfo structs
 		uint32_t clen = font->charsLen;
 		fwrite(&clen, 1, 4, f);
@@ -772,6 +847,34 @@ void FontManager_saveAtlas(FontManager* fm, char* path) {
 		fwrite(font->bold, 1, clen * sizeof(*font->bold), f);
 		fwrite(font->italic, 1, clen * sizeof(*font->italic), f);
 		fwrite(font->boldItalic, 1, clen * sizeof(*font->boldItalic), f);
+		
+		
+		
+		VEC_EACH(&font->bitmapFonts, bfi, bfont) {
+			fwrite("B", 1, 1, f);
+						
+			// font size
+			fwrite(&bfont->bitmapSize, 1, 4, f);
+			
+			// name is inherited from parent
+			
+			// global metrics
+			fwrite(&bfont->ascender, 1, 8, f);
+			fwrite(&bfont->descender, 1, 8, f);
+			fwrite(&bfont->height, 1, 8, f);
+			
+			// number of charInfo structs
+			uint32_t clen = bfont->charsLen;
+			fwrite(&clen, 1, 4, f);
+			
+			// the charInfo structs
+			fwrite(bfont->regular, 1, clen * sizeof(*bfont->regular), f);
+			fwrite(bfont->bold, 1, clen * sizeof(*bfont->bold), f);
+			fwrite(bfont->italic, 1, clen * sizeof(*bfont->italic), f);
+			fwrite(bfont->boldItalic, 1, clen * sizeof(*bfont->boldItalic), f);
+		
+		}
+		
 	}
 	
 	// atlas identifier
@@ -847,6 +950,16 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 			L5("descender: %lf, x14: %f\n", gf->descender, gf->descender * 14);
 			
 			
+			// number of bitmap fonts
+			uint32_t nbfonts;
+			fread(&nbfonts, 1, 4, f);
+			L5("bitmap font count: %d\n", nbfonts);
+			
+		
+			// bitmap bit field
+			fread(&gf->bitmapSizes, 1, 8, f);
+			
+			
 			// charInfo array length
 			fread(&u32, 1, 4, f);
 			gf->charsLen = u32;
@@ -860,6 +973,49 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 			fread(gf->bold, 1, u32 * sizeof(*gf->bold), f);
 			fread(gf->italic, 1, u32 * sizeof(*gf->italic), f);
 			fread(gf->boldItalic, 1, u32 * sizeof(*gf->boldItalic), f);
+			
+			for(int bfi = 0; bfi < nbfonts; bfi++) {
+			
+				// check the sigil sigil
+				fread(&u8, 1, 1, f);
+		
+				if(u8 == 'B') {
+					// fonst size
+					fread(&u32, 1, 4, f);
+					
+					GUIFont* bf = FontManager_AssertBitmapSize(fm, name, u32);
+					bf->bitmapSize = u32;
+					bf->empty = 0;
+					VEC_PUSH(&gf->bitmapFonts, bf);
+					 
+					// global metrics
+					fread(&bf->ascender, 1, 8, f);
+					fread(&bf->descender, 1, 8, f);
+					fread(&bf->height, 1, 8, f);
+					
+					L5("height: %lf, x14: %f\n", bf->height, bf->height * 14);
+					L5("ascender: %lf, x14: %f\n", bf->ascender, bf->ascender * 14);
+					L5("descender: %lf, x14: %f\n", bf->descender, bf->descender * 14);
+					
+								// charInfo array length
+					fread(&u32, 1, 4, f);
+					bf->charsLen = u32;
+					bf->regular = malloc(u32 * sizeof(*bf->regular));
+					bf->bold = malloc(u32 * sizeof(*bf->bold));
+					bf->italic = malloc(u32 * sizeof(*bf->italic));
+					bf->boldItalic = malloc(u32 * sizeof(*bf->boldItalic));
+					
+					// charInfo structs
+					fread(bf->regular, 1, u32 * sizeof(*bf->regular), f);
+					fread(bf->bold, 1, u32 * sizeof(*bf->bold), f);
+					fread(bf->italic, 1, u32 * sizeof(*bf->italic), f);
+					fread(bf->boldItalic, 1, u32 * sizeof(*bf->boldItalic), f);
+			
+				}
+				else {
+					L4("Missing bitmap font #%d in %s.\n", bfi, name);
+				}
+			}
 			
 		}
 		else if(u8 == 'A') { // atlas
@@ -1248,7 +1404,7 @@ then:
 	br_off_of = sdf_size_of - tl_off_of 
 */
 
-	
+	/*
 	L5("fg->code: '%c'\n", fg->code);
 	L5("IO ratio: %d\n", io_ratio);
 	L5("in_size_x/y: %d,%d\n", in_size_x, in_size_y);
@@ -1257,6 +1413,7 @@ then:
 	L5("fg->rawBearing.x/y: %f,%f\n", fg->rawBearing.x, fg->rawBearing.y);
 	L5("fg->sdfBounds.min.x/y: %f,%f\n", fg->sdfBounds.min.x, fg->sdfBounds.min.y);
 	L5("fg->sdfBounds.max.x/y: %f,%f\n", fg->sdfBounds.max.x, fg->sdfBounds.max.y);
+	*/
 	
 	/*
 	tl_off_of.x = (bearing_i.x / io_ratio) - padding_o + sdf_off.x
@@ -1268,7 +1425,7 @@ then:
 	float bearing_o_x = (fg->rawBearing.x) / (float)io_ratio;
 	float bearing_o_y = (fg->rawBearing.y) / (float)io_ratio;
 	
-	L5("bearing_o: %f,%f\n", bearing_o_x, bearing_o_y);
+//	L5("bearing_o: %f,%f\n", bearing_o_x, bearing_o_y);
 	
 	fg->charinfo.topLeftOffset.x = (bearing_o_x) - out_padding + fg->sdfBounds.min.x;
 	fg->charinfo.topLeftOffset.y = (-bearing_o_y) - out_padding + fg->sdfBounds.min.y;
@@ -1277,7 +1434,7 @@ then:
 	fg->charinfo.bottomRightOffset.y = fg->charinfo.topLeftOffset.y + (fg->sdfBounds.max.y - fg->sdfBounds.min.y);
 	
 	
-	L5("[raw] tl: %f,%f, br: %f,%f\n", fg->charinfo.topLeftOffset.x, fg->charinfo.topLeftOffset.y, fg->charinfo.bottomRightOffset.x, fg->charinfo.bottomRightOffset.y);
+//	L5("[raw] tl: %f,%f, br: %f,%f\n", fg->charinfo.topLeftOffset.x, fg->charinfo.topLeftOffset.y, fg->charinfo.bottomRightOffset.x, fg->charinfo.bottomRightOffset.y);
 	
 	fg->charinfo.topLeftOffset.x /= (float)fg->nominalRawSize / (float)io_ratio;
 	fg->charinfo.topLeftOffset.y /= (float)fg->nominalRawSize / (float)io_ratio;
@@ -1286,10 +1443,10 @@ then:
 	        
 	fg->charinfo.advance = (float)fg->rawAdvance / (float)fg->nominalRawSize;
 		
-	L5("tl: %f,%f, br: %f,%f   adv: %f\n", fg->charinfo.topLeftOffset.x, fg->charinfo.topLeftOffset.y, fg->charinfo.bottomRightOffset.x, fg->charinfo.bottomRightOffset.y, fg->charinfo.advance);
-	L5("rawsz:%d, inputsz:%d,%d\n", fg->nominalRawSize, fg->rawGlyphSize.x, fg->rawGlyphSize.y);
-	
-	L5("time elapsed: %fms\n\n", (getCurrentTime() - start_time) * 1000);
+//	L5("tl: %f,%f, br: %f,%f   adv: %f\n", fg->charinfo.topLeftOffset.x, fg->charinfo.topLeftOffset.y, fg->charinfo.bottomRightOffset.x, fg->charinfo.bottomRightOffset.y, fg->charinfo.advance);
+//	L5("rawsz:%d, inputsz:%d,%d\n", fg->nominalRawSize, fg->rawGlyphSize.x, fg->rawGlyphSize.y);
+//	
+//	L5("time elapsed: %fms\n\n", (getCurrentTime() - start_time) * 1000);
 }
 
 

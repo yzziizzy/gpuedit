@@ -640,7 +640,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	if(width > 0) sz.x = width;
 	float fontSz = o->fontSize;
 	
-	GUIFont* font = GUI_FindFont(gm, o->fontName);	
+	GUIFont* font = GUI_FindFont(gm, o->fontName, o->fontSize);	
 	
 	HOVER_HOT(id)
 	
@@ -751,7 +751,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 		firstRun = 1;
 	}
 	
-	GUIFont* font = GUI_FindFont(gm, o->fontName);
+	GUIFont* font = GUI_FindFont(gm, o->fontName, o->fontSize);
 	
 	Vector2 sz = o->size;
 	if(width > 0) sz.x = width;
@@ -959,7 +959,7 @@ void GUI_CircleFilled_(
 void GUI_Char_(GUIManager* gm, int c, Vector2 origin, char* fontName, float size, Color4* color) {
 	if(!gm->drawMode) return; // this function is only for drawing mode
 	
-	GUIFont* font = GUI_FindFont(gm, fontName);
+	GUIFont* font = GUI_FindFont(gm, fontName, size);
 	if(!font) font = gm->defaults.font;
 	
 	GUI_CharFont_NoGuard_(gm, c, origin, font, size, color);
@@ -983,8 +983,8 @@ void GUI_CharFont_NoGuard_(GUIManager* gm, int c, Vector2 origin, GUIFont* font,
 	v->pos.b = origin.y + ci->bottomRightOffset.y * size;
 	v->pos.r = origin.x + ci->bottomRightOffset.x * size;
 			
-	v->guiType = 1; // text
-			
+	v->guiType = font->bitmapSize > 0 ? 20 : 1; // 1 = sdf, 20 = bitmap
+				
 	v->texOffset1.x = ci->texNormOffset.x * 65535.0;
 	v->texOffset1.y = ci->texNormOffset.y * 65535.0;
 	v->texSize1.x =  ci->texNormSize.x *  65535.0;
@@ -998,6 +998,7 @@ void GUI_CharFont_NoGuard_(GUIManager* gm, int c, Vector2 origin, GUIFont* font,
 	v->rot = 0;
 }
 
+
 // no wrapping
 void GUI_TextLine_(
 	GUIManager* gm, 
@@ -1010,7 +1011,7 @@ void GUI_TextLine_(
 ) {
 	if(!gm->drawMode) return; // this function is only for drawing mode
 	
-	GUIFont* font = GUI_FindFont(gm, fontName);
+	GUIFont* font = GUI_FindFont(gm, fontName, size);
 	if(!font) font = gm->defaults.font;
 	
 	if(textLen == 0) textLen = strlen(text);
@@ -1042,7 +1043,7 @@ void GUI_Printf_(
 	
 	if(!gm->drawMode) return; // this function is only for drawing mode
 	
-	GUIFont* font = GUI_FindFont(gm, fontName);
+	GUIFont* font = GUI_FindFont(gm, fontName, size);
 	if(!font) font = gm->defaults.font;
 	
 	va_start(ap, fmt);
@@ -1072,7 +1073,7 @@ void GUI_TextLineCentered_(
 ) {
 	if(!gm->drawMode) return; // this function is only for drawing mode
 	
-	GUIFont* font = GUI_FindFont(gm, fontName);
+	GUIFont* font = GUI_FindFont(gm, fontName, size);
 	if(!font) font = gm->defaults.font;
 	
 	if(textLen == 0) textLen = strlen(text);

@@ -148,7 +148,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 
 
 	BufferSettings* bs = Settings_GetSection(as->globalSettings, SETTINGS_Buffer);
-	FontManager_AssertBitmpSize(as->gui->fm, bs->font, bs->fontSize);
+	FontManager_AssertBitmapSize(as->gui->fm, bs->font, bs->fontSize);
 	
 	
 	FontManager_AssertDefaultCodeRange(as->gui->fm, ' ', '~'); // all of printable 7-bit ascii

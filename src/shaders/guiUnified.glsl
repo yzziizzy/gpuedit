@@ -429,6 +429,19 @@ void main(void) {
 		return;
 		*/
 	}
+	else if(gs_guiType == 20) { // bitmap text
+		
+		float d = texture(fontTex, gs_tex).r;
+		
+		if(d < 0.01) {
+//  			out_Color = vec4(gs_tex.xy, 0, 1); return; // show the overdraw
+			discard;
+		};
+		
+		out_Color = vec4(gs_fg_color.rgb, d); 
+// 		out_Color = vec4(.9,.9,.9, a); 
+		return;
+	}
 	
 	// gradients
 	// right triangles

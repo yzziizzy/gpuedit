@@ -271,10 +271,10 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		
 //		gui_drawTextLine(gm, (Vector2){box.min.x - xoff, box.min.y}, (Vector2){textw+1,0}, &box, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
 		
-//		if(tab->isStarred) {
-//			box.min.x = box.max.x - 10; // TODO magic number
-//			gui_drawTextLine(gm, (Vector2){box.min.x, box.min.y}, (Vector2){box.max.x,0}, &box, &gm->defaults.tabTextColor , w->header.absZ + 0.2, "*", 1);
-//		}
+		if(tab->isStarred) {
+			box.min.x = box.max.x - 10; // TODO magic number
+			GUI_TextLineCentered("*", 1, V(box.min.x, box.min.y - 2), V(tabw - 2, mc->tabHeight - 2), "Arial", mc->tabHeight - 5, &C4H(ff0000ff));
+		}
 	}
 	
 	gm->curClip = oClip;
@@ -1178,7 +1178,7 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 	
 	
 	TextDrawParams* tdp = pcalloc(tdp);
-	tdp->font = FontManager_findFont(w->gm->fm, bs->font);
+	tdp->font = GUI_FindFont(w->gm, bs->font, bs->fontSize); // FontManager_findFont(w->gm->fm, bs->font);
 	tdp->fontSize = bs->fontSize;
 	tdp->charWidth = bs->charWidth;
 	tdp->lineHeight = bs->lineHeight;

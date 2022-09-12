@@ -377,7 +377,7 @@ void GUIManager_SetCursor(GUIManager* gm, int cursor);
 
 
 
-GUIFont* GUI_FindFont(GUIManager* gm, char* name);
+GUIFont* GUI_FindFont(GUIManager* gm, char* name, float size);
 
 
 

@@ -253,6 +253,7 @@ void gui_drawCharacter(
 	GUIFont* font,
 	float fontsize
 ) {
+
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
 	struct charInfo* ci = &font->regular[(int)c];
 	float hoff = fontsize * font->ascender;
@@ -459,11 +460,34 @@ void gui_drawVCenteredTextLine(
 
 
 
-GUIFont* GUI_FindFont(GUIManager* gm, char* name) {
-	return FontManager_findFont(gm->fm, name);
+GUIFont* GUI_FindFont(GUIManager* gm, char* name, float size) {
+	// the master font for this face
+	GUIFont* mf = FontManager_findFont(gm->fm, name);
+	
+	// check to see if a bitmap font is available
+	int isz = floor(size + 0.5); 
+	if(isz < 0 || isz > 63) return mf;
+	
+//	printf("checking size %f, %d\n", size, isz);
+	
+	uint64_t mask = 1ul << (isz - 4);
+	// check the bitfield
+	if(!(mf->bitmapSizes & mask)) {
+//		printf("  ---missing from bitfield: %s/%d/%f\n", name, isz, size);
+		return mf;
+	}
+	
+//	printf("found bmp font %s/%d\n", name, isz);
+	
+	// find and return the correct bitmap font object
+	VEC_EACH(&mf->bitmapFonts, i, bf) {
+		if(bf->bitmapSize == isz) return bf;
+	}
+	
+	// just in case the bitmap font wasn't found for some reason.
+	return mf;
 }
 
-// 
 
 
 

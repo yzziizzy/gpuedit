@@ -150,6 +150,7 @@
 * Scroll half the distance in a direction as can be scrolled (log2 scroll)
 * Option to place comment chars before or after whitespace, and control padding ws
 * SLOC count
+* Magic macro to convert a single-line if statement into a block form
 * Sort lines, ignoring punctuation and special characters
 * Option: scroll past end of file or not.
 * Option: trim leading/trailing whitespace of file.
@@ -169,6 +170,7 @@
 * Jump to line of last edit
 * Fixed size bitmap text rendering for precision at selected sizes
 * Notify when semicolons appear to be missing
+* Math identity lookup and suggestion
 * Algorithm to detect indent width then convert all spaces to tabs
 * Command to fix all whitespacing on a line according to defined rules
 * ...

@@ -56,7 +56,8 @@ typedef struct GUIFont {
 	double height;
 	// TODO: kerning info
 	
-	uint64_t bitmapSizes;
+	uint64_t bitmapSizes; // Bit field representing available bitmap sizes
+	                      //  The first bit represents size 4px
 	VEC(struct GUIFont*) bitmapFonts;
 	
 	int sdfGenSize;
@@ -161,7 +162,7 @@ void FontManager_finalize(FontManager* fm);
 
 GUIFont* FontManager_findFont(FontManager* fm, char* name);
 GUIFont* FontManager_AssertFont(FontManager* fm, char* name);
-void FontManager_AssertBitmpSize(FontManager* fm, char* name, int size);
+GUIFont* FontManager_AssertBitmapSize(FontManager* fm, char* name, int size);
 void FontManager_AssertCodeRange(FontManager* fm, char* name, int minCode, int maxCode);
 void FontManager_AssertDefaultCodeRange(FontManager* fm, int minCode, int maxCode);
 
