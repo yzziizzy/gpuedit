@@ -199,7 +199,6 @@
 * Skip List for BufferLines
 * Implement INCR selection handling for X
 * --help, man page
-* Bitmap font option
 * Save/reload workspace
 * Options to look for config in ~/./etc/...
 * On-demand frame rendering

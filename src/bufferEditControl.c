@@ -643,6 +643,10 @@ static void a_free(Allocator* a, void* p) {
 	free(p);
 }
 
+void GUIBufferEditControl_MarkRefreshHighlight(GUIBufferEditControl* w) {
+	w->needsRehighlight = 1;
+}
+
 void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 	double then = getCurrentTime();
 	
@@ -1099,7 +1103,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 	}
 	
 	if(cmd->flags & GUICMD_FLAG_rehighlight) {
-		GUIBufferEditControl_RefreshHighlight(w);
+		GUIBufferEditControl_MarkRefreshHighlight(w);
 	}
 	
 	if(cmd->flags & GUICMD_FLAG_resetCursorBlink) {

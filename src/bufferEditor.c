@@ -129,7 +129,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
 		
 			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
-				GUIBufferEditControl_RefreshHighlight(w->ec);
+				GUIBufferEditControl_MarkRefreshHighlight(w->ec);
 			}
 			
 			GUI_CancelInput();
@@ -139,6 +139,11 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	
 	// --------- drawing code ---------
 	if(gm->drawMode) {	
+		
+		if(w->ec->needsRehighlight) {
+			GUIBufferEditControl_RefreshHighlight(w->ec);
+			w->ec->needsRehighlight = 0;
+		}
 		
 		// the little red recording circle
 		if(w->isRecording) {
@@ -1069,7 +1074,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 	}
 	
 	if(cmd->flags & GUICMD_FLAG_rehighlight) {
-		GUIBufferEditControl_RefreshHighlight(w->ec);
+		GUIBufferEditControl_MarkRefreshHighlight(w->ec);
 	}
 	
 	if(cmd->flags & GUICMD_FLAG_resetCursorBlink) {
@@ -1150,7 +1155,7 @@ void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w) {
 	if(h) {
 		w->ec->h = h;
 		
-		GUIBufferEditControl_RefreshHighlight(w->ec);
+		GUIBufferEditControl_MarkRefreshHighlight(w->ec);
 	}
 
 }

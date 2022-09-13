@@ -264,17 +264,18 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 			}
 		}
 	
-		
-		GUI_TextLineCentered(tab->title, strlen(tab->title), V(box.min.x, box.min.y - 2), V(tabw - 2, mc->tabHeight - 2), "Arial", mc->tabHeight - 5, &gm->defaults.tabTextColor);
-		
-//		AABB2 clip = gui_clipTo(w->header.absClip, box);
-		
-//		gui_drawTextLine(gm, (Vector2){box.min.x - xoff, box.min.y}, (Vector2){textw+1,0}, &box, &gm->defaults.tabTextColor , w->header.absZ + 0.2, tab->title, strlen(tab->title));
-		
+		Color4 c = gm->defaults.tabTextColor;
 		if(tab->isStarred) {
-			box.min.x = box.max.x - 10; // TODO magic number
-			GUI_TextLineCentered("*", 1, V(box.min.x, box.min.y - 2), V(tabw - 2, mc->tabHeight - 2), "Arial", mc->tabHeight - 5, &C4H(ff0000ff));
+			c = C4H(ff0000ff);
 		}
+		
+		GUI_TextLineCentered(
+			tab->title, strlen(tab->title), 
+			V(box.min.x, box.min.y - 2), V(tabw - 2, mc->tabHeight - 2), 
+			"Arial", mc->tabHeight - 5, 
+			&c
+		);
+		
 	}
 	
 	gm->curClip = oClip;

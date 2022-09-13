@@ -337,6 +337,7 @@ typedef struct GUIBufferEditControl {
 	
 //	GUIWindow* scrollbar;
 	float sbMinHeight;
+	char needsRehighlight;
 
 	Settings* s;
 	GeneralSettings* gs;
@@ -674,6 +675,7 @@ colnum_t BufferLine_GetIndentCol(BufferLine* l);
 
 
 // HACK: temporary junk
+void GUIBufferEditControl_MarkRefreshHighlight(GUIBufferEditControl* w);
 void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w);
 void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w);
 
