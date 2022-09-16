@@ -21,8 +21,8 @@
 static void open_match(GrepOpenControl* w, int i);
 
 
-// #define DEBUG(...) printf(__VA_ARGS__)
-#define DEBUG(...)
+// #define DBG(...) printf(__VA_ARGS__)
+#define DBG(...)
 
 
 #include "ui/macros_on.h"
@@ -73,7 +73,7 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 	gm->curZ++;
 	
 	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
-		DEBUG("rendering match: %ld\n", i);
+		DBG("rendering match: %ld\n", i);
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 		
@@ -250,14 +250,14 @@ void GrepOpenControl_Refresh(GrepOpenControl* w) {
 	while(w->gs->MainControl_searchPaths[i]) {
 		args[2] = w->gs->MainControl_searchPaths[i];
 		contents[i] = execProcessPipe_charpp(args, &stringBuffers[i], &n_filepaths);
-		DEBUG("result: %ld filepaths\n", n_filepaths);
+		DBG("result: %ld filepaths\n", n_filepaths);
 
 		if(n_candidates+n_filepaths >= max_candidates) {
 			max_candidates = 2 * MAX(n_filepaths, max_candidates);
 			candidates = realloc(candidates, max_candidates*sizeof(*candidates));
 		}
 		for(j=0;j<n_filepaths;j++) {
-			// DEBUG("got filepath: %s\n", stringBuffers[i][j]);
+			// DBG("got filepath: %s\n", stringBuffers[i][j]);
 			candidates[n_candidates+j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates+j].filepath = stringBuffers[i][j];
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);
@@ -299,9 +299,9 @@ CLEANUP:
 	w->contents = contents;
 
 	if(w->matches) {
-		DEBUG("freeing %lu matches\n", w->matchCnt);
+		DBG("freeing %lu matches\n", w->matchCnt);
 		for(i=0;i<w->matchCnt;i++) {
-			DEBUG("i: %d, line: %s, render: %s\n", i, w->matches[i].line, w->matches[i].render_line);
+			DBG("i: %d, line: %s, render: %s\n", i, w->matches[i].line, w->matches[i].render_line);
 			free(w->matches[i].render_line);
 			w->matches[i].render_line = NULL;
 		}
@@ -343,5 +343,5 @@ static void open_match(GrepOpenControl* w, int i) {
 }
 
 
-#undef DEBUG
+#undef DBG
 

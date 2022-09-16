@@ -4,6 +4,7 @@
 
 // link with -lutil
 
+char* build_dir;
 
 char* sources[] = { "main.c",
 	"app.c",
@@ -81,10 +82,25 @@ char* ld_add[] = {
 };
 
 
+char* debug_cflags[] = {
+	"-ggdb",
+	"-DDEBUG",
+	"-O1",
+};
+
+char* profiling_cflags[] = {
+	"-pg",
+};
+
+char* release_cflags[] = {
+	"-DRELEASE",
+	"-O3",
+	"-Wno-array-bounds", // temporary, until some shit in sti gets fixed. only happens with -O3
+};
+
 // -ffast-math but without reciprocal approximations 
 char* cflags[] = {
 	"-std=gnu11", 
-	"-ggdb", 
 	"-ffunction-sections", "-fdata-sections",
 	"-DLINUX",
 	"-march=native",
@@ -150,8 +166,9 @@ void check_source(char* raw_src_path, strlist* objs) {
 	char* src_dir = dir_name(raw_src_path);
 	char* base = base_name(src_path);
 	
-	char* build_dir = path_join("build", src_dir);
-	char* obj_path = path_join(build_dir, base);
+//	char* build_base = "debug";
+	char* src_build_dir = path_join(build_dir, src_dir);
+	char* obj_path = path_join(src_build_dir, base);
 	
 	// cheap and dirty
 	size_t olen = strlen(obj_path);
@@ -160,9 +177,9 @@ void check_source(char* raw_src_path, strlist* objs) {
 	
 	strlist_push(objs, obj_path);
 	
-	char* dep_path = strcatdup(build_dir, "/", base, ".d");
+	char* dep_path = strcatdup(src_build_dir, "/", base, ".d");
 	
-	mkdirp_cached(build_dir, 0755);
+	mkdirp_cached(src_build_dir, 0755);
 	
 	char* real_obj_path = resolve_path(obj_path, &obj_mtime);
 	if(obj_mtime < src_mtime) {
@@ -183,6 +200,13 @@ void check_source(char* raw_src_path, strlist* objs) {
 }
 
 
+struct {
+	int debug;
+	int profiling;
+	int release;
+	int clean;
+} g_options;
+
 
 int main(int argc, char* argv[]) {
 	string_cache_init(2048);
@@ -191,17 +215,77 @@ int main(int argc, char* argv[]) {
 	hash_init(&mkdir_cache, 128);
 	g_nprocs = get_nprocs();
 	
-	char* tmp;
-	
+	// defaults
+	g_options.debug = 2;
 	char* exe_path = "gpuedit";
+	char* base_build_dir = "build";
+	
+	char* tmp;
+	int mode = 0;
+	
+	for(int a = 1; a < argc; a++) {
+		if(argv[a][0] == '-') {
+			for(int i = 0; argv[a][i]; i++) {
+				
+				switch(argv[a][i]) {
+					case 'd': // debug: -ggdb
+						g_options.debug = 1;
+						if(g_options.release == 1) {
+							fprintf(stderr, "Debug and Release set at the same time.\n");
+						}
+						break;
+						
+					case 'p': // profiling: -pg
+						g_options.profiling = 1;
+						break;
+						
+					case 'r': // release: -O3
+						g_options.release = 1;
+						if(g_options.debug == 1) {
+							fprintf(stderr, "Debug and Release set at the same time.\n");
+						}
+						break;
+						
+					case 'c': // clean
+						g_options.clean = 1;
+						break;
+				}
+			}		
+		}
+	
+	}
+	
+	
+	
+	// delete the old executable
 	unlink(exe_path);
 	
-	mkdirp_cached("build", 0755);
+	char build_subdir[20] = {0};
 	
+	if(g_options.debug) strcat(build_subdir, "d");
+	if(g_options.profiling) strcat(build_subdir, "p");
+	if(g_options.release) strcat(build_subdir, "r");
+
+	build_dir = path_join(base_build_dir, build_subdir);
+	
+	// delete old build files if needed 
+	if(g_options.clean) {
+		printf("Cleaning directory %s/\n", build_dir);
+		system(sprintfdup("rm -rf %s/*", build_dir));
+	}
+	
+	mkdirp_cached(build_dir, 0755);
+	
+	// create the test files
 	system("cp src/buffer.h ./testfile.h");
 	system("cp src/buffer.c ./testfile.c");
 	
 	g_gcc_opts_list = concat_lists(ld_add, cflags);
+	
+	if(g_options.debug) g_gcc_opts_list = concat_lists(g_gcc_opts_list, debug_cflags);
+	if(g_options.profiling) g_gcc_opts_list = concat_lists(g_gcc_opts_list, profiling_cflags);
+	if(g_options.release) g_gcc_opts_list = concat_lists(g_gcc_opts_list, release_cflags);
+	
 	g_gcc_opts_flat = join_str_list(g_gcc_opts_list, " ");
 	g_gcc_include = pkg_config(lib_headers_needed, "I");
 	g_gcc_libs = pkg_config(libs_needed, "L");
@@ -239,7 +323,7 @@ int main(int argc, char* argv[]) {
 	
 	
 	printf("Creating archive...      "); fflush(stdout);
-	if(system(sprintfdup("ar rcs build/tmp.a %s", objects_flat))) {
+	if(system(sprintfdup("ar rcs %s/tmp.a %s", build_dir, objects_flat))) {
 		printf(" \e[1;31mFAIL\e[0m\n");
 		return 1;
 	}
@@ -249,7 +333,7 @@ int main(int argc, char* argv[]) {
 	
 	
 	printf("Linking executable...    "); fflush(stdout);
-	char* cmd = sprintfdup("gcc -Wl,--gc-sections build/tmp.a -o %s %s %s", exe_path, g_gcc_libs, g_gcc_opts_flat);
+	char* cmd = sprintfdup("gcc -Wl,--gc-sections -pg %s/tmp.a -o %s %s %s", build_dir, exe_path, g_gcc_libs, g_gcc_opts_flat);
 	if(system(cmd)) {
 		printf(" \e[1;31mFAIL\e[0m\n");
 		return 1;

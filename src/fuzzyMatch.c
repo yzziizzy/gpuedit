@@ -7,8 +7,8 @@
 
 #include "fuzzyMatch.h"
 
-//#define DEBUG printf
-#define DEBUG(...)
+//#define DBG printf
+#define DBG(...)
 
 
 int match_cmp(const void* a_in, const void* b_in) {
@@ -38,7 +38,7 @@ int fuzzy_match_fmatch(
 	int len_i = strlen(input);
 
 	if(len_i == 0) {
-		DEBUG("empty input, no matches\n");
+		DBG("empty input, no matches\n");
 		return 1;
 	}
 
@@ -55,14 +55,14 @@ int fuzzy_match_fmatch(
 		matches[i].len_c = strlen(candidates[i].filepath);
 
 		if(len_i > matches[i].len_c) {
-			DEBUG("input longer than candidate, no match [%s,%s]\n", candidates[i].filepath, input);
+			DBG("input longer than candidate, no match [%s,%s]\n", candidates[i].filepath, input);
 			continue;
 		}
 
 		j_c = matches[i].len_c - 1;
 		j_i = len_i - 1;
 		while(j_c >= 0 && j_i >= 0) {
-//			DEBUG("while %d, %d\n", j_c, j_i);
+//			DBG("while %d, %d\n", j_c, j_i);
 			if(case_sensitive ? candidates[i].filepath[j_c] == input[j_i] : tolower(candidates[i].filepath[j_c]) == tolower(input[j_i])) {
 				if(matches[i].end == -1) {
 					matches[i].end = j_c;
@@ -77,7 +77,7 @@ int fuzzy_match_fmatch(
 		if(j_i == -1) {
 			matches[i].len_m = matches[i].end - matches[i].start + 1;
 			n_matches++;
-			DEBUG(
+			DBG(
 				"found match (%d, %d)[%d] for [%d:%s, %s]\n",
 				matches[i].start,
 				matches[i].end,
@@ -89,7 +89,7 @@ int fuzzy_match_fmatch(
 		}
 	}
 
-	DEBUG("have %d matches\n", n_matches);
+	DBG("have %d matches\n", n_matches);
 	fmatch* out = malloc(sizeof(fmatch) * n_matches);
 	*n_out = n_matches;
 	*matches_out = out;
@@ -99,14 +99,14 @@ int fuzzy_match_fmatch(
 	}
 	for(i=0;i<n_candidates;i++) {
 		if((matches[i].len_m >= len_i) && (i_match < n_matches)) {
-			DEBUG("pre write out %d => %d\n", i, i_match);
+			DBG("pre write out %d => %d\n", i, i_match);
 			out[i_match].index = matches[i].index;
 			out[i_match].start = matches[i].start;
 			out[i_match].end = matches[i].end;
 			out[i_match].len_c = matches[i].len_c;
 			
 			// memcpy(out[i_match], &(matches[i]), sizeof(fmatch));
-			DEBUG("post write out %d => %d\n", i, i_match);
+			DBG("post write out %d => %d\n", i, i_match);
 			i_match++;
 		}
 	}
@@ -114,7 +114,7 @@ int fuzzy_match_fmatch(
 	qsort((void*)out, n_matches, sizeof(fmatch), &match_cmp);
 
 	for(i=0;i<n_matches;i++) {
-		DEBUG(
+		DBG(
 			"ordered match fmatch (%d, %d)[%d] for [%s]\n",
 			out[i].start,
 			out[i].end,
@@ -141,7 +141,7 @@ int fuzzy_match_fcandidate(
 	int err = 0;
 
 	err = fuzzy_match_fmatch(candidates, n_candidates, &matches, n_out, input, case_sensitive);
-	DEBUG("fuzzy_match_fmatch exit code: %d\n", err);
+	DBG("fuzzy_match_fmatch exit code: %d\n", err);
 
 	if(err) {
 		return err;
@@ -152,7 +152,7 @@ int fuzzy_match_fcandidate(
 
 	int i;
 	for(i=0;i<*n_out;i++) {
-		DEBUG(
+		DBG(
 			"ordered match charpp (%d, %d)[%d] for [%s]\n",
 			matches[i].start,
 			matches[i].end,
@@ -169,4 +169,4 @@ int fuzzy_match_fcandidate(
 	return 0;
 }
 
-#undef DEBUG
+#undef DBG

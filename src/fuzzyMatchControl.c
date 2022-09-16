@@ -22,8 +22,8 @@
 
 static void open_match(GUIFuzzyMatchControl* w, int i);
 
-// #define DEBUG printf
-#define DEBUG(...) 
+// #define DBG printf
+#define DBG(...) 
 
 
 #include "ui/macros_on.h"
@@ -78,7 +78,7 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 	gm->curZ++;
 	
 	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
-		DEBUG("rendering match: %ld\n", i);
+		DBG("rendering match: %ld\n", i);
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 		
@@ -189,7 +189,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	char*** stringBuffers = NULL;
 	
 	
-	DEBUG("~~ begin fuzzy opener\n");
+	DBG("~~ begin fuzzy opener\n");
 	char* cmd = "/usr/bin/git";
 	char* args[] = {cmd, "-C", NULL, "ls-files", "-co", "--exclude-standard", NULL};
 	
@@ -214,17 +214,17 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	while(w->gs->MainControl_searchPaths[i]) {
 		args[2] = w->gs->MainControl_searchPaths[i];
 		contents[i] = execProcessPipe_charpp(args, &stringBuffers[i], &n_filepaths);
-		DEBUG("result: %ld filepaths\n", n_filepaths);
+		DBG("result: %ld filepaths\n", n_filepaths);
 
 		if(n_candidates+n_filepaths >= max_candidates) {
-			DEBUG("fps: %lu, mc: %lu\n", n_filepaths, max_candidates);
+			DBG("fps: %lu, mc: %lu\n", n_filepaths, max_candidates);
 			max_candidates = 2*MAX(n_filepaths, max_candidates);
-			DEBUG("mc: %lu, size: %lu\n", max_candidates, sizeof(*candidates));
+			DBG("mc: %lu, size: %lu\n", max_candidates, sizeof(*candidates));
 			candidates = realloc(candidates, max_candidates*sizeof(*candidates));
 		}
 		
 		for(j = 0; j < n_filepaths; j++) {
-			DEBUG("got filepath: %s\n", stringBuffers[i][j]);
+			DBG("got filepath: %s\n", stringBuffers[i][j]);
 			candidates[n_candidates + j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates + j].filepath = stringBuffers[i][j];
 		}
@@ -270,14 +270,14 @@ CLEANUP:
 
 	if(input) {
 		err = fuzzy_match_fcandidate(candidates, n_candidates, &matches, &n_matches, input, 0);
-		DEBUG("fuzzy match exit code: %d\n", err);
+		DBG("fuzzy match exit code: %d\n", err);
 	}
 
 	if(w->matches) free(w->matches);
 	if(!err) {
 		w->matches = matches;
 		w->matchCnt = n_matches;
-		DEBUG("match count at end: %ld\n", w->matchCnt);
+		DBG("match count at end: %ld\n", w->matchCnt);
 	//	for(i=0;i<n_matches;i++) {
 	//		printf("ordered match [%s]\n", matches[i]);
 	//	}
@@ -321,5 +321,5 @@ static void open_match(GUIFuzzyMatchControl* w, int i) {
 }
 
 
-#undef DEBUG
+#undef DBG
 

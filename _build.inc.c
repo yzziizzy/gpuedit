@@ -139,6 +139,34 @@ typedef struct {
 	string_cache_bucket* buckets;
 } string_cache_t;
 
+struct child_process_info* exec_cmdline_pipe(char* cmdline);
+struct child_process_info* exec_process_pipe(char* exec_path, char* args[]);
+int mkdirp(char* path, mode_t mode);
+char* resolve_path(char* in, time_t* mtime_out);
+#define path_join(...) path_join_(PP_NARG(__VA_ARGS__), __VA_ARGS__)
+char* path_join_(size_t nargs, ...);
+#define concat_lists(...) concat_lists_(PP_NARG(__VA_ARGS__), __VA_ARGS__)
+char** concat_lists_(int nargs, ...);
+#define strjoin(j, ...) strjoin_(j, PP_NARG(__VA_ARGS__), __VA_ARGS__)
+char* strjoin_(char* joiner, size_t nargs, ...);
+#define strcatdup(...) strcatdup_(PP_NARG(__VA_ARGS__), __VA_ARGS__)
+char* strcatdup_(size_t nargs, ...);
+void recursive_glob(char* base_path, char* pattern, int flags, rglob* results);
+char* dir_name(char* path);
+char* base_name(char* path);
+size_t list_len(char** list);
+char* join_str_list(char* list[], char* joiner);
+char* sprintfdup(char* fmt, ...);
+char* read_whole_file(char* path, size_t* srcLen);
+static inline char* strskip(char* s, char* skip) {
+	return s + strspn(s, skip);
+}
+#define FSU_EXCLUDE_HIDDEN     (1<<0)
+#define FSU_NO_FOLLOW_SYMLINKS (1<<1)
+#define FSU_INCLUDE_DIRS       (1<<2)
+#define FSU_EXCLUDE_FILES      (1<<3)
+
+
 string_cache_t string_cache;
 
 void string_cache_init(int alloc) {
@@ -383,32 +411,7 @@ char** strsplit(char* splitters, char* in) {
 	return list;
 }
 
-struct child_process_info* exec_cmdline_pipe(char* cmdline);
-struct child_process_info* exec_process_pipe(char* exec_path, char* args[]);
-int mkdirp(char* path, mode_t mode);
-char* resolve_path(char* in, time_t* mtime_out);
-#define path_join(...) path_join_(PP_NARG(__VA_ARGS__), __VA_ARGS__)
-char* path_join_(size_t nargs, ...);
-#define concat_lists(...) concat_lists_(PP_NARG(__VA_ARGS__), __VA_ARGS__)
-char** concat_lists_(int nargs, ...);
-#define strjoin(j, ...) strjoin_(j, PP_NARG(__VA_ARGS__), __VA_ARGS__)
-char* strjoin_(char* joiner, size_t nargs, ...);
-#define strcatdup(...) strcatdup_(PP_NARG(__VA_ARGS__), __VA_ARGS__)
-char* strcatdup_(size_t nargs, ...);
-void recursive_glob(char* base_path, char* pattern, int flags, rglob* results);
-char* dir_name(char* path);
-char* base_name(char* path);
-size_t list_len(char** list);
-char* join_str_list(char* list[], char* joiner);
-char* sprintfdup(char* fmt, ...);
-char* read_whole_file(char* path, size_t* srcLen);
-static inline char* strskip(char* s, char* skip) {
-	return s + strspn(s, skip);
-}
-#define FSU_EXCLUDE_HIDDEN     (1<<0)
-#define FSU_NO_FOLLOW_SYMLINKS (1<<1)
-#define FSU_INCLUDE_DIRS       (1<<2)
-#define FSU_EXCLUDE_FILES      (1<<3)
+
 
 
 char* pkg_config(char** packages, char* opts) {

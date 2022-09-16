@@ -88,3 +88,7 @@ testfile.c
 testfile.h
 
 parser_generated.h
+
+# profiling temp files
+*.output
+*.prof
