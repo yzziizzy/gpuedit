@@ -113,6 +113,9 @@ int BufferRange_Normalize(BufferRange* r) {
 		r->cursor = !r->cursor; // flip the cursor/pivot flag
 	}
 	
+	
+	if(r->line[0] != r->line[1] || r->col[0] != r->col[1]) r->selecting = 1;
+	
 // 	printf("sel: %d:%d -> %d:%d\n", br->line[0]->lineNum, br->col[0], br->line[1]->lineNum, br->col[1]);
 	return 0;
 }

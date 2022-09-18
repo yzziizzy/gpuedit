@@ -1609,7 +1609,6 @@ void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, colnum_t c
 	
 	GBEC_SetCurrentSelection(w, sel.line[0], sel.col[0], sel.line[1], sel.col[1]);
 	w->sel->cursor = 1; // put the cursor at the end
-	w->sel->selecting = 1; // maybe should be smarter?
 }
 
 
@@ -1690,8 +1689,10 @@ void GBEC_InsertCharsMC(GUIBufferEditControl* w, char* s, size_t cnt) {
 	VEC_EACH(&w->selSet->ranges, ir, r) {
 		if(HAS_SELECTION(r)) {
 			Buffer_DeleteSelectionContents(w->b, r);
-			PIVOT_LINE(r) = NULL;
-			PIVOT_COL(r) = -1;
+			r->line[1] = NULL;
+			r->col[1] = -1;
+			r->cursor = 0;
+			r->selecting = 0;
 		}
 		
 		Buffer_LineInsertChars(w->b, CURSOR_LINE(r), s, CURSOR_COL(r), cnt);
