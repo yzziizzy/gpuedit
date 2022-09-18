@@ -777,8 +777,9 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 //				w->current = w->sel->line[0];
 //				w->curCol = w->sel->col[0];
 				Buffer_UndoSequenceBreak(b, 0, CURSOR_LINE(w->sel)->lineNum, CURSOR_COL(w->sel), 
-				PIVOT_LINE(w->sel)->lineNum, PIVOT_COL(w->sel), 0);
+					PIVOT_LINE(w->sel)->lineNum, PIVOT_COL(w->sel), 0);
 				Buffer_DeleteSelectionContents(b, w->sel);
+				GBEC_MoveCursorTo(w, w->sel->line[0], w->sel->col[0]); // correct;
 				
 				GBEC_ClearAllSelections(w);
 			}
@@ -795,6 +796,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 //				w->current = w->sel->line[0];
 //				w->curCol = w->sel->col[0];
 				Buffer_DeleteSelectionContents(b, w->sel);
+				GBEC_MoveCursorTo(w, w->sel->line[0], w->sel->col[0]); // correct;
 				GBEC_ClearAllSelections(w);
 			}
 			else {
@@ -1240,6 +1242,7 @@ void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, colnu
 	
 	assert(startL != NULL);
 	assert(endL != NULL);
+	assert(w->sel != NULL);
 	
 	startC = MIN(startL->length, MAX(startC, 0));
 	endC = MIN(endL->length, MAX(endC, 0));
@@ -1436,6 +1439,13 @@ void GBEC_MoveCursorHSel(GUIBufferEditControl* w, colnum_t cols) {
 void GBEC_MoveRangeCursorTo(BufferRange* r, BufferLine* bl, colnum_t col) {
 	// TODO: undo
 	
+	/*
+	if(PIVOT_LINE(r) == bl && PIVOT_COL(r) == col) {
+		r->cursor = !r->cursor;
+		return;
+	}
+	*/
+	
 	CURSOR_LINE(r) = bl;
 	CURSOR_COL(r) = MIN(col, bl->length);;
 	
@@ -1598,7 +1608,8 @@ void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, colnum_t c
 	Buffer_GetSequenceUnder(w->b, l, col, charSet, &sel);
 	
 	GBEC_SetCurrentSelection(w, sel.line[0], sel.col[0], sel.line[1], sel.col[1]);
-	GBEC_MoveCursorTo(w, sel.line[1], sel.col[1]);
+	w->sel->cursor = 1; // put the cursor at the end
+	w->sel->selecting = 1; // maybe should be smarter?
 }
 
 

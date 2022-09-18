@@ -132,6 +132,7 @@ int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, colnum_t col) {
 		if(r->line[0] == bl && r->col[0] > col) continue;
 		if(r->line[1] == bl && r->col[1] <= col) continue;
 		
+		
 		return 1;
 	}
 	

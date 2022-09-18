@@ -685,7 +685,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			//if(w->ec->current->flags & BL_BREAKPOINT_FLAG) {
 			// actually toggles breakpoint
 				if(w->setBreakpoint) 
-					w->setBreakpoint(w->sourceFile, w->ec->sel->line[0]->lineNum, w->setBreakpointData);
+					w->setBreakpoint(w->sourceFile, CURSOR_LINE(w->ec->sel)->lineNum, w->setBreakpointData);
 			//}
 			
 			break;
