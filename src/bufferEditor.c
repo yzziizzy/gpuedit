@@ -68,10 +68,12 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		GUI_Rect(V(0, sz.y - sbh - 60), V(sz.x, 60), &gm->defaults.trayBgColor);
 		
-		if(GUI_Edit(&w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery)){
+		DEFAULTS(GUIEditOpts, eopts);
+		eopts.selectAll = 1;
+		if(GUI_Edit_(gm, &w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery, &eopts)){
 			update = 1;
 		}
-		if(GUI_Edit(&w->replaceText, V(10, sz.y - sbh - 25), sz.x - 10 - 200, &w->replaceText)) {
+		if(GUI_Edit_(gm, &w->replaceText, V(10, sz.y - sbh - 25), sz.x - 10 - 200, &w->replaceText, &eopts)) {
 			
 		}
 		

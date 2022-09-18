@@ -35,7 +35,10 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 	}
 
 	gm->curZ += 10;
-	if(GUI_Edit(&w->searchTerm, tl, sz.x, &w->searchTerm)) {
+	
+	DEFAULTS(GUIEditOpts, eopts);
+	eopts.selectAll = 1;
+	if(GUI_Edit_(gm, &w->searchTerm, tl, sz.x, &w->searchTerm, &eopts)) {
 		GUIFuzzyMatchControl_Refresh(w);
 	}
 	gm->curZ -= 10;

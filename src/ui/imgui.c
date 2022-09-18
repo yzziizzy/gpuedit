@@ -625,13 +625,18 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	int ret;
 	struct edit_data* d;
 	
+	check_string(str, 0); // make sure the input string exists
+	
 	if(!(d = GUI_GetData_(gm, id))) {
 		d = calloc(1, sizeof(*d));
 		d->cursor.selectPivot = -1;
+		if(o->selectAll) {
+			d->cursor.selectPivot = 0;
+			d->cursor.cursorPos = str->len;
+		}
+		
 		GUI_SetData_(gm, id, d, free);
 	}
-	
-	check_string(str, 0); // make sure the input string exists
 	
 	ret = d->synthed_change;
 	d->synthed_change = 0;

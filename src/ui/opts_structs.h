@@ -46,6 +46,7 @@ typedef struct Color3 {
 
 
 #define charp char*
+#define bool char
 
 
 
@@ -142,11 +143,12 @@ typedef struct Color3 {
 			X(Color4, text, C4(1,1,1,1), C4(1,1,1,1), C4(1,1,1,1)) \
 		), \
 		XX(Color4, cursorColor, C4(1,1,1,1)), \
-		XX(Color4, selectionBgColor, C4(1,1,1,1)), \
+		XX(Color4, selectionBgColor,  C4H(00c8c8ff)), \
 		XX(Vector2, size, ((Vector2){150,20})), \
 		XX(float, borderWidth, 2), \
 		XX(float, fontSize, 14), \
-		XX(charp, fontName, "Arial") \
+		XX(charp, fontName, "Arial"), \
+		XX(bool,  selectAll, 0) \
 	) \
 
 
