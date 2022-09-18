@@ -85,17 +85,20 @@ char* ld_add[] = {
 char* debug_cflags[] = {
 	"-ggdb",
 	"-DDEBUG",
-	"-O1",
+	"-O0",
+	NULL
 };
 
 char* profiling_cflags[] = {
 	"-pg",
+	NULL
 };
 
 char* release_cflags[] = {
 	"-DRELEASE",
 	"-O3",
 	"-Wno-array-bounds", // temporary, until some shit in sti gets fixed. only happens with -O3
+	NULL
 };
 
 // -ffast-math but without reciprocal approximations 
@@ -254,7 +257,6 @@ int main(int argc, char* argv[]) {
 		}
 	
 	}
-	
 	
 	
 	// delete the old executable
