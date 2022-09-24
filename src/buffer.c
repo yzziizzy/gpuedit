@@ -790,6 +790,12 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 		LOG_UNDO(printf(" > delete last line %.*s\n", (int)s.line[1]->length, s.line[1]->buf));
 		Buffer_DeleteLine(b, s.line[1]);
 	}
+	
+	
+	sel->line[1] = NULL;
+	sel->col[1] = -1;
+	sel->cursor = 0;
+	sel->selecting = 0;
 }
 
 

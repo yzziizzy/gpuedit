@@ -513,7 +513,7 @@ void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered) {
 	intptr_t scroll_last = w->scrollLines + w->linesOnScreen;
 	
 	if(centered) {
-		w->scrollLines = CURSOR_LINE(w->sel)->lineNum - w->linesOnScreen/2;
+		w->scrollLines = CURSOR_LINE(w->sel)->lineNum - w->linesOnScreen / 2;
 	}
 	else if(CURSOR_LINE(w->sel)->lineNum <= scroll_first) {
 		w->scrollLines = CURSOR_LINE(w->sel)->lineNum - 1;
@@ -526,7 +526,7 @@ void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered) {
 	intptr_t col_last = w->scrollCols + w->colsOnScreen;
 	
 	/*
-	w->curColDisp = getDisplayColFromActual(w, w->current, w->curCol);
+	w->curColDisp = GBEC_VisualColFromNominal(w, w->current, w->curCol);
 	if(w->curColDisp <= col_first) {
 		w->scrollCols = w->curColDisp - 1;
 	}
@@ -652,8 +652,9 @@ void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 	
 	Buffer* b = w->b;
 	
-	if(!b->first) return;
+	if(!b->first) return; // the buffer is empty
 	Highlighter* h = w->h;
+	if(!h || !h->plugin) return; // there is no highlighter
 	
 	static Allocator al = {
 		.malloc = a_malloc,
@@ -725,19 +726,20 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 	switch(cmd->cmd) {
 		case GUICMD_Buffer_MoveCursorV:
 			GBEC_ClearAllSelections(w);
-			GBEC_MoveCursorV(w, cmd->amt);
+			GBEC_MoveCursorV(w, w->sel, cmd->amt);
 			break;		
 		
 		case GUICMD_Buffer_MoveCursorH:
 			GBEC_ClearAllSelections(w);
-			GBEC_MoveCursorH(w, cmd->amt);
+			GBEC_MoveCursorH(w, w->sel, cmd->amt);
 			break;
 
+/*
 		case GUICMD_Buffer_MoveCursorHSel:
 			GBEC_MoveCursorHSel(w, cmd->amt);
 			GBEC_ClearAllSelections(w);
 			break;
-		
+*/		
 		case GUICMD_Buffer_ScrollLinesV:
 			GBEC_ScrollDir(w, cmd->amt, 0);
 			break;
@@ -786,7 +788,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			else {
 				BufferLine* bl = CURSOR_LINE(w->sel);
 				intptr_t col = CURSOR_COL(w->sel);
-				GBEC_MoveCursorH(w, -1);
+				GBEC_MoveCursorH(w, w->sel, -1);
 				Buffer_BackspaceAt(b, bl, col);		
 			}
 			break;
@@ -963,7 +965,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			else {
 				Buffer_LineIndent(w->b, CURSOR_LINE(w->sel));
-				GBEC_MoveCursorH(w, 1);
+				GBEC_MoveCursorH(w, w->sel, 1);
 			}		
 			break;
 			
@@ -983,7 +985,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 			}
 			else {
 				Buffer_DuplicateLines(b, CURSOR_LINE(w->sel), cmd->amt);
-				GBEC_MoveCursorV(w, cmd->amt);
+				GBEC_MoveCursorV(w, w->sel, cmd->amt);
 			}
 			break;
 		
@@ -1142,21 +1144,6 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 
 
 
-void GBEC_MoveCursorV(GUIBufferEditControl* w, linenum_t lines) {
-	int i = lines;
-	// TODO: undo
-	// TODO: multicursor
-	if(i > 0) while(i-- > 0 && CURSOR_LINE(w->sel)->next) {
-		CURSOR_LINE(w->sel) = CURSOR_LINE(w->sel)->next;
-	}
-	else while(i++ < 0 && CURSOR_LINE(w->sel)->prev) {
-		CURSOR_LINE(w->sel) = CURSOR_LINE(w->sel)->prev;
-	}
-	
-	// not regular move, to preserve w->curColWanted
-	CURSOR_COL(w->sel) = getActualColFromWanted(w, CURSOR_LINE(w->sel), w->sel->colWanted);
-}
-
 
 void GBEC_MoveToNextSequence(GUIBufferEditControl* w, BufferLine* l, colnum_t col, char* charSet) {
 	if(!l || col > l->length) return;
@@ -1313,7 +1300,7 @@ void GBEC_SurroundRange(GUIBufferEditControl* w, BufferRange* r, char* begin, ch
 	// fix the selection to include the new text
 	size_t len = strlen(begin) + strlen(end);
 	if(len) {
-		BufferRange_MoveEndH(r, len);
+		GBEC_MoveEndH(w, r, len);
 	}
 }
 
@@ -1334,8 +1321,8 @@ void GBEC_UnsurroundRange(GUIBufferEditControl* w, BufferRange* r, char* begin, 
 	size_t len1 = strlen(begin);
 	size_t len2 = strlen(end);
 	
-	if(len1) BufferRange_MoveStartH(r, len1);
-	if(len2) BufferRange_MoveEndH(r, -len2);
+	if(len1) GBEC_MoveStartH(w, r, len1);
+	if(len2) GBEC_MoveEndH(w, r, -len2);
 }
 
 
@@ -1372,9 +1359,10 @@ void GBEC_ReplaceLineWithSelectionTransform(
 	Buffer_InsertBufferAt(w->b, f, w->sel->line[0], w->sel->col[0], NULL);
 	
 	if(haveCursor) {
-		GBEC_MoveCursorTo(w, w->sel->line[0], 0);
-		GBEC_MoveCursorV(w, cursor.line[0]->lineNum - 1);
-		GBEC_MoveCursorH(w, cursor.col[0]);
+		// BUG: may be very broken post-multicursor
+		GBEC_MoveCursorTo(w, cursor.line[0], cursor.col[0]);
+//		GBEC_MoveCursorV(w, cursor.line[0]->lineNum - 1);
+//		GBEC_MoveCursorH(w, cursor.col[0]);
 		
 	}
 	
@@ -1382,7 +1370,8 @@ void GBEC_ReplaceLineWithSelectionTransform(
 
 
 
-colnum_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, colnum_t wanted) {
+
+colnum_t GBEC_NominalColFromVisual(GUIBufferEditControl* w, BufferLine* bl, colnum_t wanted) {
 	if(bl->buf == NULL) return 0;
 	
 	int tabwidth = w->b->ep->tabWidth;
@@ -1399,7 +1388,7 @@ colnum_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, colnum_
 }
 
 
-colnum_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, colnum_t col) {
+colnum_t GBEC_VisualColFromNominal(GUIBufferEditControl* w, BufferLine* bl, colnum_t col) {
 	if(bl->buf == NULL) return 0;
 	
 	int tabwidth = w->b->ep->tabWidth;
@@ -1415,11 +1404,82 @@ colnum_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, colnum
 }
 
 
-void GBEC_MoveCursorH(GUIBufferEditControl* w, colnum_t cols) {
-	BufferRange_MoveCursorH(w->sel, cols);
+void GBEC_MoveMarkerH(GUIBufferEditControl* w, BufferRange* r, int c, colnum_t cols) {
+	// TODO: undo
+	Buffer_RelPosH(r->line[c], r->col[c], cols, &r->line[c], &r->col[c]);
+	BufferRange_Normalize(r);
 }
 
 
+void GBEC_MoveCursorH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols) {
+	GBEC_MoveMarkerH(w, r, r->cursor, cols);
+		
+	// set the wanted column
+	r->colWanted = GBEC_VisualColFromNominal(w, CURSOR_LINE(r), CURSOR_COL(r));
+}
+void GBEC_MovePivotH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols) {
+	GBEC_MoveMarkerH(w, r, !r->cursor, cols);
+}
+void GBEC_MoveStartH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols) {
+	GBEC_MoveMarkerH(w, r, 0, cols);
+}
+void GBEC_MoveEndH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols) {
+	GBEC_MoveMarkerH(w, r, 1, cols);
+}
+
+
+
+void GBEC_MoveMarkerV(GUIBufferEditControl* w, BufferRange* r, int c, linenum_t lines) {
+	// TODO: undo
+	
+	Buffer_RelPosV(r->line[c], r->col[c], lines, &r->line[c], &r->col[c]);
+	BufferRange_Normalize(r);
+}
+
+
+void GBEC_MoveCursorV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines) {
+	GBEC_MoveMarkerV(w, r, r->cursor, lines);
+	
+	// adjust for wanted column
+	CURSOR_COL(r) = MIN(CURSOR_LINE(r)->length, GBEC_NominalColFromVisual(w, CURSOR_LINE(r), r->colWanted));
+}
+void GBEC_MovePivotV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines) {
+	GBEC_MoveMarkerV(w, r, !r->cursor, lines);
+}
+void GBEC_MoveStartV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines) {
+	GBEC_MoveMarkerV(w, r, 0, lines);
+}
+void GBEC_MoveEndV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines) {
+	GBEC_MoveMarkerV(w, r, 1, lines);
+}
+
+
+
+//void GBEC_MoveCursorH(GUIBufferEditControl* w, colnum_t cols) {
+//	BufferRange_MoveCursorH(w->sel, cols);
+//}
+
+
+/*
+void GBEC_MoveCursorV(GUIBufferEditControl* w, linenum_t lines) {
+	int i = lines;
+	// TODO: undo
+	// TODO: multicursor
+	if(i > 0) while(i-- > 0 && CURSOR_LINE(w->sel)->next) {
+		CURSOR_LINE(w->sel) = CURSOR_LINE(w->sel)->next;
+	}
+	else while(i++ < 0 && CURSOR_LINE(w->sel)->prev) {
+		CURSOR_LINE(w->sel) = CURSOR_LINE(w->sel)->prev;
+	}
+	
+	// not regular move, to preserve w->curColWanted
+	CURSOR_COL(w->sel) = GBEC_NominalColFromVisual(w, CURSOR_LINE(w->sel), w->sel->colWanted);
+}
+*/
+
+
+
+/* appears to be dead code
 void GBEC_MoveCursorHSel(GUIBufferEditControl* w, colnum_t cols) {
 	// TODO: multicursor
 	
@@ -1433,10 +1493,10 @@ void GBEC_MoveCursorHSel(GUIBufferEditControl* w, colnum_t cols) {
 	
 	GBEC_MoveCursorH(w, cols);
 }
-
+*/
 
 // absolute move
-void GBEC_MoveRangeCursorTo(BufferRange* r, BufferLine* bl, colnum_t col) {
+void GBEC_MoveRangeCursorTo(GUIBufferEditControl* w, BufferRange* r, BufferLine* bl, colnum_t col) {
 	// TODO: undo
 	
 	/*
@@ -1449,7 +1509,7 @@ void GBEC_MoveRangeCursorTo(BufferRange* r, BufferLine* bl, colnum_t col) {
 	CURSOR_LINE(r) = bl;
 	CURSOR_COL(r) = MIN(col, bl->length);;
 	
-	r->colWanted = col;
+	r->colWanted = GBEC_VisualColFromNominal(w, CURSOR_LINE(r), CURSOR_COL(r));;
 	
 	BufferRange_Normalize(r);
 }
@@ -1457,7 +1517,7 @@ void GBEC_MoveRangeCursorTo(BufferRange* r, BufferLine* bl, colnum_t col) {
 // absolute move
 void GBEC_MoveCursorTo(GUIBufferEditControl* w, BufferLine* bl, colnum_t col) {
 	// TODO: undo
-	GBEC_MoveRangeCursorTo(w->sel, bl, col);
+	GBEC_MoveRangeCursorTo(w, w->sel, bl, col);
 }
 
 // absolute move
@@ -1469,28 +1529,26 @@ void GBEC_MoveCursorToNum(GUIBufferEditControl* w, linenum_t line, colnum_t col)
 	else if(line > w->b->numLines) bl = w->b->last;
 	else bl = Buffer_raw_GetLineByNum(w->b, line);
 	
-	GBEC_MoveRangeCursorTo(w->sel, bl, col);
+	GBEC_MoveRangeCursorTo(w, w->sel, bl, col);
 }
 
 
 
 void GBEC_NextBookmark(GUIBufferEditControl* w) {
-	if(!HAS_SELECTION(w->sel)) return;
-	BufferLine* bl = w->sel->line[0]->next;
+	BufferLine* bl = CURSOR_LINE(w->sel)->next;
 	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
 		bl = bl->next;
 	}
-	
 	
 	if(bl) GBEC_MoveCursorTo(w, bl, 0);
 }
 
 void GBEC_PrevBookmark(GUIBufferEditControl* w) {
-	if(!HAS_SELECTION(w->sel)) return;
-	BufferLine* bl = w->sel->line[0]->prev;
+	BufferLine* bl = CURSOR_LINE(w->sel)->prev;
 	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
 		bl = bl->prev;
 	}
+	
 	if(bl) GBEC_MoveCursorTo(w, bl, 0);
 }
 
@@ -1499,6 +1557,7 @@ void GBEC_FirstBookmark(GUIBufferEditControl* w) {
 	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
 		bl = bl->next;
 	}
+	
 	if(bl) GBEC_MoveCursorTo(w, bl, 0);
 }
 
@@ -1507,6 +1566,7 @@ void GBEC_LastBookmark(GUIBufferEditControl* w) {
 	while(bl && !(bl->flags & BL_BOOKMARK_FLAG)) {
 		bl = bl->prev;
 	}
+	
 	if(bl) GBEC_MoveCursorTo(w, bl, 0);
 }
 
@@ -1523,7 +1583,7 @@ void GBEC_GrowSelectionH(GUIBufferEditControl* w, colnum_t cols) {
 	Buffer* b = w->b;
 	
 	w->sel->selecting = 1;
-	BufferRange_MoveCursorH(w->sel, cols);
+	GBEC_MoveCursorH(w, w->sel, cols);
 	/*
 	if(!HAS_SELECTION(w->sel)) {
 //		pcalloc(w->sel);
@@ -1564,7 +1624,7 @@ void GBEC_GrowSelectionV(GUIBufferEditControl* w, linenum_t lines) {
 	Buffer* b = w->b;
 	
 	w->sel->selecting = 1;
-	BufferRange_MoveCursorV(w->sel, lines);
+	GBEC_MoveCursorV(w, w->sel, lines);
 	/*
 	if(!HAS_SELECTION(w->sel)) {
 		
@@ -1689,10 +1749,6 @@ void GBEC_InsertCharsMC(GUIBufferEditControl* w, char* s, size_t cnt) {
 	VEC_EACH(&w->selSet->ranges, ir, r) {
 		if(HAS_SELECTION(r)) {
 			Buffer_DeleteSelectionContents(w->b, r);
-			r->line[1] = NULL;
-			r->col[1] = -1;
-			r->cursor = 0;
-			r->selecting = 0;
 		}
 		
 		Buffer_LineInsertChars(w->b, CURSOR_LINE(r), s, CURSOR_COL(r), cnt);
@@ -1702,7 +1758,7 @@ void GBEC_InsertCharsMC(GUIBufferEditControl* w, char* s, size_t cnt) {
 
 void GBEC_MoveCursorHMC(GUIBufferEditControl* w, intptr_t cols) {
 	VEC_EACH(&w->selSet->ranges, ir, r) {
-		BufferRange_MoveCursorH(r, cols);
+		GBEC_MoveCursorH(w, r, cols);
 	}
 }
 

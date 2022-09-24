@@ -66,8 +66,7 @@ typedef struct BufferRange {
 	
 	colnum_t col[2];
 	
-//	colnum_t colDisp; // column to display the cursor on
-	colnum_t colWanted; // column to place the cursor on, if it existed
+	colnum_t colWanted; // Visual column to place the cursor on, if it existed
 	
 	intptr_t charLength; // not implemented atm
 	unsigned int cursor : 1; // cursor at: 0 = start, 1 = end
@@ -610,19 +609,20 @@ int Buffer_UnsurroundSelection(Buffer* b, BufferRange* sel, char* begin, char* e
 int BufferRange_CompleteLinesOnly(BufferRange* sel);
 BufferRange* BufferRange_New(GUIBufferEditControl* w);
 
-void BufferRange_MoveMarkerH(BufferRange* r, int c, colnum_t cols);
-void BufferRange_MoveCursorH(BufferRange* r, colnum_t cols);
-void BufferRange_MovePivotH(BufferRange* r, colnum_t cols);
-void BufferRange_MoveStartH(BufferRange* r, colnum_t cols);
-void BufferRange_MoveEndH(BufferRange* r, colnum_t cols);
+void GBEC_MoveMarkerH(GUIBufferEditControl* w, BufferRange* r, int c, colnum_t cols);
+void GBEC_MoveCursorH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols);
+void GBEC_MovePivotH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols);
+void GBEC_MoveStartH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols);
+void GBEC_MoveEndH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols);
 
-void BufferRange_MoveMarkerV(BufferRange* r, int c, linenum_t lines);
-void BufferRange_MoveCursorV(BufferRange* r, linenum_t lines);
-void BufferRange_MovePivotV(BufferRange* r, linenum_t lines);
-void BufferRange_MoveStartV(BufferRange* r, linenum_t lines);
-void BufferRange_MoveEndV(BufferRange* r, linenum_t lines);
 
-void GBEC_MoveRangeCursorTo(BufferRange* r, BufferLine* bl, colnum_t col);
+void GBEC_MoveMarkerV(GUIBufferEditControl* w, BufferRange* r, int c, linenum_t lines);
+void GBEC_MoveCursorV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines);
+void GBEC_MovePivotV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines);
+void GBEC_MoveStartV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines);
+void GBEC_MoveEndV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines);
+
+void GBEC_MoveRangeCursorTo(GUIBufferEditControl* w, BufferRange* r, BufferLine* bl, colnum_t col);
 void GBEC_SetCurrentSelection(GUIBufferEditControl* w, BufferLine* startL, colnum_t startC, BufferLine* endL, colnum_t endC);
 void GBEC_SetCurrentSelectionRange(GUIBufferEditControl* w, BufferRange* r);
 void GBEC_ClearCurrentSelection(GUIBufferEditControl* w);
@@ -700,9 +700,9 @@ void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel);
 // These functions operate on and with the cursor
 BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
 void GBEC_InsertLinebreak(GUIBufferEditControl* b);
-void GBEC_MoveCursorV(GUIBufferEditControl* w, linenum_t lines);
-void GBEC_MoveCursorH(GUIBufferEditControl* w, colnum_t cols);
-void GBEC_MoveCursorHSel(GUIBufferEditControl* w, colnum_t cols);
+//void BufferRange_MoveCursorV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines);
+//void GBEC_MoveCursorH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols);
+//void GBEC_MoveCursorHSel(GUIBufferEditControl* w, colnum_t cols);
 void GBEC_MoveCursor(GUIBufferEditControl* w, linenum_t lines, colnum_t cols);
 void GBEC_MoveCursorTo(GUIBufferEditControl* w, BufferLine* bl, colnum_t col); // absolute move
 void GBEC_MoveCursorToNum(GUIBufferEditControl* w, linenum_t line, colnum_t col); // absolute move
@@ -799,9 +799,8 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w);
 
-colnum_t getActualColFromWanted(GUIBufferEditControl* w, BufferLine* bl, colnum_t wanted);
-colnum_t getDisplayColFromActual(GUIBufferEditControl* w, BufferLine* bl, colnum_t col);
-
+colnum_t GBEC_NominalColFromVisual(GUIBufferEditControl* w, BufferLine* bl, colnum_t wanted);
+colnum_t GBEC_VisualColFromNominal(GUIBufferEditControl* w, BufferLine* bl, colnum_t col);
 
 
 // this is the finalizer of MurmurHash3

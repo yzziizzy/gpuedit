@@ -363,8 +363,8 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 	
 	BufferRange* r = NULL;
 //	GUIBufferControl* ec = w->ec;
-	intptr_t line = w->ec->sel->line[0]->lineNum;
-	intptr_t col = w->ec->sel->col[0];
+	intptr_t line = CURSOR_LINE(w->ec->sel)->lineNum;
+	intptr_t col = CURSOR_COL(w->ec->sel);
 	
 	if(w->findIndex == -1) {
 		if(continueFromCursor && (offset > 0)) {
@@ -425,7 +425,7 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 	BufferRangeSet_FreeAll(w->findSet);
 }
 
-
+// very broken after multicursor
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word) {
 	Buffer* b = w->b;
 	
@@ -693,7 +693,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			break;
 		}
 		case GUICMD_Buffer_MovePage:
-			GBEC_MoveCursorV(w->ec, cmd->amt * w->ec->linesOnScreen);
+			GBEC_MoveCursorV(w->ec, w->ec->sel, cmd->amt * w->ec->linesOnScreen);
 			
 			w->ec->scrollLines = MAX(0, MIN(w->ec->scrollLines + cmd->amt * w->ec->linesOnScreen, w->b->numLines - 1));
 			break;
@@ -708,7 +708,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 				PIVOT_COL(w->ec->sel) = CURSOR_COL(w->ec->sel);
 			}
 // 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
-			GBEC_MoveCursorH(w->ec, cmd->amt);
+			GBEC_MoveCursorH(w->ec, w->ec->sel, cmd->amt);
 //			GBEC_SetSelectionFromPivot(w->ec);
 			break;
 		
@@ -853,7 +853,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 				
 				Buffer_LineInsertChars(b, r->line[0], rtext, r->col[0], len);
 				GBEC_MoveCursorTo(ec, r->line[0], r->col[0]);
-				GBEC_MoveCursorH(ec, len);
+				GBEC_MoveCursorH(ec, ec->sel, len);
 			}
 			
 			GUIBufferEditor_RelativeFindMatch(w, 1, 1);

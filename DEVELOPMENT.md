@@ -1,3 +1,11 @@
+== Horrible outstanding regressions ==
+* Go to line control is fucked
+* Padding needed in font atlas
+* Auto-h-scroll is broken
+* fuzzy matcher should reset cursor pos on results change
+* fuzzy matcher remembers old cursor pos after results change even if it's invalid
+* set bookmark shouldn't zoom to cursor
+
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
@@ -133,6 +141,7 @@
 * RAT_ parsing in commands for mouse buttons
 * Fix spacing of items in tables
 * Drag selection to new spot
+* Jump back to the location of the last general edit area, eg, some lines away
 * Quick find/replace on current line only
 * Hoist declaration to top of block/fn
 * tail -f mode
@@ -181,6 +190,7 @@
 * "tabs as spaces" mode
 
 == BUGS ==
+* Files wrongly show as "changed" after cursor moves after being opened 
 * Sequence cursor moves don't clear the current selection or change it
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 
 * Should not be able to delete the last line

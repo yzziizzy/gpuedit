@@ -34,48 +34,7 @@ void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel) {
 }
 
 	
-void BufferRange_MoveMarkerH(BufferRange* r, int c, colnum_t cols) {
-	// TODO: undo
-	
-	Buffer_RelPosH(r->line[c], r->col[c], cols, &r->line[c], &r->col[c]);
-	r->colWanted = r->col[c];
-	
-	BufferRange_Normalize(r);
-}
 
-void BufferRange_MoveCursorH(BufferRange* r, colnum_t cols) {
-	BufferRange_MoveMarkerH(r, r->cursor, cols);
-}
-void BufferRange_MovePivotH(BufferRange* r, colnum_t cols) {
-	BufferRange_MoveMarkerH(r, !r->cursor, cols);
-}
-void BufferRange_MoveStartH(BufferRange* r, colnum_t cols) {
-	BufferRange_MoveMarkerH(r, 0, cols);
-}
-void BufferRange_MoveEndH(BufferRange* r, colnum_t cols) {
-	BufferRange_MoveMarkerH(r, 1, cols);
-}
-
-
-void BufferRange_MoveMarkerV(BufferRange* r, int c, linenum_t lines) {
-	// TODO: undo
-	
-	Buffer_RelPosV(r->line[c], r->col[c], lines, &r->line[c], &r->col[c]);
-	BufferRange_Normalize(r);
-}
-
-void BufferRange_MoveCursorV(BufferRange* r, linenum_t lines) {
-	BufferRange_MoveMarkerV(r, r->cursor, lines);
-}
-void BufferRange_MovePivotV(BufferRange* r, linenum_t lines) {
-	BufferRange_MoveMarkerV(r, !r->cursor, lines);
-}
-void BufferRange_MoveStartV(BufferRange* r, linenum_t lines) {
-	BufferRange_MoveMarkerV(r, 0, lines);
-}
-void BufferRange_MoveEndV(BufferRange* r, linenum_t lines) {
-	BufferRange_MoveMarkerV(r, 1, lines);
-}
 
 
 BufferRange* BufferRange_New(GUIBufferEditControl* w) {
@@ -85,6 +44,8 @@ BufferRange* BufferRange_New(GUIBufferEditControl* w) {
 	
 	return r;
 }
+
+
 
 // make sure a range goes in the right direction
 int BufferRange_Normalize(BufferRange* r) {
@@ -119,6 +80,7 @@ int BufferRange_Normalize(BufferRange* r) {
 // 	printf("sel: %d:%d -> %d:%d\n", br->line[0]->lineNum, br->col[0], br->line[1]->lineNum, br->col[1]);
 	return 0;
 }
+
 
 
 // returns 1 for inside, 0 for outside
