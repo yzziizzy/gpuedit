@@ -4,7 +4,6 @@
 * Auto-h-scroll is broken
 * fuzzy matcher should reset cursor pos on results change
 * fuzzy matcher remembers old cursor pos after results change even if it's invalid
-* set bookmark shouldn't zoom to cursor
 
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
