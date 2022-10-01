@@ -196,6 +196,7 @@
 * Mouse drag start params need tuning 
 * Undo breaks with CollapseWhitespace after deleting a selected word.
 * Free the freetype and fontconfig libraries after use
+* File browser opens /build.sh instead of /src/highlighters/c/build.sh
 
 == Low Priority ==
 * Built-in terminal
