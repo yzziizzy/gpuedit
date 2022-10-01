@@ -17,6 +17,8 @@ if [ ! -d src/sti ] ; then
 fi
 
 
+# TODO: attempt to detect build-essential and other basic system deps.
+
 # the remainder at least...
 echo "This setup file is for Ubuntu."
 
@@ -72,6 +74,6 @@ fi
 
 
 
-./autogen.sh && make -j`nproc --ignore=1` && src/gpuedit bufferEditor.c
+./debug.sh
 
 

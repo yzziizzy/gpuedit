@@ -11,9 +11,8 @@ An OpenGL 4.4+ text editor. Not done yet.
 
 
 # Installing
-## Automatically on Ubuntu
-
-Run `setup.sh`
+## Automatically
+The automatic setup script is out of date and should not be used.
 
 ## Manually
 
@@ -23,10 +22,17 @@ Run `setup.sh`
 
 * `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev libpcre3-dev`
 
-* Optional Dependencies: `sudo apt-get install libjpeg-turbo8-dev libvorbis-dev alsa-source`
+* Optional Dependencies: `sudo apt-get install libjpeg-turbo8-dev alsa-source`
 
-* `./autogen.sh`
-* `make && ./src/gpuedit`
+* Compile the parser generator:
+*# `cd src/sti/parser/ && ./build.sh`
+
+*For each highlighter in `src/highlighters/`:
+*# `./build.sh`
+*# Copy or symlink the .so to /usr/local/lib/gpuedit/highlighters/
+
+* Build gpuedit
+*# `./debug.sh`
 
 If you get build errors related to AVX or SSE4.1, try removing the appropriate compile flags in
-`src/Makefile.am` and commenting out `C3DLAS_USE_SIMD` in `src/c3dlas/c3dlas.h`.
+`_build.c` and commenting out `C3DLAS_USE_SIMD` in `src/c3dlas/c3dlas.h`. I'll remove all that old garbage eventually.
