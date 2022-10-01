@@ -25,13 +25,16 @@ The automatic setup script is out of date and should not be used.
     2. Optional Dependencies: `sudo apt-get install libjpeg-turbo8-dev alsa-source`
 
 1. Compile the parser generator:
+
     2. `cd src/sti/parser/ && ./build.sh`
 
 1. For each highlighter in `src/highlighters/`:
+
     2. `./build.sh`
     2. Copy or symlink the .so to /usr/local/lib/gpuedit/highlighters/
 
 1. Build gpuedit
+
     2. `./debug.sh`
 
 If you get build errors related to AVX or SSE4.1, try removing the appropriate compile flags in
