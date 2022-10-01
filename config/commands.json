@@ -10,6 +10,7 @@
 			"0": {name: "Normal", parent: -1, },
 			"1": {name: "Find", parent: 0, },
 			"2": {name: "Replace", parent: 1, },
+			"3": {name: "GotoLine", parent: 0, },
 			
 			"666": {name: "VIM", },
 			"667": {name: "VIM Insert", },
@@ -198,7 +199,7 @@
 			
 			{mode: 0, elem: "Buffer", cmd: "GoToLineLaunch", mods: "C", key: "g", amt: 0, flags: ["resetCursorBlink"]},
 			{mode: 3, elem: "Buffer", cmd: "GoToLineSubmit", mods: "", key: "XK_Return", amt: 0, flags: ["centerOnCursor", "resetCursorBlink"]},
-			{mode: 3, elem: "Buffer", cmd: "CloseTray",      mods: "", key: "XK_Escape", amt: 0, flags: ["centerOnCursor", "resetCursorBlink"]},
+			{mode: 3, elem: "Buffer", cmd: "GoToLineCancel", mods: "", key: "XK_Escape", amt: 0, flags: []},
 			
 			
 			// vim mode

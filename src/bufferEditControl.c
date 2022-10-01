@@ -19,14 +19,14 @@
 
 
 size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos) {
-	return floor((pos.y /*- w->header.absTopLeft.y*/) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines; // TODO IMGUI
+	return floor((pos.y - w->tl.y) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines; // TODO IMGUI
 }
 
 size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 	if(bl->length == 0) return 0;
 	
 	// must handle tabs
-	float a = (x - /*w->header.absTopLeft.x - */w->textAreaOffsetX) / w->bdp->tdp->charWidth; // TODO IMGUI
+	float a = (x - w->tl.x - w->textAreaOffsetX) / w->bdp->tdp->charWidth; // TODO IMGUI
 	ptrdiff_t screenCol = floor(a + 0) + w->scrollCols;
 	
 	if(screenCol <= 0) return 0;
@@ -307,9 +307,29 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	float sb_px_range = sz.y - w->sbMinHeight;
 	float sb_pos = sb_px_range * (w->scrollLines / sb_line_range);
 
-	if(!gm->drawMode) {
+	if(!gm->drawMode && GUI_InputAvailable()) {
 	
 		GBEC_Update(w, tl, sz, pfp);
+		
+		
+		
+		int mode = w->inputMode;
+		
+		
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
+		int needRehighlight = 0;
+		
+		if(cmd) { 
+			GBEC_ProcessCommand(w, cmd, &needRehighlight);
+		
+			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+				GUIBufferEditControl_MarkRefreshHighlight(w);
+			}
+			
+			GUI_CancelInput();
+		}
+		
+		
 		
 		if(gm->activeID == w || gm->hotID == w) {
 			
@@ -335,7 +355,7 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	
 	GBEC_Update(w, tl, sz, pfp);
 	
-	GUIBufferEditControl_Draw(w, gm, (Vector2){0,0}, sz, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100, pfp);
+	GUIBufferEditControl_Draw(w, gm, tl, sz, w->scrollLines, + w->scrollLines + w->linesOnScreen + 2, 0, 100, pfp);
 	
 	// scrollbar 
 	gm->curZ += 200;
@@ -525,15 +545,15 @@ void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered) {
 	intptr_t col_first = w->scrollCols;
 	intptr_t col_last = w->scrollCols + w->colsOnScreen;
 	
-	/*
-	w->curColDisp = GBEC_VisualColFromNominal(w, w->current, w->curCol);
-	if(w->curColDisp <= col_first) {
-		w->scrollCols = w->curColDisp - 1;
+	
+	colnum_t curColDisp = GBEC_VisualColFromNominal(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel));
+	if(curColDisp <= col_first) {
+		w->scrollCols = curColDisp - 1;
 	}
-	else if(w->curColDisp >= col_last - 3) {
-		w->scrollCols = col_first + 3 + (w->curColDisp - col_last);
+	else if(curColDisp >= col_last - 3) {
+		w->scrollCols = col_first + 3 + (curColDisp - col_last);
 	}
-	*/
+	
 	
 	GUIBufferEditControl_SetScroll(w, w->scrollLines, w->scrollCols);
 }
@@ -717,7 +737,7 @@ void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b) {
 }
 
 
-void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighlight) {
+int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighlight) {
 	Buffer* b = w->b;
 	Buffer* b2 = NULL;
 	
@@ -1096,7 +1116,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 		case GUICMD_Buffer_GoToLastBookmark:  GBEC_LastBookmark(w);  break; 
 		default:
 			Buffer_ProcessCommand(w->b, cmd, needRehighlight);
-			return;
+			return 0;
 	}
 
 	
@@ -1138,7 +1158,7 @@ void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, 
 		GBEC_scrollToCursorOpt(w, 1);
 	}
 	
-	
+	return 0;
 }
 
 

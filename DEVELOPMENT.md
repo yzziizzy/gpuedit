@@ -1,14 +1,12 @@
 == Horrible outstanding regressions ==
-* Go to line control is fucked
 * Padding needed in font atlas
-* Auto-h-scroll is broken
 * fuzzy matcher should reset cursor pos on results change
 * fuzzy matcher remembers old cursor pos after results change even if it's invalid
+* Cannot click the editor for cursor moves when find box is open
 
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
 * Selection deletion still wipes out rest of file sometimes
-* WantedCol is broken, especially across tabs,
 * Basic autocomplete
 * Resume search is broken
 * Command to append text to end of characters on line (;)
@@ -137,6 +135,7 @@
 * Delete contents of line but leave indentation
 * Create new line after, indented, and jump to the end 
 * Bookmark categories?
+* Bookmark jump should soft-center the view
 * RAT_ parsing in commands for mouse buttons
 * Fix spacing of items in tables
 * Drag selection to new spot

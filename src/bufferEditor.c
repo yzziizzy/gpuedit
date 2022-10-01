@@ -32,12 +32,6 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	float sbh = w->statusBarHeight * w->showStatusBar;
 	Vector2 ecsz = V(sz.x, sz.y - sbh - w->trayOpen * 60 - top);
 		
-	// forward activeness to the edit control
-	if(gm->activeID == w) ACTIVE(w->ec);
-
-	GUI_PushClip(V(0,0), ecsz);
-	GBEC_Render(w->ec, gm, V(0,top), ecsz, pfp);
-	GUI_PopClip();
 
 	if(w->showStatusBar) {
 		StatusBar_Render(w->statusBar, gm, V(0, sz.y - sbh), V(sz.x, sbh), pfp);
@@ -59,6 +53,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		}
 		gm->curZ -= 20;
+		
+//		if(gm->activeID == &w->gotoLineNum) GUI_CancelInput();
 	}
 	
 	
@@ -117,27 +113,32 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	}
 	
 	
-
-	
 	if(!gm->drawMode && GUI_InputAvailable()) {
 		
 		int mode = w->inputMode;
 		if(w->trayOpen && gm->activeID != w->ec) mode = 1;
-	
+		
+		
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
 		int needRehighlight = 0;
 		
 		if(cmd) { 
-			GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight);
-		
-			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
-				GUIBufferEditControl_MarkRefreshHighlight(w->ec);
+			if(!GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
+				GUI_CancelInput();
+				
+				if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+					GUIBufferEditControl_MarkRefreshHighlight(w->ec);
+				}
 			}
-			
-			GUI_CancelInput();
 		}
 	}
 	
+	// forward activeness to the edit control
+	if(gm->activeID == w) ACTIVE(w->ec);
+
+	GUI_PushClip(V(0,top), ecsz);
+	GBEC_Render(w->ec, gm, V(0,top), ecsz, pfp);
+	GUI_PopClip();
 	
 	// --------- drawing code ---------
 	if(gm->drawMode) {	
@@ -638,7 +639,7 @@ void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index) {
 }
 
 
-void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight) {
+int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight) {
 //	GUIEdit* e;
 	struct json_file* jsf;
 	GUIManager* gm = w->gm;
@@ -805,7 +806,7 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 			
 		case GUICMD_Buffer_GoToLineLaunch: 
 			w->gotoLineTrayOpen = 1;
-			
+			w->inputMode = 3;
 			GUI_SetActive(&w->gotoLineNum);
 		/*
 			if(w->inputMode != BIM_GoTo) {
@@ -832,8 +833,13 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		// TODO: change hooks
 			break;
 		
+		case GUICMD_Buffer_GoToLineCancel:
+			w->gotoLineTrayOpen = 0;
+			w->inputMode = 0;
+			break;		
+		
 		case GUICMD_Buffer_GoToLineSubmit: 
-			w->gotoLineTrayOpen = 1;
+			w->gotoLineTrayOpen = 0;
 			w->inputMode = 0;
 			break;
 		
@@ -1062,10 +1068,9 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 		}
 		break;
 		
+		
 		default:
-			GUIBufferEditControl_ProcessCommand(w->ec, cmd, needRehighlight);
-			return;
-			
+			return 1; // command not handled
 	}
 	
 	
@@ -1106,6 +1111,8 @@ void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needR
 	if(cmd->flags & GUICMD_FLAG_centerOnCursor) {
 		GBEC_scrollToCursorOpt(w->ec, 1);
 	}
+	
+	return 0;
 	
 }
 

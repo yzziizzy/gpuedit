@@ -574,7 +574,7 @@ void BufferUndo_DebugRenderItem(GUIManager* gm, BufferUndo* u, Vector2 tl, Vecto
 // -----
 
 void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight);
-void GUIBufferEditControl_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighlight);
+int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighlight);
 
 
 
@@ -778,7 +778,7 @@ void GUIBufferEditor_scrollToCursor(GUIBufferEditor* gbe);
 void GBEC_scrollToCursor(GUIBufferEditControl* gbe);
 void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered);
 
-void GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight);
+int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight);
 
 
 

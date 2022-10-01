@@ -729,8 +729,6 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 
 struct intedit_data {
 	struct edit_data ed;
-	int cursorPos;
-	float blinkTimer;
 	
 	long lastValue;
 	GUIString str;
@@ -800,7 +798,12 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 
 	// refresh the buffer, maybe
 	if(*num != d->lastValue || firstRun) {
-		d->str.len = snprintf(d->str.data, 64, "%ld", *num);
+		if(*num == 0) {
+			d->str.len = 0;
+		}
+		else {
+			d->str.len = snprintf(d->str.data, 64, "%ld", *num);
+		}
 		d->lastValue = *num;
 	}
 	
@@ -810,13 +813,13 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	
 	// draw cursor
 	if(gm->activeID == id) {
-		if(d->blinkTimer < 0.5) { 
-			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->cursorPos);
+		if(d->ed.cursor.blinkTimer < 0.5) { 
+			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->ed.cursor.cursorPos);
 			GUI_Rect(V(tl.x + cursorOff, tl.y), V(2,sz.y), &o->cursorColor);
 		}
 		
-		d->blinkTimer += gm->timeElapsed;
-		d->blinkTimer = fmod(d->blinkTimer, 1.0);
+		d->ed.cursor.blinkTimer += gm->timeElapsed;
+		d->ed.cursor.blinkTimer = fmod(d->ed.cursor.blinkTimer, 1.0);
 	}
 	
 	gm->curZ += 0.01;

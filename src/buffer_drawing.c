@@ -69,15 +69,16 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	float lineNumWidth = ceil(LOGB(bs->lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
 	float hsoff = -gbe->scrollCols * tdp->charWidth;
 	
-	if(bdp->showLineNums) tl.x += lineNumWidth;
-	
-	gbe->textAreaOffsetX = tl.x; // save for other functions
 
 	if(bdp->showLineNums) {
 		gm->curZ += 1;
-		GUI_Rect(V(0,0), V(lineNumWidth, edh), &ts->lineNumBgColor);
+		GUI_Rect(tl, V(lineNumWidth, edh), &ts->lineNumBgColor);
 		gm->curZ -= 1;
+		
+		tl.x += lineNumWidth;
 	}
+
+	gbe->textAreaOffsetX = tl.x; // save for other functions
 	
 	BufferLine* bl = b->first; // BUG broken 
 	
