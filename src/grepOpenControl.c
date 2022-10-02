@@ -69,10 +69,18 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 	float gutter = w->leftMargin + 20;
 	
 	int linesDrawn = 0;
+	int linesOnScreen = floor((sz.y - 20) / lh); 
+	
+	if(w->cursorIndex < w->scrollLine + 3) {
+		w->scrollLine = MAX(0, w->cursorIndex - 3);
+	}
+	else if(w->cursorIndex >= w->scrollLine + linesOnScreen - 10) {
+		w->scrollLine = w->cursorIndex - linesOnScreen + 10;
+	}
 	
 	gm->curZ++;
 	
-	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
+	for(intptr_t i = w->scrollLine; w->matches && i < w->matchCnt; i++) {
 		DBG("rendering match: %ld\n", i);
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
@@ -175,7 +183,7 @@ void GrepOpenControl_ProcessCommand(GrepOpenControl* w, GUI_Cmd* cmd) {
 			MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
 			break;
 			
-		case GUICMD_GrepOpen_CursorMove:
+		case GUICMD_GrepOpen_MoveCursorV:
 			if(w->matchCnt == 0) break;
 			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
 			break;
@@ -204,10 +212,9 @@ GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* m
 	w->leftMargin = 20;
 
 	if(searchTerm) {
-		// w->searchTerm = strdup(searchTerm);
-		// w->searchBox = GUIEdit_New(gm, searchTerm);
-	} else {
-		// w->searchBox = GUIEdit_New(gm, "");
+		w->searchTerm.data = strdup(searchTerm);
+		w->searchTerm.len = strlen(w->searchTerm.data);
+		w->searchTerm.alloc = w->searchTerm.len;
 	}
 	
 	return w;

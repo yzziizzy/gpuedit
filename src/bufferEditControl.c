@@ -390,6 +390,12 @@ void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParam
 	w->linesOnScreen = sz.y / w->bs->lineHeight;
 	w->colsOnScreen = (sz.x - lineNumWidth) / w->bs->charWidth;
 
+	if(w->wantedScrollLine > -1) {
+		GBEC_SetScrollCentered(w, w->wantedScrollLine, w->wantedScrollCol > -1 ? w->wantedScrollCol : 0);
+		w->wantedScrollLine = -1;
+		w->wantedScrollCol = -1;
+	}
+
 	w->scrollCoastMax = 50;
 	// scroll coasting while selection dragging
 	if(w->isDragScrollCoasting) {
@@ -488,6 +494,9 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	
 	VEC_PUSH(&w->selSet->ranges, w->sel);
 	
+	w->wantedScrollLine = -1;
+	w->wantedScrollCol = -1;
+	
 	return w;
 }
 
@@ -510,7 +519,13 @@ void GUIBufferEditControl_SetScroll(GUIBufferEditControl* w, linenum_t line, col
 }
 
 void GBEC_SetScrollCentered(GUIBufferEditControl* w, linenum_t line, colnum_t col) {
-	int mid = w->linesOnScreen / 2;
+	if(w->linesOnScreen == 0) {
+		w->wantedScrollLine = line;
+		w->wantedScrollCol = col;
+		return;
+	}
+
+	int mid = w->linesOnScreen / 2; // == 0 during init.
 	w->scrollLines = MIN(MAX(0, line - mid), w->b->numLines);
 	w->scrollCols = col > w->colsOnScreen - 10 ? MAX(0, col - (w->colsOnScreen / 2)) : 0;
 }
@@ -777,27 +792,19 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			break;
 		
 		case GUICMD_Buffer_InsertChar:
-			// TODO: update
-			
 			GBEC_InsertCharsMC(w, cc, 1);
 			GBEC_MoveCursorHMC(w, 1);
-			/*
-			if(w->sel->line[1]) {
-//				w->current = w->sel->line[0]; // TODO: undo cursor
-//				w->curCol = w->sel->col[0];
-				Buffer_DeleteSelectionContents(b, w->sel);
-				GBEC_ClearAllSelections(w);
-			}
-			Buffer_LineInsertChars(b, w->sel->line[0], cc, w->sel->col[0], 1);
-			GBEC_MoveCursorHMC(w, 1);
-			*/
 			break;
+			
+		case GUICMD_Buffer_InsertString: {
+			size_t len = strlen(cmd->amt);
+			GBEC_InsertCharsMC(w, cmd->amt, len);
+			GBEC_MoveCursorHMC(w, len);
+			break;
+		}
 		
 		case GUICMD_Buffer_Backspace:
 			if(HAS_SELECTION(w->sel)) {
-			// TODO current
-//				w->current = w->sel->line[0];
-//				w->curCol = w->sel->col[0];
 				Buffer_UndoSequenceBreak(b, 0, CURSOR_LINE(w->sel)->lineNum, CURSOR_COL(w->sel), 
 					PIVOT_LINE(w->sel)->lineNum, PIVOT_COL(w->sel), 0);
 				Buffer_DeleteSelectionContents(b, w->sel);
@@ -815,8 +822,6 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		
 		case GUICMD_Buffer_Delete:
 			if(HAS_SELECTION(w->sel)) {
-//				w->current = w->sel->line[0];
-//				w->curCol = w->sel->col[0];
 				Buffer_DeleteSelectionContents(b, w->sel);
 				GBEC_MoveCursorTo(w, w->sel->line[0], w->sel->col[0]); // correct;
 				GBEC_ClearAllSelections(w);
@@ -1774,7 +1779,6 @@ void GBEC_InsertCharsMC(GUIBufferEditControl* w, char* s, size_t cnt) {
 		Buffer_LineInsertChars(w->b, CURSOR_LINE(r), s, CURSOR_COL(r), cnt);
 	}
 }
-
 
 void GBEC_MoveCursorHMC(GUIBufferEditControl* w, intptr_t cols) {
 	VEC_EACH(&w->selSet->ranges, ir, r) {

@@ -33,6 +33,7 @@
 	X(Buffer, MoveCursorH) \
 	X(Buffer, MoveCursorHSel) \
 	X(Buffer, InsertChar) \
+	X(Buffer, InsertString) \
 	X(Buffer, SplitLine) \
 	X(Buffer, SplitLineIndent) \
 	X(Buffer, Backspace) \
@@ -138,11 +139,11 @@
 	X(FileBrowser, OpenUnderCursor) \
 	\
 	X(FuzzyMatcher, Exit) \
-	X(FuzzyMatcher, CursorMove) \
+	X(FuzzyMatcher, MoveCursorV) \
 	X(FuzzyMatcher, OpenFile) \
 	\
 	X(GrepOpen, Exit) \
-	X(GrepOpen, CursorMove) \
+	X(GrepOpen, MoveCursorV) \
 	X(GrepOpen, OpenFile) \
 	\
 	X(Main, EnterLayoutMode) \

@@ -20,6 +20,7 @@ typedef struct GrepOpenControl {
 	gocandidate* matches;
 	size_t matchCnt;
 	int cursorIndex;
+	int scrollLine;
 	char** contents;
 	char*** stringBuffers;
 	

@@ -318,7 +318,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	// draw cursors
 	VEC_EACH(&gbe->selSet->ranges, i, r) {
-		if(r == gbe->sel && (gbe->cursorBlinkPaused || gbe->cursorBlinkTimer > gbe->cursorBlinkOnTime)) continue;
+		if(gbe == gm->activeID) {
+			if(r == gbe->sel && (gbe->cursorBlinkTimer > gbe->cursorBlinkOnTime)) continue;
+		}
 		
 		//tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
 		float cursorOff = hsoff + getColOffset(CURSOR_LINE(r)->buf, CURSOR_COL(r), tdp->tabWidth) * tdp->charWidth;

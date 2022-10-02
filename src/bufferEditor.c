@@ -171,7 +171,7 @@ void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
 }
 
 
-GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
+GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm, MessagePipe* tx) {
 
 	
 	GUIBufferEditor* w = pcalloc(w);
@@ -183,6 +183,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm) {
 	w->statusBar = StatusBar_New(gm, w);
 	w->showStatusBar = !gm->gs->hideStatusBar;
 	
+	w->tx = tx;
 	
 	pcalloc(w->findSet);
 	w->ec->findSet = w->findSet;
@@ -343,7 +344,6 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 		
 //	GUIBufferEditor_scrollToCursor(w);
 	
-	w->ec->cursorBlinkPaused = 1;
 //	GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 	
 	return 0;
@@ -395,7 +395,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		}
 	}
 	
-	if(!r) {
+	if(!r && VEC_LEN(&w->findSet->ranges)) {
 		w->findIndex = (w->findIndex + offset + VEC_LEN(&w->findSet->ranges)) % VEC_LEN(&w->findSet->ranges);
 		
 		r = VEC_ITEM(&w->findSet->ranges, w->findIndex);
@@ -822,12 +822,10 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 				GUI_RegisterObject(w, w->trayRoot);
 				w->lineNumEntryBox = (GUIEdit*)GUI_FindChild(w->trayRoot, "goto_line");
 				
-				w->ec->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, &w->lineNumEntryBox->header);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
-				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 			}*/
 		// TODO: change hooks
@@ -900,14 +898,12 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 					GUIEdit_SetText(w->findBox, w->findQuery);
 				}
 				
-				w->ec->cursorBlinkPaused = 1;
 				GUIManager_pushFocusedObject(w->header.gm, &w->findBox->header);
 
 				GUIBufferEditor_RelativeFindMatch(w, 1, 1);
 			}
 			else {
 				GUIBufferEditor_CloseTray(w);
-				w->ec->cursorBlinkPaused = 0;
 				GUIManager_popFocusedObject(w->header.gm);
 			}*/
 			break;
@@ -951,7 +947,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			if(w->trayOpen) {
 				GUIBufferEditor_CloseTray(w);
 				w->inputMode = BIM_Buffer;
-				w->ec->cursorBlinkPaused = 0;
 //				GUIManager_popFocusedObject(w->header.gm);
 				
 				// HACK
@@ -967,32 +962,11 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 // 			break;
 // 		}
 		case GUICMD_Buffer_SmartBubbleSelection: {
-			/*
-			GUIBubbleOpt opt = {};
-			GUIEvent gev2 = {};
 			
-			opt.ev = strdup(cmd->str);
-			if(w->ec->sel->line[1]) {
-				opt.sel = Buffer_StringFromSelection(w->buffer, w->ec->sel, NULL);
-			}
-			
-			gev2.type = GUIEVENT_User;
-			gev2.eventTime = 0;//gev->eventTime;
-			gev2.originalTarget = &w->header;
-			gev2.currentTarget = &w->header;
-			gev2.cancelled = 0;
-			// handlers are responsible for cleanup
-			gev2.userData = &opt;
-			gev2.userSize = sizeof(opt);
-			
-			gev2.userType = "SmartBubble";
-		
-			GUIManager_BubbleEvent(w->header.gm, &w->header, &gev2);
-			
-			free(opt.ev);
-			free(opt.sel);
-			*/
+			char* s = Buffer_StringFromSelection(w->b, w->ec->sel, NULL);
+			MessagePipe_Send(w->tx, MSG_GrepOpener, s, NULL);
 			break;
+			
 		}
 			
 
@@ -1043,7 +1017,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			GUIEdit* btn_cancel = (GUIEdit*)GUI_FindChild(w->trayRoot, "cancel");
 			GUIHeader_AddHandler(&btn_cancel->header, GUIEVENT_Click, SaveTray_cancel_click);
 			*/
-			w->ec->cursorBlinkPaused = 1;
 			
 			break;
 		

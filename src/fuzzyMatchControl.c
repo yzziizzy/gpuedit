@@ -139,7 +139,7 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 			MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
 			break;
 			
-		case GUICMD_FuzzyMatcher_CursorMove:
+		case GUICMD_FuzzyMatcher_MoveCursorV:
 			if(w->matchCnt == 0) break;
 			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
 			break;

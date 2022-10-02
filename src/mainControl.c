@@ -458,6 +458,11 @@ static int message_handler(MainControl* w, Message* m) {
 			MainControl_LoadFileOpt(w, (GUIFileOpt*)m->data);
 			break;
 			
+		case MSG_GrepOpener:
+			MainControl_GrepOpen(w, (char*)m->data);
+			free(m->data);
+			break;
+			
 		default:
 			return 0;
 	}
@@ -1197,7 +1202,7 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 	// buffer and editor creation
 	buf->ep = ep;
 	
-	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm);
+	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm, &w->rx);
 	GUIBufferEditor_UpdateSettings(gbe, ls);
 
 //	gbe->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
@@ -1251,12 +1256,14 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 	tab->client = gbe;
 
 /*
+
 	if(opt->set_focus) {
 		int i = MainControl_FindTabIndexByHeaderP(w, tab->client);
 		MainControl_GoToTab(w, i);
 	}
 */
 	
+
 	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
 	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
 }

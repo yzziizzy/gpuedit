@@ -2,7 +2,7 @@
 * Padding needed in font atlas
 * fuzzy matcher should reset cursor pos on results change
 * fuzzy matcher remembers old cursor pos after results change even if it's invalid
-* Cannot click the editor for cursor moves when find box is open
+* One frame lag on highlight update sometimes
 
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
@@ -12,26 +12,22 @@
 * Command to append text to end of characters on line (;)
 
 == Needed before fractal dogfooding ==
-* bugz: number input has a persistent zero
 * bugz: statusbar widgets drawn on top of each other
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
 * bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
-* bugz: cursor not reset to SoL on delete selection
 * bugz: selection pre-populate of fuzzy/grep openers not working
 * bugz: unable to change theme
 
 * render whitespace characters
-* insert <n> spaces on keypress
 * ctrl+l/r jumps across tabs (sequence break on newline)
 * sequence breaks that actually make sense
 * cursor down on last line -> goto end of line
 * maybe a bug: selection buffer pastes always at the mouse cursor
-  * selection paste option: mouse|latest/cursors
+* selection paste option: mouse|latest/cursors
 * return to previously active tab if opener is closed without opening
 * redirect debug output to a logfile
 * lockup with multi-line selection when fuzzy-matcher is spawned
 
-* clicking out of find switches input to edit buffer (cursor not shown...)
 * old find term highlighted on findreplace resume
 * sequence commands in findreplace input box
 * highlight findset while valid even if find tray closes (opt)
@@ -65,17 +61,17 @@
 * Proper tabstops
 * Ability to change the highlighter
 * Open file command
+* Find should jump to next match if the current one is deleted with a command
 * Shortcut config presets
 * Outline box style of highlighting
 * Drop file from X onto existing editor to open it
 * Monitor file changes on disk
 * Small shade variation on matching pairs of brackets
 * Visible glyph for tabs
-* Wanted column rounding on moving across tabs
 * Track indentation level per line
-* Pause cursor blink on lost focus 
+* Pause cursor blink on lost main X window focus 
 * Settings editor
-* CLI, ENV options parsing
+* ENV options parsing
 * Purge hardcoded values
 * Hide mouse cursor when typing
 * Unsaved changes crash recovery
@@ -167,6 +163,7 @@
 * Execute arbitrary shell commands 
 * Automatically keep commas in arrays of initializers lined up.
 * Autocorrect
+* Text-input I-cursor
 * Option: rendering of selection on tabs and empty lines (and trailing spaces?)
 * Option: Render selection pivot marker
 * Option: automatically scroll so that the cursor has n lines of padding on the top and bottom.
@@ -197,6 +194,8 @@
 * Undo breaks with CollapseWhitespace after deleting a selected word.
 * Free the freetype and fontconfig libraries after use
 * File browser opens /build.sh instead of /src/highlighters/c/build.sh
+* Input system eats mouse move messages during dragging when the mouse leave the main X window
+* Tab scrolling got stuck at one point, and the last 4 letters of DEVELOPMENT.md were cut off
 
 == Low Priority ==
 * Built-in terminal

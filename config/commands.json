@@ -52,7 +52,7 @@
 			{elem: "Main", cmd: "QuitWithoutSave", mods: "CS", key: "q", amt: 0},
 			{elem: "Main", cmd: "OpenFileBrowser", mods: "", key: "XK_F2", amt: 0},
 			{elem: "Main", cmd: "FuzzyOpener", mods: "", key: "XK_F4", amt: 0},
-			{elem: "Main", cmd: "GrepOpen", mods: "CS", key: "p", amt: 0},
+//			{elem: "Main", cmd: "GrepOpen", mods: "CS", key: "p", amt: 0},
 			{elem: "Main", cmd: "Calculator", mods: "T", key: "/", amt: 0},
 			{elem: "Main", cmd: "SimpleWindowTest", mods: "C", key: "u", amt: 0},
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
@@ -69,13 +69,13 @@
 			{elem: "Buffer", cmd: "ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 			
 			{elem: "FuzzyMatcher", cmd: "Exit", mods: "", key: "XK_Escape", amt: 0},
-			{elem: "FuzzyMatcher", cmd: "CursorMove", mods: "", key: "XK_Up", amt: -1},
-			{elem: "FuzzyMatcher", cmd: "CursorMove", mods: "", key: "XK_Down", amt: 1},
+			{elem: "FuzzyMatcher", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1},
+			{elem: "FuzzyMatcher", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1},
 			{elem: "FuzzyMatcher", cmd: "OpenFile", mods: "", key: "XK_Return", amt: 0},
 			
 			{elem: "GrepOpen", cmd: "Exit", mods: "", key: "XK_Escape", amt: 0},
-			{elem: "GrepOpen", cmd: "CursorMove", mods: "", key: "XK_Up", amt: -1},
-			{elem: "GrepOpen", cmd: "CursorMove", mods: "", key: "XK_Down", amt: 1},
+			{elem: "GrepOpen", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1},
+			{elem: "GrepOpen", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1},
 			{elem: "GrepOpen", cmd: "OpenFile", mods: "", key: "XK_Return", amt: 0},
 			
 			{elem: "FileBrowser", cmd: "CursorMoveNoWrap", mods: "", key: "XK_Up", amt: -1},
@@ -102,6 +102,7 @@
 			{elem: "Buffer", cmd: "ScrollLinesV", mods: "T", key: "XK_Down", amt: 5, },
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Left", amt: -5, },
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Right", amt: 5, },
+//			{elem: "Buffer", cmd: "InsertString", mods: "CA", key: "r", amt: "    ", flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
 			{elem: "Buffer", cmd: "InsertChar", mods: "", key: "VK_Print", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
 			{elem: "Buffer", cmd: "InsertChar", mods: "AT", key: "n", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // inserts a null character, for testing or fun
 			{elem: "Buffer", cmd: "GoToFirstCharOfLine", mods: "", key: "XK_Home", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},

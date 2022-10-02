@@ -10,6 +10,7 @@
 	X(OpenFile) \
 	X(OpenFileOpt) \
 	X(CloseMe) \
+	X(GrepOpener) \
 	X(CmdFwd) \
 
 

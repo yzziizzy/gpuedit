@@ -8,6 +8,7 @@
 #include "commands.h"
 #include "ui/gui.h"
 #include "font.h"
+#include "msg.h"
 #include "highlight.h"
 
 #include "statusBar.h"
@@ -283,12 +284,13 @@ typedef struct GUIBufferEditControl {
 	float cursorBlinkTimer;
 	float cursorBlinkOnTime;
 	float cursorBlinkOffTime;
-	char cursorBlinkPaused;
 	
 	char outlineCurLine;
 
 	intptr_t scrollLines; // current scroll position, 0-based
 	intptr_t scrollCols; // NYI, waiting on next line draw fn iteration
+	intptr_t wantedScrollLine; // used before the first render. kind of an ugly hack, for now
+	intptr_t wantedScrollCol; // used before the first render. kind of an ugly hack, for now
 	
 	float textAreaOffsetX; // accounts for line numbers and such
 
@@ -424,6 +426,8 @@ typedef struct GUIBufferEditor {
 	Buffer* b;
 	BufferDrawParams* bdp;
 	Highlighter* h;
+	
+	MessagePipe* tx;
 	
 	char* sourceFile; // issues with undo-save
 	
@@ -764,7 +768,7 @@ void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, Settings* s);
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s);
 
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz, linenum_t lineFrom, linenum_t lineTo, colnum_t colFrom, colnum_t colTo, PassFrameParams* pfp);
-GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm);
+GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm, MessagePipe* tx);
 GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm);
 void GUIBufferEditor_Destroy(GUIBufferEditor* w);
 
