@@ -126,7 +126,7 @@
 				amt: ["%s", "%c", "typedef struct %s {\n\t%c\n} %s;"], flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "LineEnsureEnding", mods: "C", key: ";", amt: ";", flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "LineEnsureEnding", mods: "CS", key: "{", amt: "{", flags: ["rehighlight", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "p", amt: "GrepOpen", },
+			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "p", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", },
 			{elem: "Buffer", cmd: "SmartComment", mods: "C", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "StrictUncomment", mods: "CS", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "DeleteCurLine", mods: "C", key: "k", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},

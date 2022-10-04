@@ -1006,7 +1006,9 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		case GUICMD_Buffer_DuplicateLine:
 			if(HAS_SELECTION(w->sel)) {
 				Buffer_DuplicateSelection(b, w->sel, cmd->amt);
-				GBEC_MoveCursorTo(w, PIVOT_LINE(w->sel), PIVOT_COL(w->sel));
+				// inconsistent with single-line version, but not sure how this one should work
+				// maybe the DuplicateLines function should have an "above" or "below" option.
+//				GBEC_MoveCursorTo(w, PIVOT_LINE(w->sel), PIVOT_COL(w->sel));
 			}
 			else {
 				Buffer_DuplicateLines(b, CURSOR_LINE(w->sel), cmd->amt);

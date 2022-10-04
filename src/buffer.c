@@ -644,15 +644,16 @@ void Buffer_BackspaceAt(Buffer* b, BufferLine* l, colnum_t col) {
 // does not move the cursor
 void Buffer_DeleteAt(Buffer* b, BufferLine* l, colnum_t col) {
 	if(!b->first) return; // empty buffer
+	colnum_t oldLen = l->length;
 	
 	Buffer_LineDeleteChars(b, l, col, 1);
 	
-	if(col >= l->length) {
+	if(col >= oldLen) {
 		// last col of last row; do nothing
 		if(b->last == l) return;
 		
 		if(l->next->length > 0) {
-			// merge with the next line
+			// merge with the next line (doin't append empty text from an ampty line, just delete it)
 			Buffer_LineAppendText(b, l, l->next->buf, l->next->length);
 		}
 		

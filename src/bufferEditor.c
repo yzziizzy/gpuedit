@@ -962,8 +962,13 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 // 			break;
 // 		}
 		case GUICMD_Buffer_SmartBubbleSelection: {
+			BufferRange r = *w->ec->sel;
 			
-			char* s = Buffer_StringFromSelection(w->b, w->ec->sel, NULL);
+			if(!HAS_SELECTION(&r)) {
+				Buffer_GetSequenceUnder(w->b, CURSOR_LINE(&r), CURSOR_COL(&r), cmd->str, &r);
+			}
+			
+			char* s = Buffer_StringFromSelection(w->b, &r, NULL);
 			MessagePipe_Send(w->tx, MSG_GrepOpener, s, NULL);
 			break;
 			
