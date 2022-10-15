@@ -1,8 +1,6 @@
 == Horrible outstanding regressions ==
 * Padding needed in font atlas
-* fuzzy matcher should reset cursor pos on results change
-* fuzzy matcher remembers old cursor pos after results change even if it's invalid
-* One frame lag on highlight update sometimes
+* One frame lag on highlight update sometimes (related to buffer/gbec internal render function call ordering)
 
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
@@ -15,7 +13,6 @@
 * bugz: statusbar widgets drawn on top of each other
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
 * bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
-* bugz: selection pre-populate of fuzzy/grep openers not working
 * bugz: unable to change theme
 
 * render whitespace characters

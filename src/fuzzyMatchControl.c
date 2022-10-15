@@ -191,6 +191,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	char** contents = NULL;
 	char*** stringBuffers = NULL;
 	
+	w->cursorIndex = 0; 
 	
 	DBG("~~ begin fuzzy opener\n");
 	char* cmd = "/usr/bin/git";

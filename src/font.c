@@ -65,7 +65,7 @@ FontManager* FontManager_alloc() {
 void FontManager_init(FontManager* fm, GUISettings* gs) {
 	int i = 0;
 	int atlas_dirty = 0;
-	char* atlas_path = "./fonts.atlas";
+	char* atlas_path = gs->fontAtlasFile;
 	GUIFont* font;
 
 
@@ -790,8 +790,8 @@ void FontManager_createAtlas(FontManager* fm) {
 	VEC_PUSH(&fm->atlas, texData);
 	
 	// disabled for debugging
-	sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
-	writePNG(buf, 1, texData, pot, pot);
+	//sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
+	//writePNG(buf, 1, texData, pot, pot);
 	
 	VEC_FREE(&fm->gen);
 }

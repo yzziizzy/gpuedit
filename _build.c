@@ -244,9 +244,7 @@ int main(int argc, char* argv[]) {
 						
 					case 'r': // release: -O3
 						g_options.release = 1;
-						if(g_options.debug == 1) {
-							fprintf(stderr, "Debug and Release set at the same time.\n");
-						}
+						g_options.debug = 0;
 						break;
 						
 					case 'c': // clean
@@ -295,6 +293,7 @@ int main(int argc, char* argv[]) {
 	g_gcc_opts_flat = strjoin(" ", g_gcc_opts_flat, g_gcc_include);
 	free(tmp);
 	
+	printf("%s\n\n\n\n",g_gcc_opts_flat);
 //	rglob src;
 	//recursive_glob("src", "*.[ch]", 0, &src);
 	
@@ -335,7 +334,7 @@ int main(int argc, char* argv[]) {
 	
 	
 	printf("Linking executable...    "); fflush(stdout);
-	char* cmd = sprintfdup("gcc -Wl,--gc-sections -pg %s/tmp.a -o %s %s %s", build_dir, exe_path, g_gcc_libs, g_gcc_opts_flat);
+	char* cmd = sprintfdup("gcc -Wl,--gc-sections %s %s/tmp.a -o %s %s %s", g_options.profiling ? "-pg" : "", build_dir, exe_path, g_gcc_libs, g_gcc_opts_flat);
 	if(system(cmd)) {
 		printf(" \e[1;31mFAIL\e[0m\n");
 		return 1;
