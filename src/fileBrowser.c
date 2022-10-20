@@ -396,23 +396,24 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 				free(w->curDir);
 				w->curDir = p;
 				
+				FileBrowser_UnselectAll(w);
+				
 				FileBrowser_Refresh(w);
 			}
 			else if(w->numSelected == 0) {
-				
 				FileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
-				e->isSelected = 1;
-
-				MessagePipe_Send(w->upstream, MSG_OpenFile, e->name, NULL);				
+				MessagePipe_Send(w->upstream, MSG_OpenFile, e->fullPath, NULL);				
 			}
 			else { // open selected files
 				for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
 					FileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
 					if(!e->isSelected) {
-						MessagePipe_Send(w->upstream, MSG_OpenFile, e->name, NULL);
+						MessagePipe_Send(w->upstream, MSG_OpenFile, e->fullPath, NULL);
 					}
 				}
+				
+				FileBrowser_UnselectAll(w);
 			}
 		}
 	}

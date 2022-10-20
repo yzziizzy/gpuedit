@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
 	g_gcc_opts_flat = strjoin(" ", g_gcc_opts_flat, g_gcc_include);
 	free(tmp);
 	
-	printf("%s\n\n\n\n",g_gcc_opts_flat);
+	//printf("%s\n\n\n\n",g_gcc_opts_flat);
 //	rglob src;
 	//recursive_glob("src", "*.[ch]", 0, &src);
 	
