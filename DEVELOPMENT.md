@@ -48,6 +48,7 @@
 
 
 == TODO ==
+* git blame integration. Single hotkey to toggle display
 * s/GUIBufferEditControl_*()/GBEC_*()/
 * Make scrollbar size configurable
 * Horizontal scrollbar

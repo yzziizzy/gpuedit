@@ -376,7 +376,7 @@ void __attribute__((used)) gpuedit_list_highlighters(Allocator* al, HighlighterP
 	list->name = "js";
 	list->description = "Javascript syntax highlighter";
 	list->author = "yzziizzy";
-	list->extensions = "js;json";
+	list->extensions = "js;json;html;htm;scss;css;php";
 	
 	list->getStyleCount = get_style_count;
 	list->getStyleNames = get_style_names;

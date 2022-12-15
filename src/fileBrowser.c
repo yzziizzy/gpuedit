@@ -199,9 +199,10 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	gm->curZ = z + 2;
 	GUI_BoxFilled(
 		V(tl.x + gutter, tl.y + w->headerHeight + (w->cursorIndex - w->scrollOffset + !w->isRootDir) * lh),
-		V(sz.x, lh),
+		V(sz.x - gutter, lh),
 		1,
-		&gm->defaults.outlineCurrentLineBorderColor,
+//		&gm->defaults.outlineCurrentLineBorderColor,
+		&C4H(ffffffff),
 		C4(0,0,0,0)
 	);
 	
