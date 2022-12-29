@@ -215,7 +215,8 @@ void TextureAtlas_finalize(TextureAtlas* ta) {
 		};
 		
 // 		printf("added icon '%s'\n", src->name);
-		HT_set(&ta->items, strdup(src->name), it);
+		char* name = strdup(src->name);
+		HT_set(&ta->items, name, it);
 		
 		
 		rowWidth += src->size.x;
