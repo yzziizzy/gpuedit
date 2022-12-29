@@ -197,6 +197,7 @@
 			{mode: 2, elem: "Buffer", cmd: "FindStart",    mods: "C", key: "f", amt: 0, flags: ["centerOnCursor"]},
 			{mode: 2, elem: "Buffer", cmd: "ReplaceNext",  mods: "A", key: "r", amt: 0, flags: ["centerOnCursor", "rehighlight", "undoSeqBreak"]},
 			{mode: 2, elem: "Buffer", cmd: "ReplaceAll",   mods: "A", key: "a", amt: 0, flags: ["centerOnCursor", "rehighlight", "undoSeqBreak"]},
+			{mode: 1, elem: "Buffer", cmd: "ReplaceAll",   mods: "A", key: "a", amt: 0, flags: ["centerOnCursor", "rehighlight", "undoSeqBreak"]},
 			
 			{mode: 0, elem: "Buffer", cmd: "GoToLineLaunch", mods: "C", key: "g", amt: 0, flags: ["resetCursorBlink"]},
 			{mode: 3, elem: "Buffer", cmd: "GoToLineSubmit", mods: "", key: "XK_Return", amt: 0, flags: ["centerOnCursor", "resetCursorBlink"]},

@@ -627,16 +627,27 @@ void GUIBufferEditor_MoveCursorTo(GUIBufferEditor* gbe, intptr_t line, intptr_t 
 
 
 void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index) {
-	int useless;
+	int needRehighlight;
+	
 	
 	if(index >= RING_LEN(&w->macros)) return;
 	
 	BufferEditorMacro* m = &RING_ITEM(&w->macros, index);
 	
 	VEC_EACHP(&m->cmds, i, cmd) {
-		GUIBufferEditor_ProcessCommand(w, cmd, &useless);
+		
+		if(GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
+			GBEC_ProcessCommand(w->ec, cmd, &needRehighlight);
+		}
+			
+		if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+			GUIBufferEditControl_MarkRefreshHighlight(w->ec);
+		}
+
+		needRehighlight = 0;
 	}
 }
+
 
 
 int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRehighlight) {
@@ -649,7 +660,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		BufferEditorMacro* m = &RING_HEAD(&w->macros);
 		VEC_PUSH(&m->cmds, *cmd);
 	}
-	
 	
 	switch(cmd->cmd){
 		case GUICMD_Buffer_SetMode:
