@@ -25,6 +25,10 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	float top = 0;
 	w->trayHeight = 60;
 	
+	if(gm->activeID == w) {
+		ACTIVE(&w->ec);
+	}
+	
 	if(w->gotoLineTrayOpen) top += 40;
 	
 	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);

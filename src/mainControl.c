@@ -134,13 +134,14 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		// set this pane to be focused if any mouse button went up in it,
 		//   regardless of if a deeper element traps the event
 		// Don't refocus on wheel scrolling
-//		if(gm->curEvent.type == GUIEVENT_MouseUp && (gm->curEvent.button == 1 || gm->curEvent.button == 2 || gm->curEvent.button == 3)) {
+		if(gm->curEvent.type == GUIEVENT_MouseUp && (gm->curEvent.button == 1 || gm->curEvent.button == 2 || gm->curEvent.button == 3)) {
 			
 			// hover focus
 			if(GUI_PointInBoxV_(gm, ptl, psz, gm->lastMousePos)) {
 				MainControl_SetFocusedPane(w, pane);
 			}
-//		}
+			
+		}
 		
 		MainControlPane_Render(pane, gm, ptl, psz, pfp);
 	}}
@@ -214,8 +215,13 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		if(t->everyFrame) t->everyFrame(t);
 	}
 	
+	struct Color4* bgcolor =  &gm->defaults.tabBorderColor;
+	if(w->mc->numPanes > 1 && w == w->mc->focusedPane) {
+		bgcolor = &gm->defaults.tabCurrentPaneBorderColor;
+	}
+	
 	// background
-	GUI_Rect(tl, V(sz.x, mc->tabHeight), &gm->defaults.tabBorderColor);
+	GUI_Rect(tl, V(sz.x, mc->tabHeight), bgcolor);
 //	GUI_Rect(tl, V(sz.x, mc->tabHeight), &C4H(00ff00ff));
 	
 
@@ -474,12 +480,14 @@ MainControlPane* MainControlPane_New(MainControl* mc) {
 	MainControlPane* w = pcalloc(w);
 	w->mc = mc;
 	w->currentIndex = -1;
+	mc->numPanes++;
 	
 	return w;
 }
 
 
 void MainControlPane_Free(MainControlPane* w, int freeTabContent) {
+	w->mc->numPanes = MAX(0, w->mc->numPanes - 1);
 	
 	if(freeTabContent) {
 		VEC_EACH(&w->tabs, i, t) {
@@ -541,14 +549,17 @@ void MainControl_UpdateSettings(MainControl* w, Settings* s) {
 
 
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
-	w->focusedPane = p;
 	
+
 	int x, y;
 	for(y = 0; y < w->yDivisions; y++) {
 	for(x = 0; x < w->xDivisions; x++) {
 		if(p == w->paneSet[x + w->xDivisions * y]) {
+			w->focusedPane = p;
 			w->focusedPos.x = x; 
 			w->focusedPos.y = y;
+			
+			w->gm->activeID = (void*)VEC_ITEM(&p->tabs, p->currentIndex)->client;
 			
 			return; 
 		}
@@ -635,10 +646,16 @@ void MainControl_FocusPane(MainControl* w, int x, int y) {
 	x = MAX(0, MIN(x, w->xDivisions - 1));
 	y = MAX(0, MIN(y, w->yDivisions - 1));
 	
-	w->focusedPane = w->paneSet[x + y * w->xDivisions];
+	MainControlPane* p = w->paneSet[x + y * w->xDivisions];
 	
-	w->focusedPos.x = x;
-	w->focusedPos.y = y;
+	if(w->focusedPane != p) {
+		
+		w->focusedPane = p;
+		w->focusedPos.x = x;
+		w->focusedPos.y = y;
+		
+		w->gm->activeID = (void*)VEC_ITEM(&p->tabs, p->currentIndex)->client;
+	}
 }
 
 

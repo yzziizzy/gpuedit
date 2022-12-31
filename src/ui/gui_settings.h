@@ -28,6 +28,7 @@
 	SETTING(Color4, cursorColor,                   C4H(f0f0f0ff), NULL, NULL) \
 	SETTING(Color4, tabTextColor,                  C4H(c8c8c8ff), NULL, NULL) \
 	SETTING(Color4, tabBorderColor,                C4H(787878ff), NULL, NULL) \
+	SETTING(Color4, tabCurrentPaneBorderColor,     C4H(449955ff), NULL, NULL) \
 	SETTING(Color4, tabActiveBgColor,              C4H(505050ff), NULL, NULL) \
 	SETTING(Color4, tabHoverBgColor,               C4H(282828ff), NULL, NULL) \
 	SETTING(Color4, tabBgColor,                    C4H(0a0a0aff), NULL, NULL) \

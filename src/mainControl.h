@@ -73,6 +73,7 @@ typedef struct MainControl {
 //	int currentIndex;
 //	VEC(MainControlTab*) tabs;
 //	char tabAutoSortDirty;
+	int numPanes;
 	MainControlPane** paneSet;
 	MainControlPane* focusedPane; // always a tabbed pane
 	Vector2i focusedPos;

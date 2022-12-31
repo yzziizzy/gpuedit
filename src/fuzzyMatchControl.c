@@ -30,9 +30,14 @@ static void open_match(GUIFuzzyMatchControl* w, int i);
 
 void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	
-	if(GUI_MouseInside(tl, sz)) {
+//	if(GUI_MouseInside(tl, sz)) {
+//		ACTIVE(&w->searchTerm);
+//	}
+
+	if(gm->activeID == w) {
 		ACTIVE(&w->searchTerm);
 	}
+	
 
 	gm->curZ += 10;
 	
@@ -54,6 +59,9 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 		
 		
 		if(GUI_MouseWentUp(1)) {
+			if(GUI_MouseInside(tl, sz)) {
+				ACTIVE(&w->searchTerm);
+			}
 			// determine the clicked line
 			Vector2 mp = GUI_MousePos();
 			int cline = floor((mp.y - 20) / w->lineHeight) - 1;

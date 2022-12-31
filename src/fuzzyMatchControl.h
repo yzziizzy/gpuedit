@@ -9,8 +9,10 @@
 
 
 typedef struct GUIFuzzyMatchControl {
+	float lineHeight;
+	float leftMargin;
 	
-	GUIString searchTerm;
+	GUIString searchTerm; // cannot be first member of struct
 //	char* searchTerm;
 
 	fcandidate* matches;
@@ -20,8 +22,7 @@ typedef struct GUIFuzzyMatchControl {
 	char** contents;
 	char*** stringBuffers;
 	
-	float lineHeight;
-	float leftMargin;
+
 	
 	MessagePipe* upstream;
 	GeneralSettings* gs;
