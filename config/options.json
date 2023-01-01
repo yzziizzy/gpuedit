@@ -12,9 +12,9 @@ general: {
 	highlightStylesPath: "./config/",
 
 	"MainControl_startupTabs": [
-		{ "type": "Edit", "path": "./testfile.c", },
-		{ "type": "Edit", "path": "./testfile.h", },
-		{ "type": "FuzzyOpen", "path": "", },
+		{ "type": "Buffer", "path": "./testfile.c", },
+		{ "type": "Buffer", "path": "./testfile.h", },
+		{ "type": "FuzzyOpener", "path": "", },
 		// { "type": "FileOpen", "path": "./", },
 	],
 	

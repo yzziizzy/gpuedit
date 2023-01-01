@@ -95,17 +95,6 @@ typedef struct BufferRangeDrawInfo {
 } BufferRangeDrawInfo;
 
 
-
-typedef struct EditorParams {
-// 	char** indentIncreaseTerminals; // {, do, (, [, etc.
-	char* lineCommentPrefix; // "// "
-	char* selectionCommentPrefix; // "/*"
-	char* selectionCommentPostfix; // "*/"
-	int tabWidth;
-	
-} EditorParams;
-
-
 // http://texteditors.org/cgi-bin/wiki.pl?Implementing_Undo_For_Text_Editors
 
 // these represent what was done and must be reversed when using the undo feature
@@ -196,7 +185,6 @@ typedef struct Buffer {
 	
 	// TODO: also goes to GUIBufferEditControl
 	struct hlinfo* hl;
-	EditorParams* ep;
 	
 	
 	int undoOldest; // the oldest undo item in the buffer; the end of undo
@@ -233,43 +221,16 @@ typedef struct Buffer {
 
 
 
-typedef struct TextDrawParams {
-	GUIFont* font;
-	float fontSize;
-	float lineHeight;
-	float charWidth;
-	int tabWidth;
+typedef struct BufferCache {
+
+	HT(Buffer*) byRealPath; 
 	
-	// colors
-} TextDrawParams;
-
-/*
-typedef struct ThemeDrawParams {
-	struct Color4 bgColor; 
-	struct Color4 textColor; 
-	struct Color4 cursorColor; 
-	struct Color4 lineNumColor; 
-	struct Color4 lineNumBookmarkColor; 
-	struct Color4 lineNumBgColor; 
-	struct Color4 hl_bgColor; 
-	struct Color4 hl_textColor;
-	struct Color4 find_bgColor; 
-	struct Color4 find_textColor;
-	struct Color4 outlineCurrentLineBorderColor;
-} ThemeDrawParams;
-*/
+} BufferCache;
 
 
-typedef struct BufferDrawParams {
-	char showLineNums;
-	float lineNumExtraWidth;
-	
-	TextDrawParams* tdp;
-	ThemeSettings* theme;
-} BufferDrawParams;
-
-
-
+BufferCache* BufferCache_New();
+Buffer* BufferCache_GetPath(BufferCache* bc, char* path);
+void BufferCache_RemovePath(BufferCache* bc, char* realPath);
 
 
 
@@ -277,7 +238,6 @@ typedef struct BufferDrawParams {
 typedef struct GUIBufferEditControl {
 
 	Buffer* b;
-	BufferDrawParams* bdp;
 	Highlighter* h;
 	
 	
@@ -424,7 +384,6 @@ typedef struct GUIBufferEditor {
 	GUIBufferEditControl* ec;
 	
 	Buffer* b;
-	BufferDrawParams* bdp;
 	Highlighter* h;
 	
 	MessagePipe* tx;
@@ -763,6 +722,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
+void GUIBufferEditor_SaveSessionState(GUIBufferEditor* w, json_value_t* out);
+void GUIBufferEditor_LoadSessionState(GUIBufferEditor* w, json_value_t* state);
 
 void GUIBufferEditControl_UpdateSettings(GUIBufferEditControl* w, Settings* s);
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s);

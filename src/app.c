@@ -160,12 +160,14 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 	CommandList_loadJSONFile(as->gui, as->gs->commandsPath);
 	
-
+	
+	as->bufferCache = BufferCache_New();
 	
 	
 	as->mc = MainControl_New(as->gui, as->globalSettings);
 	as->mc->as = as;
 	as->mc->gm = as->gui;
+	as->mc->bufferCache = as->bufferCache;
 	as->gui->renderRootData = as->mc;
 	as->gui->renderRootFn = (void*)MainControl_Render;
 	
@@ -179,26 +181,77 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 //	MainControl_LoadFile(as->mc, "testfile.h");
 //	MainControl_LoadFile(as->mc, "testfile.c");
 	
-	int i = 0;
-	TabSpec* ts = as->gs->MainControl_startupTabs;
-	while(ts[i].type != MCTAB_NONE) {
-		switch(ts[i].type) {
-			case MCTAB_EDIT:
-				MainControl_LoadFile(as->mc, ts[i].path);
-				break;
-			case MCTAB_FILEOPEN:
-				MainControl_OpenFileBrowser(as->mc, ts[i].path);
-				break;
-			case MCTAB_FUZZYOPEN:
-				MainControl_FuzzyOpener(as->mc, NULL);
-				break; /*
-			case MCTAB_GREPOPEN:
-				GUIMainControl_GrepOpen(as->mc, NULL);
-				break;*/
+	json_file_t* jsf = json_load_path("./.gpuedit.session");
+	if(jsf) {
+		json_value_t* paneLayout = json_obj_get_val(jsf->root, "paneLayout");
+		int xdivs = json_obj_get_int(paneLayout, "x", 1);
+		int ydivs = json_obj_get_int(paneLayout, "y", 1);
+		
+		// TODO: set up pane layout
+		MainControl_ExpandPanes(as->mc, xdivs, ydivs);
+		
+		json_value_t* panes = json_obj_get_val(jsf->root, "panes");
+		json_link_t* link = panes->arr.head;
+		for(; link; link = link->next) {
+			
+			json_value_t* jpane = link->v;
+			
+			int x = json_obj_get_int(jpane, "x", 0);
+			int y = json_obj_get_int(jpane, "y", 0);
+			MainControlPane* pane = MainControl_GetPane(as->mc, x, y);
+				
+			// Todo: type
+			json_value_t* jtabs = json_obj_get_val(jpane, "tabs");
+			
+			json_link_t* tlink = jtabs->arr.head;
+			for(; tlink; tlink = tlink->next) {
+				json_value_t* jtab = tlink->v;
+				
+				char* type = json_obj_get_str(jtab, "type");
+				
+				if(0 == strcmp("Buffer", type)) {
+					
+					json_value_t* jdata = json_obj_get_val(jtab, "data");
+					
+					char* path = json_obj_get_str(jdata, "path");
+					if(!path) continue;
+					
+					MainControlTab* mct = MainControlPane_LoadFile(pane, path);
+					GUIBufferEditor_LoadSessionState((GUIBufferEditor*)mct->client, jdata);
+				}
+				else if(0 == strcmp("FuzzyOpener", type)) {
+					MainControlPane_FuzzyOpener(pane, "");
+				}
+			}
 		}
-		i++;
+		
+		MainControlPane_GoToTab(as->mc->focusedPane, 0);
+		
+		json_file_free(jsf);
 	}
-	MainControlPane_GoToTab(as->mc->focusedPane, 0);
+	else {
+		
+		int i = 0;
+		TabSpec* ts = as->gs->MainControl_startupTabs;
+		while(ts[i].type != MCTAB_None) {
+			switch(ts[i].type) {
+				case MCTAB_Buffer:
+					MainControl_LoadFile(as->mc, ts[i].path);
+					break;
+				case MCTAB_FileOpener:
+					MainControl_OpenFileBrowser(as->mc, ts[i].path);
+					break;
+				case MCTAB_FuzzyOpener:
+					MainControl_FuzzyOpener(as->mc, NULL);
+					break; /*
+				case MCTAB_GrepOpener:
+					GUIMainControl_GrepOpen(as->mc, NULL);
+					break;*/
+			}
+			i++;
+		}
+		MainControlPane_GoToTab(as->mc->focusedPane, 0);
+	}
 	
 //	as->mc->focusedPane = as->mc->paneSet[1];
 //	MainControl_LoadFile(as->mc, "testfile.c");

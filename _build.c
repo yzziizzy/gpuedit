@@ -106,6 +106,7 @@ char* cflags[] = {
 	"-std=gnu11", 
 	"-ffunction-sections", "-fdata-sections",
 	"-DLINUX",
+	"-D_GNU_SOURCE",
 	"-march=native",
 	"-mtune=native", 
 	"-DSTI_C3DLAS_NO_CONFLICT",

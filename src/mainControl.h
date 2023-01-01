@@ -36,6 +36,9 @@ typedef struct MainControlTab {
 	void* client;
 	void (*render)(void* /*client*/, GUIManager*, Vector2 /*tl*/, Vector2 /*sz*/, PassFrameParams*);
 	
+	void (*loadSessionState)(void* /*client*/, json_value_t* /*out*/);
+	void (*saveSessionState)(void* /*client*/, json_value_t* /*out*/);
+	
 	int (*beforeClose)(struct MainControlTab*);
 	void (*afterClose)(struct MainControlTab*);
 	void (*onActive)(struct MainControlTab*);
@@ -58,6 +61,8 @@ typedef struct MainControlPane {
 
 typedef struct MainControl {
 	AppState* as; 
+	
+	BufferCache* bufferCache;
 	
 	int showFullPathInTitlebar : 1;
 	int showFullPathInTab : 1;
@@ -112,6 +117,8 @@ void MainControlPane_CloseTab(MainControlPane* w, int index);
 int MainControlPane_FindTabIndexByClient(MainControlPane* w, void* client);
 int MainControlPane_FindTabIndexByBufferPath(MainControlPane* w, char* path);
 
+void MainControl_OnTabChange(MainControl* w);
+
 MainControl* MainControl_New(GUIManager* gm, Settings* s);
 void MainControl_UpdateSettings(MainControl* w, Settings* s);
 
@@ -122,6 +129,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 void MainControl_ExpandPanes(MainControl* w, int newX, int newY);
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p);
 void MainControl_FocusPane(MainControl* w, int x, int y);
+MainControlPane* MainControl_GetPane(MainControl* w, int x, int y);
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
 void MainControl_CloseTab(MainControl* w, int index);
 
@@ -141,9 +149,11 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd);
 
 void MainControl_OpenMainMenu(MainControl* w);
 
-void MainControl_NewEmptyBuffer(MainControl* w);
-void MainControl_LoadFile(MainControl* w, char* path);
-void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt);
+MainControlTab* MainControl_NewEmptyBuffer(MainControl* w);
+MainControlTab* MainControl_LoadFile(MainControl* w, char* path);
+MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path);
+MainControlTab* MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt);
+MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt);
 void MainControl_OpenFileBrowser(MainControl* w, char* path);
 
 void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);

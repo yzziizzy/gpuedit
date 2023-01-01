@@ -561,6 +561,8 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 			
 			w->gm->activeID = (void*)VEC_ITEM(&p->tabs, p->currentIndex)->client;
 			
+			MainControl_OnTabChange(w);
+			
 			return; 
 		}
 	}}
@@ -655,7 +657,18 @@ void MainControl_FocusPane(MainControl* w, int x, int y) {
 		w->focusedPos.y = y;
 		
 		w->gm->activeID = (void*)VEC_ITEM(&p->tabs, p->currentIndex)->client;
+		
+		MainControl_OnTabChange(w);
 	}
+}
+
+
+MainControlPane* MainControl_GetPane(MainControl* w, int x, int y) {
+	
+	x = MAX(0, MIN(x, w->xDivisions - 1));
+	y = MAX(0, MIN(y, w->yDivisions - 1));
+	
+	return w->paneSet[x + y * w->xDivisions];
 }
 
 
@@ -686,6 +699,8 @@ MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, 
 	}
 	
 	w->tabAutoSortDirty = 1;
+	
+	MainControl_OnTabChange(w->mc);
 	
 	return t;
 }
@@ -722,6 +737,8 @@ void MainControlPane_CloseTab(MainControlPane* w, int index) {
 	
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;
+	
+	MainControl_OnTabChange(w->mc);
 }
 
 
@@ -748,7 +765,7 @@ int MainControl_FindTabIndexByBufferPath(MainControl* w, char* path) {
 int MainControlPane_FindTabIndexByBufferPath(MainControlPane* w, char* path) {
 	GUIBufferEditor* be;
 	VEC_EACH(&w->tabs, i, tab) {
-		if(tab->type == MCTAB_EDIT) {
+		if(tab->type == MCTAB_Buffer) {
 			be = (GUIBufferEditor*)tab->client;
 			
 			if(0 == strcmp(path, be->sourceFile)) {
@@ -762,11 +779,11 @@ int MainControlPane_FindTabIndexByBufferPath(MainControlPane* w, char* path) {
 
 
 static int tab_sort_priorities[] = {
-	[MCTAB_NONE] = 0,
-	[MCTAB_EDIT] = 4,
-	[MCTAB_FILEOPEN] = 2,
-	[MCTAB_FUZZYOPEN] = 1,
-	[MCTAB_GREPOPEN] = 3,
+	[MCTAB_None] = 0,
+	[MCTAB_Buffer] = 4,
+	[MCTAB_FileOpener] = 2,
+	[MCTAB_FuzzyOpener] = 1,
+	[MCTAB_GrepOpener] = 3,
 };
 
 
@@ -781,13 +798,13 @@ static int tab_sort_fn(void* _a, void* _b) {
 	// types are the same
 	switch(a->type) {
 		default:
-		case MCTAB_NONE:
-		case MCTAB_FUZZYOPEN:
-		case MCTAB_GREPOPEN:
+		case MCTAB_None:
+		case MCTAB_FuzzyOpener:
+		case MCTAB_GrepOpener:
 			return (intptr_t)b - (intptr_t)a; // order has no meaning, just be consistent
 		
-		case MCTAB_EDIT:
-		case MCTAB_FILEOPEN:
+		case MCTAB_Buffer:
+		case MCTAB_FileOpener:
 			return strcmp(a->title, b->title);
 	}
 }
@@ -804,6 +821,8 @@ void MainControlPane_SortTabs(MainControlPane* w) {
 	
 	// fix currentIndex
 	w->currentIndex = VEC_FIND(&w->tabs, &cur);
+	
+	MainControl_OnTabChange(w->mc);
 }
 
 
@@ -823,6 +842,8 @@ void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b) {
 	// check and fix currentIndex
 	if(w->currentIndex == ind_a) w->currentIndex = ind_b;
 	else if(w->currentIndex == ind_b) w->currentIndex = ind_a;
+	
+	MainControl_OnTabChange(w->mc);
 }
 
 
@@ -841,6 +862,8 @@ void* MainControlPane_NextTab(MainControlPane* w, char cyclic) {
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 1;
 	GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	
+	MainControl_OnTabChange(w->mc);
 	
 	return a->client;
 }
@@ -862,6 +885,8 @@ void* MainControlPane_PrevTab(MainControlPane* w, char cyclic) {
 	a->isActive = 1;
 	GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
 	
+	MainControl_OnTabChange(w->mc);
+	
 	return a->client;
 }
 
@@ -877,6 +902,8 @@ void* MainControlPane_GoToTab(MainControlPane* w, int i) {
 	a->isActive = 1;
 	
 	GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	
+	MainControl_OnTabChange(w->mc);
 	
 	return a->client;
 }
@@ -902,9 +929,12 @@ void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n) {
 			tab->isActive = 1;
 			GUI_SetActive_(w->mc->gm, tab->client, NULL, NULL);
 			
+			MainControl_OnTabChange(w->mc);
+			
 			return tab->client;
 		}
 	}
+	
 	return NULL;
 }
 
@@ -958,7 +988,7 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path) {
 //	fb->gs = w->gs;
 
 	MainControlTab* tab = MainControl_AddGenericTab(w, fb, path);
-	tab->type = MCTAB_FILEOPEN;
+	tab->type = MCTAB_FileOpener;
 	tab->client = fb;
 	tab->render = (void*)FileBrowser_Render;
 	tab->beforeClose = fbBeforeClose;
@@ -967,7 +997,9 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path) {
 	
 	// very important, since normal registration is not used
 
-	MainControlPane_nthTabOfType(w->focusedPane, MCTAB_FILEOPEN, 1);
+	MainControlPane_nthTabOfType(w->focusedPane, MCTAB_FileOpener, 1);
+	
+	MainControl_OnTabChange(w);
 }
 
 
@@ -976,7 +1008,7 @@ void MainControl_FuzzyOpener(MainControl* w, char* searchTerm) {
 }
 
 void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
-	void* o = MainControlPane_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
+	void* o = MainControlPane_nthTabOfType(w, MCTAB_FuzzyOpener, 1);
 	if(o != NULL) {
 		return;
 	}
@@ -985,21 +1017,23 @@ void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
 	fmc->gs = w->mc->gs;
 //	fmc->commands = w->commands;
 	MainControlTab* tab = MainControlPane_AddGenericTab(w, fmc, "fuzzy matcher");
-	tab->type = MCTAB_FUZZYOPEN;
+	tab->type = MCTAB_FuzzyOpener;
 	tab->render = (void*)GUIFuzzyMatchControl_Render;
 	tab->client = fmc;
 	//tab->beforeClose = gbeBeforeClose;
 	//tab->beforeClose = gbeAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
-	MainControlPane_nthTabOfType(w, MCTAB_FUZZYOPEN, 1);
+	MainControlPane_nthTabOfType(w, MCTAB_FuzzyOpener, 1);
 
 	GUIFuzzyMatchControl_Refresh(fmc);
+	
+	MainControl_OnTabChange(w->mc);
 }
 
 
 void MainControl_GrepOpen(MainControl* w, char* searchTerm) {
-	void* o = MainControlPane_nthTabOfType(w->focusedPane, MCTAB_GREPOPEN, 1);
+	void* o = MainControlPane_nthTabOfType(w->focusedPane, MCTAB_GrepOpener, 1);
 	if(o != NULL) {
 		return;
 	}
@@ -1008,7 +1042,7 @@ void MainControl_GrepOpen(MainControl* w, char* searchTerm) {
 	goc->gs = w->gs;
 //	goc->commands = w->commands;
 	MainControlTab* tab = MainControl_AddGenericTab(w, goc, "grep opener");
-	tab->type = MCTAB_GREPOPEN;
+	tab->type = MCTAB_GrepOpener;
 	tab->render = (void*)GrepOpenControl_Render;
 	tab->client = goc;
 	//tab->beforeClose = gbeBeforeClose;
@@ -1017,9 +1051,11 @@ void MainControl_GrepOpen(MainControl* w, char* searchTerm) {
 	
 	// goc->header.parent = (GUIHeader*)w;
 
-	MainControlPane_nthTabOfType(w->focusedPane, MCTAB_GREPOPEN, 1);
+	MainControlPane_nthTabOfType(w->focusedPane, MCTAB_GrepOpener, 1);
 	
 	GrepOpenControl_Refresh(goc);
+	
+	MainControl_OnTabChange(w);
 }
 
 /*
@@ -1127,24 +1163,99 @@ static void setBreakpoint(char* file, intptr_t line, MainControl* w) {
 }
 
 
-void MainControl_NewEmptyBuffer(MainControl* w) {
+void MainControl_OnTabChange(MainControl* w) {
+	
+	
+	
+	json_write_context_t jwc = {0};
+	
+	json_value_t* root = json_new_object(8);
+	
+	json_value_t* pl = json_new_object(8);
+	json_obj_set_key(pl, "x", json_new_int(w->xDivisions));
+	json_obj_set_key(pl, "y", json_new_int(w->yDivisions));
+	json_obj_set_key(root, "paneLayout", pl);
+	
+	json_value_t* jpanes = json_new_array();
+	for(int y = 0; y < w->yDivisions; y++)
+	for(int x = 0; x < w->xDivisions; x++) {
+		MainControlPane* p = w->paneSet[x + y * w->xDivisions];
+		
+		json_value_t* jp = json_new_object(16);
+		json_obj_set_key(jp, "x", json_new_int(x));
+		json_obj_set_key(jp, "y", json_new_int(y));
+		json_obj_set_key(jp, "type", json_new_str("tabs"));
+		
+		json_value_t* jtabs = json_new_array();
+		VEC_EACH(&p->tabs, ti, t) {
+			
+			json_value_t* jt = json_new_object(16);
+			json_obj_set_key(jt, "type", json_new_str(mctab_type_names[t->type]));
+			
+			json_value_t* jtc = json_new_object(32);
+			if(t->saveSessionState) t->saveSessionState(t->client, jtc);
+			json_obj_set_key(jt, "data", jtc);
+			
+			json_array_push_tail(jtabs, jt);
+		}
+		
+		json_obj_set_key(jp, "tabs", jtabs);
+		json_array_push_tail(jpanes, jp);
+	}
+	
+	json_obj_set_key(root, "panes", jpanes);
+	
+	jwc.sb = json_string_buffer_create(8192);
+	jwc.fmt.indentChar = ' ';
+	jwc.fmt.indentAmt = 4;
+	jwc.fmt.objColonSpace = 1;
+	jwc.fmt.noQuoteKeys = 1;
+	jwc.fmt.useSingleQuotes = 1;
+//	jwc.fmt.minObjSzExpand = 30;
+	
+	json_stringify(&jwc, root);
+//	printf("%.*s\n", (int)jwc.sb->length, jwc.sb->buf);
+	write_whole_file("./.gpuedit.session", jwc.sb->buf, jwc.sb->length);
+	
+	// TODO: write file
+	json_string_buffer_free(jwc.sb);
+	
+	
+}
+
+
+MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
 	GUIFileOpt opt = {
 		.path = NULL,
 		.line_num = 1,
 		.set_focus = 1,
 	};
-	MainControl_LoadFileOpt(w, &opt);
+	return MainControl_LoadFileOpt(w, &opt);
 }
 
-void MainControl_LoadFile(MainControl* w, char* path) {
+MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
 	GUIFileOpt opt = {
 		.path = path,
 		.line_num = 1,
 	};
-	MainControl_LoadFileOpt(w, &opt);
+	return MainControlPane_LoadFileOpt(w->focusedPane, &opt);
 }
 
-void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
+MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path) {
+	GUIFileOpt opt = {
+		.path = path,
+		.line_num = 1,
+	};
+	return MainControlPane_LoadFileOpt(p, &opt);
+}
+
+MainControlTab* MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
+	return MainControlPane_LoadFileOpt(w->focusedPane, opt);
+}
+
+MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt) {
+	
+	MainControl* w = p->mc;
 	
 	/* // TODO IMGUI
 	if(opt->path) {
@@ -1163,20 +1274,7 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 	}
 	*/
 	
-	Buffer* buf = Buffer_New();
-	
-	if(opt->path) {
-		int status = Buffer_LoadFromFile(buf, opt->path);
-		if(status) {
-			Buffer_Delete(buf);
-			return;
-		}
-	}
-	
-	if(buf->numLines == 0) {
-		Buffer_InitEmpty(buf);
-	}
-	
+	Buffer* buf = BufferCache_GetPath(w->bufferCache, opt->path);
 	
 	Settings* ls = Settings_Copy(w->s, SETTINGS_ALL);
 	
@@ -1192,47 +1290,16 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 	ThemeSettings* ts = Settings_GetSection(ls, SETTINGS_Theme);
 	GeneralSettings* gs = Settings_GetSection(ls, SETTINGS_General);
 	
-	// HACK: these structures should be looked up from elsewhere
-	EditorParams* ep = pcalloc(ep);
-	ep->lineCommentPrefix = "// ";
-	ep->selectionCommentPrefix = "/*";
-	ep->selectionCommentPostfix= "* /";
-	ep->tabWidth = bs->tabWidth;
-	
-	
-	TextDrawParams* tdp = pcalloc(tdp);
-	tdp->font = GUI_FindFont(w->gm, bs->font, bs->fontSize); // FontManager_findFont(w->gm->fm, bs->font);
-	tdp->fontSize = bs->fontSize;
-	tdp->charWidth = bs->charWidth;
-	tdp->lineHeight = bs->lineHeight;
-	tdp->tabWidth = bs->tabWidth;
-		
-		
-	BufferDrawParams* bdp = pcalloc(bdp);
-	bdp->tdp = tdp;
-	bdp->theme = ts;
-	bdp->showLineNums = bs->showLineNums;
-	bdp->lineNumExtraWidth = bs->lineNumExtraWidth;
-	
-	
-	
+
 	// buffer and editor creation
-	buf->ep = ep;
 	
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm, &w->rx);
 	GUIBufferEditor_UpdateSettings(gbe, ls);
 
-//	gbe->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-// 	gbe->header.size = (Vector2){800, 800}; // doesn't matter
-	gbe->ec->font = tdp->font;
+	gbe->ec->font = GUI_FindFont(w->gm, bs->font, bs->fontSize);
 	gbe->ec->scrollLines = 0;
-	gbe->bdp = bdp;
-	gbe->ec->bdp = bdp;
 	gbe->hm = &w->hm;
-//	gbe->header.name = opt->path ? strdup(opt->path) : strdup("<new buffer>");
-//	gbe->header.parent = (GUIHeader*)w; // important for bubbling
 	gbe->sourceFile = opt->path ? strdup(opt->path) : NULL;
-//	gbe->commands = w->commands;
 	gbe->setBreakpoint = (void*)setBreakpoint;
 	gbe->setBreakpointData = w;
 	StatusBar_SetItems(gbe->statusBar, w->gs->MainControl_statusWidgets);
@@ -1264,24 +1331,28 @@ void MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
 	// prolly leaks
 	char* shortname = opt->path ? basename(strdup(opt->path)) : strdup("<New File>"); 
 	
-	MainControlTab* tab = MainControl_AddGenericTab(w, gbe, shortname);
-	tab->type = MCTAB_EDIT;
+	MainControlTab* tab = MainControlPane_AddGenericTab(p, gbe, shortname);
+	tab->type = MCTAB_Buffer;
 	tab->beforeClose = gbeBeforeClose;
 	tab->beforeClose = gbeAfterClose;
 	tab->everyFrame = gbeEveryFrame;
 	tab->render = (void*)GUIBufferEditor_Render;
+	tab->saveSessionState = (void*)GUIBufferEditor_SaveSessionState;
 	tab->client = gbe;
+	
 
 /*
-
 	if(opt->set_focus) {
 		int i = MainControl_FindTabIndexByHeaderP(w, tab->client);
 		MainControl_GoToTab(w, i);
 	}
-*/
-	
+*/	
 
 	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
 	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
+	
+	MainControl_OnTabChange(w);
+	
+	return tab;
 }
 

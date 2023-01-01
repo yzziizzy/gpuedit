@@ -17,15 +17,24 @@ enum {
 };
 
 
+#define MCTAB_TYPE_LIST \
+	X(Pane) \
+	X(Buffer) \
+	X(FileOpener) \
+	X(FuzzyOpener) \
+	X(GrepOpener) \
+	X(Calculator) \
+
+
 typedef enum TabType {
-	MCTAB_NONE = 0,
-	MCTAB_PANE,
-	MCTAB_EDIT,
-	MCTAB_FILEOPEN,
-	MCTAB_FUZZYOPEN,
-	MCTAB_GREPOPEN,
-	MCTAB_CALCULATOR,
+	MCTAB_None = 0,
+#define X(x,...) MCTAB_##x,
+	MCTAB_TYPE_LIST
+#undef X
+	MCTAB_MAX_VALUE
 } TabType_t;
+
+extern char* mctab_type_names[];
 
 typedef struct TabSpec {
 	TabType_t type;
@@ -71,7 +80,7 @@ typedef struct WidgetSpec {
 	SETTING(charp, highlightersPath,   "/usr/local/lib/gpuedit/highlighters/", NULL, NULL) \
 	SETTING(charp, highlightStylesPath,"/usr/local/share/gpuedit/highlight_styles/", NULL, NULL) \
 	SETTING(bool,  enableVSync,        false,  NULL, NULL) \
-	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FUZZYOPEN, .path=NULL}, {.type=MCTAB_NONE, .path=NULL}}), NULL, NULL) \
+	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FuzzyOpener, .path=NULL}, {.type=MCTAB_None, .path=NULL}}), NULL, NULL) \
 	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l', .format="line: %L:%C"}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(bool,  MainControl_autoSortTabs,    false, NULL, NULL) \

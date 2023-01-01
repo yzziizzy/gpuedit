@@ -79,6 +79,42 @@ void Buffer_InitEmpty(Buffer* b) {
 }
 
 
+BufferCache* BufferCache_New() {
+	BufferCache* bc = pcalloc(bc);
+	HT_init(&bc->byRealPath, 64);
+	return bc;
+}
+
+Buffer* BufferCache_GetPath(BufferCache* bc, char* path) {
+	char* rp = NULL;
+	Buffer* b;
+	
+	if(path) {
+		rp = resolve_path(path);
+		
+		if(!HT_get(&bc->byRealPath, rp, &b)) {
+			return b;
+		}
+	}
+	
+	b = Buffer_New();
+	
+	if(!path || Buffer_LoadFromFile(b, rp)) {
+		Buffer_InitEmpty(b);
+	}
+	
+	if(path) {
+		HT_set(&bc->byRealPath, rp, b);
+	}
+	
+	return b;
+}
+
+
+void BufferCache_RemovePath(BufferCache* bc, char* realPath) {
+	HT_delete(&bc->byRealPath, realPath);
+}
+
 //
 //    Undo Functions
 //

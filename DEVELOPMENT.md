@@ -1,3 +1,8 @@
+== Today ==
+Open c/h conjugate command
+find/replace tab eating when editor is focused
+
+
 == Horrible outstanding regressions ==
 * Padding needed in font atlas
 * One frame lag on highlight update sometimes (related to buffer/gbec internal render function call ordering)
@@ -48,6 +53,8 @@
 
 
 == TODO ==
+* Copy sequence under cursor
+* Select contents of the line, sans whitespace 
 * git blame integration. Single hotkey to toggle display
 * s/GUIBufferEditControl_*()/GBEC_*()/
 * Make scrollbar size configurable

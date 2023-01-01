@@ -19,19 +19,19 @@
 
 
 size_t GBEC_lineFromPos(GUIBufferEditControl* w, Vector2 pos) {
-	return floor((pos.y - w->tl.y) / w->bdp->tdp->lineHeight) + 1 + w->scrollLines; // TODO IMGUI
+	return floor((pos.y - w->tl.y) / w->bs->lineHeight) + 1 + w->scrollLines; // TODO IMGUI
 }
 
 size_t GBEC_getColForPos(GUIBufferEditControl* w, BufferLine* bl, float x) {
 	if(bl->length == 0) return 0;
 	
 	// must handle tabs
-	float a = (x - w->tl.x - w->textAreaOffsetX) / w->bdp->tdp->charWidth; // TODO IMGUI
+	float a = (x - w->tl.x - w->textAreaOffsetX) / w->bs->charWidth; // TODO IMGUI
 	ptrdiff_t screenCol = floor(a + 0) + w->scrollCols;
 	
 	if(screenCol <= 0) return 0;
 	
-	int tabwidth = w->bdp->tdp->tabWidth;
+	int tabwidth = w->bs->tabWidth;
 	ptrdiff_t charCol = 0;
 	
 	while(screenCol > 0 && charCol < bl->length) {
@@ -385,7 +385,7 @@ void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParam
 	
 	Buffer* b = w->b;
 	
-	float lineNumWidth = ceil(LOGB(w->bs->lineNumBase, b->numLines + 0.5)) * w->bdp->tdp->charWidth + w->bdp->lineNumExtraWidth;
+	float lineNumWidth = ceil(LOGB(w->bs->lineNumBase, b->numLines + 0.5)) * w->bs->charWidth + w->bs->lineNumExtraWidth;
 	
 	w->linesOnScreen = sz.y / w->bs->lineHeight;
 	w->colsOnScreen = (sz.x - lineNumWidth) / w->bs->charWidth;
@@ -1401,7 +1401,7 @@ void GBEC_ReplaceLineWithSelectionTransform(
 colnum_t GBEC_NominalColFromVisual(GUIBufferEditControl* w, BufferLine* bl, colnum_t wanted) {
 	if(bl->buf == NULL) return 0;
 	
-	int tabwidth = w->b->ep->tabWidth;
+	int tabwidth = w->bs->tabWidth;
 	intptr_t screenCol = 0;
 	intptr_t charCol = 0;
 	
@@ -1418,7 +1418,7 @@ colnum_t GBEC_NominalColFromVisual(GUIBufferEditControl* w, BufferLine* bl, coln
 colnum_t GBEC_VisualColFromNominal(GUIBufferEditControl* w, BufferLine* bl, colnum_t col) {
 	if(bl->buf == NULL) return 0;
 	
-	int tabwidth = w->b->ep->tabWidth;
+	int tabwidth = w->bs->tabWidth;
 	intptr_t screenCol = 0;
 	
 	

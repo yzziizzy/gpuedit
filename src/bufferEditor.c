@@ -26,7 +26,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	w->trayHeight = 60;
 	
 	if(gm->activeID == w) {
-		ACTIVE(&w->ec);
+		ACTIVE(w->ec);
 	}
 	
 	if(w->gotoLineTrayOpen) top += 40;
@@ -169,6 +169,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 
 
 
+
+
 void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
 	w->b = b;
 	GUIBufferEditControl_SetBuffer(w->ec, b);
@@ -225,6 +227,22 @@ do { \
 	free(w);
 }
 
+void GUIBufferEditor_SaveSessionState(GUIBufferEditor* w, json_value_t* out) {
+	
+	json_obj_set_key(out, "path", json_new_str(w->sourceFile));
+	json_obj_set_key(out, "line", json_new_int(CURSOR_LINE(w->ec->sel)->lineNum));
+	json_obj_set_key(out, "col", json_new_int(CURSOR_COL(w->ec->sel)));
+}
+
+
+void GUIBufferEditor_LoadSessionState(GUIBufferEditor* w, json_value_t* state) {
+	int line = json_obj_get_int(state, "line", 1);
+	int col = json_obj_get_int(state, "col", 0);
+	
+//	GUIBufferEditControl_SetScroll(w->ec, line, col);
+	GBEC_MoveCursorToNum(w->ec, line, col);
+	GBEC_SetScrollCentered(w->ec, line, col);
+}
 
 
 void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s) {
@@ -1042,7 +1060,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		case GUICMD_Buffer_Reload:
 		{
 			struct hlinfo* hl = w->b->hl; // preserve the meta info
-			EditorParams* ep = w->b->ep;
 			
 			Buffer_Delete(w->b);
 //			w->ec->selectPivotLine = NULL;
@@ -1055,7 +1072,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			Buffer_LoadFromFile(w->b, w->sourceFile);
 			
 			w->b->hl = hl;
-			w->b->ep = ep;
 			w->ec->scrollLines = MIN(w->ec->scrollLines, w->b->numLines);
 		}
 		break;

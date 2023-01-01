@@ -7,6 +7,15 @@
 
 #include "c_json/json.h"
 
+
+char* mctab_type_names[] = {
+	[MCTAB_None] = "None",
+#define X(x,...) [MCTAB_##x] = #x,
+	MCTAB_TYPE_LIST
+#undef X
+};
+
+
 size_t strlistlen(char** a) {
 	size_t n = 0;
 	for(; a[n]; n++);
@@ -60,7 +69,7 @@ TabSpec* tabspeclistdup(TabSpec* old) {
 		new[i].path = old[i].path ? strdup(old[i].path) : NULL;
 	}
 
-	new[i].type = MCTAB_NONE;
+	new[i].type = MCTAB_None;
 	new[i].path = NULL;
 	return new;
 }
@@ -212,15 +221,15 @@ static void grab_tabsp(TabSpec** out, json_value_t* obj, char* prop) {
 					&& !json_obj_get_key(link->v, "path", &path_v)
 				) {
 					type_str = json_as_strdup(type_v);
-					if(!strcasecmp(type_str, "FuzzyOpen")) {
-						tmp[i].type = MCTAB_FUZZYOPEN;
-					} else if(!strcasecmp(type_str, "FileOpen")) {
-						tmp[i].type = MCTAB_FILEOPEN;
-					} else if(!strcasecmp(type_str, "GrepOpen")) {
-						tmp[i].type = MCTAB_GREPOPEN;
-					} else {
-						tmp[i].type = MCTAB_EDIT;
+					
+					tmp[i].type = MCTAB_Buffer;
+					for(int tt = 0; tt < MCTAB_MAX_VALUE; tt++) {
+						if(!strcasecmp(type_str, mctab_type_names[tt])) {
+							tmp[i].type = tt;
+							break;
+						}
 					}
+					
 					tmp[i].path = json_as_strdup(path_v);
 					free(type_str);
 				}

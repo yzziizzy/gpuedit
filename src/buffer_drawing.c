@@ -12,7 +12,7 @@
 
 
 
-static void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
+static void drawTextLine(GUIManager* gm, BufferSettings* bs, GUIFont* f, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
 
 
 
@@ -49,8 +49,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	ThemeSettings* ts = gbe->ts;
 	BufferSettings* bs = gbe->bs;
-	BufferDrawParams* bdp = gbe->bdp;
-	TextDrawParams* tdp = bdp->tdp;
 	float fsize = bs->fontSize; 
 	GUIFont* f = gbe->font;
 	float ascender = f->ascender * fsize;
@@ -66,11 +64,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	GUI_Rect(tl, sz, &ts->bgColor);
 	gm->curZ = z;
 	
-	float lineNumWidth = ceil(LOGB(bs->lineNumBase, b->numLines + 1)) * tdp->charWidth + bdp->lineNumExtraWidth;
-	float hsoff = -gbe->scrollCols * tdp->charWidth;
+	float lineNumWidth = ceil(LOGB(bs->lineNumBase, b->numLines + 1)) * bs->charWidth + bs->lineNumExtraWidth;
+	float hsoff = -gbe->scrollCols * bs->charWidth;
 	
 
-	if(bdp->showLineNums) {
+	if(bs->showLineNums) {
 		gm->curZ += 1;
 		GUI_Rect(tl, V(lineNumWidth, edh), &ts->lineNumBgColor);
 		gm->curZ -= 1;
@@ -114,9 +112,9 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	while(bl) {
 		
 		// line numbers
-		if(bdp->showLineNums) {
+		if(bs->showLineNums) {
 			sprintlongb(lnbuf, bs->lineNumBase, bl->lineNum, bs->lineNumCharset);
-			float nw = (floor(LOGB(bs->lineNumBase, bl->lineNum)) + 1) * tdp->charWidth;
+			float nw = (floor(LOGB(bs->lineNumBase, bl->lineNum)) + 1) * bs->charWidth;
 
 			Color4* lnc = &lineColors[0];
 			if(bl->flags & BL_BOOKMARK_FLAG) lnc = &lnc[1];
@@ -125,11 +123,12 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			gm->curZ++;
 			drawTextLine(
 				gm, 
-				tdp, 
+				bs,
+				f,
 				lnc, 
 				lnbuf, 
 				100, 
-				(Vector2){tl.x - nw - bdp->lineNumExtraWidth, yoff}
+				(Vector2){tl.x - nw - bs->lineNumExtraWidth, yoff}
 			);
 			gm->curZ--;
 		}
@@ -141,7 +140,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			gm->curZ = z + 10;
 			GUI_Box(
 				V(tl.x - 1, tl.y + bs->outlineCurrentLineYOffset), 
-				V(sz.x - gbe->textAreaOffsetX, tdp->lineHeight + bs->outlineCurrentLineYOffset + 2), // +1 to not cover underscores
+				V(sz.x - gbe->textAreaOffsetX, bs->lineHeight + bs->outlineCurrentLineYOffset + 2), // +1 to not cover underscores
 				1,
 				&ts->outlineCurrentLineBorderColor
 			);
@@ -229,33 +228,33 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 						1
 					};
 					
-					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + sz.x) {
+					if(adv >= gbe->scrollCols * bs->charWidth && adv < (gbe->scrollCols * bs->charWidth) + sz.x) {
 						gm->curZ = z + 4;
 						GUI_CharFont_NoGuard('0', V(tl.x + hsoff + adv, yoff), f, fsize, &pulseColor);
 						gm->curZ = z + 2;
-						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)tdp->charWidth), tdp->lineHeight), &pulseColorBg);
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth), bs->lineHeight), &pulseColorBg);
 					}
 					
-					adv += tdp->charWidth;	
+					adv += bs->charWidth;	
 				}
 				else if(c == '\t') {
 					if(inSelection) { // tabs inside selection
 						gm->curZ = z + 2;
-						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(adv + hsoff + (tdp->charWidth * tdp->tabWidth), tdp->lineHeight), bg);
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(adv + hsoff + (bs->charWidth * bs->tabWidth), bs->lineHeight), bg);
 					}
 					
-					adv += tdp->charWidth * tdp->tabWidth;
+					adv += bs->charWidth * bs->tabWidth;
 				}
 				else { 
 					// normal, non-tab text		
-					if(adv >= gbe->scrollCols * tdp->charWidth && adv < (gbe->scrollCols * tdp->charWidth) + sz.x) {
+					if(adv >= gbe->scrollCols * bs->charWidth && adv < (gbe->scrollCols * bs->charWidth) + sz.x) {
 						gm->curZ = z + 4;
 						GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, yoff), f, fsize, fg);
 						gm->curZ = z + 2;
-						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)tdp->charWidth), tdp->lineHeight), bg);
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth), bs->lineHeight), bg);
 					}
 					
-					adv += tdp->charWidth;
+					adv += bs->charWidth;
 				}
 				
 				
@@ -298,14 +297,14 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
         // draw a little half-width selection background at the end of selected lines (and empty ones)
 		if(inSelection) {
 			gm->curZ = z + 2;
-			GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)tdp->charWidth / 1.0), tdp->lineHeight), &ts->hl_bgColor);
+			GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth / 1.0), bs->lineHeight), &ts->hl_bgColor);
 		}
 
 		if(ytop > edh) break; // end of buffer control
 
 		// advance to the next line
-		yoff += tdp->lineHeight;
-		ytop += tdp->lineHeight;
+		yoff += bs->lineHeight;
+		ytop += bs->lineHeight;
 		bl = bl->next;
 		linesRendered++;
 		if(linesRendered > lineTo - lineFrom) break;
@@ -321,13 +320,16 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		if(gbe == gm->activeID) {
 			if(r == gbe->sel && (gbe->cursorBlinkTimer > gbe->cursorBlinkOnTime)) continue;
 		}
+		else {
+//			dbg("inactive")
+		}
 		
 		//tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
-		float cursorOff = hsoff + getColOffset(CURSOR_LINE(r)->buf, CURSOR_COL(r), tdp->tabWidth) * tdp->charWidth;
-		float cursory = (CURSOR_LINE(r)->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
+		float cursorOff = hsoff + getColOffset(CURSOR_LINE(r)->buf, CURSOR_COL(r), bs->tabWidth) * bs->charWidth;
+		float cursory = (CURSOR_LINE(r)->lineNum - 1 - gbe->scrollLines) * bs->lineHeight;
 		
 		gm->curZ = z + 10;
-		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, tdp->lineHeight), &ts->cursorColor);
+		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, bs->lineHeight), &ts->cursorColor);
 	}
 
 	gm->curZ = z;
@@ -339,8 +341,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 //		size_t popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
 		
-//		float cursory = (gbe->sel->startLine->lineNum - 1 - gbe->scrollLines) * tdp->lineHeight;
-		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + tdp->lineHeight},
+//		float cursory = (gbe->sel->startLine->lineNum - 1 - gbe->scrollLines) * bs->lineHeight;
+		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + bs->lineHeight},
 		
 		
 	}
@@ -355,13 +357,12 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 
 
 // assumes no linebreaks
-void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor, char* txt, int charCount, Vector2 tl) {
+void drawTextLine(GUIManager* gm, BufferSettings* bs, GUIFont* f, struct Color4* textColor, char* txt, int charCount, Vector2 tl) {
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return;
 	
 	int charsDrawn = 0;
-	GUIFont* f = tdp->font;
-	float size = tdp->fontSize; 
+	float size = bs->fontSize; 
 	float hoff = 0;//size * f->ascender;
 	float adv = 0;
 	
@@ -375,19 +376,19 @@ void drawTextLine(GUIManager* gm, TextDrawParams* tdp, struct Color4* textColor,
 		struct charInfo* ci = &f->regular[c];
 		
 		if(c == '\t') {
-			adv += tdp->charWidth * tdp->tabWidth;
-			charsDrawn += tdp->charWidth * tdp->tabWidth;
+			adv += bs->charWidth * bs->tabWidth;
+			charsDrawn += bs->charWidth * bs->tabWidth;
 		}
 		else if(c != ' ') {
 
 			GUI_CharFont_NoGuard(c, V(tl.x + adv, tl.y + hoff), f, size, textColor);
 			
-			adv += tdp->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
+			adv += bs->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
 			
 			charsDrawn++;
 		}
 		else {
-			adv += tdp->charWidth;
+			adv += bs->charWidth;
 			charsDrawn++;
 		}
 		

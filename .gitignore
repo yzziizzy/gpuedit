@@ -89,6 +89,8 @@ testfile.h
 
 parser_generated.h
 
+.gpuedit.session
+
 # profiling temp files
 *.output
 *.prof

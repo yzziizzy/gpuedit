@@ -101,8 +101,8 @@ typedef struct AppState {
 	} queries;
 
 	
-	Buffer* currentBuffer;
 	MainControl* mc;
+	BufferCache* bufferCache;
 	
 	GUI_Cmd* commands;
 	
