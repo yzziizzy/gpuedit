@@ -354,6 +354,10 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		MainControl_GrepOpen(w, NULL);
 		break;
 
+	case GUICMD_Main_OpenConjugate:
+		MainControl_OpenConjugate(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->amt);
+		break;
+		
 	case GUICMD_Main_Calculator:
 //		MainControl_Calculator(w);
 		break;
@@ -939,6 +943,34 @@ void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n) {
 }
 
 
+void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts) {
+	
+	if(tab->type != MCTAB_Buffer) return;
+	
+	char* orig = ((GUIBufferEditor*)tab->client)->sourceFile;
+	if(!orig) return;
+	
+	char* ext = path_ext(orig);
+	char* cext = NULL;
+	
+	// find the conjugate's extension
+	for(char** s = exts; *s; s++) {
+		if(0 == strcmp(ext, *s)) continue;
+		cext = *s;
+		break;
+	}
+	
+	if(!cext) return;
+	
+	// construct a new file name
+	char* new = alloca(strlen(orig) + strlen(cext) + 2);
+	strncpy(new, orig, ext - orig);
+	strcat(new, cext);
+	
+	MainControl_LoadFile(w, new);
+	MainControlPane_GoToTab(w->focusedPane, MainControl_FindTabIndexByBufferPath(w, new));
+}
+
 
 
 
@@ -1257,22 +1289,24 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	
 	MainControl* w = p->mc;
 	
-	/* // TODO IMGUI
 	if(opt->path) {
 		int index = MainControl_FindTabIndexByBufferPath(w, opt->path);
 		if(index > -1) {
-			GUIHeader* header = MainControl_GoToTab(w, index);
-			GUIBufferEditor* gbe = (GUIBufferEditor*)header;
-			BufferLine* bl = Buffer_raw_GetLine(gbe->buffer, opt->line_num);
+			GUIBufferEditor* gbe = MainControlPane_GoToTab(w->focusedPane, index);
+			
+			BufferLine* bl = Buffer_raw_GetLineByNum(gbe->b, opt->line_num);
 			if(bl) {
 				GBEC_MoveCursorTo(gbe->ec, bl, 0);
 				GBEC_scrollToCursorOpt(gbe->ec, 1);
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}
-			return;
+			return VEC_ITEM(&w->focusedPane->tabs, index);
 		}
 	}
-	*/
+	
+	
+	
+	
 	
 	Buffer* buf = BufferCache_GetPath(w->bufferCache, opt->path);
 	

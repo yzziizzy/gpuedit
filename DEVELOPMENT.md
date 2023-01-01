@@ -1,8 +1,3 @@
-== Today ==
-Open c/h conjugate command
-find/replace tab eating when editor is focused
-
-
 == Horrible outstanding regressions ==
 * Padding needed in font atlas
 * One frame lag on highlight update sometimes (related to buffer/gbec internal render function call ordering)

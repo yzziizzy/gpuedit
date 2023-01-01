@@ -320,9 +320,6 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		if(gbe == gm->activeID) {
 			if(r == gbe->sel && (gbe->cursorBlinkTimer > gbe->cursorBlinkOnTime)) continue;
 		}
-		else {
-//			dbg("inactive")
-		}
 		
 		//tl = (Vector2){0,0};//{gbe->header.absTopLeft.x + lineNumWidth, gbe->header.absTopLeft.y}; // TODO IMGUI
 		float cursorOff = hsoff + getColOffset(CURSOR_LINE(r)->buf, CURSOR_COL(r), bs->tabWidth) * bs->charWidth;

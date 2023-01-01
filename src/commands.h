@@ -165,6 +165,7 @@
 	X(Main, QuitWithoutSave) \
 	X(Main, LoadFile) \
 	X(Main, NewEmptyBuffer) \
+	X(Main, OpenConjugate) \
 	X(Main, ReloadTab) \
 	X(Main, CloseTab) \
 	X(Main, SaveAndCloseTab) \

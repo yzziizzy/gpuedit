@@ -132,6 +132,7 @@ void MainControl_FocusPane(MainControl* w, int x, int y);
 MainControlPane* MainControl_GetPane(MainControl* w, int x, int y);
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
 void MainControl_CloseTab(MainControl* w, int index);
+void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts);
 
 int MainControl_FindTabIndexByBufferPath(MainControl* w, char* path);
 int MainControl_FindTabIndexByClient(MainControl* w, void* client);
