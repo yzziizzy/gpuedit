@@ -110,9 +110,14 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			gm->curEvent.type == GUIEVENT_KeyDown && gm->curEvent.modifiers == 0 && 
 			(gm->curEvent.keycode == XK_ISO_Left_Tab || gm->curEvent.keycode == XK_Tab)
 		) {
-			if(gm->activeID == &w->findQuery) ACTIVE(&w->replaceText);
-			else if(gm->activeID == &w->replaceText) ACTIVE(&w->findQuery);
-			GUI_CancelInput();
+			if(gm->activeID == &w->findQuery) {
+				ACTIVE(&w->replaceText);
+				GUI_CancelInput();
+			}
+			else if(gm->activeID == &w->replaceText) {
+				ACTIVE(&w->findQuery);
+				GUI_CancelInput();
+			}
 		}
 	}
 	
