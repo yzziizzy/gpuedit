@@ -533,6 +533,7 @@ int Settings_ReadDefaultFilesAt(Settings* s, char* path, unsigned long mask) {
 	int files_read = 0;
 	
 	char* path_2 = resolve_path(path);
+	if(!path_2) return 0;
 	
 	char* single_path = path_join(path_2, ".gpuedit.json");
 	files_read += !Settings_LoadFile(s, single_path, mask);

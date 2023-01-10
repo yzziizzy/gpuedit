@@ -179,7 +179,7 @@ typedef struct Buffer {
 	
 	BufferLine* first, *last; 
 	
-	uint64_t numLines;
+	int64_t numLines;
 	
 	char* filePath;
 	

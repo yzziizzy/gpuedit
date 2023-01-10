@@ -532,7 +532,11 @@ void GBEC_SetScrollCentered(GUIBufferEditControl* w, linenum_t line, colnum_t co
 
 // move the view by this delta
 void GBEC_ScrollDir(GUIBufferEditControl* w, linenum_t lines, colnum_t cols) {
-	GUIBufferEditControl_SetScroll(w, w->scrollLines + lines, w->scrollCols + cols);
+	linenum_t line = w->scrollLines + lines;
+	colnum_t col = w->scrollCols + cols;
+	if(line < 0) line = 0;
+	if(col < 0) col = 0;
+	GUIBufferEditControl_SetScroll(w, line, col);
 }
 
 

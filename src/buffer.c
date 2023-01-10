@@ -89,6 +89,8 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path) {
 	char* rp = NULL;
 	Buffer* b;
 	
+	if(strlen(path) == 0) path = NULL;
+	
 	if(path) {
 		rp = resolve_path(path);
 		
@@ -103,7 +105,7 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path) {
 		Buffer_InitEmpty(b);
 	}
 	
-	if(path) {
+	if(path && rp) {
 		HT_set(&bc->byRealPath, rp, b);
 	}
 	

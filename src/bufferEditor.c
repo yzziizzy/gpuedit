@@ -732,7 +732,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		}
 		case GUICMD_Buffer_MovePage:
 			GBEC_MoveCursorV(w->ec, w->ec->sel, cmd->amt * w->ec->linesOnScreen);
-			
 			w->ec->scrollLines = MAX(0, MIN(w->ec->scrollLines + cmd->amt * w->ec->linesOnScreen, w->b->numLines - 1));
 			break;
 		

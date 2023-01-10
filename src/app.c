@@ -183,6 +183,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 	json_file_t* jsf = json_load_path("./.gpuedit.session");
 	if(jsf) {
+		
 		json_value_t* paneLayout = json_obj_get_val(jsf->root, "paneLayout");
 		int xdivs = json_obj_get_int(paneLayout, "x", 1);
 		int ydivs = json_obj_get_int(paneLayout, "y", 1);

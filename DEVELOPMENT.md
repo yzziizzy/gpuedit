@@ -7,7 +7,7 @@
 * Selection deletion still wipes out rest of file sometimes
 * Basic autocomplete
 * Resume search is broken
-* Command to append text to end of characters on line (;)
+* Command to append text to end of code on line (;), but before comments
 
 == Needed before fractal dogfooding ==
 * bugz: statusbar widgets drawn on top of each other
