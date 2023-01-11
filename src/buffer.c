@@ -995,7 +995,7 @@ void Buffer_LineUnindent(Buffer* b, BufferLine* bl) {
 
 // only undo sequence breaks are handled here; all other undo actions must be 
 //    added by the called functions
-void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
+int Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
 	Buffer* b2;
 	
 	char cc[2] = {cmd->amt, 0};
@@ -1024,7 +1024,11 @@ void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
 			switch(cmd->amt) {
 				case 0: Buffer_DebugPrint(b); break;
 				case 1: Buffer_DebugPrintUndoStack(b); break;
-			} 
+			}
+			break;
+			
+		default:
+			return 1; 
 		
 	}
 	
@@ -1038,6 +1042,7 @@ void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
 	
 	
 // 	printf("line/col %d:%d %d\n", b->current->lineNum, b->curCol, b->current->length);
+	return 0;
 }
 
 

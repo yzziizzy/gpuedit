@@ -120,8 +120,15 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			}
 		}
 	}
+		
+	// forward activeness to the edit control
+	if(gm->activeID == w) ACTIVE(w->ec);
+
+	GUI_PushClip(V(0,top), ecsz);
+	GBEC_Render(w->ec, gm, V(0,top), ecsz, pfp);
+	GUI_PopClip();
 	
-	
+	// command processing
 	if(!gm->drawMode && GUI_InputAvailable()) {
 		
 		int mode = w->inputMode;
@@ -130,7 +137,6 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
 		int needRehighlight = 0;
-		
 		if(cmd) { 
 			if(!GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
 				GUI_CancelInput();
@@ -141,13 +147,6 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			}
 		}
 	}
-	
-	// forward activeness to the edit control
-	if(gm->activeID == w) ACTIVE(w->ec);
-
-	GUI_PushClip(V(0,top), ecsz);
-	GBEC_Render(w->ec, gm, V(0,top), ecsz, pfp);
-	GUI_PopClip();
 	
 	// --------- drawing code ---------
 	if(gm->drawMode) {	

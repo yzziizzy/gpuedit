@@ -247,10 +247,12 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	
 	AABB2 oClip = gm->curClip;
 	
+	GUIFont* titleFont = GUI_FindFont(gm, "Arial",  mc->tabHeight - 5);
+	
 	// tab titles
 	VEC_EACH(&w->tabs, i, tab) {
-		float textw = gui_getTextLineWidth(gm, NULL, 0, tab->title, strlen(tab->title));
-		float xoff = 0;
+		float textw = gui_getTextLineWidth(gm, titleFont,  mc->tabHeight - 5, tab->title, strlen(tab->title));
+		float xoff = (tabw - 2.0 - textw) / -2.0;
 		
 		tab->titleWidth = textw;
 	
@@ -275,9 +277,9 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 			c = C4H(ff0000ff);
 		}
 		
-		GUI_TextLineCentered(
+		GUI_TextLine(
 			tab->title, strlen(tab->title), 
-			V(box.min.x, box.min.y - 2), V(tabw - 2, mc->tabHeight - 2), 
+			V(box.min.x - xoff, box.min.y), /*V(tabw - 2, mc->tabHeight - 2),*/ 
 			"Arial", mc->tabHeight - 5, 
 			&c
 		);

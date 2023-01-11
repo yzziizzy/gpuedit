@@ -11,6 +11,7 @@
 			"1": {name: "Find", parent: 0, },
 			"2": {name: "Replace", parent: 1, },
 			"3": {name: "GotoLine", parent: 0, },
+			"10": {name: "Autocomplete", parent: 0, },
 			
 			"666": {name: "VIM", },
 			"667": {name: "VIM Insert", },

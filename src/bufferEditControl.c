@@ -318,15 +318,15 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 		
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
 		int needRehighlight = 0;
+		if(cmd) {
+			if(!GBEC_ProcessCommand(w, cmd, &needRehighlight)) {
 		
-		if(cmd) { 
-			GBEC_ProcessCommand(w, cmd, &needRehighlight);
-		
-			if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
-				GUIBufferEditControl_MarkRefreshHighlight(w);
+				if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+					GUIBufferEditControl_MarkRefreshHighlight(w);
+				}
+				
+				GUI_CancelInput();
 			}
-			
-			GUI_CancelInput();
 		}
 		
 		
@@ -1161,8 +1161,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		case GUICMD_Buffer_GoToFirstBookmark: GBEC_FirstBookmark(w); break; 
 		case GUICMD_Buffer_GoToLastBookmark:  GBEC_LastBookmark(w);  break; 
 		default:
-			Buffer_ProcessCommand(w->b, cmd, needRehighlight);
-			return 0;
+			return Buffer_ProcessCommand(w->b, cmd, needRehighlight);
 	}
 
 	

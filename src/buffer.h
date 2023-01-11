@@ -562,7 +562,7 @@ void BufferUndo_DebugRenderItem(GUIManager* gm, BufferUndo* u, Vector2 tl, Vecto
 //    and send buffer notifications
 // -----
 
-void Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight);
+int Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight);
 int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighlight);
 
 
