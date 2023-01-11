@@ -93,6 +93,8 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 			
 	Settings_LoadDefaults(as->globalSettings, SETTINGS_ALL);
 	
+	int new_session = 0;
+	
 	// command line args
 	for(int i = 1; i < argc; i++) {
 		char* a = argv[i];
@@ -123,6 +125,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 			
 			else if(a[1] == 'v' && a[2] >= '0' && a[2] <= '9' && a[3] == 0) {
 				g_log_verbosity_level = a[2] - '0';
+			}
+			else if(a[1] == 'n') {
+				// do not load session file
+				new_session = 1;
 			}
 			
 			continue;
@@ -181,7 +187,9 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 //	MainControl_LoadFile(as->mc, "testfile.h");
 //	MainControl_LoadFile(as->mc, "testfile.c");
 	
-	json_file_t* jsf = json_load_path("./.gpuedit.session");
+	
+	json_file_t* jsf;
+	if(!new_session) jsf = json_load_path("./.gpuedit.session");
 	if(jsf) {
 		
 		json_value_t* paneLayout = json_obj_get_val(jsf->root, "paneLayout");

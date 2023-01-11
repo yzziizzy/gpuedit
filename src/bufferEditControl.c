@@ -1118,6 +1118,41 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			GBEC_PushCursor(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel));
 			break;
 		
+		case GUICMD_Buffer_PrintACDict:
+			printf("Autocomplete Dictionary:\n");
+			Buffer_PrintDict(b);
+			break;
+		
+		case GUICMD_Buffer_PrintACMatches:
+			w->autocompleteOptions = Buffer_FindDictMatches(b, w->sel);
+			w->showAutocomplete = 1;
+			w->inputMode = 10;
+			break;
+			
+		case GUICMD_Buffer_ACMoveCursor:
+			w->autocompleteSelectedItem += cmd->amt;
+			w->autocompleteSelectedItem = MAX(0, MIN(w->autocompleteSelectedItem, w->autocompleteOptions->len - 1));
+			break;
+			
+		case GUICMD_Buffer_ACReplaceWithSelected:
+			Buffer_DeleteSelectionContents(b, &w->autocompleteOptions->target);
+			
+			Buffer_LineInsertChars(b, 
+				w->autocompleteOptions->target.line[0], 
+				w->autocompleteOptions->matches[w->autocompleteSelectedItem].s,
+				w->autocompleteOptions->target.col[0], 
+				w->autocompleteOptions->matches[w->autocompleteSelectedItem].len
+			);
+			
+			w->inputMode = 0;
+			GBEC_CancelAutocomplete(w);
+			break;
+			
+		case GUICMD_Buffer_ACCancel:
+			w->inputMode = 0;
+			GBEC_CancelAutocomplete(w);
+			break;
+		
 		case GUICMD_Buffer_SetBookmark:       Buffer_SetBookmarkAt(b, CURSOR_LINE(w->sel));    break; 
 		case GUICMD_Buffer_RemoveBookmark:    Buffer_RemoveBookmarkAt(b, CURSOR_LINE(w->sel)); break; 
 		case GUICMD_Buffer_ToggleBookmark:    Buffer_ToggleBookmarkAt(b, CURSOR_LINE(w->sel)); break; 
@@ -1174,6 +1209,14 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 
 
 
+void GBEC_CancelAutocomplete(GUIBufferEditControl* w) {
+	if(!w->autocompleteOptions) return;
+	if(w->autocompleteOptions->matches) free(w->autocompleteOptions->matches);
+	free(w->autocompleteOptions);
+	w->autocompleteOptions = NULL;
+	w->showAutocomplete = 0;
+	w->autocompleteSelectedItem = 0;
+}
 
 
 void GBEC_MoveToNextSequence(GUIBufferEditControl* w, BufferLine* l, colnum_t col, char* charSet) {

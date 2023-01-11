@@ -315,6 +315,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	
 	
+	
 	// draw cursors
 	VEC_EACH(&gbe->selSet->ranges, i, r) {
 		if(gbe == gm->activeID) {
@@ -325,6 +326,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		float cursorOff = hsoff + getColOffset(CURSOR_LINE(r)->buf, CURSOR_COL(r), bs->tabWidth) * bs->charWidth;
 		float cursory = (CURSOR_LINE(r)->lineNum - 1 - gbe->scrollLines) * bs->lineHeight;
 		
+		
+		
 		gm->curZ = z + 10;
 		GUI_Rect(V(tl.x + cursorOff, tl.y + cursory), V(2, bs->lineHeight), &ts->cursorColor);
 	}
@@ -333,9 +336,49 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	
 	// autocomplete box
-	if(gbe->showAutocomplete) {
+	if(gbe->showAutocomplete && gbe->autocompleteOptions && gbe->autocompleteOptions->len > 0) {
+		
+		BufferACMatchSet* ms = gbe->autocompleteOptions;
+		
+		int aclines = ms->len;
+		Vector2 acsz = V(200, aclines * bs->lineHeight + 2 * 3);
+		
+		float cursorOff = hsoff + getColOffset(CURSOR_LINE(&ms->r)->buf, CURSOR_COL(&ms->r), bs->tabWidth) * bs->charWidth;
+		float cursory = (CURSOR_LINE(&ms->r)->lineNum - gbe->scrollLines) * bs->lineHeight;
+		
+		Vector2 actl = V(tl.x + cursorOff, tl.y + cursory);
+		
+		gm->curZ += 20;
+		GUI_BoxFilled(actl, acsz, 1, &C4H(880000ff), &C4H(181818ff));
 		
 		
+		gm->curZ += 2;
+		
+		for(int i = 0; i < ms->len; i++) {
+			/*
+			GUI_TextLine(
+				ms->matches[i].s, 
+				ms->matches[i].len, 
+				V(actl.x + 3, actl.y + 3 + i * bs->lineHeight),
+				f->name,
+				bs->fontSize,
+				&ts->textColor
+			);
+			*/
+			
+			struct Color4* color = &ts->textColor;
+			
+			if(i == gbe->autocompleteSelectedItem) color = &ts->hl_textColor;
+				
+			drawTextLine(gm, bs, f, color,
+				ms->matches[i].s, 
+				ms->matches[i].len,
+				V(actl.x + 3, actl.y - 1 + (i + 1) * bs->lineHeight)
+			);
+			
+		}
+		
+		gm->curZ -= 22;
 //		size_t popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
 		
 //		float cursory = (gbe->sel->startLine->lineNum - 1 - gbe->scrollLines) * bs->lineHeight;

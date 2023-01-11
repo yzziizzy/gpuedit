@@ -126,6 +126,11 @@
 	X(Buffer, MacroToggleRecording) \
 	X(Buffer, MacroReplay) \
 	X(Buffer, PushCursor) \
+	X(Buffer, PrintACDict) \
+	X(Buffer, PrintACMatches) \
+	X(Buffer, ACMoveCursor) \
+	X(Buffer, ACReplaceWithSelected) \
+	X(Buffer, ACCancel) \
 	\
 	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \

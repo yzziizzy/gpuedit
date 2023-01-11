@@ -33,11 +33,11 @@ Buffer* Buffer_New() {
 	b->undoMax = 4096; // TODO: settings
 	b->undoRing = calloc(1, b->undoMax * sizeof(*b->undoRing));
 	
-	HT_init(&b->dict, 128);
 	
 	// HACK should go in settings files
 	b->useDict = 1;
 	b->dictCharSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+	pcalloc(b->dictRoot);
 	
 	return b;
 }
@@ -45,6 +45,17 @@ Buffer* Buffer_New() {
 
 void Buffer_AddRef(Buffer* b) {
 	b->refs++;
+}
+
+static void ac_free_tree(BufferPrefixNode* n) {
+	BufferPrefixNode* k = n->kids;
+	while(k) {
+		BufferPrefixNode* s = k->next;
+		ac_free_tree(k);
+		k = s;
+	}
+	
+	free(n);
 }
 
 void Buffer_Delete(Buffer* b) {
@@ -65,7 +76,8 @@ void Buffer_Delete(Buffer* b) {
 	}
 	
 	VEC_FREE(&b->changeListeners);
-	HT_destroy(&b->dict);
+	
+	ac_free_tree(b->dictRoot);
 	
 	Buffer_FreeAllUndo(b);
 	
@@ -1879,44 +1891,66 @@ void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, colnum_t col) {
 	}
 }
 
-int Buffer_AddDictWord(Buffer* b, char* word) {
-	return 0; // DEBUG
-	int* refs;
-	if(HT_getp(&b->dict, word, &refs)) {
-		// not found, add it
-		int one = 1;
-		HT_set(&b->dict, word, one);
-		return 1;
-	}
-	else {
-		(*refs)++;
-		return *refs;
+
+static void ac_insert_word(BufferPrefixNode* n, char* s, size_t len) {
+	n->refs++;
+	
+	if(!*s || len == 0) {
+		n->terminal = 1;
+		return;
 	}
 	
+	BufferPrefixNode* k = n->kids;
+	while(k && k->c != *s) k = k->next;
+	
+	if(!k) {
+		k = pcalloc(k);
+//		k->parent = n;
+		k->next = n->kids;
+		n->kids = k;
+		k->c = *s;
+	}
+	
+	ac_insert_word(k, s + 1, len - 1);
 }
 
-int Buffer_RemoveDictWord(Buffer* b, char* word) {
-	return 0; // DEBUG
-	int* refs;
-	if(HT_getp(&b->dict, word, &refs)) {
-		return 0;
+// returns 1 if the node was freed
+static void ac_remove_word(BufferPrefixNode* n, char* s, size_t len) {
+	n->refs--;
+	
+	// TODO: GC zeroed nodes
+	if(!*s || len == 0) {
+		return;
 	}
-	else {
-		(*refs)--;
-		if(*refs == 0) HT_delete(&b->dict, word);
-		
-		return *refs;
-	}
+	
+	BufferPrefixNode* k = n->kids;
+	while(k && k->c != *s) k = k->next;
+	
+	if(!k) return;
+	
+	ac_remove_word(k, s + 1, len - 1);
+}
+
+int Buffer_AddDictWord(Buffer* b, char* word, size_t len) {
+	if(len <= 3) return 0;
+	ac_insert_word(b->dictRoot, word, len);
+	return 0;
+}
+
+int Buffer_RemoveDictWord(Buffer* b, char* word, size_t len) {
+	if(len <= 3) return 0;
+	ac_remove_word(b->dictRoot, word, len);
+	return 0;
 }
 
 void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
-	return;
-	
+		
 	size_t n;
 	char* s = l->buf;
 	
 	if(!s) return;
 	
+	// BUG: requires null terminators
 	while(1) {
 		n = strcspn(s, b->dictCharSet);
 		s += n;
@@ -1924,9 +1958,7 @@ void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
 		n = strspn(s, b->dictCharSet);
 		if(n <= 0) break;
 		
-		char* w = strndup(s, n);
-		Buffer_AddDictWord(b, w);
-		free(w);
+		Buffer_AddDictWord(b, s, n);
 		
 		s += n;
 	}
@@ -1934,8 +1966,6 @@ void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
 
 void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l) {
 	
-	return;
-	
 	size_t n;
 	char* s = l->buf;
 	
@@ -1948,14 +1978,153 @@ void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l) {
 		n = strspn(s, b->dictCharSet);
 		if(n <= 0) break;
 		
-		char* w = strndup(s, n);
-		Buffer_RemoveDictWord(b, w);
-		free(w);
+		Buffer_RemoveDictWord(b, s, n);
 		
 		s += n;
 	}
 }
 
+
+void ac_print_tree(BufferPrefixNode* n, char* buf, int len) {
+	if(len > 1023) return;
+	
+	buf[len] = n->c;
+	if(n->terminal) printf("%.*s: %ld\n", len, buf + 1, n->refs);
+	
+		
+	BufferPrefixNode* k = n->kids;
+	while(k) {
+		ac_print_tree(k, buf, len + 1);
+		k = k->next;
+	}
+}
+
+void Buffer_PrintDict(Buffer* b) {
+	char buf[1024];
+	
+	ac_print_tree(b->dictRoot, buf, 0);
+}
+
+
+
+BufferPrefixNode* ac_find_tail(BufferPrefixNode* n, char* s, int len) {
+	
+	if(len == 0) return n;
+	if(!n) return NULL;
+	
+	BufferPrefixNode* k = n->kids;
+	while(k && k->c != *s) k = k->next;
+	
+	if(!k) return NULL;
+	
+	return ac_find_tail(k, s + 1, len - 1);
+}
+
+
+
+
+void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len) {
+	
+	if(len >= 100) return;
+	
+	// prune bad search branches
+	if(n->refs < ms->worst) return;
+	
+	buf[len] = n->c;
+	
+	if(n->terminal) {
+		
+		// look for the sorted position this match should fall in to
+		for(int i = 0; i < ms->len; i++) {
+			if(n->refs > ms->matches[i].rank) {
+				if(i < ms->alloc - 1) {
+					
+					// clean up the string about to fall off the end
+					if(ms->len == ms->alloc) {
+						if(ms->matches[ms->len - 1].s) free(ms->matches[ms->len - 1].s);
+					}
+					
+					// move worse matches down
+					memmove(ms->matches + i + 1, ms->matches + i, sizeof(*ms->matches) * (ms->alloc - i - 1));
+				}
+				
+				// insert this match into sorted position
+				ms->matches[i].s = strndup(buf, len + 1);
+				ms->matches[i].len = len + 1;
+				ms->matches[i].rank = n->refs;
+				
+				ms->worst = ms->matches[ms->len - 1].rank;
+				ms->len = MIN(ms->len + 1, ms->alloc); 
+				
+				goto FOUND;
+			}
+		
+		}
+		
+		// this match is worse than the entire list
+		// insert is at the end of the list if there is room
+		if(ms->len < ms->alloc) {
+			ms->matches[ms->len].s = strndup(buf, len + 1);
+			ms->matches[ms->len].len = len + 1;
+			ms->matches[ms->len].rank = n->refs;
+			ms->len++;
+		}
+	}
+
+FOUND:
+	
+	// recurse through kids
+	BufferPrefixNode* k = n->kids;
+	while(k) {
+		ac_find_matches(ms, k, buf, len + 1);
+		k = k->next;
+	}
+}
+
+
+BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r) {
+	char buf[1024];
+	colnum_t i, e;
+	
+	BufferLine* l = CURSOR_LINE(r);
+	colnum_t c = CURSOR_COL(r);
+	
+	for(i = c; i >= 0; i--) {
+		if(!strchr(b->dictCharSet, l->buf[i])) break;
+	}
+	i++;
+	
+	for(e = c; e < l->length; e++) {
+		if(!strchr(b->dictCharSet, l->buf[e])) break;
+	}
+
+	
+	int len = c - i;
+	
+	BufferPrefixNode* tail = ac_find_tail(b->dictRoot, l->buf + i, len);
+	if(!tail) {
+//		printf("No matches for '%.*s'\n", len, l->buf + i);
+		return NULL;
+	}
+	
+	BufferACMatchSet* ms = pcalloc(ms);
+	ms->alloc = 16;
+	ms->matches = calloc(1, sizeof(*ms->matches) * ms->alloc);
+	ms->r = *r;
+	ms->target.line[0] = l;
+	ms->target.line[1] = l;
+	ms->target.col[0] = i;
+	ms->target.col[1] = e;
+	
+	strncpy(buf, l->buf + i, len);
+	ac_find_matches(ms, tail, buf, len - 1);
+	
+//	for(int j = 0; j < ms->len; j++) {
+//		printf("%.*s: %f\n", ms->matches[j].len, ms->matches[j].s, ms->matches[j].rank);
+//	}
+	
+	return ms;
+}
 
 void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, colnum_t startC, BufferLine* endL, colnum_t endC, char isReverse) {
 	BufferChangeNotification note = {

@@ -1,4 +1,4 @@
-{
+ {
 	commands: {
 		elements: [
 			{elem: "Buffer",  },
@@ -177,6 +177,13 @@
 			{elem: "Buffer", cmd: "GrowSelectionToPrevSequence", mods: "CS", key: "XK_Left", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "FindStartSequenceUnderCursor", mods: "CS",  key: "f", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: []},
 			{elem: "Buffer", cmd: "ShowDictComplete", mods: "T",  key: "m", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["scrollToCursor", "resetCursorBlink"]},
+			
+			{elem: "Buffer", cmd: "PrintACDict", mods: "CT",  key: "d", flags: []},
+			{elem: "Buffer", cmd: "PrintACMatches", mods: "CT",  key: "m", flags: []},
+			{mode: 10, elem: "Buffer", cmd: "ACMoveCursor", mods: "",  key: "XK_Down", amt: 1, flags: []},
+			{mode: 10, elem: "Buffer", cmd: "ACMoveCursor", mods: "",  key: "XK_Up", amt: -1, flags: []},
+			{mode: 10, elem: "Buffer", cmd: "ACReplaceWithSelected", mods: "",  key: "XK_Return", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+			{mode: 10, elem: "Buffer", cmd: "ACCancel", mods: "",  key: "XK_Escape", amt: 0, flags: []},
 			
 			{elem: "Buffer", cmd: "MacroToggleRecording", mods: "T",  key: "r"},
 			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "1", amt: 0},

@@ -1,6 +1,7 @@
 == Horrible outstanding regressions ==
 * Padding needed in font atlas
 * One frame lag on highlight update sometimes (related to buffer/gbec internal render function call ordering)
+* Tab name scrolling is broken
 
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately

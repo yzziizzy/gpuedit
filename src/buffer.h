@@ -168,6 +168,15 @@ typedef struct BufferChangeNotification {
 typedef void (*bufferChangeNotifyFn)(BufferChangeNotification* note, void* data);
 
 
+typedef struct BufferPrefixNode {
+	int c;
+	char terminal;
+	int64_t refs;
+	uint64_t filter;
+	struct BufferPrefixNode* next; // next sibling
+	struct BufferPrefixNode* kids;
+} BufferPrefixNode;
+
 
 typedef struct Buffer {
 	lineid_t nextLineID;
@@ -207,7 +216,7 @@ typedef struct Buffer {
 	
 	char useDict;
 	char* dictCharSet;
-	HT(int) dict; // value is reference count
+	BufferPrefixNode* dictRoot;
 	
 	int refs;
 	
@@ -231,6 +240,22 @@ typedef struct BufferCache {
 BufferCache* BufferCache_New();
 Buffer* BufferCache_GetPath(BufferCache* bc, char* path);
 void BufferCache_RemovePath(BufferCache* bc, char* realPath);
+
+
+typedef struct BufferACMatch {
+	char* s;
+	int len;
+	float rank;
+} BufferACMatch;
+
+typedef struct BufferACMatchSet {
+	BufferACMatch* matches;
+	int len;
+	int alloc;
+	float worst;
+	BufferRange r; // TODO: line deletion callback
+	BufferRange target;
+} BufferACMatchSet;
 
 
 
@@ -281,7 +306,8 @@ typedef struct GUIBufferEditControl {
 	char showAutocomplete;
 	size_t maxAutocompleteLines; // lines to show in the popup
 	intptr_t autocompleteProvokeCol;
-	VEC(char*) autocompleteOptions;
+	int autocompleteSelectedItem;
+	BufferACMatchSet* autocompleteOptions;
 	
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
@@ -706,10 +732,13 @@ void GBEC_ReplaceLineWithSelectionTransform(
 void Buffer_DebugPrint(Buffer* b);
 void Buffer_DebugPrintUndoStack(Buffer* b);
 
-int Buffer_AddDictWord(Buffer* b, char* word);
-int Buffer_RemoveDictWord(Buffer* b, char* word);
+int Buffer_AddDictWord(Buffer* b, char* word, size_t len);
+int Buffer_RemoveDictWord(Buffer* b, char* word, size_t len);
 void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l);
 void Buffer_AddLineToDict(Buffer* b, BufferLine* l);
+void Buffer_PrintDict(Buffer* b);
+BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r);
+void GBEC_CancelAutocomplete(GUIBufferEditControl* w);
 
 // temp
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
