@@ -253,6 +253,8 @@ typedef struct BufferACMatchSet {
 	int len;
 	int alloc;
 	float worst;
+	int targetLen;
+	char* targetStart;
 	BufferRange r; // TODO: line deletion callback
 	BufferRange target;
 } BufferACMatchSet;
@@ -316,7 +318,7 @@ typedef struct GUIBufferEditControl {
 	// cached during event processing
 	Vector2 tl, sz;
 	
-	int* inputMode;
+	int inputMode;
 	
 	// TODO: padding lines on vscroll
 

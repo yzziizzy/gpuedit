@@ -94,6 +94,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	Settings_LoadDefaults(as->globalSettings, SETTINGS_ALL);
 	
 	int new_session = 0;
+	int no_sessions = 0;
 	
 	// command line args
 	for(int i = 1; i < argc; i++) {
@@ -130,6 +131,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 				// do not load session file
 				new_session = 1;
 			}
+			else if(!strcmp(a, "--no-sessions")) {
+				// do not load session file
+				no_sessions = 1;
+			}
 			
 			continue;
 		}
@@ -147,6 +152,9 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	}
 	
 	as->gs = Settings_GetSection(as->globalSettings, SETTINGS_General);
+	
+	if(no_sessions) as->gs->enableSessions = 0;
+	
 	ThemeSettings* theme = Settings_GetSection(as->globalSettings, SETTINGS_Theme);
 	char* tmp = path_join(homedir, "/.gpuedit/themes/", as->gs->Theme_path);
 	Settings_LoadFile(as->globalSettings, tmp, SETTINGS_ALL);
@@ -188,7 +196,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 //	MainControl_LoadFile(as->mc, "testfile.c");
 	
 	
-	json_file_t* jsf;
+	json_file_t* jsf = NULL;
 	if(!new_session) jsf = json_load_path("./.gpuedit.session");
 	if(jsf) {
 		

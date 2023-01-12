@@ -760,6 +760,9 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 	Buffer* b = w->b;
 	Buffer* b2 = NULL;
 	
+
+	
+	
 	char cc[2] = {cmd->amt, 0};
 	
 	switch(cmd->cmd) {
@@ -1123,18 +1126,33 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			Buffer_PrintDict(b);
 			break;
 		
-		case GUICMD_Buffer_PrintACMatches:
+		case GUICMD_Buffer_ACProvoke:
 			w->autocompleteOptions = Buffer_FindDictMatches(b, w->sel);
-			w->showAutocomplete = 1;
-			w->inputMode = 10;
+			if(w->autocompleteOptions) {
+				w->showAutocomplete = 1;
+				w->inputMode = 11;
+			}
 			break;
 			
 		case GUICMD_Buffer_ACMoveCursor:
+			if(!w->autocompleteOptions) {
+				w->inputMode = 0;
+				GBEC_CancelAutocomplete(w);
+				break;
+			}
+			
+			w->inputMode = 11; // move from 10 to 11 if needed
 			w->autocompleteSelectedItem += cmd->amt;
 			w->autocompleteSelectedItem = MAX(0, MIN(w->autocompleteSelectedItem, w->autocompleteOptions->len - 1));
 			break;
 			
 		case GUICMD_Buffer_ACReplaceWithSelected:
+			if(!w->autocompleteOptions) {
+				w->inputMode = 0;
+				GBEC_CancelAutocomplete(w);
+				break;
+			}
+			
 			Buffer_DeleteSelectionContents(b, &w->autocompleteOptions->target);
 			
 			Buffer_LineInsertChars(b, 
@@ -1164,6 +1182,17 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			return Buffer_ProcessCommand(w->b, cmd, needRehighlight);
 	}
 
+
+	// perhaps an ugly hack:
+	if(w->autocompleteOptions) {
+		if(
+			CURSOR_LINE(w->sel)->lineNum != CURSOR_LINE(&w->autocompleteOptions->r)->lineNum
+			|| CURSOR_COL(w->sel) != CURSOR_COL(&w->autocompleteOptions->r)
+		) {
+//			w->inputMode = 0;
+			GBEC_CancelAutocomplete(w);
+		}
+	}
 	
 	// check flags
 	
@@ -1201,6 +1230,29 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 	
 	if(cmd->flags & GUICMD_FLAG_centerOnCursor) {
 		GBEC_scrollToCursorOpt(w, 1);
+	}
+	
+	if(cmd->flags & GUICMD_FLAG_provokeAC) {
+		GBEC_CancelAutocomplete(w);
+		
+		w->autocompleteOptions = Buffer_FindDictMatches(b, w->sel);
+		if(w->autocompleteOptions) {
+			w->showAutocomplete = 1;
+			if(w->inputMode != 11) w->inputMode = 10;
+		}
+		else {
+			w->inputMode = 0;
+		}
+	}
+	
+	if(cmd->flags & GUICMD_FLAG_closeAC) {
+		GBEC_CancelAutocomplete(w);
+		w->inputMode = 0;
+	}
+	
+	// more kludgy hacks
+	if((w->inputMode == 10 || w->inputMode == 11) && !w->autocompleteOptions) {
+		w->inputMode = 0;
 	}
 	
 	return 0;

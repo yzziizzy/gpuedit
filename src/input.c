@@ -1,6 +1,8 @@
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
+#include <X11/keysym.h>
+
 
 #include "input.h"
 
@@ -77,6 +79,8 @@ void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 int InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 	int ret = 99;
 	if(VEC_LEN(&stack->stack) == 0) return NULL;
+	
+	if(ev->keysym == XK_ISO_Left_Tab) ev->keysym = XK_Tab; // patch some kind of weird bullshit in X
 	
 	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
 		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);

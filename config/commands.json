@@ -12,6 +12,7 @@
 			"2": {name: "Replace", parent: 1, },
 			"3": {name: "GotoLine", parent: 0, },
 			"10": {name: "Autocomplete", parent: 0, },
+			"11": {name: "AutocompleteOpts", parent: 0, },
 			
 			"666": {name: "VIM", },
 			"667": {name: "VIM Insert", },
@@ -90,12 +91,12 @@
 			{elem: "FileBrowser", cmd: "ToggleSelect", mods: "", key: "XK_space", amt: 0},
 			/*{elem: "FileBrowser", cmd: "JumpToLetter", mods: "", key: "", amt: 0}, */
 			
-			{elem: "Buffer", cmd: "MoveCursorH", mods: "", key: "XK_Left", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "MoveCursorH", mods: "", key: "XK_Right", amt: 1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "Backspace", mods: "", key: "XK_BackSpace", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
-			{elem: "Buffer", cmd: "Delete", mods: "", key: "XK_Delete", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]},
+			{elem: "Buffer", cmd: "MoveCursorH", mods: "", key: "XK_Left", amt: -1, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "MoveCursorH", mods: "", key: "XK_Right", amt: 1, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "Backspace", mods: "", key: "XK_BackSpace", amt: 0, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "rehighlight"]},
+			{elem: "Buffer", cmd: "Delete", mods: "", key: "XK_Delete", amt: 0, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "rehighlight"]},
 			{elem: "Buffer", cmd: "SplitLineIndent", mods: "", key: "XK_Return", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak", "rehighlight"]},
 			{elem: "Buffer", cmd: "MovePage", mods: "", key: "XK_Prior", amt: -1, flags: ["undoSeqBreak"]},
 			{elem: "Buffer", cmd: "MovePage", mods: "", key: "XK_Next", amt: 1, flags: ["undoSeqBreak"]},
@@ -106,7 +107,7 @@
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Left", amt: -5, },
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Right", amt: 5, },
 //			{elem: "Buffer", cmd: "InsertString", mods: "CA", key: "r", amt: "    ", flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
-			{elem: "Buffer", cmd: "InsertChar", mods: "", key: "VK_Print", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
+			{elem: "Buffer", cmd: "InsertChar", mods: "", key: "VK_Print", amt: 0, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
 			{elem: "Buffer", cmd: "InsertChar", mods: "AT", key: "n", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // inserts a null character, for testing or fun
 			{elem: "Buffer", cmd: "GoToFirstCharOfLine", mods: "", key: "XK_Home", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "GoToLastCharOfLine", mods: "", key: "XK_End", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
@@ -180,11 +181,20 @@
 			{elem: "Buffer", cmd: "ShowDictComplete", mods: "T",  key: "m", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["scrollToCursor", "resetCursorBlink"]},
 			
 			{elem: "Buffer", cmd: "PrintACDict", mods: "CT",  key: "d", flags: []},
-			{elem: "Buffer", cmd: "PrintACMatches", mods: "CT",  key: "m", flags: []},
-			{mode: 10, elem: "Buffer", cmd: "ACMoveCursor", mods: "",  key: "XK_Down", amt: 1, flags: []},
-			{mode: 10, elem: "Buffer", cmd: "ACMoveCursor", mods: "",  key: "XK_Up", amt: -1, flags: []},
-			{mode: 10, elem: "Buffer", cmd: "ACReplaceWithSelected", mods: "",  key: "XK_Return", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
-			{mode: 10, elem: "Buffer", cmd: "ACCancel", mods: "",  key: "XK_Escape", amt: 0, flags: []},
+			{elem: "Buffer", cmd: "ACProvoke", mods: "C",  key: "XK_space", flags: []},
+			{mode: 10, elem: "Buffer", cmd: "ACMoveCursor", mods: "C",  key: "XK_Down", amt: 1, flags: []},
+			{mode: 10, elem: "Buffer", cmd: "ACMoveCursor", mods: "C",  key: "XK_Up", amt: -1, flags: []},
+			{mode: 10, elem: "Buffer", cmd: "ACReplaceWithSelected", mods: "C",  key: "XK_Return", flags: ["rehighlight", "undoSeqBreak"]},
+			{mode: 10, elem: "Buffer", cmd: "ACCancel", mods: "",  key: "XK_Escape", flags: []},
+			{mode: 11, elem: "Buffer", cmd: "ACMoveCursor", mods: "",  key: "XK_Down", amt: 1, flags: []},
+			{mode: 11, elem: "Buffer", cmd: "ACMoveCursor", mods: "",  key: "XK_Up", amt: -1, flags: []},
+			{mode: 11, elem: "Buffer", cmd: "ACMoveCursor", mods: "C",  key: "XK_Down", amt: 1, flags: []},
+			{mode: 11, elem: "Buffer", cmd: "ACMoveCursor", mods: "C",  key: "XK_Up", amt: -1, flags: []},
+			{mode: 11, elem: "Buffer", cmd: "ACReplaceWithSelected", mods: "",  key: "XK_Return", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+			{mode: 11, elem: "Buffer", cmd: "ACReplaceWithSelected", mods: "C",  key: "XK_Return", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+			{mode: 11, elem: "Buffer", cmd: "ACReplaceWithSelected", mods: "",  key: "XK_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+			{mode: 11, elem: "Buffer", cmd: "ACReplaceWithSelected", mods: "C",  key: "XK_Tab", amt: 0, flags: ["rehighlight", "undoSeqBreak"]},
+			{mode: 11, elem: "Buffer", cmd: "ACCancel", mods: "",  key: "XK_Escape", flags: []},
 			
 			{elem: "Buffer", cmd: "MacroToggleRecording", mods: "T",  key: "r"},
 			{elem: "Buffer", cmd: "MacroReplay",          mods: "T",  key: "1", amt: 0},

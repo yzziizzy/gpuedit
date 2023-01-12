@@ -1199,7 +1199,7 @@ static void setBreakpoint(char* file, intptr_t line, MainControl* w) {
 
 void MainControl_OnTabChange(MainControl* w) {
 	
-	
+	if(!w->gs->enableSessions) return;
 	
 	json_write_context_t jwc = {0};
 	

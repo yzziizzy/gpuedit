@@ -2033,11 +2033,13 @@ void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int l
 	if(len >= 100) return;
 	
 	// prune bad search branches
-	if(n->refs < ms->worst) return;
+	if(ms->len >= ms->alloc && n->refs < ms->worst) return;
+	if(n->refs <= 1) return;
 	
 	buf[len] = n->c;
 	
-	if(n->terminal) {
+	//                       don't autocomplete a word to itself
+	if(n->terminal && !(ms->targetLen == len + 1 && !strncmp(buf, ms->targetStart, len + 1))) {
 		
 		// look for the sorted position this match should fall in to
 		for(int i = 0; i < ms->len; i++) {
@@ -2105,6 +2107,7 @@ BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r) {
 
 	
 	int len = c - i;
+	if(len < 1) return NULL;
 	
 	BufferPrefixNode* tail = ac_find_tail(b->dictRoot, l->buf + i, len);
 	if(!tail) {
@@ -2120,6 +2123,8 @@ BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r) {
 	ms->target.line[1] = l;
 	ms->target.col[0] = i;
 	ms->target.col[1] = e;
+	ms->targetLen = e - i;
+	ms->targetStart = l->buf + i;
 	
 	strncpy(buf, l->buf + i, len);
 	ac_find_matches(ms, tail, buf, len - 1);

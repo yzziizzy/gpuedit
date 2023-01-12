@@ -127,7 +127,7 @@
 	X(Buffer, MacroReplay) \
 	X(Buffer, PushCursor) \
 	X(Buffer, PrintACDict) \
-	X(Buffer, PrintACMatches) \
+	X(Buffer, ACProvoke) \
 	X(Buffer, ACMoveCursor) \
 	X(Buffer, ACReplaceWithSelected) \
 	X(Buffer, ACCancel) \
@@ -213,6 +213,8 @@
 	X(undoSeqBreak) \
 	X(hideMouse) \
 	X(centerOnCursor) \
+	X(provokeAC) \
+	X(closeAC) \
 
 
 
