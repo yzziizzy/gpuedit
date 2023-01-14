@@ -2018,7 +2018,7 @@ BufferPrefixNode* ac_find_tail(BufferPrefixNode* n, char* s, int len) {
 	if(!n) return NULL;
 	
 	BufferPrefixNode* k = n->kids;
-	while(k && k->c != *s) k = k->next;
+	while(k && !((k->c) == (*s))) k = k->next;
 	
 	if(!k) return NULL;
 	
@@ -2028,7 +2028,8 @@ BufferPrefixNode* ac_find_tail(BufferPrefixNode* n, char* s, int len) {
 
 
 
-void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len) {
+
+static void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len, char* search, int searchLen) {
 	
 	if(len >= 100) return;
 	
@@ -2036,9 +2037,25 @@ void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int l
 	if(ms->len >= ms->alloc && n->refs < ms->worst) return;
 	if(n->refs <= 1) return;
 	
+	
 	buf[len] = n->c;
 	
-	//                       don't autocomplete a word to itself
+	
+	if(len + 1 < searchLen) { // recurse into the tree along the search prefix
+		BufferPrefixNode* k = n->kids;
+		while(k) {
+			if(tolower(k->c) == tolower(search[len + 1])) {
+				ac_find_matches(ms, k, buf, len + 1, search, searchLen);
+			}
+			
+			k = k->next;
+		}
+		
+		return;
+	}
+	
+	
+	//                       don't autocomplete a word to itself; this is case sensitive
 	if(n->terminal && !(ms->targetLen == len + 1 && !strncmp(buf, ms->targetStart, len + 1))) {
 		
 		// look for the sorted position this match should fall in to
@@ -2083,9 +2100,22 @@ FOUND:
 	// recurse through kids
 	BufferPrefixNode* k = n->kids;
 	while(k) {
-		ac_find_matches(ms, k, buf, len + 1);
+		ac_find_matches(ms, k, buf, len + 1, search, searchLen);
 		k = k->next;
 	}
+}
+
+
+static void ac_find_matches_root(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len, char* search, int searchLen) {
+	BufferPrefixNode* k = n->kids;
+	while(k) {
+		if(tolower(k->c) == tolower(search[0])) {
+			ac_find_matches(ms, k, buf, 0, search, searchLen);
+		}
+		
+		k = k->next;
+	}
+	
 }
 
 
@@ -2096,7 +2126,9 @@ BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r) {
 	BufferLine* l = CURSOR_LINE(r);
 	colnum_t c = CURSOR_COL(r);
 	
-	for(i = c; i >= 0; i--) {
+	if(c == 0) return NULL;
+	
+	for(i = c - 1; i >= 0; i--) {
 		if(!strchr(b->dictCharSet, l->buf[i])) break;
 	}
 	i++;
@@ -2105,15 +2137,8 @@ BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r) {
 		if(!strchr(b->dictCharSet, l->buf[e])) break;
 	}
 
-	
 	int len = c - i;
 	if(len < 1) return NULL;
-	
-	BufferPrefixNode* tail = ac_find_tail(b->dictRoot, l->buf + i, len);
-	if(!tail) {
-//		printf("No matches for '%.*s'\n", len, l->buf + i);
-		return NULL;
-	}
 	
 	BufferACMatchSet* ms = pcalloc(ms);
 	ms->alloc = 16;
@@ -2126,13 +2151,43 @@ BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r) {
 	ms->targetLen = e - i;
 	ms->targetStart = l->buf + i;
 	
-	strncpy(buf, l->buf + i, len);
-	ac_find_matches(ms, tail, buf, len - 1);
+	ac_find_matches_root(ms, b->dictRoot, buf, 0, l->buf + i, len);
 	
+	if(ms->len == 0) { // never return an empty result set
+		free(ms->matches);
+		free(ms);
+		return NULL;
+	}
 //	for(int j = 0; j < ms->len; j++) {
 //		printf("%.*s: %f\n", ms->matches[j].len, ms->matches[j].s, ms->matches[j].rank);
 //	}
+
+	// cache some values for rendering
+	ms->shortestMatchLen = ms->matches[0].len;
+	for(int j = 0; j < ms->len; j++) {
+		ms->longestMatchLen = MAX(ms->longestMatchLen, ms->matches[j].len);
+		ms->shortestMatchLen = MIN(ms->shortestMatchLen, ms->matches[j].len);
+	}
 	
+	// find common prefix, if any
+	ms->commonPrefixLen = ms->shortestMatchLen;
+	int a;
+	for(a = 0; a < ms->shortestMatchLen; a++) {
+		
+		int c = ms->matches[0].s[a];
+		for(int j = 1; j < ms->len; j++) {
+			if(ms->matches[j].s[a] == c) continue;
+		
+			// mismatch
+			ms->commonPrefixLen = a;
+			goto PREFIX_DONE;
+		}
+	}
+	
+PREFIX_DONE:
+	
+
+
 	return ms;
 }
 

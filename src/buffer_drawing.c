@@ -340,8 +340,10 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		BufferACMatchSet* ms = gbe->autocompleteOptions;
 		
+		if(ms->maxLineWidth == 0) ms->maxLineWidth = bs->charWidth * ms->longestMatchLen;
+		
 		int aclines = ms->len;
-		Vector2 acsz = V(200, aclines * bs->lineHeight + 2 * 3);
+		Vector2 acsz = V(ms->maxLineWidth + 2 * 3, aclines * bs->lineHeight + 2 * 3);
 		
 		float cursorOff = hsoff + getColOffset(CURSOR_LINE(&ms->r)->buf, CURSOR_COL(&ms->r), bs->tabWidth) * bs->charWidth;
 		float cursory = (CURSOR_LINE(&ms->r)->lineNum - gbe->scrollLines) * bs->lineHeight;
@@ -369,7 +371,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			struct Color4* color = &ts->textColor;
 			
 			if(i == gbe->autocompleteSelectedItem) color = &ts->hl_textColor;
-				
+			
 			drawTextLine(gm, bs, f, color,
 				ms->matches[i].s, 
 				ms->matches[i].len,

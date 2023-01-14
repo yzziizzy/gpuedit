@@ -1146,7 +1146,8 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			w->autocompleteSelectedItem = MAX(0, MIN(w->autocompleteSelectedItem, w->autocompleteOptions->len - 1));
 			break;
 			
-		case GUICMD_Buffer_ACReplaceWithSelected:
+		case GUICMD_Buffer_ACReplaceWithSelected: {
+			BufferACMatchSet* ms = w->autocompleteOptions;
 			if(!w->autocompleteOptions) {
 				w->inputMode = 0;
 				GBEC_CancelAutocomplete(w);
@@ -1156,16 +1157,51 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			Buffer_DeleteSelectionContents(b, &w->autocompleteOptions->target);
 			
 			Buffer_LineInsertChars(b, 
-				w->autocompleteOptions->target.line[0], 
-				w->autocompleteOptions->matches[w->autocompleteSelectedItem].s,
-				w->autocompleteOptions->target.col[0], 
-				w->autocompleteOptions->matches[w->autocompleteSelectedItem].len
+				ms->target.line[0], 
+				ms->matches[w->autocompleteSelectedItem].s,
+				ms->target.col[0], 
+				ms->matches[w->autocompleteSelectedItem].len
 			);
+			
+			GBEC_MoveCursorTo(w, ms->target.line[0], ms->target.col[0] + ms->matches[w->autocompleteSelectedItem].len);
 			
 			w->inputMode = 0;
 			GBEC_CancelAutocomplete(w);
 			break;
+		}
+		case GUICMD_Buffer_ACCompletePrefix: {
+			BufferACMatchSet* ms = w->autocompleteOptions;
+//			dbg("pref len %d", ms->commonPrefixLen);
+			if(ms->commonPrefixLen <= 0) break;
+			if(ms->commonPrefixLen <= ms->targetLen) break;
 			
+			if(!ms) {
+				w->inputMode = 0;
+				GBEC_CancelAutocomplete(w);
+				break;
+			}
+			
+			Buffer_DeleteSelectionContents(b, &ms->target);
+			
+			Buffer_LineInsertChars(b, 
+				ms->target.line[0], 
+				ms->matches[0].s,
+				ms->target.col[0], 
+				ms->commonPrefixLen
+			);
+			
+			GBEC_MoveCursorTo(w, ms->target.line[0], ms->target.col[0] + ms->commonPrefixLen);
+			
+			// retry autocomplete with the new location
+			GBEC_CancelAutocomplete(w);
+			w->autocompleteOptions = Buffer_FindDictMatches(b, w->sel);
+			if(w->autocompleteOptions) {
+				w->showAutocomplete = 1;
+				w->inputMode = 11;
+			}
+			
+			break;
+		}
 		case GUICMD_Buffer_ACCancel:
 			w->inputMode = 0;
 			GBEC_CancelAutocomplete(w);

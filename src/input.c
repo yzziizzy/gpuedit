@@ -80,8 +80,11 @@ int InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 	int ret = 99;
 	if(VEC_LEN(&stack->stack) == 0) return NULL;
 	
-	if(ev->keysym == XK_ISO_Left_Tab) ev->keysym = XK_Tab; // patch some kind of weird bullshit in X
-	
+	if(ev->keysym == XK_ISO_Left_Tab) {  // patch some kind of weird bullshit in X
+		ev->keysym = XK_Tab;
+		ev->kbmods |= IS_SHIFT;
+	}
+		
 	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
 		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
 	

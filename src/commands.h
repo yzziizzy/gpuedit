@@ -130,6 +130,7 @@
 	X(Buffer, ACProvoke) \
 	X(Buffer, ACMoveCursor) \
 	X(Buffer, ACReplaceWithSelected) \
+	X(Buffer, ACCompletePrefix) \
 	X(Buffer, ACCancel) \
 	\
 	X(FileBrowser, Exit) \

@@ -253,6 +253,12 @@ typedef struct BufferACMatchSet {
 	int len;
 	int alloc;
 	float worst;
+	
+	int commonPrefixLen;
+	int shortestMatchLen;
+	int longestMatchLen;
+	float maxLineWidth; // cached value for gui
+	
 	int targetLen;
 	char* targetStart;
 	BufferRange r; // TODO: line deletion callback
