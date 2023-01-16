@@ -1901,9 +1901,10 @@ static void ac_insert_word(BufferPrefixNode* n, char* s, size_t len) {
 	n->refs++;
 	
 	if(!*s || len == 0) {
-		n->terminal = 1;
+		n->trefs++;
 		return;
 	}
+	
 	
 	BufferPrefixNode* k = n->kids;
 	while(k && k->c != *s) k = k->next;
@@ -1922,45 +1923,58 @@ static void ac_insert_word(BufferPrefixNode* n, char* s, size_t len) {
 // returns 1 if the node was freed
 static void ac_remove_word(BufferPrefixNode* n, char* s, size_t len) {
 	n->refs--;
-	
+
+
 	// TODO: GC zeroed nodes
 	if(!*s || len == 0) {
+		n->trefs--;
+		
 		return;
 	}
 	
 	BufferPrefixNode* k = n->kids;
 	while(k && k->c != *s) k = k->next;
 	
-	if(!k) return;
+	if(!k) {
+		n->trefs--;
+		
+		return;
+	}
 	
 	ac_remove_word(k, s + 1, len - 1);
 }
 
 int Buffer_AddDictWord(Buffer* b, char* word, size_t len) {
-	if(len <= 3) return 0;
 	ac_insert_word(b->dictRoot, word, len);
 	return 0;
 }
 
 int Buffer_RemoveDictWord(Buffer* b, char* word, size_t len) {
-	if(len <= 3) return 0;
 	ac_remove_word(b->dictRoot, word, len);
 	return 0;
 }
 
+
+
 void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
 		
-	size_t n;
+	size_t n, e = 0;
 	char* s = l->buf;
 	
 	if(!s) return;
 	
 	// BUG: requires null terminators
 	while(1) {
-		n = strcspn(s, b->dictCharSet);
-		s += n;
+		// skip the junk
+		for(; e < l->length; e++, s++) {
+			if(strchr(b->dictCharSet, *s)) break;
+		}
 		
-		n = strspn(s, b->dictCharSet);
+		// span the word		
+		for(n = 0; e < l->length; n++, e++) {
+			if(NULL == strchr(b->dictCharSet, s[n])) break;
+		}
+
 		if(n <= 0) break;
 		
 		Buffer_AddDictWord(b, s, n);
@@ -1971,16 +1985,22 @@ void Buffer_AddLineToDict(Buffer* b, BufferLine* l) {
 
 void Buffer_RemoveLineFromDict(Buffer* b, BufferLine* l) {
 	
-	size_t n;
+	size_t n, e = 0;
 	char* s = l->buf;
 	
 	if(!s) return;
 	
 	while(1) {
-		n = strcspn(s, b->dictCharSet);
-		s += n;
+		// skip the junk
+		for(; e < l->length; e++, s++) {
+			if(strchr(b->dictCharSet, *s)) break;
+		}
 		
-		n = strspn(s, b->dictCharSet);
+		// span the word		
+		for(n = 0; e < l->length; n++, e++) {
+			if(NULL == strchr(b->dictCharSet, s[n])) break;
+		}
+
 		if(n <= 0) break;
 		
 		Buffer_RemoveDictWord(b, s, n);
@@ -1994,7 +2014,8 @@ void ac_print_tree(BufferPrefixNode* n, char* buf, int len) {
 	if(len > 1023) return;
 	
 	buf[len] = n->c;
-	if(n->terminal) printf("%.*s: %ld\n", len, buf + 1, n->refs);
+//	if(n->terminal) 
+	printf("%.*s: %ld, %ld\n", len, buf + 1, n->refs, n->trefs);
 	
 		
 	BufferPrefixNode* k = n->kids;
@@ -2035,7 +2056,7 @@ static void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf
 	
 	// prune bad search branches
 	if(ms->len >= ms->alloc && n->refs < ms->worst) return;
-	if(n->refs <= 1) return;
+	if(n->refs <= 0) return;
 	
 	
 	buf[len] = n->c;
@@ -2056,7 +2077,7 @@ static void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf
 	
 	
 	//                       don't autocomplete a word to itself; this is case sensitive
-	if(n->terminal && !(ms->targetLen == len + 1 && !strncmp(buf, ms->targetStart, len + 1))) {
+	if(n->trefs > 0 && !(ms->targetLen == len + 1 && !strncmp(buf, ms->targetStart, len + 1))) {
 		
 		// look for the sorted position this match should fall in to
 		for(int i = 0; i < ms->len; i++) {

@@ -170,8 +170,8 @@ typedef void (*bufferChangeNotifyFn)(BufferChangeNotification* note, void* data)
 
 typedef struct BufferPrefixNode {
 	int c;
-	char terminal;
 	int64_t refs;
+	int64_t trefs;
 	uint64_t filter;
 	struct BufferPrefixNode* next; // next sibling
 	struct BufferPrefixNode* kids;
