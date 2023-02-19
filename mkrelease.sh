@@ -2,6 +2,8 @@
 
 
 sys_path=/etc/gpuedit
+sudo rm -rf $sys_path
+
 sys_config_path=$sys_path/config
 echo "Copying configuration files to $sys_config_path..."
 sudo mkdir -p $sys_config_path
@@ -25,20 +27,23 @@ sudo cp ./src/shaders/* $sys_shaders_path/.
 
 
 echo "Building executable..."
-bash build.sh
+bash build.sh -d
 sudo cp ./gpuedit /usr/bin/gpuedit
 
 
-echo "Generating user configs..."
 home_path=~/.gpuedit
-mkdir -p $home_path
-cp ./config/options.user.json $home_path/options.json
-cp ./config/commands.json $home_path/.
-# todo: get system level themes in case of other user
-# todo: generate user configs on startup rather than installation
-home_themes_path=$home_path/themes
-mkdir -p $home_themes_path
-cp ./config/themes/* $home_themes_path/.
-
+if [ ! -d $home_path ]; then
+	echo "Generating user configs..."
+	mkdir -p $home_path
+	cp ./config/options.user.json $home_path/options.json
+	cp ./config/commands.json $home_path/.
+	# todo: get system level themes in case of other user
+	# todo: generate user configs on startup rather than installation
+	home_themes_path=$home_path/themes
+	mkdir -p $home_themes_path
+	cp ./config/themes/* $home_themes_path/.
+else
+	echo "Found existing user configs. Skipping."
+fi
 
 echo "Done."

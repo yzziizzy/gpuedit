@@ -57,7 +57,7 @@ buffer: {
 gui: {
 	shaderPath: "./src/shaders/guiUnified.glsl",
 	
-	"maxInstances": 8192,
+	"maxInstances": 16384,
 	"linesPerScrollWheel": 5,
 	"hideScrollbar": 0,
 	"hideStatusBar": 0,
