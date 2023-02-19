@@ -119,7 +119,7 @@ char* cflags[] = {
 	"-fno-rounding-math", 
 	"-fno-signaling-nans", 
 	"-include signal.h", 
-	"-include ./config.h",
+	//"-include ./config.h",
 	"-pthread", 
 	"-Wall", 
 	"-Werror", 
