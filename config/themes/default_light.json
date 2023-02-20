@@ -1,5 +1,5 @@
 {
-	Theme: {
+	theme: {
 		// Theme Settings
 		"name": "debug",
 		"is_dark": 0,
@@ -18,7 +18,7 @@
 		"selectedItemBgColor": "#ddddddff",
 	},
 	// gui manager defaults
-	GUI_GlobalSettings: {
+	gui: {
 		"bgColor": "#ffffffff",
 		"lineNumColor": "#333333ff",
 		"lineNumBgColor": "#ffffffff",

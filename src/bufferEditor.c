@@ -347,7 +347,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 		}
 	}
 		
-	/*	TODO IMGUI		
+	/*	TODO IMGUI
 	if(str) {
 		
 		if(w->findQuery) {

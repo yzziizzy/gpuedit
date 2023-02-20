@@ -161,6 +161,7 @@ void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
 void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
 
 void MainControl_GrepOpen(MainControl* w, char* searchTerm);
+void MainControlPane_EmptyTab(MainControlPane* w);
 void MainControl_Calculator(MainControl* w);
 void MainControl_Terminal(MainControl* w);
 void MainControl_CloseBuffer(MainControl* w, int index);

@@ -628,14 +628,14 @@ void MainControl_ExpandPanes(MainControl* w, int newX, int newY) {
 	for(int y = 0; y < newY; y++) {
 	for(int x = w->xDivisions; x < newX; x++) {
 		newPanes[x + newX * y] = MainControlPane_New(w);
-		MainControlPane_FuzzyOpener(newPanes[x + newX * y], NULL);
+		MainControlPane_EmptyTab(newPanes[x + newX * y]);
 	}}
 	
 	// 3: create empty panes in newly created space, below the existing data
 	for(int y = w->yDivisions; y < newY; y++) {
 	for(int x = 0; x < w->xDivisions; x++) {
 		newPanes[x + newX * y] = MainControlPane_New(w);
-		MainControlPane_FuzzyOpener(newPanes[x + newX * y], NULL);
+		MainControlPane_EmptyTab(newPanes[x + newX * y]);
 	}}
 	
 	
@@ -704,6 +704,11 @@ MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, 
 //		GUIManager_SetMainWindowTitle(w->header.gm, title);
 	}
 	
+	MainControlTab* t0 = VEC_ITEM(&w->tabs, 0);
+	if(t0->type == MCTAB_Empty && VEC_LEN(&w->tabs) > 1) {
+		MainControlPane_CloseTab(w, 0);
+	}
+	
 	w->tabAutoSortDirty = 1;
 	
 	MainControl_OnTabChange(w->mc);
@@ -733,8 +738,9 @@ void MainControlPane_CloseTab(MainControlPane* w, int index) {
 	// update the current tab index
 	size_t n_tabs = VEC_LEN(&w->tabs);
 	if(!n_tabs) {
-		// todo: exit more fancily
-		exit(0);
+		// closing the last real tab will no longer destroy a pane or exit
+		MainControlPane_EmptyTab(w);\
+		n_tabs = 1;
 	}
 	if(w->currentIndex > index || w->currentIndex > (n_tabs - 1)) {
 		w->currentIndex--;
@@ -786,10 +792,12 @@ int MainControlPane_FindTabIndexByBufferPath(MainControlPane* w, char* path) {
 
 static int tab_sort_priorities[] = {
 	[MCTAB_None] = 0,
-	[MCTAB_Buffer] = 4,
+	[MCTAB_Buffer] = 6,
 	[MCTAB_FileOpener] = 2,
 	[MCTAB_FuzzyOpener] = 1,
 	[MCTAB_GrepOpener] = 3,
+	[MCTAB_Calculator] = 4,
+	[MCTAB_Empty] = 5,
 };
 
 
@@ -807,6 +815,8 @@ static int tab_sort_fn(void* _a, void* _b) {
 		case MCTAB_None:
 		case MCTAB_FuzzyOpener:
 		case MCTAB_GrepOpener:
+		case MCTAB_Calculator:
+		case MCTAB_Empty:
 			return (intptr_t)b - (intptr_t)a; // order has no meaning, just be consistent
 		
 		case MCTAB_Buffer:
@@ -1092,6 +1102,19 @@ void MainControl_GrepOpen(MainControl* w, char* searchTerm) {
 	MainControl_OnTabChange(w);
 }
 
+
+void MainControlPane_EmptyTab(MainControlPane* w) {
+	void* o = MainControlPane_nthTabOfType(w, MCTAB_Empty, 1);
+	if(o != NULL) {
+		return;
+	}
+	
+	MainControlTab* tab = MainControlPane_AddGenericTab(w, NULL, "this tab left blank intentionally");
+	tab->type = MCTAB_Empty;
+
+	MainControlPane_nthTabOfType(w, MCTAB_Empty, 1);
+}
+
 /*
 void MainControl_Calculator(MainControl* w) {
 	
@@ -1219,6 +1242,10 @@ void MainControl_OnTabChange(MainControl* w) {
 		json_obj_set_key(jp, "x", json_new_int(x));
 		json_obj_set_key(jp, "y", json_new_int(y));
 		json_obj_set_key(jp, "type", json_new_str("tabs"));
+		json_obj_set_key(jp, "active_tab", json_new_int(p->currentIndex));
+		if(p == w->focusedPane) {
+			json_obj_set_key(jp, "is_focused_pane", json_new_int(1));
+		}
 		
 		json_value_t* jtabs = json_new_array();
 		VEC_EACH(&p->tabs, ti, t) {

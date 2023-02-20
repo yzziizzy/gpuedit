@@ -15,7 +15,12 @@
 * bugz: statusbar widgets drawn on top of each other
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
 * bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
-* bugz: unable to change theme
+* bugz: session adds an extra fuzzy matcher to second pane
+* bugz: light theme cursor is still white (invisible)
+* bugz: C-d comment not pushed into undo stack
+* bugz: redo of single paste is multiple commands
+* bugz: smartfind not starting with selection
+
 
 * render whitespace characters
 * ctrl+l/r jumps across tabs (sequence break on newline)

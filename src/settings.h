@@ -24,6 +24,7 @@ enum {
 	X(FuzzyOpener) \
 	X(GrepOpener) \
 	X(Calculator) \
+	X(Empty) \
 
 
 typedef enum TabType {
