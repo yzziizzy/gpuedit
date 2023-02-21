@@ -12,7 +12,6 @@
 * Command to append text to end of code on line (;), but before comments
 
 == Needed before fractal dogfooding ==
-* bugz: statusbar widgets drawn on top of each other
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
 * bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
 * bugz: C-d comment not pushed into undo stack

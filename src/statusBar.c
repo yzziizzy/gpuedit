@@ -64,13 +64,14 @@ void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, Pass
 	Vector2 offset = tl;
 	
 	VEC_EACH(&w->items, i, item) {
+		offset = tl;
 		size.x = item->size * charWidth;
 		offset.x = item->offset;
 //		printf("widget '%s', size: %ld [%.2f,%.2f] at (%.2f, %.2f)\n", item->line, item->size, size.x, size.y, offset.x, offset.y);
-
+		
 		GUI_TextLine(
 			item->line, strlen(item->line),
-			tl,
+			offset,
 			gm->defaults.fontName_fw, fontSize,
 			&gm->defaults.statusBarTextColor
 		);
