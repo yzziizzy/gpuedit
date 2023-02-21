@@ -3,6 +3,7 @@
 		// Theme Settings
 		"name": "debug",
 		"is_dark": 0,
+		"cursorColor": "#333333ff",
 	
 		// mainControl.c
 		"bgColor": "#ffffffff",

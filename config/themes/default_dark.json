@@ -3,6 +3,7 @@
 		// Theme Settings
 		"name": "default dark",
 		"is_dark": 1,
+		"cursorColor": "#f0f0f0ff",
 	
 		// mainControl.c
 		"bgColor": "#0f0f0fff",

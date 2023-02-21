@@ -612,14 +612,14 @@ void MainControl_ExpandPanes(MainControl* w, int newX, int newY) {
 	
 	// 2: squash old pane tabs into the highest new pane, on new existing columns
 	for(int x = 0; x < smallerX; x++) { 
-	for(int y = newY; y < w->yDivisions; y++) { 
+	for(int y = newY; y < w->yDivisions; y++) {
 		VEC_CAT(&newPanes[x + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
 		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
 	}}
 	
 	// 2: squash old pane tabs into the highest new pane, in the clipped-off corner
-	for(int x = newX; x < w->xDivisions; x++) { 
-	for(int y = newY; y < w->yDivisions; y++) { 
+	for(int x = newX; x < w->xDivisions; x++) {
+	for(int y = newY; y < w->yDivisions; y++) {
 		VEC_CAT(&newPanes[newX - 1 + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
 		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
 	}}
@@ -638,6 +638,7 @@ void MainControl_ExpandPanes(MainControl* w, int newX, int newY) {
 		MainControlPane_EmptyTab(newPanes[x + newX * y]);
 	}}
 	
+	// todo: clear out any empty tabs that have been squashed into lower panes
 	
 	free(w->paneSet);
 	w->paneSet = newPanes;
