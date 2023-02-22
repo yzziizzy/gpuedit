@@ -59,6 +59,15 @@ typedef struct BufferLine {
 //#define HAS_SELECTION(r) ((r)->line[!(r)->cursor])
 #define HAS_SELECTION(r) (!!(r)->selecting)
 
+
+// BufferRange data is always in order: col[0] <= col[1], line[0] <= line[1]
+// EXCLUSIVELY use the macros above to access cursor and pivot positions
+// It is possible for either line to be NULL, depending on the history and
+//   usage of the particular instance. A NULL line represents a cursor without
+//   a selection, ie, no pivot. 
+// The order of cursor and pivot in memory depends on whether the user selected
+//   from right to left or left to right. This state can change quickly and 
+//   drastically; do not cache it or make assumptions about it.
 typedef struct BufferRange {
 	union {
 		BufferLine* line[2];
@@ -83,6 +92,10 @@ typedef struct BufferRangeSet {
 	int changeCounter;
 	VEC(BufferRange*) ranges;
 } BufferRangeSet;
+
+
+BufferRange* BufferRange_Copy(BufferRange* r);
+BufferRangeSet* BufferRangeSet_Copy(BufferRangeSet* rs);
 
 
 typedef struct BufferRangeDrawInfo {
@@ -404,6 +417,36 @@ typedef struct GUIFindOpt {
 	MatchMode_t match_mode;
 } GUIFindOpt;
 
+typedef struct BufferFindState {
+	// configurable
+	Buffer* b;
+	GUIFindOpt opts;
+	BufferRangeSet* searchSpace;
+	char* pattern;
+	char* replaceText;
+	
+	// read-only
+	BufferRangeSet* findSet;
+	long findIndex;
+	
+	// internal
+	pcre2_code* findRE;
+	pcre2_match_data* findMatch;
+	BufferLine* findLine;
+	intptr_t findCharS;
+	intptr_t findCharE;
+	intptr_t findLen;
+	char* findREError;
+	int findREErrorChar;
+	BufferLine* nextFindLine;
+	intptr_t nextFindChar;
+	
+} BufferFindState;
+
+
+BufferFindState* BufferFindState_Create(Buffer* b, char* pattern, GUIFindOpt* opt, BufferRange* searchSpace);
+
+
 
 typedef struct BufferEditorMacro {
 	VEC(GUI_Cmd) cmds;
@@ -432,6 +475,7 @@ typedef struct GUIBufferEditor {
 	GUIString findQuery;
 	GUIString replaceText;
 	
+	/*
 	GUIFindOpt find_opt;
 	pcre2_code* findRE;
 	pcre2_match_data* findMatch;
@@ -443,9 +487,10 @@ typedef struct GUIBufferEditor {
 	int findREErrorChar;
 	BufferLine* nextFindLine;
 	intptr_t nextFindChar;
+	*/
+	BufferFindState* findState;
 	
-	BufferRangeSet* findSet;
-	long findIndex;
+	
 //	GUIText* findResultsText;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
@@ -631,9 +676,11 @@ void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, colnum_t c
 void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, colnum_t col, char* charSet, BufferRange* out);
 
 
-BufferRangeSet* GUIBufferEditor_FindAll(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
-BufferRangeSet* GUIBufferEditor_FindAll_Fuzzy(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
-BufferRangeSet* GUIBufferEditor_FindAll_PCRE(GUIBufferEditor* w, char* pattern, GUIFindOpt* find_opt);
+void BufferFindState_FreeAll(BufferFindState* st);
+
+int BufferFindState_FindAll(BufferFindState* st);
+int BufferFindState_FindAll_Fuzzy(BufferFindState* st);
+int BufferFindState_FindAll_PCRE(BufferFindState* st);
 int BufferRangeSet_test(BufferRangeSet* s, BufferLine* bl, colnum_t col);
 void BufferRangeSet_FreeAll(BufferRangeSet* s);
 
@@ -651,7 +698,6 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, col
 void Buffer_CommentLine(Buffer* b, BufferLine* bl);
 void Buffer_CommentSelection(Buffer* b, BufferRange* sel);
 long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, colnum_t col);
-int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
 int Buffer_ReplaceAllString(Buffer* dst, char* needle, Buffer* src);
 
 
@@ -799,9 +845,10 @@ void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height);
 void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index);
 
 
-int GUIBufferEditor_StartFind(GUIBufferEditor* w, char* pattern);
-int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor);
+int GUIBufferEditor_StartFind(GUIBufferEditor* w, BufferFindState* st);
+int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w);
+int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask, BufferFindState* st);
 
 colnum_t GBEC_NominalColFromVisual(GUIBufferEditControl* w, BufferLine* bl, colnum_t wanted);
 colnum_t GBEC_VisualColFromNominal(GUIBufferEditControl* w, BufferLine* bl, colnum_t col);

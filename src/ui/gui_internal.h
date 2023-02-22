@@ -15,7 +15,11 @@ typedef struct GUIRenderParams {
 
 
 
+int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEvent* e);
+#define GUI_HandleCursor(...) GUI_HandleCursor_(gm, __VA_ARGS__)
 
+int GUI_HandleTextInput_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEvent* e);
+#define GUI_HandleTextInput(...) GUI_HandleTextInput_(gm, __VA_ARGS__)
 
 
 
