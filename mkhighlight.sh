@@ -5,7 +5,7 @@ here="$( cd "$( dirname "$0" )" &> /dev/null && pwd )"
 
 opt_all=0
 opt_dest="$HOME/.gpuedit/highlighters/."
-opt_parser=0\
+opt_parser=0
 opt_sudo=""
 
 

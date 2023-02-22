@@ -215,10 +215,16 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 			
 			int x = json_obj_get_int(jpane, "x", 0);
 			int y = json_obj_get_int(jpane, "y", 0);
+			int is_focused_pane = json_obj_get_int(jpane, "is_focused_pane", 0);
 			MainControlPane* pane = MainControl_GetPane(as->mc, x, y);
-				
+			if(is_focused_pane) {
+				MainControl_FocusPane(as->mc, x, y);
+			}
+			
 			// Todo: type
 			json_value_t* jtabs = json_obj_get_val(jpane, "tabs");
+			int active_tab = json_obj_get_int(jpane, "active_tab", 0);
+			
 			
 			json_link_t* tlink = jtabs->arr.head;
 			for(; tlink; tlink = tlink->next) {
@@ -240,9 +246,11 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 					MainControlPane_FuzzyOpener(pane, "");
 				}
 			}
+			
+			MainControlPane_GoToTab(pane, active_tab);
 		}
 		
-		MainControlPane_GoToTab(as->mc->focusedPane, 0);
+		MainControlPane_GoToTab(as->mc->focusedPane, as->mc->focusedPane->currentIndex);
 		
 		json_file_free(jsf);
 	}

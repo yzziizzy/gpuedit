@@ -1,8 +1,9 @@
 {
-	Theme: {
+	theme: {
 		// Theme Settings
 		"name": "default dark",
 		"is_dark": 1,
+		"cursorColor": "#f0f0f0ff",
 	
 		// mainControl.c
 		"bgColor": "#0f0f0fff",
@@ -18,7 +19,7 @@
 		"selectedItemBgColor": "#505050ff",
 	},
 	// gui manager defaults
-	GUI_GlobalSettings: {
+	gui: {
 		"bgColor": "#0f0f0fff",
 		"lineNumColor": "#ffffffff",
 		"lineNumBgColor": "#141414ff",

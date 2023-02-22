@@ -6,14 +6,14 @@ general: {
 	
 	"GUIManager_maxInstances": 16384,
 	
-	imagesPath: "./images",
-	commandsPath: "./config/commands.json",
-	highlightersPath: "./src/highlighters/",
-	highlightStylesPath: "./config/",
+	imagesPath: "/etc/gpuedit/images",
+	commandsPath: "/etc/gpuedit/config/commands.json",
+	highlightersPath: "/etc/gpuedit/highlighters/",
+	highlightStylesPath: "/etc/gpuedit/highlighters",
 
 	"MainControl_startupTabs": [
-		{ "type": "Buffer", "path": "./testfile.c", },
-		{ "type": "Buffer", "path": "./testfile.h", },
+		// { "type": "Buffer", "path": "./testfile.c", },
+		// { "type": "Buffer", "path": "./testfile.h", },
 		{ "type": "FuzzyOpener", "path": "", },
 		// { "type": "FileOpen", "path": "./", },
 	],
@@ -55,7 +55,7 @@ buffer: {
 },
 	
 gui: {
-	shaderPath: "./src/shaders/guiUnified.glsl",
+	shaderPath: "/etc/gpuedit/shaders/guiUnified.glsl",
 	
 	"maxInstances": 16384,
 	"linesPerScrollWheel": 5,

@@ -2,29 +2,20 @@
 
 general: {
 
-	AppState_frameRate: 30,
-	
-	"GUIManager_maxInstances": 16384,
-	
-	imagesPath: "./images",
-	commandsPath: "./config/commands.json",
-	highlightersPath: "./src/highlighters/",
-	highlightStylesPath: "./config/",
+	// you need at least one project directoy here for fuzzy match and grep match file openers
+	"MainControl_searchPaths": [
+		// "/home/<your_user/projects/foo",
+	],
+
+	// set this to the absolute path to override the default commands
+	// commandsPath: "/home/<your_user>/commands.json",
 
 	"MainControl_startupTabs": [
-		{ "type": "Buffer", "path": "./testfile.c", },
-		{ "type": "Buffer", "path": "./testfile.h", },
 		{ "type": "FuzzyOpener", "path": "", },
-		// { "type": "FileOpen", "path": "./", },
 	],
 	
 	"MainControl_openInPlace": 0,
 	"MainControl_autoSortTabs": 0,
-	
-	MainControl_tabNameScrollFn: "sinusoidal", // None, Linear, Sinusoidal, Swing, Loop
-	MainControl_tabNameScrollStartLinger: 2.0,
-	MainControl_tabNameScrollEndLinger: 2.0,
-	MainControl_tabNameScrollAnimTime: 3.0,
 	
 	// Theme Settings
 	"Theme_path": "default_dark.json",	
@@ -40,7 +31,6 @@ buffer: {
 	"outlineCurrentLineYOffset": 0,
 	"lineNumExtraWidth": 10,
 	"lineNumBase": 10, // 2-36
-	"lineNumCharset": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	"showLineNums": 1,
 	"charWidth": 8,
 	"lineHeight": 17,
@@ -55,10 +45,6 @@ buffer: {
 },
 	
 gui: {
-	shaderPath: "./src/shaders/guiUnified.glsl",
-	
-	"maxInstances": 16384,
-	"linesPerScrollWheel": 5,
 	"hideScrollbar": 0,
 	"hideStatusBar": 0,
 	
@@ -69,5 +55,5 @@ gui: {
 	
 	"fontSize_fw": 14,
 },
-	
+
 }

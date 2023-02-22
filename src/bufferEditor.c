@@ -120,7 +120,12 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			}
 		}
 	}
-		
+	
+	if(w->saveTrayOpen) {
+		// render the save tray
+		// above the find tray
+	}
+	
 	// forward activeness to the edit control
 	if(gm->activeID == w) ACTIVE(w->ec);
 
@@ -347,7 +352,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 		}
 	}
 		
-	/*	TODO IMGUI		
+	/*	TODO IMGUI
 	if(str) {
 		
 		if(w->findQuery) {
@@ -953,7 +958,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			
 		case GUICMD_Buffer_FindStart:			
 		case GUICMD_Buffer_FindResume:
-			w->inputMode = 1;
+			w->inputMode = BIM_Find;
 		
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_NONE);
 			
@@ -961,6 +966,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			
 			break;
 		case GUICMD_Buffer_SmartFind:
+			w->inputMode = BIM_Find;
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION|FM_SEQUENCE);
 			GUI_SetActive(&w->findQuery);
 			break;
@@ -1026,7 +1032,8 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			else {
 				printf("Buffer saving disabled.\n");
 			}
-//			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");
+			MessagePipe_Send(w->tx, MSG_CloseMe, w, NULL);
+			
 			break;
 		
 		case GUICMD_Buffer_PromptAndClose:
@@ -1037,7 +1044,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			
 			if(w->b->undoSaveIndex == w->b->undoCurrent) {
 				// changes are saved, so just close
-				// MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
+				MessagePipe_Send(w->tx, MSG_CloseMe, w, NULL);
 				break;
 			}
 			
@@ -1060,6 +1067,8 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			
 			break;
 		
+		// currently crashes:
+		// 0x00005555555a10f5 in getColOffset (txt=0x1 <error: Cannot access memory at address 0x1>, col=3, tabWidth=4) at src/buffer_drawing.c:24
 		case GUICMD_Buffer_Reload:
 		{
 			struct hlinfo* hl = w->b->hl; // preserve the meta info
