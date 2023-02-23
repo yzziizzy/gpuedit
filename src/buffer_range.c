@@ -7,6 +7,26 @@
 
 
 
+BufferRange* BufferRange_Copy(BufferRange* r) {
+	BufferRange* c = pcalloc(c);
+	*c = *r;
+	return c;
+}
+
+BufferRangeSet* BufferRangeSet_Copy(BufferRangeSet* rs) {
+	BufferRangeSet* cs = pcalloc(cs);
+	*cs = *rs;
+	
+	VEC_INIT(&cs->ranges);
+	VEC_EACH(&rs->ranges, ri, rra) {
+		VEC_PUSH(&cs->ranges, BufferRange_Copy(rra));
+	}
+	
+	return cs;
+}
+
+
+
 int BufferRange_CompleteLinesOnly(BufferRange* sel) {
 	if(!sel) return 0;
 	

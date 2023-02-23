@@ -207,6 +207,17 @@ typedef struct GUIString {
 	char* data;
 } GUIString;
 
+void GUIString_Set(GUIString* gs, char* s);
+void GUIString_Setn(GUIString* gs, char* s, ssize_t n);
+
+
+typedef struct GUICursorData {
+	int cursorPos;
+	int selectPivot;
+	float blinkTimer;
+} GUICursorData;
+
+
 typedef int (*GUIEditFilterFn)(GUIString*, GUIEvent*, int /*pos*/, void* /*user_data*/); 
 
 

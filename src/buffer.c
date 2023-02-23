@@ -1604,7 +1604,7 @@ char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen) {
 void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, colnum_t col, char* charSet, BufferRange* out) {
 	intptr_t start, end;
 	
-	for(start = col; start >= 0; start--) {
+	for(start = MIN(l->length - 1, col); start >= 0; start--) {
 		if(NULL == strchr(charSet, l->buf[start])) {
 			start++;
 			break;

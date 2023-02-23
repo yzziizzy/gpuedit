@@ -5,6 +5,29 @@
 
 
 
+void GUIString_Set(GUIString* gs, char* s) {
+	size_t len = strlen(s);
+	if(gs->alloc < len + 1) {
+		gs->data = realloc(gs->data, len + 1);
+		gs->alloc = len + 1;
+	}
+	
+	memcpy(gs->data, s, len);
+	gs->len = len;
+}
+
+void GUIString_Setn(GUIString* gs, char* s, ssize_t n) {
+	if(gs->alloc < n + 1) {
+		gs->data = realloc(gs->data, n + 1);
+		gs->alloc = n + 1;
+	}
+	
+	n = strnlen(s, n);
+	memcpy(gs->data, s, n);
+	gs->len = n;
+}
+
+
 
 #include "macros_on.h"
 
@@ -436,14 +459,8 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, float width, char** opt
 
 
 
-struct cursor_data {
-	int cursorPos;
-	int selectPivot;
-	float blinkTimer;
-};
-
 struct edit_data {
-	struct cursor_data cursor;
+	GUICursorData cursor;
 	float scrollX; // x offset to add to all text rendering code 
 	char synthed_change; // indicates that the buffer was changed externally
 	
@@ -464,7 +481,7 @@ static void check_string(GUIString* s, int extra) {
 	}
 }
 
-static void delete_selection(struct cursor_data* cd, GUIString* str) {
+static void delete_selection(GUICursorData* cd, GUIString* str) {
 	int start = MIN(cd->selectPivot, cd->cursorPos);
 	int end = MAX(cd->selectPivot, cd->cursorPos);
 	int len = end - start;
@@ -476,7 +493,7 @@ static void delete_selection(struct cursor_data* cd, GUIString* str) {
 }
 
 // return 1 on changes
-static int handle_cursor(GUIManager* gm, struct cursor_data* cd, GUIString* str, GUIEvent* e) {
+int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEvent* e) {
 	int ret = 0;
 
 	switch(e->keycode) {
@@ -548,7 +565,7 @@ BLINK:
 }
 
 // returns 1 on changes made to the buffer
-static int handle_input(GUIManager* gm, struct cursor_data* cd, GUIString* str, GUIEvent* e) {
+int GUI_HandleTextInput_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEvent* e) {
 	int ret = 0;
 	
 	cd->cursorPos = MIN(cd->cursorPos, (int)str->len);
@@ -571,7 +588,7 @@ static int handle_input(GUIManager* gm, struct cursor_data* cd, GUIString* str, 
 		ret = 1;
 	}
 	else {
-		ret |= handle_cursor(gm, cd, str, e);
+		ret |= GUI_HandleCursor_(gm, cd, str, e);
 	}
 	
 	return ret;
@@ -614,7 +631,7 @@ int GUI_Edit_Trigger_(GUIManager* gm, void* id, GUIString* str, int c) {
 		if(!d->filter_fn(str, &e, d->cursor.cursorPos, d->filter_user_data)) return 0;
 	}
 	
-	int ret = handle_input(gm, &d->cursor, str, &e);
+	int ret = GUI_HandleTextInput_(gm, &d->cursor, str, &e);
 	d->synthed_change |= ret;
 	
 	return ret;
@@ -625,18 +642,13 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	int ret;
 	struct edit_data* d;
 	
-	check_string(str, 0); // make sure the input string exists
-	
 	if(!(d = GUI_GetData_(gm, id))) {
 		d = calloc(1, sizeof(*d));
 		d->cursor.selectPivot = -1;
-		if(o->selectAll) {
-			d->cursor.selectPivot = 0;
-			d->cursor.cursorPos = str->len;
-		}
-		
 		GUI_SetData_(gm, id, d, free);
 	}
+	
+	check_string(str, 0); // make sure the input string exists
 	
 	ret = d->synthed_change;
 	d->synthed_change = 0;
@@ -645,7 +657,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	if(width > 0) sz.x = width;
 	float fontSz = o->fontSize;
 	
-	GUIFont* font = GUI_FindFont(gm, o->fontName, o->fontSize);	
+	GUIFont* font = GUI_FindFont(gm, o->fontName, fontSz);	
 	
 	HOVER_HOT(id)
 	
@@ -663,7 +675,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	if(gm->activeID == id) {
 		if(gm->curEvent.type == GUIEVENT_KeyDown) {
 			if(!isprint(gm->curEvent.character) || !d->filter_fn || d->filter_fn(str, &gm->curEvent, d->cursor.cursorPos, d->filter_user_data)) {
-				ret |= handle_input(gm, &d->cursor, str, &gm->curEvent);
+				ret |= GUI_HandleTextInput_(gm, &d->cursor, str, &gm->curEvent);
 			}
 		}
 	}
@@ -729,6 +741,8 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 
 struct intedit_data {
 	struct edit_data ed;
+	int cursorPos;
+	float blinkTimer;
 	
 	long lastValue;
 	GUIString str;
@@ -753,8 +767,10 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 		d->str.data = calloc(1, d->str.alloc * sizeof(*d->str.data));
 		firstRun = 1;
 	}
-	
-	GUIFont* font = GUI_FindFont(gm, o->fontName, o->fontSize);
+		
+		
+	float fontSz = o->fontSize;
+	GUIFont* font = GUI_FindFont(gm, o->fontName, fontSz);
 	
 	Vector2 sz = o->size;
 	if(width > 0) sz.x = width;
@@ -775,7 +791,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	if(gm->activeID == id) {
 		if(gm->curEvent.type == GUIEVENT_KeyDown) {
 			if(!isprint(gm->curEvent.character) || ('0' <= gm->curEvent.character && gm->curEvent.character <= '9')) {
-				ret |= handle_input(gm, &d->ed.cursor, &d->str, &gm->curEvent);
+				ret |= GUI_HandleTextInput_(gm, &d->ed.cursor, &d->str, &gm->curEvent);
 			}
 		}
 	}
@@ -798,28 +814,21 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 
 	// refresh the buffer, maybe
 	if(*num != d->lastValue || firstRun) {
-		if(*num == 0) {
-			d->str.len = 0;
-		}
-		else {
-			d->str.len = snprintf(d->str.data, 64, "%ld", *num);
-		}
+		d->str.len = snprintf(d->str.data, 64, "%ld", *num);
 		d->lastValue = *num;
 	}
-	
-		
-	float fontSz = o->fontSize;
+
 	
 	
 	// draw cursor
 	if(gm->activeID == id) {
-		if(d->ed.cursor.blinkTimer < 0.5) { 
-			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->ed.cursor.cursorPos);
+		if(d->blinkTimer < 0.5) { 
+			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->cursorPos);
 			GUI_Rect(V(tl.x + cursorOff, tl.y), V(2,sz.y), &o->cursorColor);
 		}
 		
-		d->ed.cursor.blinkTimer += gm->timeElapsed;
-		d->ed.cursor.blinkTimer = fmod(d->ed.cursor.blinkTimer, 1.0);
+		d->blinkTimer += gm->timeElapsed;
+		d->blinkTimer = fmod(d->blinkTimer, 1.0);
 	}
 	
 	gm->curZ += 0.01;
