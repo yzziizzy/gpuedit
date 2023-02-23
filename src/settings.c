@@ -15,6 +15,13 @@ char* mctab_type_names[] = {
 #undef X
 };
 
+char* mcwid_type_names[] = {
+	[MCWID_NONE] = "None",
+#define X(x,...) [MCWID_##x] = #x,
+	MCWID_TYPE_LIST
+#undef X
+};
+
 
 size_t strlistlen(char** a) {
 	size_t n = 0;
@@ -275,6 +282,8 @@ static void grab_widsp(WidgetSpec** out, json_value_t* obj, char* prop) {
 						tmp[i].type = MCWID_CLOCK;
 					} else if(!strcasecmp(type_str, "battery")) {
 						tmp[i].type = MCWID_BATTERY;
+					} else if(!strcasecmp(type_str, "bufmode")) {
+						tmp[i].type = MCWID_BUFMODE;
 					} else if(!strcasecmp(type_str, "linecol")) {
 						tmp[i].type = MCWID_LINECOL;
 					} else {

@@ -93,7 +93,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	struct Color4 lineColors[] = {
 		ts->lineNumColor,
 		ts->lineNumBookmarkColor,
-		{.95,.05,.05,1.0}, // breakpoint
+		ts->lineNumBreakpointColor
 	};
 
 	StyleInfo* styles;

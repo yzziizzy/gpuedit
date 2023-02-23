@@ -131,6 +131,47 @@ static size_t strflinecol(char* s, size_t max, const char* format, GUIBufferEdit
 }
 
 
+static size_t strfbufmode(char* s, size_t max, const char* format, GUIBufferEditor* ed) {
+	size_t copied = 0;
+	char buffer[20];
+	int len = 0;
+	
+	for(int i = 0; format[i] != '\0'; i++) {
+		switch(format[i]) {
+			case '%':
+				switch(format[i + 1]) {
+					case 'D':
+						len = snprintf(buffer, 20, "%d", ed->ec->inputMode);
+						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
+						copied += len;
+						i++;
+						break;
+						
+					case 'S':
+						GUI_CmdModeInfo* info = Commands_GetModeInfo(ed->gm, ed->ec->inputMode);
+						len = snprintf(buffer, 20, "%s", info->name);
+						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
+						copied += len;
+						i++;
+						break;
+						
+					case '%':
+						s[copied++] = '%';
+						i++;
+				}
+				break;
+				
+			default:
+				s[copied++] = format[i];
+		}
+	}
+	
+	s[copied++] = '\0';
+	
+	return copied;
+}
+
+
 static void setLine(StatusBar* w, StatusBarItem* item) {
 	switch(item->type) {
 		case MCWID_HELLO:
@@ -151,7 +192,11 @@ static void setLine(StatusBar* w, StatusBarItem* item) {
 		case MCWID_BATTERY:
 			strcpy(item->line, "batt: over 9000%");
 			break;
-			
+		
+		case MCWID_BUFMODE:
+			strfbufmode(item->line, 100, item->format, w->ed);
+			break;
+		
 		case MCWID_LINECOL:
 			strflinecol(item->line, 100, item->format, w->ec);
 			break;

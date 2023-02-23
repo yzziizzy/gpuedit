@@ -10,6 +10,7 @@
 		"lineNumColor": "#ffffffff",
 		"lineNumBgColor": "#141414ff",
 		"lineNumBookmarkColor": "#32ff32ff",
+		"lineNumBreakpointColor": "#f00f0fff",
 		"hl_bgColor": "#264f78ff",
 		"hl_textColor": "#fa0032ff",
 		"find_bgColor": "#115511ff",
