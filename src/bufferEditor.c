@@ -78,6 +78,23 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			
 		}
 		
+		static int find_was_active = 0;
+		int needRehighlight; // useless
+		if((gm->activeID == &w->findQuery || gm->activeID == &w->replaceText) && !find_was_active) {
+			// find focused
+			find_was_active = 1;
+			GUI_Cmd cmd = {0};
+			cmd.cmd = GUICMD_Buffer_FindEditControlFocus;
+			GUIBufferEditor_ProcessCommand(w, &cmd, &needRehighlight);
+		}
+		else if((gm->activeID != &w->findQuery && gm->activeID != &w->replaceText)&& find_was_active) {
+			// find blurred
+			find_was_active = 0;
+			GUI_Cmd cmd = {0};
+			cmd.cmd = GUICMD_Buffer_FindEditControlBlur;
+			GUIBufferEditor_ProcessCommand(w, &cmd, &needRehighlight);
+		}
+		
 
 		
 		DEFAULTS(GUIButtonOpts, bo)
@@ -1035,6 +1052,14 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			Buffer_CollapseWhitespace(w->b, CURSOR_LINE(w->ec->sel), w->ec->sel->col[0]);
 			break;
 			
+		case GUICMD_Buffer_FindEditControlFocus:
+			printf("find focus\n");
+			break;	
+		
+		case GUICMD_Buffer_FindEditControlBlur:
+			printf("find blur\n");
+			break;	
+		
 		case GUICMD_Buffer_CloseTray:
 			GUIBufferEditor_StopFind(w);
 ////			w->inputMode = 0;

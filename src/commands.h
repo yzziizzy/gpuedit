@@ -132,6 +132,8 @@
 	X(Buffer, ACReplaceWithSelected) \
 	X(Buffer, ACCompletePrefix) \
 	X(Buffer, ACCancel) \
+	X(Buffer, FindEditControlBlur) \
+	X(Buffer, FindEditControlFocus) \
 	\
 	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \
