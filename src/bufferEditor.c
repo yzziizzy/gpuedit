@@ -78,13 +78,18 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			
 		}
 		
+		GUI_Notify_(gm, 0, &w->replaceText, GUI_CMD_GUISYM_FindBox);
+		GUI_Notify_(gm, 0, &w->findQuery, GUI_CMD_GUISYM_FindBox);
+		
+		/*
 		static int find_was_active = 0;
 		int needRehighlight; // useless
 		if((gm->activeID == &w->findQuery || gm->activeID == &w->replaceText) && !find_was_active) {
 			// find focused
 			find_was_active = 1;
 			GUI_Cmd cmd = {0};
-			cmd.cmd = GUICMD_Buffer_FindEditControlFocus;
+			cmd.src_type = GUI_CMD_SRC_FOCUS;
+			cmd.key = GUICMD_Buffer_FindEditControlFocus;
 			GUIBufferEditor_ProcessCommand(w, &cmd, &needRehighlight);
 		}
 		else if((gm->activeID != &w->findQuery && gm->activeID != &w->replaceText)&& find_was_active) {
@@ -94,6 +99,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			cmd.cmd = GUICMD_Buffer_FindEditControlBlur;
 			GUIBufferEditor_ProcessCommand(w, &cmd, &needRehighlight);
 		}
+		*/
 		
 
 		
@@ -1051,14 +1057,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		case GUICMD_Buffer_CollapseWhitespace:
 			Buffer_CollapseWhitespace(w->b, CURSOR_LINE(w->ec->sel), w->ec->sel->col[0]);
 			break;
-			
-		case GUICMD_Buffer_FindEditControlFocus:
-			printf("find focus\n");
-			break;	
-		
-		case GUICMD_Buffer_FindEditControlBlur:
-			printf("find blur\n");
-			break;	
 		
 		case GUICMD_Buffer_CloseTray:
 			GUIBufferEditor_StopFind(w);

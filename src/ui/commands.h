@@ -10,6 +10,17 @@
 #include "../commands.h"
 
 
+#ifndef EXTERN_GUI_VK_LIST
+	#define EXTERN_GUI_VK_LIST
+#endif
+
+enum {
+#define X(a, ...) GUI_CMD_GUISYM_##a,
+	EXTERN_GUI_VK_LIST
+#undef X
+};
+
+
 #ifndef EXTERN_GUI_ELEMENT_LIST
 	#define EXTERN_GUI_ELEMENT_LIST
 #endif
@@ -29,6 +40,7 @@
 #endif
 
 #define GUI_COMMAND_LIST \
+	X(SYSTEM, Nop) \
 	X(Edit, Copy) \
 	X(Edit, Cut) \
 	X(Edit, Paste) \
@@ -74,6 +86,7 @@
 #define X(a) GUIELEMENT_##a,
 enum GUIElementType {
 	GUIELEMENT_NULL = 0,
+	GUIELEMENT_SYSTEM,
 	GUI_ELEMENT_LIST
 };
 #undef X
@@ -123,6 +136,7 @@ enum {
 	GUI_CMD_SRC_KEY,
 	GUI_CMD_SRC_CLICK,
 	GUI_CMD_SRC_FOCUS,
+	GUI_CMD_SRC_BLUR,
 };
 
 
@@ -138,9 +152,9 @@ typedef struct GUI_Cmd {
 	int16_t clearMode;
 	uint32_t mods;
 	
-	int32_t keysym; // or mouse buttons
-	uint32_t cmd;
+	int64_t keysym; // or mouse buttons
 	
+	uint32_t cmd;
 	uint32_t flags;
 	
 	union {

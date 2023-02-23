@@ -108,6 +108,8 @@
 			{elem: "Buffer", cmd: "ScrollScreenPctV", mods: "S", key: "XK_Next", amt: 50, },
 			{elem: "Buffer", cmd: "ScrollLinesV", mods: "T", key: "XK_Up", amt: -5, },
 			{elem: "Buffer", cmd: "ScrollLinesV", mods: "T", key: "XK_Down", amt: 5, },
+//			{elem: "Buffer", cmd: "ScrollColsH", mods: "", key: "BLUR_FindBox", amt: 5, },
+//			{elem: "Buffer", cmd: "ScrollColsH", mods: "", key: "FOCUS_FindBox", amt: -5, },
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Left", amt: -5, },
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Right", amt: 5, },
 			{elem: "Buffer", mods: "CT", key: "XK_Right", meta: [

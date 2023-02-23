@@ -6,6 +6,8 @@
 
 
 
+#define EXTERN_GUI_VK_LIST \
+	X(FindBox) \
 
 
 #define EXTERN_GUI_ELEMENT_LIST \
@@ -132,8 +134,6 @@
 	X(Buffer, ACReplaceWithSelected) \
 	X(Buffer, ACCompletePrefix) \
 	X(Buffer, ACCancel) \
-	X(Buffer, FindEditControlBlur) \
-	X(Buffer, FindEditControlFocus) \
 	\
 	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \

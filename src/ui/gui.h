@@ -103,8 +103,9 @@ typedef struct GUIEvent GUIEvent;
 	\
 	X(Paste, 1) \
 	\
-	X(User, 1) \
-	X(UserAll, 1)
+	X(Focus, 1) \
+	X(Blur, 1) \
+
 
 
 enum GUIEventType {
@@ -277,6 +278,10 @@ typedef struct GUIManager {
 	VEC(GUI_CmdModeInfo) commandModes;
 	GUI_Cmd tmpCmd;
 	
+	VEC(struct {
+		void* id;
+		uint64_t elem;
+	}) focusNotifiers;
 	
 	// immediate mode stuff
 	char drawMode;// only set to 1 when primitives should be written to the draw buffers
@@ -299,6 +304,9 @@ typedef struct GUIManager {
 	
 	void* hotID;
 	void* activeID;
+	
+	void* lastHotID;
+	void* lastActiveID;
 	
 	void* hotData;
 	void* activeData;
@@ -385,6 +393,8 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
 
 void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title);
 void GUIManager_SetCursor(GUIManager* gm, int cursor);
+
+void GUI_Notify_(GUIManager* gm, int type, void* id, uint64_t elem);
 
 
 

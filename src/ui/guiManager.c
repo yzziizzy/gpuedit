@@ -551,6 +551,55 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 		gm->mouseWinID = highestW->id;
 	}
 	
+	// blur and focus notifications
+	if(gm->activeID != gm->lastActiveID) {
+		void* cachedActiveID = gm->activeID;
+		void* lastActiveID = gm->lastActiveID;
+		gm->lastActiveID = gm->activeID;
+		
+		VEC_EACHP(&gm->focusNotifiers, i, not) {
+			
+			if(not->id == lastActiveID) {
+				
+				gm->curEvent = (GUIEvent){0};
+				gm->curEvent = (GUIEvent){
+					.type = GUIEVENT_Blur,
+					.keycode = not->elem,
+				};
+				
+				GUIManager_RunRenderPass(gm, pfp, 0);
+			}
+			else if(not->id == cachedActiveID) {
+				
+				gm->curEvent = (GUIEvent){0};
+				gm->curEvent = (GUIEvent){
+					.type = GUIEVENT_Focus,
+					.keycode = not->elem,
+				};
+				
+				GUIManager_RunRenderPass(gm, pfp, 0);
+			}
+
+			
+		}
+		
+		VEC_TRUNC(&gm->focusNotifiers);
+	}
+	
+	
+}
+
+
+void GUI_Notify_(GUIManager* gm, int type, void* id, uint64_t elem) {
+	VEC_EACHP(&gm->focusNotifiers, i, np) {
+		if(id == np->id) {
+			return;
+		}
+	}
+	
+	VEC_INC(&gm->focusNotifiers);
+	VEC_TAIL(&gm->focusNotifiers).id = id;
+	VEC_TAIL(&gm->focusNotifiers).elem = elem;
 }
 
 

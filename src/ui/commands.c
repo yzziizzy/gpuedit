@@ -20,6 +20,16 @@ static struct {
 };
 
 
+static struct {
+	char* name;
+	uint64_t val;
+} guisym_lookup[] = {
+	#define X(a, ...) { #a, GUI_CMD_GUISYM_##a },
+		EXTERN_GUI_VK_LIST
+	#undef X
+	{NULL, 0}
+};
+
 
 static struct {
 	char* name;
@@ -28,6 +38,7 @@ static struct {
 	#include "cmd_keysym_lookup.c"
 	
 	{"VK_Print", GUI_CMD_EXTSYM(1)},
+	
 	{NULL, NULL},
 };
 
@@ -62,6 +73,7 @@ static struct{ char* n; int id;} elemList[] = {
 
 
 static HT(uint64_t) syms;
+static HT(uint64_t) guisyms;
 static HT(uint64_t) flag_lookup;
 static HT(uint64_t) mode_flag_lookup;
 static HT(int) mode_name_lookup;
@@ -72,12 +84,17 @@ static void init_words() {
 	HT_init(&mode_flag_lookup, 64);
 	HT_init(&mode_name_lookup, 64);
 	HT_init(&syms, 2100);
+	HT_init(&guisyms, 64);
 //	HT_init(&cmd_enums, 120);
 	
 
 
 	for(int i = 0; keysym_lookup[i].name != 0; i++) {
 		HT_set(&syms, keysym_lookup[i].name, keysym_lookup[i].val);
+	}
+
+	for(int i = 0; guisym_lookup[i].name != 0; i++) {
+		HT_set(&guisyms, guisym_lookup[i].name, guisym_lookup[i].val);
 	}
 	
 //	for(int i = 0; enum_table[i].name != 0; i++) {
@@ -123,6 +140,12 @@ static int event_src_cat(GUIEvent* gev) {
 			
 		case GUIEVENT_KeyDown:
 			return GUI_CMD_SRC_KEY;
+			
+		case GUIEVENT_Focus:
+			return GUI_CMD_SRC_FOCUS;
+			
+		case GUIEVENT_Blur:
+			return GUI_CMD_SRC_BLUR;
 			
 		default:
 			return GUI_CMD_SRC_NONE;
@@ -176,7 +199,7 @@ GUI_Cmd* Commands_ProbeCommandMode(GUIManager* gm, int elemType, GUIEvent* gev, 
 	VEC_EACHP(&gm->cmdList, i, cp) {
  		
 		int extMode = 0;
-		int32_t c = gev->keycode;
+		uint64_t c = gev->keycode;
 		
 		if(cat == GUI_CMD_SRC_NONE) {
 			if(numCmds) *numCmds = 0;
@@ -189,14 +212,14 @@ GUI_Cmd* Commands_ProbeCommandMode(GUIManager* gm, int elemType, GUIEvent* gev, 
 			else 
 				c = tolower(c);
 		}
-		else {
+		else if(cat == GUI_CMD_SRC_CLICK) {
 			c = GUI_CMD_RATSYM(gev->button, gev->multiClick);
 		}
+		
 
 		if(cp->src_type != cat) { continue; }
-		if(cp->element != elemType) { continue; }
+		if(cp->element && cp->element != elemType) { continue; }
 		if(cp->mode != mode) { continue; }
-		
 		
 		if(extMode) {
 			if((cp->keysym & ~(7u << 29u)) == 1) { // regular print chars
@@ -674,7 +697,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 		return 1;
 	}
 	else if(s != NULL) {
-		char* s3 = strdup(s);
+//		char* s3 = strdup(s);
 		if(*s == 'X' && *(s+1) == 'K') {
 			// X11 key macro
 			// cat keysymdef.h | grep '#define' | egrep -o 'XK_[^ ]* *[x0-9a-f]*' | sed 's/  */", /g;s/^/{"/;s/$/},/'
@@ -694,6 +717,26 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 				return 1;
 			}
 			
+			cmd->keysym = n;
+		}
+		else if(*s == 'B' && s[1] == 'L' && s[2] == 'U' && s[3] == 'R' && s[4] == '_')  {
+			uint64_t n;
+			if(HT_get(&guisyms, s+5, &n)) {
+				L1("Invalid virtual guisym name: '%s'\n", s+5);
+				return 1;
+			}
+			
+			cmd->src_type = GUI_CMD_SRC_BLUR;
+			cmd->keysym = n;
+		}
+		else if(*s == 'F' && s[1] == 'O' && s[2] == 'C' && s[3] == 'U' && s[4] == 'S' && s[5] == '_')  {
+			uint64_t n;
+			if(HT_get(&guisyms, s+6, &n)) {
+				L1("Invalid virtual guisym name: '%s'\n", s+6);
+				return 1;
+			}
+			
+			cmd->src_type = GUI_CMD_SRC_FOCUS;
 			cmd->keysym = n;
 		}
 		else if(*s == 'R' && *(s+1) == 'A' && *(s+2) == 'T' && *(s+3) == '_')  {
