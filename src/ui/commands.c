@@ -44,6 +44,16 @@ static struct {
 	{NULL, 0},
 };
 
+static struct { 
+	char* name;
+	uint64_t key;
+} raw_mode_flags[] = {
+#define X(a) {#a, GUICMD_MODE_FLAG_##a },
+	GUI_COMMAND_MODE_FLAG_LIST
+#undef X
+	{NULL, 0},
+};
+
 #define X(a) { #a, GUIELEMENT_##a},
 static struct{ char* n; int id;} elemList[] = {
 	GUI_ELEMENT_LIST
@@ -54,10 +64,12 @@ static struct{ char* n; int id;} elemList[] = {
 
 static HT(uint64_t) syms;
 static HT(uint64_t) flag_lookup;
+static HT(uint64_t) mode_flag_lookup;
 //static HT(uint64_t) cmd_enums;
 
 static void init_words() {
 	HT_init(&flag_lookup, 64);
+	HT_init(&mode_flag_lookup, 64);
 	HT_init(&syms, 2100);
 //	HT_init(&cmd_enums, 120);
 	
@@ -72,6 +84,10 @@ static void init_words() {
 	
 	for(int i = 0; raw_flags[i].name != 0; i++) {
 		HT_set(&flag_lookup, raw_flags[i].name, raw_flags[i].key);
+	}
+	
+	for(int i = 0; raw_mode_flags[i].name != 0; i++) {
+		HT_set(&mode_flag_lookup, raw_mode_flags[i].name, raw_mode_flags[i].key);
 	}
 }
 
@@ -129,7 +145,7 @@ static unsigned int get_index(unsigned int mods) {
 	return o;
 }
 
-GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode) {
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode, size_t* numCmds) {
 	
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
@@ -157,10 +173,10 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 			c = GUI_CMD_RATSYM(gev->button, gev->multiClick);
 		}
 
-		
 		if(cp->src_type != cat) { continue; }
 		if(cp->element != elemType) { continue; }
 		if(cp->mode != mode) { continue; }
+		
 		
 		if(extMode) {
 			if((cp->keysym & ~(7u << 29u)) == 1) { // regular print chars
@@ -168,6 +184,7 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 				
 					gm->tmpCmd = *cp;
 					gm->tmpCmd.amt = gev->character;
+					if(numCmds) *numCmds = 1;
 					
 					return &gm->tmpCmd;
 				}
@@ -180,58 +197,30 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
 		// TODO: specific mods
 		
+		if(cp->cmd == GUICMD_META) {
+			
+			int n = 0;
+			GUI_Cmd* c = cp->metaCmds;
+			for(;c->src_type != GUI_CMD_SRC_NONE; c++, n++);
+			
+			if(numCmds) *numCmds = n;
+			return cp->metaCmds;
+		}
+		
+		if(numCmds) *numCmds = 1;
 		return cp;
 		
 	}
 
 	// fall back to the parent mode if it exists
 	GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, mode);
-	if(cmi && cmi->parent != -1) {
-		return Commands_ProbeCommand(gm, elemType, gev, cmi->parent);
+	if(cmi && cmi->cascade != -1) {
+		return Commands_ProbeCommand(gm, elemType, gev, cmi->cascade, numCmds);
 	}
 
-
+	if(numCmds) *numCmds = 0;
 	return NULL; // no match
 }
-/*
-GUI_Cmd* Commands_ProbeSubCommand(GUIHeader* gh, int sub_elem, GUIEvent* gev) { 
-	GUIManager* gm = gh->gm;
-//	printf("probing\n");
-	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
-	unsigned int ANY_MASK = ~ANY;
-		
-	uint16_t cat = event_src_cat(gev);
-	
-	unsigned int i = 0;
-	
-	VEC_EACHP(&gm->cmdListSubElems, i, cp) {
-	
-		int c = gev->keycode;
-		if(cat == GUI_CMD_SRC_KEY) {
-			c = tolower(c);
-		}
-		else {
-			c = GUI_CMD_RATSYM(gev->button, gev->multiClick);
-		}
-	
- 			//printf("%d, '%c', %x \n", gev->keycode, gev->keycode, gev->modifiers);
-		if(cp->sub_elem != sub_elem) { continue; }
-		if(cp->src_type != cat) { continue; }
-		if(cp->element != gh->cmdElementType) { continue; }
-		if(cp->mode != gh->cmdMode) { continue; }
-		if(cp->keysym != c) { continue; }
-		if((cp->mods & ANY) != (gev->modifiers & ANY)) { continue; }
-		// TODO: specific mods
-		
-		// found
-		//printf("found sub-command: %d, %d, %x\n", cp->element, cp->mode, cp->mods);
-		return cp;
-		
-	}
-
-	return NULL; // no match
-}
-*/
 
 int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t id) {
 	GUI_CmdElementInfo* inf;
@@ -310,6 +299,15 @@ GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id) {
 	return NULL;
 }
 
+GUI_CmdModeInfo* Commands_GetOverlay(GUIManager* gm, int bitIndex) {
+	// TODO: better data structure
+	VEC_EACHP(&gm->commandModes, i, mp) {
+		if(mp->overlayBitIndex == bitIndex) return mp;
+	}
+
+	return NULL;
+}
+
 
 void CommandList_loadJSONFile(GUIManager* gm, char* path) {
 	json_file_t* jsf;
@@ -360,7 +358,7 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 	// modes metadata
 	modes_v = json_obj_get_val(cmds_v, "modes");
 	if(modes_v && modes_v->type == JSON_TYPE_OBJ) {
-		json_value_t* v;
+		json_value_t* v, *v2;
 		
 		char* key;
 		void* iter = NULL;
@@ -373,7 +371,8 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 				VEC_PUSH(&gm->commandModes, (GUI_CmdModeInfo){0});
 				cmi = &VEC_TAIL(&gm->commandModes);
 				cmi->id = id;
-				cmi->parent = -1;
+				cmi->overlayBitIndex = -1;
+				cmi->cascade = -1;
 			}
 		
 			
@@ -393,7 +392,102 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 			}
 			
 			// check for a parent node to fall back to
-			cmi->parent = json_obj_get_int(v, "parent", -1);
+			cmi->cascade = json_obj_get_int(v, "cascade", -1);
+			
+			// optional flag list
+			if(!json_obj_get_key(v, "flags", &v2)) {
+				unsigned int flags = 0;
+				
+				if(v2->type == JSON_TYPE_ARRAY) {
+				
+					json_link_t* l2 = v2->arr.head;
+					for(;l2; l2 = l2->next) {
+						
+						if(l2->v->type == JSON_TYPE_STRING) {
+							uint64_t x;
+							if(!HT_get(&mode_flag_lookup, l2->v->s, &x)) {
+								flags |= x;
+							}
+						}
+						else {
+							L1("Invalid flag format in command list.\n");
+						}
+					}
+					
+					cmi->flags = flags;
+				}
+			}
+			
+			
+		}
+	}
+	
+	int nextOverlayBitIndex = 0;
+	// overlays metadata
+	modes_v = json_obj_get_val(cmds_v, "overlays");
+	if(modes_v && modes_v->type == JSON_TYPE_OBJ) {
+		json_value_t* v, *v2;
+		
+		char* key;
+		void* iter = NULL;
+		while(json_obj_next(modes_v, &iter, &key, &v)) {
+		
+			int id = strtol(key, NULL, 10);
+			
+			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, id);
+			if(!cmi) {
+				VEC_PUSH(&gm->commandModes, (GUI_CmdModeInfo){0});
+				cmi = &VEC_TAIL(&gm->commandModes);
+				cmi->id = id;
+				cmi->cascade = -1;
+				cmi->overlayBitIndex = nextOverlayBitIndex++;
+				cmi->flags |= GUICMD_MODE_FLAG_isOverlay;
+			}
+		
+			
+			// look for a mode name string
+			char* mname = json_obj_get_str(v, "name");
+			if(mname) {
+				if(cmi->name) {
+					if(strcmp(mname, cmi->name)) {
+						L2("Overwriting command mode %d name '%s' with '%s'\n", id, cmi->name, mname);
+						free(cmi->name);
+						cmi->name = strdup(mname);
+					}
+				}
+				else {
+					cmi->name = strdup(mname);
+				}
+			}
+			
+			// check for a parent node to fall back to
+			cmi->cascade = json_obj_get_int(v, "cascade", -1);
+			
+			// optional flag list
+			if(!json_obj_get_key(v, "flags", &v2)) {
+				unsigned int flags = GUICMD_MODE_FLAG_isOverlay;
+				
+				if(v2->type == JSON_TYPE_ARRAY) {
+				
+					json_link_t* l2 = v2->arr.head;
+					for(;l2; l2 = l2->next) {
+						
+						if(l2->v->type == JSON_TYPE_STRING) {
+							uint64_t x;
+							if(!HT_get(&mode_flag_lookup, l2->v->s, &x)) {
+								flags |= x;
+							}
+						}
+						else {
+							L1("Invalid flag format in command list.\n");
+						}
+					}
+					
+					cmi->flags |= flags;
+				}
+			}
+			
+			
 		}
 	}
 
@@ -449,19 +543,44 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 		cmd->sub_elem = inf2->id;
 	}
 	
-	// command enum
-	s = json_obj_get_str(entry, "cmd");
-	if(s == NULL && validate && cmd->cmd == 0) {
-		L1("Command List entry missing cmd name\n");
-		return 1;
-	}
-	else if(s != NULL) {
-		char* s2 = strdup(s);
-		if(HT_get(&inf->nameLookup, s, &n32)) {
-			L1("Unknown command enum: '%s'\n", s);
+	if(!json_obj_get_key(entry, "meta", &v)) {
+		cmd->cmd = GUICMD_META;
+		
+		if(v->type != JSON_TYPE_ARRAY) {
+			L1("Command meta property must be an array.\n");
 			return 1;
 		}
-		cmd->cmd = n32;
+		
+		int i = 0;
+		VEC(GUI_Cmd) metaList;
+		VEC_INIT(&metaList);
+		GUI_Cmd cmd2 = {0};
+		
+		json_link_t* link = v->arr.head;
+		for(;link; link = link->next) {
+			if(read_command_entry(gm, link->v, &cmd2, 0)) continue;
+			VEC_PUSH(&metaList, cmd2);
+		}
+		cmd2.src_type = GUI_CMD_SRC_NONE;
+		VEC_PUSH(&metaList, cmd2);
+		
+		cmd->metaCmds = metaList.data;
+	}
+	else {
+		// command enum
+		s = json_obj_get_str(entry, "cmd");
+		if(s == NULL && validate && cmd->cmd == 0) {
+			L1("Command List entry missing cmd name\n");
+			return 1;
+		}
+		else if(s != NULL) {
+			char* s2 = strdup(s);
+			if(HT_get(&inf->nameLookup, s, &n32)) {
+				L1("Unknown command enum: '%s'\n", s);
+				return 1;
+			}
+			cmd->cmd = n32;
+		}
 	}
 	
 	// key
@@ -555,28 +674,30 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 		cmd->mods = m;
 	}
 	
-	// optional amt value (default 0)
-	if(!json_obj_get_key(entry, "amt", &v)) {
-		if(v->type == JSON_TYPE_STRING) {
-			cmd->str = strdup(v->s);
-		}
-		else if(v->type == JSON_TYPE_ARRAY) {
-			// ONLY supports array of strings
-			char** z = malloc(sizeof(*z) * (v->len + 1));
-			
-			int j = 0;
-			json_link_t* link = v->arr.head;
-			while(link) {
-				z[j++] = strdup(link->v->s);
-				
-				link = link->next;
+	if(cmd->cmd != GUICMD_META) { // meta commands store the command list in the amt field
+		// optional amt value (default 0)
+		if(!json_obj_get_key(entry, "amt", &v)) {
+			if(v->type == JSON_TYPE_STRING) {
+				cmd->str = strdup(v->s);
 			}
-			z[j] = NULL;
-			
-			cmd->pstr = z;
-		}
-		else {
-			cmd->amt = json_as_int(v);
+			else if(v->type == JSON_TYPE_ARRAY) {
+				// ONLY supports array of strings
+				char** z = malloc(sizeof(*z) * (v->len + 1));
+				
+				int j = 0;
+				json_link_t* link = v->arr.head;
+				while(link) {
+					z[j++] = strdup(link->v->s);
+					
+					link = link->next;
+				}
+				z[j] = NULL;
+				
+				cmd->pstr = z;
+			}
+			else {
+				cmd->amt = json_as_int(v);
+			}
 		}
 	}
 	
@@ -590,8 +711,21 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 			fprintf(stderr, "Unknown mode name: '%s'\n", s);
 			continue;
 		}*/
-		cmd->mode = v->n; //n16;
+//		cmd->mode = v->n; //n16;
 	}
+	
+	// optional mode setting value (default -1)
+	cmd->setMode = -1;
+	if(!json_obj_get_key(entry, "setMode", &v)) {
+		cmd->setMode = json_as_int(v);
+	}
+	
+	// overlay
+	cmd->clearMode = -1;
+	if(!json_obj_get_key(entry, "clearMode", &v)) {
+		cmd->clearMode = json_as_int(v);
+	}
+	
 	
 	// optional flag list
 	if(!json_obj_get_key(entry, "flags", &v)) {

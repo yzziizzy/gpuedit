@@ -50,7 +50,7 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 
 
 	if(GUI_InputAvailable()) {
-		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_FuzzyMatcher, &gm->curEvent, 0);
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_FuzzyMatcher, &gm->curEvent, 0, NULL);
 		
 		if(cmd) {
 			GUIFuzzyMatchControl_ProcessCommand(w, cmd);

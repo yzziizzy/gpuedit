@@ -157,7 +157,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	if(!gm->drawMode && mc->inputMode == 10) {
 	
 		if(GUI_InputAvailable()) {
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode);	
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);	
 			if(cmd) MainControl_ProcessCommand(mc, cmd);
 		}
 		
@@ -197,7 +197,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		
 		if(GUI_InputAvailable()) {
 			
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode);
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);
 			
 			if(cmd) {
 				MainControl_ProcessCommand(mc, cmd);

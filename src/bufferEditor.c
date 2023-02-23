@@ -47,6 +47,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		DEFAULTS(GUIEditOpts, eo);
 		
+		ACTIVE(&w->gotoLineNum);
 		if(GUI_IntEdit_(gm, &w->gotoLineNum, V(10,10), sz.x - 20, &w->gotoLineNum, &eo)) {
 			BufferLine* bl = Buffer_raw_GetLineByNum(w->ec->b, w->gotoLineNum);
 				
@@ -138,17 +139,46 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	if(!gm->drawMode && GUI_InputAvailable()) {
 		
 		int mode = w->inputMode;
-		if(w->trayOpen && gm->activeID != w->ec) mode = 1;
 		
 		
-		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
-		int needRehighlight = 0;
-		if(cmd) { 
-			if(!GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
-				GUI_CancelInput();
-				
-				if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
-					GUIBufferEditControl_MarkRefreshHighlight(w->ec);
+		uint64_t overlays = w->overlays;
+		int foundCommand = 0; 
+		
+		for(int i = 0; i < 63 && !foundCommand; i++) {
+			if(!((1ul << i) & overlays)) continue;
+			
+			GUI_CmdModeInfo* cmi = Commands_GetOverlay(gm, i);
+			if(!cmi) continue;
+			
+			size_t numCmds;
+			
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, cmi->id, &numCmds);
+			int needRehighlight = 0;
+			for(;cmd && numCmds > 0; numCmds--, cmd++) { 
+				if(!GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
+					GUI_CancelInput();
+					
+					if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+						GUIBufferEditControl_MarkRefreshHighlight(w->ec);
+					}
+					
+					foundCommand = 1;
+				}
+			}	
+		}	
+		
+		
+		if(!foundCommand) {
+			size_t numCmds;
+			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode, &numCmds);
+			int needRehighlight = 0;
+			for(;cmd && numCmds > 0; numCmds--, cmd++) { 
+				if(!GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
+					GUI_CancelInput();
+					
+					if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+						GUIBufferEditControl_MarkRefreshHighlight(w->ec);
+					}
 				}
 			}
 		}
@@ -869,8 +899,8 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 			
 		case GUICMD_Buffer_GoToLineLaunch: 
-			w->gotoLineTrayOpen = 1;
-			w->inputMode = 3;
+//			w->gotoLineTrayOpen = 1;
+//			w->inputMode = 3;
 			GUI_SetActive(&w->gotoLineNum);
 		/*
 			if(w->inputMode != BIM_GoTo) {
@@ -896,13 +926,13 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 		
 		case GUICMD_Buffer_GoToLineCancel:
-			w->gotoLineTrayOpen = 0;
-			w->inputMode = 0;
+//			w->gotoLineTrayOpen = 0;
+//			w->inputMode = 0;
 			break;		
 		
 		case GUICMD_Buffer_GoToLineSubmit: 
-			w->gotoLineTrayOpen = 0;
-			w->inputMode = 0;
+//			w->gotoLineTrayOpen = 0;
+//			w->inputMode = 0;
 			break;
 		
 		case GUICMD_Buffer_ReplaceNext: { // TODO put this all in a better spot
@@ -1158,6 +1188,64 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 	if(cmd->flags & GUICMD_FLAG_centerOnCursor) {
 		GBEC_scrollToCursorOpt(w->ec, 1);
 	}
+	
+	if(cmd->setMode >= 0) {
+		GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, cmd->setMode);
+		if(cmi) {
+			if(cmi->flags & GUICMD_MODE_FLAG_isOverlay) {
+				w->overlays |= 1 << cmi->overlayBitIndex;
+			}
+			else {
+				w->inputMode = cmd->setMode;
+			}
+		}
+	}
+	
+	if(cmd->clearMode >= 0) {
+		GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, cmd->clearMode);
+		if(cmi) {
+			if(cmi->flags & GUICMD_MODE_FLAG_isOverlay) {
+				w->overlays &= ~(1ul << cmi->overlayBitIndex);
+			}
+			else {
+				if(w->inputMode == cmd->clearMode) {
+					cmi = Commands_GetModeInfo(gm, w->inputMode);
+					w->inputMode = (cmi && cmi->cascade >= 0) ? cmi->cascade : 0;
+				}
+			}
+		}
+	}
+	
+	int showGoto = 0;
+	int showFind = 0;
+	static int last_mode = -1;
+	if(last_mode != w->inputMode) {
+		last_mode = w->inputMode;
+		
+		GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, w->inputMode);
+		if(cmi) {
+			showGoto |= !!(cmi->flags & GUICMD_MODE_FLAG_showGoToLineBar);
+			showFind |= !!(cmi->flags & GUICMD_MODE_FLAG_showFindBar);
+		}
+	}
+	
+	static uint64_t last_overlays = 0;
+	if(last_overlays != w->overlays) {
+		last_overlays = w->overlays;
+		
+		for(int i = 0; i < 63; i++) {
+			if(!(w->overlays & (1ul << i))) continue;
+			
+			GUI_CmdModeInfo* cmi = Commands_GetOverlay(gm, i);
+			if(!cmi) continue;
+			showGoto |= !!(cmi->flags & GUICMD_MODE_FLAG_showGoToLineBar);
+			showFind |= !!(cmi->flags & GUICMD_MODE_FLAG_showFindBar);
+		}
+	}
+	
+	
+	w->gotoLineTrayOpen = showGoto;
+	w->trayOpen = showFind;
 	
 	return 0;
 	

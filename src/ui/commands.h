@@ -58,6 +58,16 @@
 	EXTERN_GUI_COMMAND_FLAG_LIST
 	
 
+#ifndef EXTERN_GUI_COMMAND_MODE_FLAG_LIST
+	#define EXTERN_GUI_COMMAND_MODE_FLAG_LIST
+#endif
+
+#define GUI_COMMAND_MODE_FLAG_LIST \
+	X(isOverlay) \
+	X(noSuppressEvent) \
+	EXTERN_GUI_COMMAND_MODE_FLAG_LIST
+	
+
 
 
 
@@ -72,6 +82,7 @@ enum GUIElementType {
 #define X(a, b) GUICMD_##a##_##b,
 enum GUICmdType {
 	GUICMD_NULL = 0,
+	GUICMD_META,
 	GUI_COMMAND_LIST
 	
 	GUICMD_MAXVALUE,
@@ -93,35 +104,61 @@ enum {
 #undef X
 
 
+#define X(a) GUICMD_MODE_FLAG_ORD_##a,
 enum {
-	GUI_CMD_SRC_NONE,
+	GUI_COMMAND_MODE_FLAG_LIST
+	GUICMD_MODE_FLAG_ORD_MAXVALUE,
+};
+#undef X
+
+#define X(a) GUICMD_MODE_FLAG_##a = 1 << GUICMD_MODE_FLAG_ORD_##a,
+enum {
+	GUI_COMMAND_MODE_FLAG_LIST
+};
+#undef X
+
+
+enum {
+	GUI_CMD_SRC_NONE = 0,
 	GUI_CMD_SRC_KEY,
 	GUI_CMD_SRC_CLICK,
+	GUI_CMD_SRC_FOCUS,
 };
 
 
 
 
 typedef struct GUI_Cmd {
-	uint16_t src_type; // key, mouse, etc
+	uint16_t src_type; // key, mouse, focus, etc
 	uint16_t element;
 	uint16_t sub_elem;
 	uint16_t mode;
+	
+	int16_t setMode;
+	int16_t clearMode;
 	uint32_t mods;
+	
 	int32_t keysym; // or mouse buttons
 	uint32_t cmd;
+	
 	uint32_t flags;
+	
 	union {
 		long amt;
 		char* str;
 		char** pstr;
+		struct GUI_Cmd* metaCmds; // terminated by an entry with src_type=0
 	};
 } GUI_Cmd;
 
 typedef struct GUI_CmdModeInfo {
 	int id;
-	int parent; // -1 for no parent
+	int cascade; // -1 for no cascading
+	
+	char overlayBitIndex;
+	
 	char* name;
+	uint64_t flags;
 } GUI_CmdModeInfo;
 
 typedef struct GUI_CmdList {
@@ -148,9 +185,10 @@ typedef struct GUIHeader GUIHeader;
 #define GUI_CMD_RATSYM(btn, reps) ((1 << 30) | ((reps & 0xff) << 15) | (btn & 0xff))
 #define GUI_CMD_EXTSYM(a) ((1 << 29) | (a))
 
-GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode);
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode, size_t* numCmds);
 GUI_Cmd* Commands_ProbeSubCommand(GUIManager* gm, int sub_elem, GUIEvent* gev);
 GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id);
+GUI_CmdModeInfo* Commands_GetOverlay(GUIManager* gm, int bitIndex);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);
 

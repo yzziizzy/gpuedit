@@ -207,6 +207,12 @@
 
 
 
+#define EXTERN_GUI_COMMAND_MODE_FLAG_LIST \
+	X(showGoToLineBar) \
+	X(showFindBar) \
+	
+
+
 #define EXTERN_GUI_COMMAND_FLAG_LIST \
 	X(scrollToCursor) \
 	X(rehighlight) \

@@ -519,6 +519,7 @@ typedef struct GUIBufferEditor {
 	BufferSettings* bs;
 	ThemeSettings* ts;
 	GUI_Cmd* commands;
+	uint64_t overlays;
 	
 	char isRecording;
 	RING(BufferEditorMacro) macros;

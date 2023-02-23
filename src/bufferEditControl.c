@@ -314,11 +314,11 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 		
 		
 		int mode = w->inputMode;
+		size_t numCmds;
 		
-		
-		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode);
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode, &numCmds);
 		int needRehighlight = 0;
-		if(cmd) {
+		for(;cmd && numCmds > 0; numCmds--, cmd++) { 
 			if(!GBEC_ProcessCommand(w, cmd, &needRehighlight)) {
 		
 				if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {

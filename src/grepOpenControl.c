@@ -41,7 +41,7 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 
 
 	if(GUI_InputAvailable()) {
-		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_GrepOpen, &gm->curEvent, 0);
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_GrepOpen, &gm->curEvent, 0, NULL);
 		
 		if(cmd) {
 			GrepOpenControl_ProcessCommand(w, cmd);
