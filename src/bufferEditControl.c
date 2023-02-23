@@ -311,17 +311,14 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	
 		GBEC_Update(w, tl, sz, pfp);
 		
-		
-		
-		int mode = w->inputMode;
 		size_t numCmds;
 		
-		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode, &numCmds);
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, &w->inputState, &numCmds);
 		int needRehighlight = 0;
-		for(;cmd && numCmds > 0; numCmds--, cmd++) { 
-			if(!GBEC_ProcessCommand(w, cmd, &needRehighlight)) {
+		for(int j = 0; j < numCmds; j++) { 
+			if(!GBEC_ProcessCommand(w, cmd+j, &needRehighlight)) {
 		
-				if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
+				if(needRehighlight || cmd[j].flags & GUICMD_FLAG_rehighlight) {
 					GUIBufferEditControl_MarkRefreshHighlight(w);
 				}
 				
@@ -329,6 +326,7 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 			}
 		}
 		
+		Commands_UpdateModes(gm, &w->inputState, cmd, numCmds);
 		
 		
 		if(gm->activeID == w || gm->hotID == w) {
@@ -760,7 +758,6 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 	Buffer* b = w->b;
 	Buffer* b2 = NULL;
 	
-
 	
 	
 	char cc[2] = {cmd->amt, 0};
@@ -1130,18 +1127,18 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			w->autocompleteOptions = Buffer_FindDictMatches(b, w->sel);
 			if(w->autocompleteOptions) {
 				w->showAutocomplete = 1;
-				w->inputMode = 11;
+				w->inputState.mode = 11;
 			}
 			break;
 			
 		case GUICMD_Buffer_ACMoveCursor:
 			if(!w->autocompleteOptions) {
-				w->inputMode = 0;
+				w->inputState.mode = 0;
 				GBEC_CancelAutocomplete(w);
 				break;
 			}
 			
-			w->inputMode = 11; // move from 10 to 11 if needed
+			w->inputState.mode = 11; // move from 10 to 11 if needed
 			w->autocompleteSelectedItem += cmd->amt;
 			w->autocompleteSelectedItem = MAX(0, MIN(w->autocompleteSelectedItem, w->autocompleteOptions->len - 1));
 			break;
@@ -1149,7 +1146,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		case GUICMD_Buffer_ACReplaceWithSelected: {
 			BufferACMatchSet* ms = w->autocompleteOptions;
 			if(!w->autocompleteOptions) {
-				w->inputMode = 0;
+				w->inputState.mode = 0;
 				GBEC_CancelAutocomplete(w);
 				break;
 			}
@@ -1165,7 +1162,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			
 			GBEC_MoveCursorTo(w, ms->target.line[0], ms->target.col[0] + ms->matches[w->autocompleteSelectedItem].len);
 			
-			w->inputMode = 0;
+			w->inputState.mode = 0;
 			GBEC_CancelAutocomplete(w);
 			break;
 		}
@@ -1176,7 +1173,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			if(ms->commonPrefixLen <= ms->targetLen) break;
 			
 			if(!ms) {
-				w->inputMode = 0;
+				w->inputState.mode = 0;
 				GBEC_CancelAutocomplete(w);
 				break;
 			}
@@ -1197,13 +1194,13 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			w->autocompleteOptions = Buffer_FindDictMatches(b, w->sel);
 			if(w->autocompleteOptions) {
 				w->showAutocomplete = 1;
-				w->inputMode = 11;
+				w->inputState.mode = 11;
 			}
 			
 			break;
 		}
 		case GUICMD_Buffer_ACCancel:
-			w->inputMode = 0;
+			w->inputState.mode = 0;
 			GBEC_CancelAutocomplete(w);
 			break;
 		
@@ -1274,21 +1271,21 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		w->autocompleteOptions = Buffer_FindDictMatches(b, w->sel);
 		if(w->autocompleteOptions) {
 			w->showAutocomplete = 1;
-			if(w->inputMode != 11) w->inputMode = 10;
+			if(w->inputState.mode != 11) w->inputState.mode = 10;
 		}
 		else {
-			w->inputMode = 0;
+			w->inputState.mode = 0;
 		}
 	}
 	
 	if(cmd->flags & GUICMD_FLAG_closeAC) {
 		GBEC_CancelAutocomplete(w);
-		w->inputMode = 0;
+		w->inputState.mode = 0;
 	}
 	
 	// more kludgy hacks
-	if((w->inputMode == 10 || w->inputMode == 11) && !w->autocompleteOptions) {
-		w->inputMode = 0;
+	if((w->inputState.mode == 10 || w->inputState.mode == 11) && !w->autocompleteOptions) {
+		w->inputState.mode = 0;
 	}
 	
 	return 0;

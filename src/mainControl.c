@@ -157,7 +157,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	if(!gm->drawMode && mc->inputMode == 10) {
 	
 		if(GUI_InputAvailable()) {
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);	
+			GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);	
 			if(cmd) MainControl_ProcessCommand(mc, cmd);
 		}
 		
@@ -197,7 +197,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		
 		if(GUI_InputAvailable()) {
 			
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);
+			GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);
 			
 			if(cmd) {
 				MainControl_ProcessCommand(mc, cmd);
@@ -565,7 +565,12 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 			w->focusedPos.x = x; 
 			w->focusedPos.y = y;
 			
-			w->gm->activeID = (void*)VEC_ITEM(&p->tabs, p->currentIndex)->client;
+			MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
+			
+			if(!tab->isActive) {
+				tab->isActive = 1;
+				w->gm->activeID = (void*)tab->client;
+			}
 			
 			MainControl_OnTabChange(w);
 			
@@ -877,8 +882,10 @@ void* MainControlPane_NextTab(MainControlPane* w, char cyclic) {
 	}
 	
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
-	a->isActive = 1;
-	GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	if(!a->isActive) {
+		a->isActive = 1;
+		GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	}
 	
 	MainControl_OnTabChange(w->mc);
 	
@@ -899,8 +906,10 @@ void* MainControlPane_PrevTab(MainControlPane* w, char cyclic) {
 	}
 	
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
-	a->isActive = 1;
-	GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	if(!a->isActive) {
+		a->isActive = 1;
+		GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	}
 	
 	MainControl_OnTabChange(w->mc);
 	
@@ -916,9 +925,11 @@ void* MainControlPane_GoToTab(MainControlPane* w, int i) {
 	w->currentIndex = MAX(0, MIN(len - 1, i));
 	
 	a = VEC_ITEM(&w->tabs, w->currentIndex);
-	a->isActive = 1;
 	
-	GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	if(!a->isActive) {
+		a->isActive = 1;
+		GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
+	}
 	
 	MainControl_OnTabChange(w->mc);
 	

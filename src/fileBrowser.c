@@ -133,7 +133,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	
 
 	if(GUI_InputAvailable()) {
-		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_FileBrowser, &gm->curEvent, 0, NULL);
+		GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_FileBrowser, &gm->curEvent, 0, NULL);
 		if(cmd) {
 			FileBrowser_ProcessCommand(w, cmd);
 			GUI_CancelInput();

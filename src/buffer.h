@@ -337,7 +337,7 @@ typedef struct GUIBufferEditControl {
 	// cached during event processing
 	Vector2 tl, sz;
 	
-	int inputMode;
+	GUI_CmdModeState inputState;
 	
 	// TODO: padding lines on vscroll
 
@@ -467,31 +467,13 @@ typedef struct GUIBufferEditor {
 	
 	char* sourceFile; // issues with undo-save
 	
-//	BufferInputMode_t inputMode; 
-	
 	char gotoLineTrayOpen;
 	long gotoLineNum;
 	
 	GUIString findQuery;
 	GUIString replaceText;
 	
-	/*
-	GUIFindOpt find_opt;
-	pcre2_code* findRE;
-	pcre2_match_data* findMatch;
-	BufferLine* findLine;
-	intptr_t findCharS;
-	intptr_t findCharE;
-	intptr_t findLen;
-	char* findREError;
-	int findREErrorChar;
-	BufferLine* nextFindLine;
-	intptr_t nextFindChar;
-	*/
 	BufferFindState* findState;
-	
-	
-//	GUIText* findResultsText;
 	
 	void (*setBreakpoint)(char*, intptr_t, void*);
 	void* setBreakpointData;
@@ -507,9 +489,7 @@ typedef struct GUIBufferEditor {
 	float statusBarHeight;
 	StatusBar* statusBar;
 	
-	int inputMode;
-	VEC(int) inputModeStack;
-	GUI_CmdModeInfo* inputModeInfo;
+//	GUI_CmdModeInfo* inputModeInfo;
 	
 	HighlighterManager* hm;
 	
@@ -519,8 +499,8 @@ typedef struct GUIBufferEditor {
 	GeneralSettings* gs;
 	BufferSettings* bs;
 	ThemeSettings* ts;
-	GUI_Cmd* commands;
-	uint64_t overlays;
+	
+	GUI_CmdModeState inputState;
 	
 	char isRecording;
 	RING(BufferEditorMacro) macros;
@@ -847,10 +827,28 @@ void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height);
 void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index);
 
 
+// regenerates all PCRE internal structures
+int BufferFindState_CompileRE(BufferFindState* st);
+
+// prepares and initializes internal BufferEditor data with the provided findstate struct
+// takes ownership of st
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, BufferFindState* st);
+
+// cleans up BufferEditor data related to finding
+void GUIBufferEditor_StopFind(GUIBufferEditor* w); 
+
+// used to change the search query without changing any other parameters or find state
+int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s);
+
+// activates finding using data near the cursor
+// This is the single function to use externally to the find subsystem to start finding in BufferEditor
+int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask);
+
+
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st);
-void GUIBufferEditor_StopFind(GUIBufferEditor* w);
-int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask, BufferFindState* st);
+
+
+
 
 colnum_t GBEC_NominalColFromVisual(GUIBufferEditControl* w, BufferLine* bl, colnum_t wanted);
 colnum_t GBEC_VisualColFromNominal(GUIBufferEditControl* w, BufferLine* bl, colnum_t col);

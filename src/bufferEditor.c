@@ -98,13 +98,9 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		
 		if(update) {
-			GUIBufferEditor_StopFind(w);
-				
-				//  w->findQuery.data, &w->find_opt
-			BufferFindState_FindAll(w->findState); // needs a _create?
-			w->ec->findSet = w->findState->findSet;
+			GUIBufferEditor_UpdateFindPattern(w, w->findQuery.data);
 			
-			GUIBufferEditor_RelativeFindMatch(w, 0, 1, w->findState);
+			GUIBufferEditor_RelativeFindMatch(w, 0, 1, w->findState); // this line probably causes the result cycling when typing
 			GUIBufferEditor_scrollToCursor(w);
 		}
 		
@@ -137,51 +133,24 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	
 	// command processing
 	if(!gm->drawMode && GUI_InputAvailable()) {
-		
-		int mode = w->inputMode;
-		
-		
-		uint64_t overlays = w->overlays;
-		int foundCommand = 0; 
-		
-		for(int i = 0; i < 63 && !foundCommand; i++) {
-			if(!((1ul << i) & overlays)) continue;
-			
-			GUI_CmdModeInfo* cmi = Commands_GetOverlay(gm, i);
-			if(!cmi) continue;
-			
-			size_t numCmds;
-			
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, cmi->id, &numCmds);
-			int needRehighlight = 0;
-			for(;cmd && numCmds > 0; numCmds--, cmd++) { 
-				if(!GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
-					GUI_CancelInput();
-					
-					if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
-						GUIBufferEditControl_MarkRefreshHighlight(w->ec);
-					}
-					
-					foundCommand = 1;
-				}
-			}	
-		}	
-		
-		
-		if(!foundCommand) {
-			size_t numCmds;
-			GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, mode, &numCmds);
-			int needRehighlight = 0;
-			for(;cmd && numCmds > 0; numCmds--, cmd++) { 
-				if(!GUIBufferEditor_ProcessCommand(w, cmd, &needRehighlight)) {
-					GUI_CancelInput();
-					
-					if(needRehighlight || cmd->flags & GUICMD_FLAG_rehighlight) {
-						GUIBufferEditControl_MarkRefreshHighlight(w->ec);
-					}
+	
+		size_t numCmds;
+		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, &w->inputState, &numCmds);
+		int needRehighlight = 0;
+		for(int j = 0; j < numCmds; j++) { 
+			if(!GUIBufferEditor_ProcessCommand(w, cmd+j, &needRehighlight)) {
+				GUI_CancelInput();
+				
+				if(needRehighlight || cmd[j].flags & GUICMD_FLAG_rehighlight) {
+					GUIBufferEditControl_MarkRefreshHighlight(w->ec);
 				}
 			}
 		}
+		
+		Commands_UpdateModes(gm, &w->inputState, cmd, numCmds);
+		
+		w->gotoLineTrayOpen = !!(w->inputState.curFlags & GUICMD_MODE_FLAG_showGoToLineBar);
+		w->trayOpen = !!(w->inputState.curFlags & GUICMD_MODE_FLAG_showFindBar);
 	}
 	
 	// --------- drawing code ---------
@@ -312,12 +281,13 @@ BufferFindState* BufferFindState_Create(Buffer* b, char* pattern, GUIFindOpt* op
 	if(pattern) st->pattern = strdup(pattern);
 	if(opt) st->opts = *opt;
 	
+	
+	pcalloc(st->searchSpace);
 	if(searchSpace) {
-		pcalloc(st->searchSpace);
 		VEC_PUSH(&st->searchSpace->ranges, BufferRange_Copy(searchSpace));
 	}
 	else {
-		pcalloc(st->searchSpace);
+		// search the whole file
 		BufferRange* r = pcalloc(r);
 		r->line[0] = b->first;
 		r->col[0] = 0;
@@ -329,7 +299,7 @@ BufferFindState* BufferFindState_Create(Buffer* b, char* pattern, GUIFindOpt* op
 	return st;
 }
 
-
+// regenerates all PCRE internal structures
 int BufferFindState_CompileRE(BufferFindState* st) {
 	int errno;
 	PCRE2_SIZE erroff;
@@ -358,7 +328,7 @@ int BufferFindState_CompileRE(BufferFindState* st) {
 		pcre2_get_error_message(errno, errbuf, sizeof(errbuf));
 		st->findREError = strdup(errbuf);
 		st->findREErrorChar = erroff;
-		printf("PCRE find error #1: '%s' \n", errbuf);
+		L1("PCRE find error #1: '%s' \n", errbuf);
 		
 		return 1;
 	}
@@ -368,7 +338,7 @@ int BufferFindState_CompileRE(BufferFindState* st) {
 		free(st->findREError);
 		st->findREError = 0;
 		st->findREErrorChar = -1;
-		printf("PCRE find error #2\n");
+		L1("PCRE find error #2\n");
 	}
 	
 	st->findMatch = pcre2_match_data_create_from_pattern(st->findRE, NULL);
@@ -377,10 +347,32 @@ int BufferFindState_CompileRE(BufferFindState* st) {
 }
 
 
+// used to change the search query without changing any other parameters or find state
+int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s) {
+	int ret;
+	if(!w->findState) return 1;
+	
+	if(w->findState->pattern) free(w->findState->pattern);
+	w->findState->pattern = strdup(s);
+	
+	if(ret = BufferFindState_CompileRE(w->findState)) return ret;
+	
+	return BufferFindState_FindAll(w->findState);
+}
+
+// prepares and initializes internal BufferEditor data with the provided findstate struct
+// takes ownership of st
 int GUIBufferEditor_StartFind(GUIBufferEditor* w, BufferFindState* st) {
+	
+	if(w->findState) {
+		BufferFindState_FreeAll(w->findState);
+		free(w->findState);
+	}
 	
 	BufferFindState_CompileRE(st);
 	w->findState = st;
+	
+	st->findIndex = -1;
 	
 	st->nextFindLine = CURSOR_LINE(w->ec->sel);
 	st->nextFindChar = CURSOR_COL(w->ec->sel);
@@ -389,13 +381,13 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, BufferFindState* st) {
 }
 
 
-int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask, BufferFindState* st) {
-	if(w->trayOpen) {
-		GUIBufferEditor_CloseTray(w);
-	}
+int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask) {
+//	if(w->trayOpen) {
+//		GUIBufferEditor_CloseTray(w);
+//	}
 	
-	w->inputMode = BIM_Find;
-	w->trayOpen = 1;
+//	w->inputMode = BIM_Find;
+//	w->trayOpen = 1;
 	
 	BufferRange sel = {};
 	Buffer* b = w->ec->b;
@@ -413,17 +405,16 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	
 	if(str) {
 		GUIString_Set(&w->findQuery, str);
-		st->pattern = strdup(str);
 	}
 	
-	st->findIndex = -1;
+	BufferFindState* st = BufferFindState_Create(w->b, str, NULL, NULL);
+	GUIBufferEditor_StartFind(w, st);
+	
 	
 	st->opts.match_mode = GFMM_PCRE;
 	BufferFindState_FindAll(st);
 	w->ec->findSet = st->findSet;
 	
-	w->findState = st;
-
 	// locate the match at/after the cursor
 	GUIBufferEditor_RelativeFindMatch(w, 1, 1, st);
 		
@@ -439,10 +430,15 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 
 
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st) {
-	if(!st->findSet || (st->findSet && !VEC_LEN(&st->findSet->ranges))) {
-//		GUIText_setString(w->findResultsText, "No results");
-		printf("no results\n");
+	if(!st->findSet) {
+//		printf("no findset\n");
 		return 1;
+	}
+	
+	if(!VEC_LEN(&st->findSet->ranges)) {
+//		GUIText_setString(w->findResultsText, "No results");
+//		printf("find set empty\n");
+		return 2;
 	}
 	
 	if(st->findSet->changeCounter != w->b->changeCounter) {
@@ -748,20 +744,20 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 	
 	switch(cmd->cmd){
 		case GUICMD_Buffer_SetMode:
-			w->inputMode = cmd->amt;
+//			w->inputMode = cmd->amt;
 			break;
 			
 		case GUICMD_Buffer_PushMode:
-			VEC_PUSH(&w->inputModeStack, w->inputMode);
-			w->inputMode = cmd->amt;
+//			VEC_PUSH(&w->inputModeStack, w->inputMode);
+//			w->inputMode = cmd->amt;
 			break;
 			
 		case GUICMD_Buffer_PopMode:
-			if(VEC_LEN(&w->inputModeStack)) {
-				VEC_POP(&w->inputModeStack, w->inputMode);
-			}
-			else
-				w->inputMode = 0;
+//			if(VEC_LEN(&w->inputModeStack)) {
+//				VEC_POP(&w->inputModeStack, w->inputMode);
+//			}
+//			else
+//				w->inputMode = 0;
 			break;
 
 		case GUICMD_Buffer_MacroToggleRecording: 
@@ -1003,27 +999,27 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 			
 		case GUICMD_Buffer_FindStartSequenceUnderCursor:
-			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE, BufferFindState_Create(w->b, NULL, 0, NULL));
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
 			
 			break;
 			
 		case GUICMD_Buffer_FindStartFromSelection:
-			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE, BufferFindState_Create(w->b, NULL, 0, NULL));
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
 			break;
 			
 		case GUICMD_Buffer_FindStart:			
 		case GUICMD_Buffer_FindResume:
-			w->inputMode = BIM_Find;
-			
-			BufferFindState* st = BufferFindState_Create(w->b, NULL, 0, NULL);
-			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION, st);
+//			w->inputMode = BIM_Find;
+			if(!w->findState) {
+				GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION);
+			}
 			
 			GUI_SetActive(&w->findQuery);
 			
 			break;
 		case GUICMD_Buffer_SmartFind:
-			w->inputMode = BIM_Find;
-			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE | FM_SELECTION, BufferFindState_Create(w->b, NULL, 0, NULL));
+//			w->inputMode = BIM_Find;
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE | FM_SELECTION);
 			GUI_SetActive(&w->findQuery);
 			break;
 		
@@ -1040,16 +1036,17 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 			
 		case GUICMD_Buffer_CloseTray:
-			w->inputMode = 0;
-			if(w->trayOpen) {
-				GUIBufferEditor_CloseTray(w);
-				w->inputMode = BIM_Buffer;
+			GUIBufferEditor_StopFind(w);
+////			w->inputMode = 0;
+//			if(w->trayOpen) {
+//				GUIBufferEditor_CloseTray(w);
+//				w->inputMode = BIM_Buffer;
 //				GUIManager_popFocusedObject(w->header.gm);
 				
 				// TODO: findset: delete results
 				// HACK
 //				if(w->findSet) VEC_TRUNC(&w->findSet->ranges);
-			}
+//			}
 			break;
 			
 // 		case GUICMD_Buffer_CloseBuffer: {
@@ -1095,9 +1092,9 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		
 		case GUICMD_Buffer_PromptAndClose:
 			// launch save_tray
-			if(w->trayOpen) {
-				GUIBufferEditor_CloseTray(w);
-			}
+//			if(w->trayOpen) {
+//				GUIBufferEditor_CloseTray(w);
+//			}
 			
 			if(w->b->undoSaveIndex == w->b->undoCurrent) {
 				// changes are saved, so just close
@@ -1105,7 +1102,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 				break;
 			}
 			
-			w->trayOpen = 1;
+//			w->trayOpen = 1;
 			/*
 			w->trayRoot = (GUIWindow*)GUIManager_SpawnTemplate(w->header.gm, "save_tray");
 			GUI_RegisterObject(w, w->trayRoot);
@@ -1188,65 +1185,8 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 	if(cmd->flags & GUICMD_FLAG_centerOnCursor) {
 		GBEC_scrollToCursorOpt(w->ec, 1);
 	}
-	
-	if(cmd->setMode >= 0) {
-		GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, cmd->setMode);
-		if(cmi) {
-			if(cmi->flags & GUICMD_MODE_FLAG_isOverlay) {
-				w->overlays |= 1 << cmi->overlayBitIndex;
-			}
-			else {
-				w->inputMode = cmd->setMode;
-			}
-		}
-	}
-	
-	if(cmd->clearMode >= 0) {
-		GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, cmd->clearMode);
-		if(cmi) {
-			if(cmi->flags & GUICMD_MODE_FLAG_isOverlay) {
-				w->overlays &= ~(1ul << cmi->overlayBitIndex);
-			}
-			else {
-				if(w->inputMode == cmd->clearMode) {
-					cmi = Commands_GetModeInfo(gm, w->inputMode);
-					w->inputMode = (cmi && cmi->cascade >= 0) ? cmi->cascade : 0;
-				}
-			}
-		}
-	}
-	
-	int showGoto = 0;
-	int showFind = 0;
-	static int last_mode = -1;
-	if(last_mode != w->inputMode) {
-		last_mode = w->inputMode;
 		
-		GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, w->inputMode);
-		if(cmi) {
-			showGoto |= !!(cmi->flags & GUICMD_MODE_FLAG_showGoToLineBar);
-			showFind |= !!(cmi->flags & GUICMD_MODE_FLAG_showFindBar);
-		}
-	}
-	
-	static uint64_t last_overlays = 0;
-	if(last_overlays != w->overlays) {
-		last_overlays = w->overlays;
-		
-		for(int i = 0; i < 63; i++) {
-			if(!(w->overlays & (1ul << i))) continue;
-			
-			GUI_CmdModeInfo* cmi = Commands_GetOverlay(gm, i);
-			if(!cmi) continue;
-			showGoto |= !!(cmi->flags & GUICMD_MODE_FLAG_showGoToLineBar);
-			showFind |= !!(cmi->flags & GUICMD_MODE_FLAG_showFindBar);
-		}
-	}
-	
-	
-	w->gotoLineTrayOpen = showGoto;
-	w->trayOpen = showFind;
-	
+
 	return 0;
 	
 }
@@ -1255,10 +1195,10 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 
 
 void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
-	if(!w->trayOpen) return;
+//	if(!w->trayOpen) return;
 // 	
-	w->trayOpen = 0;
-	w->inputMode = BIM_Buffer;
+//	w->trayOpen = 0;
+//	w->inputMode = BIM_Buffer;
 	
 	
 //	w->header.cmdMode = BIM_Buffer;
@@ -1270,8 +1210,8 @@ void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
 }
 
 void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height) {
-	if(w->trayOpen) GUIBufferEditor_CloseTray(w);
-	else GUIBufferEditor_OpenTray(w, height);
+//	if(w->trayOpen) GUIBufferEditor_CloseTray(w);
+//	else GUIBufferEditor_OpenTray(w, height);
 }
 
 void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {

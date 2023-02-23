@@ -147,7 +147,24 @@ static unsigned int get_index(unsigned int mods) {
 	return o;
 }
 
-GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode, size_t* numCmds) {
+
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, GUI_CmdModeState* st, size_t* numCmds) {
+
+	for(int i = 0; i < 63; i++) {
+		if(!((1ul << i) & st->overlays)) continue;
+		
+		GUI_CmdModeInfo* cmi = Commands_GetOverlay(gm, i);
+		if(!cmi) continue;
+		
+		GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Buffer, &gm->curEvent, cmi->id, numCmds);
+		if(*numCmds) return cmd;
+	}	
+		
+	return Commands_ProbeCommandMode(gm, GUIELEMENT_Buffer, &gm->curEvent, st->mode, numCmds);
+}
+
+
+GUI_Cmd* Commands_ProbeCommandMode(GUIManager* gm, int elemType, GUIEvent* gev, int mode, size_t* numCmds) {
 	
 	unsigned int ANY = (GUIMODKEY_SHIFT | GUIMODKEY_CTRL | GUIMODKEY_ALT | GUIMODKEY_TUX);
 	unsigned int ANY_MASK = ~ANY;
@@ -162,6 +179,7 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 		int32_t c = gev->keycode;
 		
 		if(cat == GUI_CMD_SRC_NONE) {
+			if(numCmds) *numCmds = 0;
 			return NULL;
 		}
 		if(cat == GUI_CMD_SRC_KEY) {
@@ -217,12 +235,59 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 	// fall back to the parent mode if it exists
 	GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, mode);
 	if(cmi && cmi->cascade != -1) {
-		return Commands_ProbeCommand(gm, elemType, gev, cmi->cascade, numCmds);
+		return Commands_ProbeCommandMode(gm, elemType, gev, cmi->cascade, numCmds);
 	}
 
 	if(numCmds) *numCmds = 0;
 	return NULL; // no match
 }
+
+
+void Commands_UpdateModes(GUIManager* gm, GUI_CmdModeState* st, GUI_Cmd* cmd, size_t numCmds) {
+
+	for(int i = 0; i < numCmds; i++, cmd++) {
+	
+		if(cmd->setMode >= 0) {
+			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, cmd->setMode);
+			if(cmi) {
+				if(cmi->flags & GUICMD_MODE_FLAG_isOverlay) {
+					st->overlays |= 1 << cmi->overlayBitIndex;
+				}
+				else {
+					st->mode = cmd->setMode;
+					st->modeInfo = cmi;
+				}
+			}
+		}
+		
+		if(cmd->clearMode >= 0) {
+			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, cmd->clearMode);
+			if(cmi) {
+				if(cmi->flags & GUICMD_MODE_FLAG_isOverlay) {
+					st->overlays &= ~(1ul << cmi->overlayBitIndex);
+				}
+				else {
+					if(st->mode == cmd->clearMode) {
+						cmi = Commands_GetModeInfo(gm, st->mode);
+						st->mode = (cmi && cmi->cascade >= 0) ? cmi->cascade : 0;
+						st->modeInfo = Commands_GetModeInfo(gm, st->mode);
+					}
+				}
+			}
+		}
+	}
+	
+	
+	st->curFlags = st->modeInfo ? st->modeInfo->flags : 0;
+	
+	for(int i = 0; i < 63; i++) {
+		if(!(st->overlays & (1ul << i))) continue;
+		
+		GUI_CmdModeInfo* cmi = Commands_GetOverlay(gm, i);
+		if(cmi) st->curFlags |= cmi->flags;
+	}
+}
+
 
 int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t id) {
 	GUI_CmdElementInfo* inf;

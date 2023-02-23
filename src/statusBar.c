@@ -141,18 +141,20 @@ static size_t strfbufmode(char* s, size_t max, const char* format, GUIBufferEdit
 			case '%':
 				switch(format[i + 1]) {
 					case 'D':
-						len = snprintf(buffer, 20, "%d", ed->ec->inputMode);
+						len = snprintf(buffer, 20, "%d", ed->ec->inputState.mode);
 						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 						copied += len;
 						i++;
 						break;
 						
 					case 'S':
-						GUI_CmdModeInfo* info = Commands_GetModeInfo(ed->gm, ed->ec->inputMode);
-						len = snprintf(buffer, 20, "%s", info->name);
-						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
-						copied += len;
-						i++;
+						GUI_CmdModeInfo* info = ed->ec->inputState.modeInfo;
+						if(info) {
+							len = snprintf(buffer, 20, "%s", info->name);
+							for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
+							copied += len;
+							i++;
+						}
 						break;
 						
 					case '%':

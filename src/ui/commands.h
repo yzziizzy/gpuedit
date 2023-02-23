@@ -173,6 +173,13 @@ typedef struct GUI_CmdElementInfo {
 	HT(uint32_t) nameLookup;
 } GUI_CmdElementInfo;
 
+typedef struct GUI_CmdModeState {
+	int mode;
+	GUI_CmdModeInfo* modeInfo;
+	
+	uint64_t overlays;
+	uint64_t curFlags;
+} GUI_CmdModeState;
 
 struct GUIEvent;
 typedef struct GUIEvent GUIEvent;
@@ -185,8 +192,10 @@ typedef struct GUIHeader GUIHeader;
 #define GUI_CMD_RATSYM(btn, reps) ((1 << 30) | ((reps & 0xff) << 15) | (btn & 0xff))
 #define GUI_CMD_EXTSYM(a) ((1 << 29) | (a))
 
-GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int mode, size_t* numCmds);
+GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, GUI_CmdModeState* st, size_t* numCmds);
+GUI_Cmd* Commands_ProbeCommandMode(GUIManager* gm, int elemType, GUIEvent* gev, int mode, size_t* numCmds);
 GUI_Cmd* Commands_ProbeSubCommand(GUIManager* gm, int sub_elem, GUIEvent* gev);
+void Commands_UpdateModes(GUIManager* gm, GUI_CmdModeState* st, GUI_Cmd* cmd, size_t numCmds);
 GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id);
 GUI_CmdModeInfo* Commands_GetOverlay(GUIManager* gm, int bitIndex);
 int Commands_GetModeID(GUIManager* gm, char* name);
