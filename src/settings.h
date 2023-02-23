@@ -57,14 +57,25 @@ typedef enum TabScrollType {
 #undef X
 } TabScrollType;
 
+
+#define MCWID_TYPE_LIST \
+	X(HELLO) \
+	X(PING) \
+	X(CLOCK) \
+	X(BATTERY) \
+	X(LINECOL) \
+	X(BUFMODE) \
+
+
 typedef enum WidgetType {
-	MCWID_NONE,
-	MCWID_HELLO,
-	MCWID_PING,
-	MCWID_CLOCK,
-	MCWID_BATTERY,
-	MCWID_LINECOL,
+	MCWID_NONE = 0,
+#define X(x,...) MCWID_##x,
+	MCWID_TYPE_LIST
+#undef X
+	MCWID_MAX_VALUE
 } WidgetType_t;
+
+extern char* mcwid_type_names[];
 
 typedef struct WidgetSpec {
 	WidgetType_t type;
@@ -72,6 +83,7 @@ typedef struct WidgetSpec {
 	char align;
 	char* format;
 } WidgetSpec;
+
 
 //          type   name                default value | min | max    
 #define GENERAL_SETTING_LIST \

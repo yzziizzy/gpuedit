@@ -509,6 +509,7 @@ typedef struct GUIBufferEditor {
 	
 	int inputMode;
 	VEC(int) inputModeStack;
+	GUI_CmdModeInfo* inputModeInfo;
 	
 	HighlighterManager* hm;
 	
@@ -906,6 +907,7 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(Color4, lineNumColor,                  C4H(ffffffff), NULL, NULL) \
 	SETTING(Color4, lineNumBgColor,                C4H(141414ff), NULL, NULL) \
 	SETTING(Color4, lineNumBookmarkColor,          C4H(32ff32ff), NULL, NULL) \
+	SETTING(Color4, lineNumBreakpointColor,        C4H(f00f0fff), NULL, NULL) \
 	SETTING(Color4, scrollbarColor,                C4H(ffffffff), NULL, NULL) \
 	SETTING(Color4, hl_bgColor,                    C4H(00c8c8ff), NULL, NULL) \
 	SETTING(Color4, hl_textColor,                  C4H(fa0032ff), NULL, NULL) \

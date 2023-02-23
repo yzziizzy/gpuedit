@@ -20,7 +20,16 @@ general: {
 	
 	"MainControl_openInPlace": 0,
 	"MainControl_autoSortTabs": 0,
-	
+
+	"MainControl_statusWidgets": [
+//				{ type: "hello_world", size: 15, align: "r", "format": "" },
+				{ type: "clock",       size: 8,  align: "r", format: "%H:%M:%S" }, // "%H:%M:%S"
+		//		{ type: "ping",        size: 10, },
+		//		{ type: "battery",     size: 15, },
+				{ type: "linecol",     size: 30, align: "l", format: "line %L:%C  [%T lines]" },
+				{ type: "bufmode",     size: 20, align: "l", format: "mode: %S [%D]" },
+	],
+
 	MainControl_tabNameScrollFn: "sinusoidal", // None, Linear, Sinusoidal, Swing, Loop
 	MainControl_tabNameScrollStartLinger: 2.0,
 	MainControl_tabNameScrollEndLinger: 2.0,
