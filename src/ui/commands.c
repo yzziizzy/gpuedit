@@ -8,7 +8,6 @@
 #include "gui.h"
 
 
-
 static struct {
 	char* ename;
 	char* name;
@@ -65,14 +64,17 @@ static struct{ char* n; int id;} elemList[] = {
 static HT(uint64_t) syms;
 static HT(uint64_t) flag_lookup;
 static HT(uint64_t) mode_flag_lookup;
+static HT(int) mode_name_lookup;
 //static HT(uint64_t) cmd_enums;
 
 static void init_words() {
 	HT_init(&flag_lookup, 64);
 	HT_init(&mode_flag_lookup, 64);
+	HT_init(&mode_name_lookup, 64);
 	HT_init(&syms, 2100);
 //	HT_init(&cmd_enums, 120);
 	
+
 
 	for(int i = 0; keysym_lookup[i].name != 0; i++) {
 		HT_set(&syms, keysym_lookup[i].name, keysym_lookup[i].val);
@@ -290,6 +292,21 @@ uint32_t GUIManager_AddCommandFlag(GUIManager* gm, char* name) {
 	*/ return 0;
 }
 
+int Commands_GetModeID(GUIManager* gm, char* name) {
+	char* end;
+	int id = strtol(name, &end, 10);
+	if(id >= 0 && id < 10000 && end - name == strlen(name)) return id;
+	
+	static int next_mode_id = 10000;
+	if(HT_get(&mode_name_lookup, name, &id)) {
+		HT_set(&mode_name_lookup, name, next_mode_id);
+		id = next_mode_id++;
+	};
+	
+	return id;
+}
+
+
 GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id) {
 	// TODO: better data structure
 	VEC_EACHP(&gm->commandModes, i, mp) {
@@ -364,7 +381,7 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 		void* iter = NULL;
 		while(json_obj_next(modes_v, &iter, &key, &v)) {
 		
-			int id = strtol(key, NULL, 10);
+			int id = Commands_GetModeID(gm, key);
 			
 			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, id);
 			if(!cmi) {
@@ -432,7 +449,7 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 		void* iter = NULL;
 		while(json_obj_next(modes_v, &iter, &key, &v)) {
 		
-			int id = strtol(key, NULL, 10);
+			int id = Commands_GetModeID(gm, key);
 			
 			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, id);
 			if(!cmi) {
@@ -703,27 +720,56 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 	
 	// optional mode value (default 0)
 	if(!json_obj_get_key(entry, "mode", &v)) {
-		cmd->mode = json_as_int(v);
-		/*
-		s = v->s;
-		
-		if(HT_get(&gm->cmdModeLookup, s, &n16)) {
-			fprintf(stderr, "Unknown mode name: '%s'\n", s);
-			continue;
-		}*/
-//		cmd->mode = v->n; //n16;
+		if(v->type == JSON_TYPE_STRING) {
+			int mode = Commands_GetModeID(gm, v->s);
+			if(mode < 0) {
+				fprintf(stderr, "Unknown mode name: '%s'\n", v->s);
+			}
+			cmd->mode = mode;
+		}
+		else {
+			cmd->mode = json_as_int(v);
+			if(cmd->mode > 9999) {
+				fprintf(stderr, "Invalid mode number: '%d'\n", cmd->mode);
+			}
+		}
 	}
 	
 	// optional mode setting value (default -1)
 	cmd->setMode = -1;
 	if(!json_obj_get_key(entry, "setMode", &v)) {
-		cmd->setMode = json_as_int(v);
+		if(v->type == JSON_TYPE_STRING) {
+			int mode = Commands_GetModeID(gm, v->s);
+			if(mode < 0) {
+				fprintf(stderr, "Unknown mode name: '%s'\n", v->s);
+			}
+			cmd->setMode = mode;
+		}
+		else {
+			cmd->setMode = json_as_int(v);
+			if(cmd->setMode > 9999) {
+				fprintf(stderr, "Invalid mode number: '%d'\n", cmd->setMode);
+			}
+		}
 	}
 	
 	// overlay
 	cmd->clearMode = -1;
 	if(!json_obj_get_key(entry, "clearMode", &v)) {
-		cmd->clearMode = json_as_int(v);
+		if(v->type == JSON_TYPE_STRING) {
+			int mode = Commands_GetModeID(gm, v->s);
+			if(mode < 0) {
+				fprintf(stderr, "Unknown mode name: '%s'\n", v->s);
+			}
+			
+			cmd->clearMode = mode;
+		}
+		else {
+			cmd->clearMode = json_as_int(v);
+			if(cmd->clearMode > 9999) {
+				fprintf(stderr, "Invalid mode number: '%d'\n", cmd->clearMode);
+			}
+		}
 	}
 	
 	

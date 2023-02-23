@@ -189,6 +189,7 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, int 
 GUI_Cmd* Commands_ProbeSubCommand(GUIManager* gm, int sub_elem, GUIEvent* gev);
 GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id);
 GUI_CmdModeInfo* Commands_GetOverlay(GUIManager* gm, int bitIndex);
+int Commands_GetModeID(GUIManager* gm, char* name);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);
 
