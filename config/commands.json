@@ -222,7 +222,7 @@
 			
 			{mode: 1, elem: "Buffer", cmd: "FindNext",     mods: "",  key: "XK_F3", amt: 0, flags: ["centerOnCursor"]},
 			{mode: 1, elem: "Buffer", cmd: "FindPrev",     mods: "S", key: "XK_F3", amt: 0, flags: ["centerOnCursor"]},
-			{mode: 1, elem: "Buffer", cmd: "CloseTray",    mods: "",  key: "XK_Escape", amt: 0, clearMode: 1, },
+			{mode: 1, elem: "Buffer", cmd: "FindStop",     mods: "",  key: "XK_Escape", amt: 0, clearMode: 1, },
 			{mode: 1, elem: "Buffer", cmd: "ReplaceStart", mods: "C", key: "r", amt: 0, flags: ["centerOnCursor"]},
 			{mode: 1, elem: "Buffer", cmd: "ReplaceNext",  mods: "A", key: "r", amt: 0, flags: ["centerOnCursor", "rehighlight", "undoSeqBreak"]},
 			{mode: 1, elem: "Buffer", cmd: "ReplaceAll",   mods: "A", key: "a", amt: 0, flags: ["centerOnCursor", "rehighlight", "undoSeqBreak"]},

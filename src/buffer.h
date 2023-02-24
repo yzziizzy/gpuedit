@@ -308,6 +308,7 @@ typedef struct GUIBufferEditControl {
 	
 	BufferRangeSet* selSet;
 	BufferRangeSet* findSet;
+	BufferRangeSet* findSearchSpace;
 	long findIndex;
 	
 	// starting point of a mouse-drag selection
@@ -400,9 +401,10 @@ typedef enum BufferInputMode {
 
 
 typedef enum FindMask {
-	FM_NONE,
-	FM_SELECTION,
-	FM_SEQUENCE,
+	FM_NONE = 0,
+	FM_SELECTION = 1,
+	FM_SEQUENCE = 2,
+	FM_WITHIN_SELECTION = 4,
 } FindMask_t;
 
 typedef enum MatchMode {
@@ -908,6 +910,7 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(Color4, hl_textColor,                  C4H(fa0032ff), NULL, NULL) \
 	SETTING(Color4, find_bgColor,                  C4H(115511ff), NULL, NULL) \
 	SETTING(Color4, find_textColor,                C4H(660022ff), NULL, NULL) \
+	SETTING(Color4, findSpace_bgColor,             C4H(181833ff), NULL, NULL) \
 	SETTING(Color4, outlineCurrentLineBorderColor, C4H(323232ff), NULL, NULL) \
 	SETTING(Color4, selectedItemTextColor,         C4H(c8c8c8ff), NULL, NULL) \
 	SETTING(Color4, selectedItemBgColor,           C4H(505050ff), NULL, NULL) \

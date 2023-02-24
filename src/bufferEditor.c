@@ -447,11 +447,16 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	BufferRange sel = {};
 	Buffer* b = w->ec->b;
 	char* str = NULL;
-	if((mask & FM_SELECTION) && HAS_SELECTION(w->ec->sel)) {
+	
+	if((mask & FM_SELECTION) && HAS_SELECTION(w->ec->sel) && w->ec->sel->line[0] == w->ec->sel->line[1]) {
 		str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
 	}
 	
-	if(!str && (mask & FM_SEQUENCE) && charSet) {
+	BufferRange* searchSpace = NULL;
+	if(mask & FM_WITHIN_SELECTION && HAS_SELECTION(w->ec->sel) && w->ec->sel->line[0] != w->ec->sel->line[1]) { 
+		searchSpace = BufferRange_Copy(w->ec->sel);
+	}
+	else if(!str && (mask & FM_SEQUENCE) && charSet) {
 		Buffer_GetSequenceUnder(b, CURSOR_LINE(w->ec->sel), CURSOR_COL(w->ec->sel), charSet, &sel);
 		if((sel.line[0] == sel.line[1]) && (sel.col[1] - sel.col[0] > 0)) {
 			str = Buffer_StringFromSelection(b, &sel, NULL);
@@ -462,7 +467,12 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 		GUIString_Set(&w->findQuery, str);
 	}
 	
-	BufferFindState* st = BufferFindState_Create(w->b, str, NULL, NULL);
+	
+	BufferFindState* st = BufferFindState_Create(w->b, str, NULL, searchSpace);
+	if(searchSpace) {
+		w->ec->findSearchSpace = st->searchSpace;
+		GBEC_ClearAllSelections(w->ec);
+	}
 	GUIBufferEditor_StartFind(w, st);
 	
 	
@@ -557,6 +567,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 
 void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 	
+	w->ec->findSearchSpace = NULL;
 	BufferFindState_FreeAll(w->findState);
 	free(w->findState);
 	w->findState = NULL;
@@ -1059,6 +1070,10 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
 			break;
 			
+		case GUICMD_Buffer_FindStop:
+			GUIBufferEditor_StopFind(w);
+			break;
+						
 		case GUICMD_Buffer_FindStart:			
 		case GUICMD_Buffer_FindResume:
 //			w->inputMode = BIM_Find;
@@ -1071,7 +1086,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 		case GUICMD_Buffer_SmartFind:
 //			w->inputMode = BIM_Find;
-			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE | FM_SELECTION);
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE | FM_SELECTION | FM_WITHIN_SELECTION);
 			GUI_SetActive(&w->findQuery);
 			break;
 		

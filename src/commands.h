@@ -103,6 +103,7 @@
 	X(Buffer, FindStartSequenceUnderCursor) \
 	X(Buffer, FindStartFromSelection) \
 	X(Buffer, FindStart) \
+	X(Buffer, FindStop) \
 	X(Buffer, SmartFind) \
 	X(Buffer, FindResume) \
 	X(Buffer, FindNext) \

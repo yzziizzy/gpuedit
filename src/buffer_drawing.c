@@ -149,6 +149,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		if(bl->length) { // only draw lines with text
 			
+			// look up the highlighter info
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
 			TextStyleAtom* atom = NULL;
@@ -159,7 +160,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			
 			// draw characters
 			for(int i = 0; i < bl->length; i++) { 
-								
+				int noInvert = 0;
 				if(BufferRangeSet_test(gbe->selSet, bl, i)) {
 					// inside main selection
 					inSelection = 1;
@@ -172,6 +173,13 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 						inSelection = 1;
 						fg = &ts->find_textColor;
 						bg = &ts->find_bgColor;
+					}
+					else if(BufferRangeSet_test(gbe->findSearchSpace, bl, i)) {
+						// inside other selection
+						inSelection = 1;
+						noInvert = 1;
+//						fg = &ts->findSpace_textColor;
+						bg = &ts->findSpace_bgColor;
 					}
 					else {
 						inSelection = 0;
@@ -202,7 +210,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 				
 				// hack before selection theme colors are done
 				Color4 invfg;
-				if(inSelection && bs->invertSelection) {
+				if(!noInvert && inSelection && bs->invertSelection) {
 					invfg.r = 1.0 - fg->r;
 					invfg.g = 1.0 - fg->g;
 					invfg.b = 1.0 - fg->b;
@@ -273,31 +281,34 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		}
 		else { // empty lines
 			// check selection
-			if(BufferRangeSet_test(gbe->findSet, bl, 0)) {
-				// inside other selection
+			
+			if(BufferRangeSet_test(gbe->selSet, bl, 0)) {
+				// inside main selection
 				inSelection = 1;
-				fg = &((Color4){1.0, 0.0, 0.3, 1.0});
-				bg = &((Color4){0.0, 1.0, 0.3, 1.0});
+				bg = &ts->hl_bgColor;
 			}
 			else {
-				if(BufferRangeSet_test(gbe->selSet, bl, 0)) {
+				if(BufferRangeSet_test(gbe->findSet, bl, 0)) {
+					// inside other selection
 					inSelection = 1;
-					fg = &ts->hl_textColor;
-					bg = &ts->hl_bgColor;
+					bg = &ts->find_bgColor;
+				}
+				else if(BufferRangeSet_test(gbe->findSearchSpace, bl, 0)) {
+					// inside other selection
+					inSelection = 1;
+					bg = &ts->findSpace_bgColor;
 				}
 				else {
 					inSelection = 0;
-					fg = &ts->textColor;
 					bg = &ts->bgColor;	
 				}
 			}
-		
 		}
 
         // draw a little half-width selection background at the end of selected lines (and empty ones)
 		if(inSelection) {
 			gm->curZ = z + 2;
-			GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth / 1.0), bs->lineHeight), &ts->hl_bgColor);
+			GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth / 1.0), bs->lineHeight), bg);
 		}
 
 		if(ytop > edh) break; // end of buffer control
