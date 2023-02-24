@@ -280,6 +280,11 @@ typedef struct BufferACMatchSet {
 
 
 
+typedef struct BufferEditorMacro {
+	VEC(GUI_Cmd) cmds;
+} BufferEditorMacro;
+
+
 // drawing and mouse controls
 typedef struct GUIBufferEditControl {
 
@@ -337,6 +342,9 @@ typedef struct GUIBufferEditControl {
 	
 	// cached during event processing
 	Vector2 tl, sz;
+	
+	char isRecording;
+	RING(BufferEditorMacro) macros;
 	
 	GUI_CmdModeState inputState;
 	
@@ -450,11 +458,6 @@ BufferFindState* BufferFindState_Create(Buffer* b, char* pattern, GUIFindOpt* op
 
 
 
-typedef struct BufferEditorMacro {
-	VEC(GUI_Cmd) cmds;
-} BufferEditorMacro;
-
-
 // all sorts of fancy stuff, and keyboard controls
 typedef struct GUIBufferEditor {
 	
@@ -504,8 +507,7 @@ typedef struct GUIBufferEditor {
 	
 	GUI_CmdModeState inputState;
 	
-	char isRecording;
-	RING(BufferEditorMacro) macros;
+	
 
 } GUIBufferEditor;
 
@@ -823,7 +825,7 @@ void GBEC_SetSelectionFromPivot(GUIBufferEditControl* gbe);
 void GBEC_SelectionChanged(GUIBufferEditControl* gbe);
 
 
-void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index);
+void GBEC_ReplayMacro(GUIBufferEditControl* w, int index);
 
 
 // regenerates all PCRE internal structures
