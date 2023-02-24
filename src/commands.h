@@ -115,7 +115,6 @@
 	X(Buffer, PromptAndClose) \
 	X(Buffer, Reload) \
 	X(Buffer, PromptLoad) \
-	X(Buffer, CloseTray) \
 	X(Buffer, ToggleMenu) \
 	X(Buffer, ShowDictComplete) \
 	X(Buffer, ToggleGDBBreakpoint) \

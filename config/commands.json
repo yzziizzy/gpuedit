@@ -113,7 +113,7 @@
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Left", amt: -5, },
 			{elem: "Buffer", cmd: "ScrollColsH", mods: "T", key: "XK_Right", amt: 5, },
 			{elem: "Buffer", mods: "CT", key: "XK_Right", meta: [
-				{elem: "Buffer", cmd: "ScrollColsH", amt: 5, },
+				{elem: "SYSTEM", cmd: "Nop", amt: 5, },
 				{elem: "Buffer", cmd: "ScrollColsH", amt: 5, },
 				{elem: "Buffer", cmd: "ScrollColsH", amt: 5, },
 			]},

@@ -26,6 +26,7 @@ enum {
 #endif
 
 #define GUI_ELEMENT_LIST \
+	X(SYSTEM) \
 	X(Edit) \
 	X(FileViewer) \
 	\
@@ -86,7 +87,6 @@ enum {
 #define X(a) GUIELEMENT_##a,
 enum GUIElementType {
 	GUIELEMENT_NULL = 0,
-	GUIELEMENT_SYSTEM,
 	GUI_ELEMENT_LIST
 };
 #undef X

@@ -255,7 +255,11 @@ static void click(GUIBufferEditControl* w, GUIManager* gm) {
 			GBEC_SetCurrentSelection(w, CURSOR_LINE(w->sel), 0, CURSOR_LINE(w->sel), CURSOR_LINE(w->sel)->length);
 		}
 		
-
+		// kill autocomplete when the cursor is moved via mouse
+		GBEC_CancelAutocomplete(w);
+		if(w->inputState.mode == 10 || w->inputState.mode == 11) {
+			w->inputState.mode = 0;
+		}
 		
 	}
 	else if(gm->curEvent.button == 2) { // middle click	
@@ -307,7 +311,8 @@ void GBEC_Render(GUIBufferEditControl* w, GUIManager* gm, Vector2 tl, Vector2 sz
 	float sb_px_range = sz.y - w->sbMinHeight;
 	float sb_pos = sb_px_range * (w->scrollLines / sb_line_range);
 
-	if(!gm->drawMode && GUI_InputAvailable()) {
+	if(!gm->drawMode) {
+		if(!GUI_InputAvailable()) return;
 	
 		GBEC_Update(w, tl, sz, pfp);
 		
@@ -413,20 +418,6 @@ void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParam
 	// cursor blink
 	float t = w->cursorBlinkOnTime + w->cursorBlinkOffTime;
 	w->cursorBlinkTimer = fmod(w->cursorBlinkTimer + pfp->timeElapsed, t);
-		
-//	if(w->scrollbar) {
-//		w->sbMinHeight = 20;
-		// scrollbar position calculation
-		// calculate scrollbar height
-//		float wh = sz.y;
-//		/*float*/ sbh = fmax(wh / (b->numLines - w->linesOnScreen), w->sbMinHeight);
-		
-		// calculate scrollbar offset
-//		float sboff = ((wh - sbh) / b->numLines) * (w->scrollLines);
-		
-//		w->scrollbar->header.topleft.y = sboff;
-//	}
-
 }
 
 
@@ -793,6 +784,12 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			
 		case GUICMD_Buffer_ScrollScreenPctH:
 			GBEC_ScrollDir(w, 0, ((float)cmd->amt * 0.1) * w->colsOnScreen);
+			break;
+			
+		case GUICMD_Buffer_MovePage:
+			GBEC_ClearAllSelections(w);
+			GBEC_MoveCursorV(w, w->sel, cmd->amt * w->linesOnScreen);
+			w->scrollLines = MAX(0, MIN(w->scrollLines + cmd->amt * w->linesOnScreen, w->b->numLines - 1));
 			break;
 		
 		case GUICMD_Buffer_InsertChar:
@@ -1207,10 +1204,26 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		case GUICMD_Buffer_SetBookmark:       Buffer_SetBookmarkAt(b, CURSOR_LINE(w->sel));    break; 
 		case GUICMD_Buffer_RemoveBookmark:    Buffer_RemoveBookmarkAt(b, CURSOR_LINE(w->sel)); break; 
 		case GUICMD_Buffer_ToggleBookmark:    Buffer_ToggleBookmarkAt(b, CURSOR_LINE(w->sel)); break; 
-		case GUICMD_Buffer_GoToNextBookmark:  GBEC_NextBookmark(w);  break; 
-		case GUICMD_Buffer_GoToPrevBookmark:  GBEC_PrevBookmark(w);  break; 
-		case GUICMD_Buffer_GoToFirstBookmark: GBEC_FirstBookmark(w); break; 
-		case GUICMD_Buffer_GoToLastBookmark:  GBEC_LastBookmark(w);  break; 
+		
+		case GUICMD_Buffer_GoToNextBookmark:  
+			GBEC_ClearAllSelections(w);
+			GBEC_NextBookmark(w);
+			break; 
+		case GUICMD_Buffer_GoToPrevBookmark:
+			GBEC_ClearAllSelections(w);
+			GBEC_PrevBookmark(w);
+			break;
+			 
+		case GUICMD_Buffer_GoToFirstBookmark: 
+			GBEC_ClearAllSelections(w);
+			GBEC_FirstBookmark(w);
+			break; 
+		
+		case GUICMD_Buffer_GoToLastBookmark:
+			GBEC_ClearAllSelections(w);
+			GBEC_LastBookmark(w);
+			break; 
+		
 		default:
 			return Buffer_ProcessCommand(w->b, cmd, needRehighlight);
 	}

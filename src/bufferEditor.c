@@ -200,11 +200,43 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 
 
 
+// called by the buffer when important changes happen
+static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
+	GUIBufferEditor* w = (GUIBufferEditor*)_w;
+	
+	if(note->action == BCA_DeleteLines) { // bufferline pointers are about to become invalid
+		
+		if(w->findState) {
+			if(BufferLine_IsInRange(w->findState->findLine, &note->sel)) {
+				w->findState->findCharS = 0;
+				w->findState->findCharE = 0;
+				w->findState->findLen = 0;
+				w->findState->findLine = note->sel.line[0]->prev;
+				if(!w->findState->findLine) {		
+					w->findState->findLine = note->sel.line[1]->next;		
+				}
+			}
+			
+			if(BufferLine_IsInRange(w->findState->nextFindLine, &note->sel)) {
+				w->findState->nextFindChar = 0;
+				w->findState->nextFindLine = note->sel.line[0]->prev;
+				if(!w->findState->nextFindLine) {		
+					w->findState->nextFindLine = note->sel.line[1]->next;		
+				}
+			}
+		
+			BufferRangeSet_DeleteLineNotify(w->findState->searchSpace, &note->sel);
+			BufferRangeSet_DeleteLineNotify(w->findState->findSet, &note->sel);
+		}
+		
+	}
+}
 
 
 
 void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b) {
 	w->b = b;
+	Buffer_RegisterChangeListener(b, bufferChangeNotify, w);
 	GUIBufferEditControl_SetBuffer(w->ec, b);
 }
 
@@ -807,10 +839,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			
 			break;
 		}
-		case GUICMD_Buffer_MovePage:
-			GBEC_MoveCursorV(w->ec, w->ec->sel, cmd->amt * w->ec->linesOnScreen);
-			w->ec->scrollLines = MAX(0, MIN(w->ec->scrollLines + cmd->amt * w->ec->linesOnScreen, w->b->numLines - 1));
-			break;
+
 		
 			
 			// TODO: init selectoin and pivots if no selection active
@@ -1057,20 +1086,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		case GUICMD_Buffer_CollapseWhitespace:
 			Buffer_CollapseWhitespace(w->b, CURSOR_LINE(w->ec->sel), w->ec->sel->col[0]);
 			break;
-		
-		case GUICMD_Buffer_CloseTray:
-			GUIBufferEditor_StopFind(w);
-////			w->inputMode = 0;
-//			if(w->trayOpen) {
-//				GUIBufferEditor_CloseTray(w);
-//				w->inputMode = BIM_Buffer;
-//				GUIManager_popFocusedObject(w->header.gm);
-				
-				// TODO: findset: delete results
-				// HACK
-//				if(w->findSet) VEC_TRUNC(&w->findSet->ranges);
-//			}
-			break;
 			
 // 		case GUICMD_Buffer_CloseBuffer: {
 // 			GUIHeader* oo = GUIManager_SpawnTemplate(w->header.gm, "save_changes");
@@ -1215,43 +1230,6 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 }
 
 
-
-
-void GUIBufferEditor_CloseTray(GUIBufferEditor* w) {
-//	if(!w->trayOpen) return;
-// 	
-//	w->trayOpen = 0;
-//	w->inputMode = BIM_Buffer;
-	
-	
-//	w->header.cmdMode = BIM_Buffer;
-	
-//	GUI_Delete(w->trayRoot);
-//	w->trayRoot = NULL;
-//	w->findBox = NULL;
-//	w->replaceBox = NULL;
-}
-
-void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height) {
-//	if(w->trayOpen) GUIBufferEditor_CloseTray(w);
-//	else GUIBufferEditor_OpenTray(w, height);
-}
-
-void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height) {
-	/*if(w->trayOpen) {
-		if(w->trayHeight != height) {
-			w->trayHeight = height;
-			return;
-		}
-	}
-	
-	w->trayOpen = 1; 
-	w->trayHeight = height;
-	w->trayRoot = GUIWindow_New(w->header.gm);
-	
-	GUI_RegisterObject(w, w->trayRoot);
-	*/
-}
 
 
 void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w) {

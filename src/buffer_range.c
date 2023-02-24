@@ -53,6 +53,14 @@ void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel) {
 
 }
 
+void BufferRangeSet_DeleteLineNotify(BufferRangeSet* rs, BufferRange* dsel) {
+	if(!rs) return;
+	
+	VEC_EACH(&rs->ranges, i, r) {
+		BufferRange_DeleteLineNotify(r, dsel);
+	}
+}
+
 	
 
 

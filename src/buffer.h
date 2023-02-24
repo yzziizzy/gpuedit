@@ -722,7 +722,7 @@ void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
 void Buffer_NotifyUndoMoveCursor(Buffer* b, BufferLine* line, colnum_t col);
 void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, colnum_t startC, BufferLine* endL, colnum_t endC, char isReverse);
 void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel);
-
+void BufferRangeSet_DeleteLineNotify(BufferRangeSet* rs, BufferRange* dsel);
 
 // These functions operate on and with the cursor
 BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
@@ -820,9 +820,6 @@ void GBEC_ScrollDir(GUIBufferEditControl* w, linenum_t lines, colnum_t cols);
 void GBEC_SetSelectionFromPivot(GUIBufferEditControl* gbe);
 void GBEC_SelectionChanged(GUIBufferEditControl* gbe);
 
-void GUIBufferEditor_CloseTray(GUIBufferEditor* w);
-void GUIBufferEditor_OpenTray(GUIBufferEditor* w, float height);
-void GUIBufferEditor_ToggleTray(GUIBufferEditor* w, float height); 
 
 void GUIBufferEditor_ReplayMacro(GUIBufferEditor* w, int index);
 

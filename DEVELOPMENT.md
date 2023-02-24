@@ -1,13 +1,10 @@
 == Horrible outstanding regressions ==
 * Padding needed in font atlas
 * One frame lag on highlight update sometimes (related to buffer/gbec internal render function call ordering)
-* Tab name scrolling is broken
 * Cyan selection background for leading tabs is fucked when h-scrolled 
 
 == Needed before yzziizzy dogfooding ==
 * Undo selections are somewhat broken; pivot is not saved accurately
-* Selection deletion still wipes out rest of file sometimes
-* Basic autocomplete
 * Resume search is broken
 * Command to append text to end of code on line (;), but before comments
 
@@ -16,7 +13,6 @@
 * bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
 * bugz: C-d comment not pushed into undo stack
 * bugz: redo of single paste is multiple commands
-* bugz: smartfind not starting with selection
 * bugz: selection is created when grepopener opens a file
 
 
