@@ -152,6 +152,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	MainControl* mc = w->mc;
 	
 	Vector2 tab_sz = {sz.x, sz.y - mc->tabHeight - 1};
+	float tabw = (sz.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
 	
 	// layout mode traps all input
 	if(!gm->drawMode && mc->inputMode == 10) {
@@ -167,19 +168,8 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		gm->curEvent.type = 0;
 	}
 	
-	// only render the active tab
-	if(w->currentIndex > -1) {
-		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
-		
-		if(gm->drawMode || w == w->mc->focusedPane) {
-			if(a && a->render) a->render(a->client, gm, V(tl.x, tl.y + mc->tabHeight + 1), tab_sz, pfp);
-		}
-	}
 	
-	
-	float tabw = (sz.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
-	
-	// handle input
+	// check for clicks to change focus
 	if(!gm->drawMode) {
 	
 		VEC_EACH(&w->tabs, i, tab) {
@@ -194,6 +184,23 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 			}
 		
 		}
+	}
+	
+	
+	// only render the active tab
+	if(w->currentIndex > -1) {
+		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+		
+		if(gm->drawMode || w == w->mc->focusedPane) {
+			if(a && a->render) a->render(a->client, gm, V(tl.x, tl.y + mc->tabHeight + 1), tab_sz, pfp);
+		}
+	}
+	
+	
+
+	
+	// handle input
+	if(!gm->drawMode) {
 		
 		if(GUI_InputAvailable()) {
 			
