@@ -306,7 +306,7 @@ void GUIBufferEditor_LoadSessionState(GUIBufferEditor* w, json_value_t* state) {
 	
 //	GUIBufferEditControl_SetScroll(w->ec, line, col);
 	GBEC_MoveCursorToNum(w->ec, line, col);
-	GBEC_SetScrollCentered(w->ec, line, col);
+	GBEC_SetScrollCentered(w->ec, line, 0); // GBEC_scrollToCursorOpt didn't seem to be working here
 }
 
 

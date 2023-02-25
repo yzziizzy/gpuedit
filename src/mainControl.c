@@ -150,6 +150,22 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
 		MainControlPane_Render(pane, gm, ptl, psz, pfp);
 	}}
+	
+	// handle input
+	if(!gm->drawMode) {
+		
+		if(GUI_InputAvailable()) {
+			
+			GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Main, &gm->curEvent, w->inputMode, NULL);
+			
+			if(cmd) {
+				MainControl_ProcessCommand(w, cmd);
+				GUI_CancelInput();
+			}
+		}
+				
+		return;
+	}
 }
 
 void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
@@ -201,24 +217,6 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		}
 	}
 	
-	
-
-	
-	// handle input
-	if(!gm->drawMode) {
-		
-		if(GUI_InputAvailable()) {
-			
-			GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);
-			
-			if(cmd) {
-				MainControl_ProcessCommand(mc, cmd);
-				GUI_CancelInput();
-			}
-		}
-				
-		return;
-	}
 	
 	// ---------- only drawing code after this point ----------
 	
@@ -451,7 +449,7 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		printf("low: %f, high: %f [gap: %f]\n", w->gm->fontClipLow, w->gm->fontClipHigh, w->gm->fontClipGap);
 		break;
 		
-	case GUICMD_Main_FontNudgeCenter: 
+	case GUICMD_Main_FontNudgeCenter:
 		w->gm->fontClipLow += (float)cmd->amt * 0.01;
 		w->gm->fontClipLow = MIN(MAX(w->gm->fontClipLow, 0.0), 1.0 - w->gm->fontClipGap);
 		w->gm->fontClipHigh = w->gm->fontClipLow + w->gm->fontClipGap;
