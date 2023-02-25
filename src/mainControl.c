@@ -529,7 +529,6 @@ MainControl* MainControl_New(GUIManager* gm, Settings* s) {
 	
 	// TEMP HACK
 	HT_init(&w->breakpoints, 64);
-	w->projectPath =  "/home/steve/projects/gpuedit";
 	// ----
 	
 	HighlighterManager_Init(&w->hm, s);
@@ -1348,6 +1347,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 				GBEC_scrollToCursorOpt(gbe->ec, 1);
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}
+			gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
 			return VEC_ITEM(&w->focusedPane->tabs, index);
 		}
 	}
@@ -1432,6 +1432,8 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 
 	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
 	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
+	
+	gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
 	
 	MainControl_OnTabChange(w);
 	
