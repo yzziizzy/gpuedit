@@ -46,6 +46,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		GUI_Rect(V(0, 0), V(sz.x, 40), &gm->defaults.trayBgColor);
 		
 		DEFAULTS(GUIEditOpts, eo);
+		eo.selectAll = 1;
 		
 		ACTIVE(&w->gotoLineNum);
 		if(GUI_IntEdit_(gm, &w->gotoLineNum, V(10,10), sz.x - 20, &w->gotoLineNum, &eo)) {
