@@ -645,6 +645,11 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	if(!(d = GUI_GetData_(gm, id))) {
 		d = calloc(1, sizeof(*d));
 		d->cursor.selectPivot = -1;
+		if(o->selectAll) {
+			d->cursor.selectPivot = 0;
+			d->cursor.cursorPos = str->len;
+		}
+		
 		GUI_SetData_(gm, id, d, free);
 	}
 	
@@ -741,8 +746,6 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 
 struct intedit_data {
 	struct edit_data ed;
-	int cursorPos;
-	float blinkTimer;
 	
 	long lastValue;
 	GUIString str;
@@ -765,6 +768,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 		
 		d->str.alloc = 64;
 		d->str.data = calloc(1, d->str.alloc * sizeof(*d->str.data));
+		
 		firstRun = 1;
 	}
 		
@@ -816,20 +820,43 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	if(*num != d->lastValue || firstRun) {
 		d->str.len = snprintf(d->str.data, 64, "%ld", *num);
 		d->lastValue = *num;
+		
+		if(firstRun && o->selectAll) {
+		printf("selecting all\n");
+			d->ed.cursor.selectPivot = 0;
+			d->ed.cursor.cursorPos = d->str.len;
+		}
 	}
 
 	
-	
-	// draw cursor
+	// draw cursor and selection background
 	if(gm->activeID == id) {
-		if(d->blinkTimer < 0.5) { 
-			float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->cursorPos);
+		gm->curZ += 0.001;
+		
+		float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->ed.cursor.cursorPos);
+		
+		if(d->ed.cursor.blinkTimer < 0.5) { 
+			gm->curZ += 0.001;
+			
 			GUI_Rect(V(tl.x + cursorOff, tl.y), V(2,sz.y), &o->cursorColor);
+			gm->curZ -= 0.001;
 		}
 		
-		d->blinkTimer += gm->timeElapsed;
-		d->blinkTimer = fmod(d->blinkTimer, 1.0);
+		d->ed.cursor.blinkTimer += gm->timeElapsed;
+		d->ed.cursor.blinkTimer = fmod(d->ed.cursor.blinkTimer, 1.0);
+		
+		if(d->ed.cursor.selectPivot > -1) {
+			float pivotOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->ed.cursor.selectPivot);
+			
+			int min = MIN(cursorOff, pivotOff);
+			int max = MAX(cursorOff, pivotOff);
+			
+			GUI_Rect(V(tl.x + min, tl.y), V(max - min,sz.y), &o->selectionBgColor);
+			
+		}
+		gm->curZ -= 0.001;
 	}
+	
 	
 	gm->curZ += 0.01;
 	GUI_TextLine_(gm, d->str.data, d->str.len, V(tl.x, tl.y ), o->fontName, fontSz, &o->colors[st].text);
