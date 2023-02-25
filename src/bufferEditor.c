@@ -575,7 +575,7 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 }
 
 void BufferFindState_FreeAll(BufferFindState* st) {
-	
+	if(!st) return;
 	// clean up errors
 	if(st->findREError) {
 		free(st->findREError);
