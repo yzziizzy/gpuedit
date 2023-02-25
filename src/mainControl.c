@@ -128,7 +128,7 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	for(int y = 0; y < w->yDivisions; y++) {
 	for(int x = 0; x < w->xDivisions; x++) {
 
-		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];		
+		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];
 		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
 
 		// set this pane to be focused if any mouse button went up in it,
@@ -142,7 +142,12 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 			}
 			
 		}
-		
+	}}
+	
+	for(int y = 0; y < w->yDivisions; y++) {
+	for(int x = 0; x < w->xDivisions; x++) {
+		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];
+		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
 		MainControlPane_Render(pane, gm, ptl, psz, pfp);
 	}}
 }
@@ -515,8 +520,6 @@ void MainControlPane_Free(MainControlPane* w, int freeTabContent) {
 }
 
 
-
-
 MainControl* MainControl_New(GUIManager* gm, Settings* s) {
 
 		
@@ -562,6 +565,7 @@ void MainControl_UpdateSettings(MainControl* w, Settings* s) {
 
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 	
+	if(w->focusedPane == p) return;
 
 	int x, y;
 	for(y = 0; y < w->yDivisions; y++) {
@@ -575,8 +579,8 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 			
 			if(!tab->isActive) {
 				tab->isActive = 1;
-				w->gm->activeID = (void*)tab->client;
 			}
+			w->gm->activeID = (void*)tab->client;
 			
 			MainControl_OnTabChange(w);
 			
