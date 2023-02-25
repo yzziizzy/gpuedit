@@ -580,7 +580,7 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 			if(!tab->isActive) {
 				tab->isActive = 1;
 			}
-			w->gm->activeID = (void*)tab->client;
+			GUI_SetActive_(w->gm, tab->client, NULL, NULL);
 			
 			MainControl_OnTabChange(w);
 			
