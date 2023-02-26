@@ -13,8 +13,12 @@
 * bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
 * bugz: C-d comment not pushed into undo stack
 * bugz: redo of single paste is multiple commands
-* bugz: selection is created when grepopener opens a file
+* bugz: selection is extended when grepopener opens an already open file
+* bugz: edit can read gibberish string data (repro: find sequence, backspace)
+* bugz: undo of typing leaves bad cursor position
 
+* debug pane showing all configs that were loaded, in order
+* Edit control basic commands (home/end, ctrl+backspace, ctrl+c/v/x)
 
 * render whitespace characters
 * ctrl+l/r jumps across tabs (sequence break on newline)
@@ -86,7 +90,6 @@
 * Wire all the settings updates through the app
 * Adjustable scroll lines in fileBrowser, get from OS if possible
 * MIME type probing of some sort
-* Persist bookmarks
 * Horizontal scrollbar
 * Clean up C highlighter with provided allocators
 * Warn about duplicate key bindings
