@@ -1,5 +1,18 @@
 #!/bin/bash
 
+if [[ "$EUID" = 0 ]]; then
+    echo "Please run as your user to install user configs in ~/"
+	exit 1
+else
+    sudo -k # make sure to ask for password on next sudo
+    if sudo true; then
+        echo "sudo activated"
+    else
+        echo "sudo authentication failed, try again"
+        exit 2
+    fi
+fi
+
 
 sys_path=/etc/gpuedit
 sudo rm -rf $sys_path

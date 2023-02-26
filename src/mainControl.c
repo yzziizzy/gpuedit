@@ -128,7 +128,7 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	for(int y = 0; y < w->yDivisions; y++) {
 	for(int x = 0; x < w->xDivisions; x++) {
 
-		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];		
+		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];
 		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
 
 		// set this pane to be focused if any mouse button went up in it,
@@ -142,9 +142,30 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 			}
 			
 		}
-		
+	}}
+	
+	for(int y = 0; y < w->yDivisions; y++) {
+	for(int x = 0; x < w->xDivisions; x++) {
+		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];
+		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
 		MainControlPane_Render(pane, gm, ptl, psz, pfp);
 	}}
+	
+	// handle input
+	if(!gm->drawMode) {
+		
+		if(GUI_InputAvailable()) {
+			
+			GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Main, &gm->curEvent, w->inputMode, NULL);
+			
+			if(cmd) {
+				MainControl_ProcessCommand(w, cmd);
+				GUI_CancelInput();
+			}
+		}
+				
+		return;
+	}
 }
 
 void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
@@ -196,24 +217,6 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		}
 	}
 	
-	
-
-	
-	// handle input
-	if(!gm->drawMode) {
-		
-		if(GUI_InputAvailable()) {
-			
-			GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Main, &gm->curEvent, mc->inputMode, NULL);
-			
-			if(cmd) {
-				MainControl_ProcessCommand(mc, cmd);
-				GUI_CancelInput();
-			}
-		}
-				
-		return;
-	}
 	
 	// ---------- only drawing code after this point ----------
 	
@@ -446,7 +449,7 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		printf("low: %f, high: %f [gap: %f]\n", w->gm->fontClipLow, w->gm->fontClipHigh, w->gm->fontClipGap);
 		break;
 		
-	case GUICMD_Main_FontNudgeCenter: 
+	case GUICMD_Main_FontNudgeCenter:
 		w->gm->fontClipLow += (float)cmd->amt * 0.01;
 		w->gm->fontClipLow = MIN(MAX(w->gm->fontClipLow, 0.0), 1.0 - w->gm->fontClipGap);
 		w->gm->fontClipHigh = w->gm->fontClipLow + w->gm->fontClipGap;
@@ -515,8 +518,6 @@ void MainControlPane_Free(MainControlPane* w, int freeTabContent) {
 }
 
 
-
-
 MainControl* MainControl_New(GUIManager* gm, Settings* s) {
 
 		
@@ -529,7 +530,6 @@ MainControl* MainControl_New(GUIManager* gm, Settings* s) {
 	
 	// TEMP HACK
 	HT_init(&w->breakpoints, 64);
-	w->projectPath =  "/home/steve/projects/gpuedit";
 	// ----
 	
 	HighlighterManager_Init(&w->hm, s);
@@ -563,6 +563,7 @@ void MainControl_UpdateSettings(MainControl* w, Settings* s) {
 
 void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 	
+	if(w->focusedPane == p) return;
 
 	int x, y;
 	for(y = 0; y < w->yDivisions; y++) {
@@ -576,8 +577,8 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 			
 			if(!tab->isActive) {
 				tab->isActive = 1;
-				w->gm->activeID = (void*)tab->client;
 			}
+			GUI_SetActive_(w->gm, tab->client, NULL, NULL);
 			
 			MainControl_OnTabChange(w);
 			
@@ -1348,6 +1349,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 				GBEC_scrollToCursorOpt(gbe->ec, 1);
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}
+			gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
 			return VEC_ITEM(&w->focusedPane->tabs, index);
 		}
 	}
@@ -1432,6 +1434,8 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 
 	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
 	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
+	
+	gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
 	
 	MainControl_OnTabChange(w);
 	

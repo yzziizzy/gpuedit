@@ -297,6 +297,21 @@ void GUIBufferEditor_SaveSessionState(GUIBufferEditor* w, json_value_t* out) {
 	json_obj_set_key(out, "path", json_new_str(w->sourceFile));
 	json_obj_set_key(out, "line", json_new_int(CURSOR_LINE(w->ec->sel)->lineNum));
 	json_obj_set_key(out, "col", json_new_int(CURSOR_COL(w->ec->sel)));
+	
+	json_value_t* bookmarks = json_new_array();
+	int n_bookmarks = 0;
+	BufferLine* bl = w->b->first;
+	while(bl) {
+		if(bl->flags & BL_BOOKMARK_FLAG) {
+			json_array_push_tail(bookmarks, json_new_int(bl->lineNum));
+			n_bookmarks++;
+		}
+		
+		bl = bl->next;
+	}
+	if(n_bookmarks) {
+		json_obj_set_key(out, "bookmarks", bookmarks);
+	}
 }
 
 
@@ -306,7 +321,29 @@ void GUIBufferEditor_LoadSessionState(GUIBufferEditor* w, json_value_t* state) {
 	
 //	GUIBufferEditControl_SetScroll(w->ec, line, col);
 	GBEC_MoveCursorToNum(w->ec, line, col);
-	GBEC_SetScrollCentered(w->ec, line, col);
+	GBEC_SetScrollCentered(w->ec, line, 0); // GBEC_scrollToCursorOpt didn't seem to be working here
+	
+	json_value_t* bookmarks = json_obj_get_val(state, "bookmarks");
+	if(bookmarks) {
+		json_link_t* blink = bookmarks->arr.head;
+		BufferLine* bl = w->b->first;
+		while(blink && bl) {
+			if(blink->v->type == JSON_TYPE_INT) {
+				int64_t ln = blink->v->n;
+				if(ln == bl->lineNum) {
+					bl->flags |= BL_BOOKMARK_FLAG;
+					bl = bl->next;
+					blink = blink->next;
+				} else if(ln > bl->lineNum) {
+					bl = bl->next;
+				} else {
+					blink = blink->next;
+				}
+			} else {
+				blink = blink->next;
+			}
+		}
+	}
 }
 
 
@@ -575,7 +612,7 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 }
 
 void BufferFindState_FreeAll(BufferFindState* st) {
-	
+	if(!st) return;
 	// clean up errors
 	if(st->findREError) {
 		free(st->findREError);

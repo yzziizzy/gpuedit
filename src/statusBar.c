@@ -154,6 +154,9 @@ static size_t strfbufmode(char* s, size_t max, const char* format, GUIBufferEdit
 							for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
 							copied += len;
 							i++;
+						} else {
+							s[copied++] = '-';
+							i++;
 						}
 						break;
 						
