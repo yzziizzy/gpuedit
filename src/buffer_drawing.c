@@ -12,7 +12,6 @@
 
 
 
-static void drawTextLine(GUIManager* gm, BufferSettings* bs, GUIFont* f, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
 
 
 

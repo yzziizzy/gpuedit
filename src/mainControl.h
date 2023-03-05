@@ -11,6 +11,7 @@
 #include "mainMenu.h"
 #include "highlight.h"
 #include "msg.h"
+#include "hexedit.h"
 
 
 
@@ -159,12 +160,17 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path);
 void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
 void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
 
+void MainControl_Hexedit(MainControl* w, char* path);
+
 void MainControl_GrepOpen(MainControl* w, char* searchTerm);
 void MainControlPane_EmptyTab(MainControlPane* w);
 void MainControl_Calculator(MainControl* w);
 void MainControl_Terminal(MainControl* w);
 void MainControl_CloseBuffer(MainControl* w, int index);
 void MainControl_CloseAllBufferPtr(MainControl* w, Buffer* p);
+
+void MainControl_Hexedit(MainControl* w, char* path);
+
 
 
 #endif //__gpuedit_mainControl_h__

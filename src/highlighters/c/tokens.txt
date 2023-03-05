@@ -166,6 +166,14 @@
 {f64 :cat=DataType |identifier_chars>LST_identifier
 {szt :cat=DataType |identifier_chars>LST_identifier
 {sszt :cat=DataType |identifier_chars>LST_identifier
+{Quaternion :cat=DataType |identifier_chars>LST_identifier
+{quat :cat=DataType |identifier_chars>LST_identifier
+{Matrix2 :cat=DataType |identifier_chars>LST_identifier
+{Matrix3 :cat=DataType |identifier_chars>LST_identifier
+{Matrix4 :cat=DataType |identifier_chars>LST_identifier
+{mat2 :cat=DataType |identifier_chars>LST_identifier
+{mat3 :cat=DataType |identifier_chars>LST_identifier
+{mat4 :cat=DataType |identifier_chars>LST_identifier
 {vec2 :cat=DataType |identifier_chars>LST_identifier
 {vec3 :cat=DataType |identifier_chars>LST_identifier
 {vec4 :cat=DataType |identifier_chars>LST_identifier

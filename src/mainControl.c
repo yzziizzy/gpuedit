@@ -1123,6 +1123,21 @@ void MainControl_GrepOpen(MainControl* w, char* searchTerm) {
 }
 
 
+void MainControl_Hexedit(MainControl* w, char* path) {
+
+	Hexedit* he = Hexedit_New(w->gm, w->s, path);
+	
+	MainControlTab* tab = MainControl_AddGenericTab(w, he, "hexedit");
+	tab->type = MCTAB_Hexedit;
+	tab->render = (void*)Hexedit_Render;
+	tab->client = he;
+
+	MainControlPane_nthTabOfType(w->focusedPane, MCTAB_Hexedit, 1);
+	
+	MainControl_OnTabChange(w);
+}
+
+
 void MainControlPane_EmptyTab(MainControlPane* w) {
 	void* o = MainControlPane_nthTabOfType(w, MCTAB_Empty, 1);
 	if(o != NULL) {

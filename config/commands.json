@@ -265,6 +265,12 @@
 				{elem: "Buffer", cmd: "OverwriteChar", mods: "", key: "VK_Print", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
 			]},
 			
+			{elem: "Hexedit", cmd: "MoveCursorH",  mods: "",  key: "XK_Left",  amt: -1},
+			{elem: "Hexedit", cmd: "MoveCursorH",  mods: "",  key: "XK_Right", amt:  1},
+			{elem: "Hexedit", cmd: "MoveCursorV",  mods: "",  key: "XK_Up",    amt: -1},
+			{elem: "Hexedit", cmd: "MoveCursorV",  mods: "",  key: "XK_Down",  amt:  1},
+			{elem: "Hexedit", cmd: "ScrollV",      mods: "",  key: "XK_Prior", amt: -8},
+			{elem: "Hexedit", cmd: "ScrollV",      mods: "",  key: "XK_Next",  amt:  8},
 
 			{elem: "FileBrowser", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1, flags: []},
 			{elem: "FileBrowser", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1, flags: []},

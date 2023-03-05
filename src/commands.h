@@ -16,6 +16,7 @@
 	X(FileBrowser) \
 	X(FuzzyMatcher) \
 	X(GrepOpen) \
+	X(Hexedit) \
 	X(Calc) \
 	X(Debug) \
 
@@ -134,6 +135,10 @@
 	X(Buffer, ACReplaceWithSelected) \
 	X(Buffer, ACCompletePrefix) \
 	X(Buffer, ACCancel) \
+	\
+	X(Hexedit, MoveCursorV) \
+	X(Hexedit, MoveCursorH) \
+	X(Hexedit, ScrollV) \
 	\
 	X(FileBrowser, Exit) \
 	X(FileBrowser, CursorMove) \
