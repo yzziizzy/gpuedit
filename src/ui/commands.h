@@ -182,6 +182,7 @@ typedef struct GUI_CmdList {
 
 typedef struct GUI_CmdElementInfo {
 	uint16_t id;
+	char* name;
 	uint8_t hasDefaultKeystrokeCmd;
 	GUI_Cmd defaultKeystrokeCmd;
 	HT(uint32_t) nameLookup;

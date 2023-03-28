@@ -179,11 +179,11 @@ GUI_Cmd* Commands_ProbeCommand(GUIManager* gm, int elemType, GUIEvent* gev, GUI_
 		GUI_CmdModeInfo* cmi = Commands_GetOverlay(gm, i);
 		if(!cmi) continue;
 		
-		GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_Buffer, &gm->curEvent, cmi->id, numCmds);
+		GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, elemType, &gm->curEvent, cmi->id, numCmds);
 		if(*numCmds) return cmd;
 	}	
 		
-	return Commands_ProbeCommandMode(gm, GUIELEMENT_Buffer, &gm->curEvent, st->mode, numCmds);
+	return Commands_ProbeCommandMode(gm, elemType, &gm->curEvent, st->mode, numCmds);
 }
 
 
@@ -323,6 +323,7 @@ int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t i
 	inf = &VEC_ITEM(&gm->cmdElements, infIndex);
 	
 	HT_set(&inf->nameLookup, name, id);
+//	printf("adding %s to %s elements as %d\n", name, inf->name, id);
 	
 	return 0;
 }
@@ -338,8 +339,9 @@ int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) {
 		return 0;
 	}
 	
-	//printf("adding %s to command elements\n", name);
+//	printf("adding %s to command elements\n", name);
 	inf.id = id;
+	inf.name = name;
 	HT_init(&inf.nameLookup, 16);
 	
 	infIndex = VEC_LEN(&gm->cmdElements);
@@ -685,6 +687,8 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 				return 1;
 			}
 			cmd->cmd = n32;
+			
+//			printf("found config for %s:%s = %d\n", inf->name, s, n32);
 		}
 	}
 	

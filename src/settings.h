@@ -23,6 +23,7 @@ enum {
 	X(FileOpener) \
 	X(FuzzyOpener) \
 	X(GrepOpener) \
+	X(Hexedit) \
 	X(Calculator) \
 	X(Empty) \
 
