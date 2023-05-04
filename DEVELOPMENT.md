@@ -10,7 +10,6 @@
 
 == Needed before fractal dogfooding ==
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
-* bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
 * bugz: C-d comment not pushed into undo stack
 * bugz: redo of single paste is multiple commands
 * bugz: selection is extended when grepopener opens an already open file
@@ -26,7 +25,6 @@
 * cursor down on last line -> goto end of line
 * maybe a bug: selection buffer pastes always at the mouse cursor
 * selection paste option: mouse|latest/cursors
-* return to previously active tab if opener is closed without opening
 * redirect debug output to a logfile
 * lockup with multi-line selection when fuzzy-matcher is spawned
 

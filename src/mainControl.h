@@ -23,6 +23,7 @@ typedef struct AppState AppState;
 typedef struct MainControlTab {
 	char* title;
 	TabType_t type;
+	int accessIndex;
 	
 	unsigned int isActive : 1;
 	unsigned int isStarred : 1;
@@ -54,6 +55,7 @@ typedef struct MainControlPane {
 	struct MainControl* mc;
 	
 	int currentIndex;
+	int lastTabAccessIndex;
 	VEC(MainControlTab*) tabs;
 	char tabAutoSortDirty;
 } MainControlPane;

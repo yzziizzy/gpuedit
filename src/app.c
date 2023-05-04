@@ -255,6 +255,9 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 					
 					MainControlTab* mct = MainControlPane_LoadFile(pane, path);
 					GUIBufferEditor_LoadSessionState((GUIBufferEditor*)mct->client, jdata);
+					
+					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
+					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
 				}
 				else if(0 == strcmp("FuzzyOpener", type)) {
 					MainControlPane_FuzzyOpener(pane, "");

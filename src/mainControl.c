@@ -756,10 +756,17 @@ void MainControlPane_CloseTab(MainControlPane* w, int index) {
 		MainControlPane_EmptyTab(w);\
 		n_tabs = 1;
 	}
-	if(w->currentIndex > index || w->currentIndex > (n_tabs - 1)) {
-		w->currentIndex--;
+	
+	// find highest tabAccessIndex
+	int maxAccessIndex = 0;
+	VEC_EACH(&w->tabs, i, tab) {
+		if(tab->accessIndex > maxAccessIndex) {
+			maxAccessIndex = tab->accessIndex;
+			w->currentIndex = i;
+		}
 	}
 	w->currentIndex %= n_tabs;
+	
 	
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;
@@ -1257,6 +1264,13 @@ static void setBreakpoint(char* file, intptr_t line, MainControl* w) {
 
 void MainControl_OnTabChange(MainControl* w) {
 	
+	for(int y = 0; y < w->yDivisions; y++)
+	for(int x = 0; x < w->xDivisions; x++) {
+		MainControlPane* p = w->paneSet[x + y * w->xDivisions];
+		MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
+		tab->accessIndex = ++p->lastTabAccessIndex;
+	}
+	
 	if(!w->gs->enableSessions) return;
 	
 	json_write_context_t jwc = {0};
@@ -1290,6 +1304,7 @@ void MainControl_OnTabChange(MainControl* w) {
 			
 			json_value_t* jtc = json_new_object(32);
 			if(t->saveSessionState) t->saveSessionState(t->client, jtc);
+			json_obj_set_key(jtc, "accessIndex", json_new_int(t->accessIndex));
 			json_obj_set_key(jt, "data", jtc);
 			
 			json_array_push_tail(jtabs, jt);
