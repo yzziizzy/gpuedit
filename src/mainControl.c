@@ -1376,6 +1376,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 			BufferLine* bl = Buffer_raw_GetLineByNum(gbe->b, opt->line_num);
 			if(bl) {
 				GBEC_MoveCursorTo(gbe->ec, bl, 0);
+				GBEC_ClearAllSelections(gbe->ec);
 				GBEC_scrollToCursorOpt(gbe->ec, 1);
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}

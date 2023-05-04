@@ -12,12 +12,12 @@
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
 * bugz: C-d comment not pushed into undo stack
 * bugz: redo of single paste is multiple commands
-* bugz: selection is extended when grepopener opens an already open file
 * bugz: edit can read gibberish string data (repro: find sequence, backspace)
 * bugz: undo of typing leaves bad cursor position
 
 * debug pane showing all configs that were loaded, in order
 * Edit control basic commands (home/end, ctrl+backspace, ctrl+c/v/x)
+* sequence commands in findreplace input box
 
 * render whitespace characters
 * ctrl+l/r jumps across tabs (sequence break on newline)
@@ -26,16 +26,11 @@
 * maybe a bug: selection buffer pastes always at the mouse cursor
 * selection paste option: mouse|latest/cursors
 * redirect debug output to a logfile
-* lockup with multi-line selection when fuzzy-matcher is spawned
 
-* old find term highlighted on findreplace resume
-* sequence commands in findreplace input box
 * highlight findset while valid even if find tray closes (opt)
 * no centeroncursor for selection/sequence matches (opt?)
 * find modes: plain|fuzzy|pcre|escape
 * find match/ignore case
-
-* highlighter/theme colors from system colorX definitions
 
 * copy cannot paste to pgadmin3 (INCR? mime type?), godbolt.org in FF
 * undo breaks if selection reaches end of file
