@@ -533,7 +533,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 
 
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st) {
-	if(!st->findSet) {
+	if(!st || !st->findSet) {
 //		printf("no findset\n");
 		return 1;
 	}
