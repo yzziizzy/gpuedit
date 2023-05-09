@@ -1004,6 +1004,7 @@ void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts)
 	// construct a new file name
 	char* new = alloca(strlen(orig) + strlen(cext) + 2);
 	strncpy(new, orig, ext - orig);
+	new[ext-orig] = 0;
 	strcat(new, cext);
 	
 	MainControl_LoadFile(w, new);
