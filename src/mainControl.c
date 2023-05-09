@@ -1268,8 +1268,10 @@ void MainControl_OnTabChange(MainControl* w) {
 	for(int y = 0; y < w->yDivisions; y++)
 	for(int x = 0; x < w->xDivisions; x++) {
 		MainControlPane* p = w->paneSet[x + y * w->xDivisions];
-		MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
-		tab->accessIndex = ++p->lastTabAccessIndex;
+		if(p->tabs.len) {
+			MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
+			tab->accessIndex = ++p->lastTabAccessIndex;
+		}
 	}
 	
 	if(!w->gs->enableSessions) return;
@@ -1457,12 +1459,12 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	tab->client = gbe;
 	
 
-/*
+
 	if(opt->set_focus) {
-		int i = MainControl_FindTabIndexByHeaderP(w, tab->client);
-		MainControl_GoToTab(w, i);
+		int i = MainControlPane_FindTabIndexByBufferPath(p, opt->path);
+		MainControlPane_GoToTab(p, i);
 	}
-*/	
+	
 
 	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
 	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
