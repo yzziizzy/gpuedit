@@ -23,8 +23,8 @@
 * ctrl+l/r jumps across tabs (sequence break on newline)
 * sequence breaks that actually make sense
 * cursor down on last line -> goto end of line
-* maybe a bug: selection buffer pastes always at the mouse cursor
 * selection paste option: mouse|latest/cursors
+* paste: cursor at start/end of inserted text
 * redirect debug output to a logfile
 
 * highlight findset while valid even if find tray closes (opt)
@@ -34,7 +34,7 @@
 
 * copy cannot paste to pgadmin3 (INCR? mime type?), godbolt.org in FF
 * undo breaks if selection reaches end of file
-* paste: cursor at start/end of inserted text
+
 * undo system selection not recreated based on selection direction?
 
 
