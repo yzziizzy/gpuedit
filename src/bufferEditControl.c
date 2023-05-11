@@ -1749,8 +1749,16 @@ void GBEC_MoveEndH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols) {
 
 void GBEC_MoveMarkerV(GUIBufferEditControl* w, BufferRange* r, int c, linenum_t lines) {
 	// TODO: undo
-	
+	BufferLine* old_line = r->line[c];
 	Buffer_RelPosV(r->line[c], r->col[c], lines, &r->line[c], &r->col[c]);
+	
+	// jump to start/end if already on first/last line
+	if(r->line[c] == old_line) {
+		if(lines > 0) r->col[c] = r->line[c]->length;
+		else if(lines < 0) r->col[c] = 0;
+		r->colWanted = r->col[c];
+	}
+	
 	BufferRange_Normalize(r);
 }
 

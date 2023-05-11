@@ -22,7 +22,6 @@
 * render whitespace characters
 * ctrl+l/r jumps across tabs (sequence break on newline)
 * sequence breaks that actually make sense
-* cursor down on last line -> goto end of line
 * selection paste option: mouse|latest/cursors
 * paste: cursor at start/end of inserted text
 * redirect debug output to a logfile
