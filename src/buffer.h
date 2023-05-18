@@ -672,9 +672,6 @@ void BufferRangeSet_FreeAll(BufferRangeSet* s);
 
 char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen);
 
-void GBEC_GrowSelectionH(GUIBufferEditControl* w, colnum_t cols);
-void GBEC_GrowSelectionV(GUIBufferEditControl* w, colnum_t cols);
-
 // these functions operate on absolute positions
 void Buffer_AppendRawText(Buffer* b, char* source, intptr_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, intptr_t len);

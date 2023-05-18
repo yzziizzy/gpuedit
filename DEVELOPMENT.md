@@ -15,14 +15,13 @@
 * bugz: edit can read gibberish string data (repro: find sequence, backspace)
 * bugz: undo of typing leaves bad cursor position
 
-* debug pane showing all configs that were loaded, in order
-* Edit control basic commands (home/end, ctrl+backspace, ctrl+c/v/x)
-* sequence commands in findreplace input box
-  * click only in current string
+* debug pane showing all configs that were loaded, in order)
+* edit control improvements
+  * set correct selection on focus
+  * sequence movement commands
   * click/selction interaction
   * port to replace box as needed
-* GUIString -> set null bits
-* selection clipboard interaction
+  * ctrl+backspace
 
 * render whitespace characters
 * ctrl+l/r jumps across tabs (sequence break on newline)

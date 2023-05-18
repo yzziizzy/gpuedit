@@ -498,9 +498,10 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 			fix_cursor = 1;
 		}
 		else {
-			
-			if(w->findState) w->findState->findSet->changeCounter++;
-			return GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
+			if(w->findState) {
+				w->findState->findSet->changeCounter++;
+				return GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
+			}
 		}
 	}
 	else {

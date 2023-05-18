@@ -512,7 +512,7 @@ static void set_clipboard(int which, GUICursorData* cd, GUIString* str) {
 //		printf("case b: pushing %d chars '%*s'\n", cd->cursorPos - cd->selectPivot, cd->cursorPos - cd->selectPivot, str->data + cd->selectPivot);
 	}
 //	printf("pushing %d chars %s\n", selLen, tmp);
-	Clipboard_PushRawText(CLIP_PRIMARY, tmp, selLen);
+	Clipboard_PushRawText(which, tmp, selLen);
 	free(tmp);
 }
 
@@ -568,6 +568,7 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 					cd->selectPivot = cd->cursorPos;
 				}
 				cd->cursorPos = cd->cursorPos - 1 <= 0 ? 0 : cd->cursorPos - 1;
+				set_clipboard(CLIP_SELECTION, cd, str);
 			}
 			// ctrl: move by sequences
 			else if(e->modifiers == 0) { // just move the cursor normally
@@ -583,6 +584,7 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 					cd->selectPivot = cd->cursorPos;
 				}
 				cd->cursorPos = cd->cursorPos + 1 > str->len ? str->len : cd->cursorPos + 1;
+				set_clipboard(CLIP_SELECTION, cd, str);
 			}
 			// ctrl: move by sequences
 			else if(e->modifiers == 0) { // just move the cursor normally
@@ -626,6 +628,7 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 			if(e->modifiers & GUIMODKEY_SHIFT) {
 				cd->selectPivot = cd->cursorPos;
 				cd->cursorPos = 0;
+				set_clipboard(CLIP_SELECTION, cd, str);
 			}
 			else {
 				cd->cursorPos = 0;
@@ -639,6 +642,7 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 			if(e->modifiers & GUIMODKEY_SHIFT) {
 				cd->selectPivot = cd->cursorPos;
 				cd->cursorPos = str->len;
+				set_clipboard(CLIP_SELECTION, cd, str);
 			}
 			else {
 				cd->cursorPos = str->len;
@@ -765,6 +769,28 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 			// position the cursor
 			Vector2 mp = GUI_MousePos();
 			d->cursor.cursorPos = gui_charFromPixel(gm, font, fontSz, str->data, mp.x - tl.x);
+			d->cursor.cursorPos = MIN(d->cursor.cursorPos, str->len);
+		}
+		else if(GUI_MouseWentUp(2)) {
+			char* pasteData;
+			size_t pasteLen;
+			Clipboard_PeekRawText(CLIP_SELECTION, &pasteData, &pasteLen);
+			GUICursorData* cd = &d->cursor;
+				
+//			printf("paste data: %s, len %ld)\n", pasteData, pasteLen);
+				
+			if(pasteLen > 0) {
+				if(cd->selectPivot > -1) delete_selection(cd, str);
+				check_string(str, pasteLen);
+				memmove(str->data + cd->cursorPos + pasteLen, str->data + cd->cursorPos, str->len - cd->cursorPos + 1);
+				memcpy(str->data + cd->cursorPos, pasteData, pasteLen);
+				str->len += pasteLen;
+				cd->cursorPos += pasteLen;
+				cd->blinkTimer = 0;
+				
+				GUI_CancelInput();
+				ret |= 1;
+			}
 		}
 	}
 	
