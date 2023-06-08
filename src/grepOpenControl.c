@@ -331,7 +331,7 @@ static void open_match(GrepOpenControl* w, int i) {
 
 	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);
 	char* path = resolve_path(path_raw);
-	intptr_t line_num = w->matches[w->cursorIndex].line_num;
+	intptr_t line_num = w->matches[i].line_num;
 	
 	GUIFileOpt opt = {
 		.path = path,
