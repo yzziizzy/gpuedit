@@ -2048,9 +2048,7 @@ BufferPrefixNode* ac_find_tail(BufferPrefixNode* n, char* s, int len) {
 
 
 
-
-
-static void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len, char* search, int searchLen) {
+static void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len, char* search, int searchLen, int cur_skip, int max_skip) {
 	
 	if(len >= 100) return;
 	
@@ -2058,15 +2056,15 @@ static void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf
 	if(ms->len >= ms->alloc && n->refs < ms->worst) return;
 	if(n->refs <= 0) return;
 	
-	
 	buf[len] = n->c;
 	
-	
-	if(len + 1 < searchLen) { // recurse into the tree along the search prefix
+	if(len - cur_skip + 1 < searchLen) { // recurse into the tree along the search prefix
 		BufferPrefixNode* k = n->kids;
 		while(k) {
-			if(tolower(k->c) == tolower(search[len + 1])) {
-				ac_find_matches(ms, k, buf, len + 1, search, searchLen);
+			if(tolower(k->c) == tolower(search[len - cur_skip + 1])) {
+				ac_find_matches(ms, k, buf, len + 1, search, searchLen, cur_skip, max_skip);
+			} else if(cur_skip < max_skip) {
+				ac_find_matches(ms, k, buf, len + 1, search, searchLen, cur_skip + 1, max_skip);
 			}
 			
 			k = k->next;
@@ -2074,7 +2072,6 @@ static void ac_find_matches(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf
 		
 		return;
 	}
-	
 	
 	//                       don't autocomplete a word to itself; this is case sensitive
 	if(n->trefs > 0 && !(ms->targetLen == len + 1 && !strncmp(buf, ms->targetStart, len + 1))) {
@@ -2121,7 +2118,7 @@ FOUND:
 	// recurse through kids
 	BufferPrefixNode* k = n->kids;
 	while(k) {
-		ac_find_matches(ms, k, buf, len + 1, search, searchLen);
+		ac_find_matches(ms, k, buf, len + 1, search, searchLen, cur_skip, max_skip);
 		k = k->next;
 	}
 }
@@ -2131,7 +2128,7 @@ static void ac_find_matches_root(BufferACMatchSet* ms, BufferPrefixNode* n, char
 	BufferPrefixNode* k = n->kids;
 	while(k) {
 		if(tolower(k->c) == tolower(search[0])) {
-			ac_find_matches(ms, k, buf, 0, search, searchLen);
+			ac_find_matches(ms, k, buf, 0, search, searchLen, 0, 20);
 		}
 		
 		k = k->next;
