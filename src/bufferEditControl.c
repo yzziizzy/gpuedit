@@ -104,7 +104,7 @@ static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 
 static void dragStop(GUIBufferEditControl* w, GUIManager* gm) {
 
-	if(gm->curEvent.button == 1) {
+	if(gm->curEvent.button == 1 && (w->isDragScrolling || w->isDragScrollCoasting || w->isDragSelecting)) {
 		w->isDragSelecting = 0;
 		w->isDragScrollCoasting = 0;
 		w->isDragScrolling = 0;
