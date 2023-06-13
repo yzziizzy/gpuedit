@@ -23,21 +23,32 @@
 extern int g_DisableSave;
 
 
-
-Buffer* Buffer_New() {
+Buffer* Buffer_New(BufferSettings* bs) {
 	Buffer* b = pcalloc(b);
+	BufferSettings* tmp;
+	
+	if(!bs) {
+		tmp = BufferSettings_Alloc(NULL);
+		BufferSettings_LoadDefaults(NULL, tmp);
+	} else {
+		tmp = bs;
+	}
 	
 	b->nextLineID = 1;
 	b->refs = 1;
 	
-	b->undoMax = 4096; // TODO: settings
+	b->undoMax = tmp->maxUndo;
 	b->undoRing = calloc(1, b->undoMax * sizeof(*b->undoRing));
 	
+	b->acMaxSkip = tmp->autocompleteMaxSkip;
 	
-	// HACK should go in settings files
-	b->useDict = 1;
-	b->dictCharSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+	b->useDict = tmp->useDict;
+	b->dictCharSet = strdup(tmp->dictCharSet);
 	pcalloc(b->dictRoot);
+	
+	if(!bs) {
+		BufferSettings_Free(NULL, tmp);
+	}
 	
 	return b;
 }
@@ -97,7 +108,7 @@ BufferCache* BufferCache_New() {
 	return bc;
 }
 
-Buffer* BufferCache_GetPath(BufferCache* bc, char* path) {
+Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 	char* rp = NULL;
 	Buffer* b;
 	
@@ -111,7 +122,7 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path) {
 		}
 	}
 	
-	b = Buffer_New();
+	b = Buffer_New(bs);
 	
 	if(!path || Buffer_LoadFromFile(b, rp)) {
 		Buffer_InitEmpty(b);
@@ -1047,8 +1058,19 @@ int Buffer_ProcessCommand(Buffer* b, GUI_Cmd* cmd, int* needRehighlight) {
 
 
 Buffer* Buffer_Copy(Buffer* src) {
-	Buffer* b = Buffer_New();
+
+	Buffer* b;
 	BufferLine* blc, *blc_prev, *bl;
+	
+	// copy things that are actually buffer settings
+	BufferSettings* bs = BufferSettings_Alloc(NULL);
+	bs->maxUndo = src->undoMax;
+	bs->autocompleteMaxSkip = src->acMaxSkip;
+	bs->useDict = src->useDict;
+	bs->dictCharSet = src->dictCharSet;
+	BufferSettings_Free(NULL, bs);
+	
+	b = Buffer_New(bs);
 	
 	// TODO: undo
 	
@@ -1083,7 +1105,7 @@ Buffer* Buffer_Copy(Buffer* src) {
 }
 
 Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
-	Buffer* b = Buffer_New();
+	Buffer* b = Buffer_New(NULL);
 	
 	LOG_UNDO(printf("\n\n"));
 	
@@ -2124,11 +2146,11 @@ FOUND:
 }
 
 
-static void ac_find_matches_root(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len, char* search, int searchLen) {
+static void ac_find_matches_root(BufferACMatchSet* ms, BufferPrefixNode* n, char* buf, int len, char* search, int searchLen, int max_skip) {
 	BufferPrefixNode* k = n->kids;
 	while(k) {
 		if(tolower(k->c) == tolower(search[0])) {
-			ac_find_matches(ms, k, buf, 0, search, searchLen, 0, 20);
+			ac_find_matches(ms, k, buf, 0, search, searchLen, 0, max_skip);
 		}
 		
 		k = k->next;
@@ -2169,7 +2191,7 @@ BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r) {
 	ms->targetLen = e - i;
 	ms->targetStart = l->buf + i;
 	
-	ac_find_matches_root(ms, b->dictRoot, buf, 0, l->buf + i, len);
+	ac_find_matches_root(ms, b->dictRoot, buf, 0, l->buf + i, len, b->acMaxSkip);
 	
 	if(ms->len == 0) { // never return an empty result set
 		free(ms->matches);

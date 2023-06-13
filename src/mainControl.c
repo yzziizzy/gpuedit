@@ -1390,10 +1390,6 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	
 	
 	
-	
-	
-	Buffer* buf = BufferCache_GetPath(w->bufferCache, opt->path);
-	
 	Settings* ls = Settings_Copy(w->s, SETTINGS_ALL);
 	
 	// read local settings files
@@ -1410,7 +1406,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	
 
 	// buffer and editor creation
-	
+	Buffer* buf = BufferCache_GetPath(w->bufferCache, opt->path, bs);
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm, &w->rx);
 	GUIBufferEditor_UpdateSettings(gbe, ls);
 

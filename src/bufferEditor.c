@@ -1129,7 +1129,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 
 			// TODO: wipe out selections
 			// keep the scroll lines
-			w->b = Buffer_New();
+			w->b = Buffer_New(w->bs);
 			w->ec->b = w->b;
 			Buffer_LoadFromFile(w->b, w->sourceFile);
 			

@@ -71,7 +71,7 @@ void Clipboard_PushRawText(int which, char* raw, size_t len) {
 	
 	ClipboardClip* cc = pcalloc(cc);
 	
-	cc->b = Buffer_New();
+	cc->b = Buffer_New(NULL);
 	cc->flatTextLen = len;
 	cc->flatText = strndup(raw, len);
 	Buffer_AppendRawText(cc->b, raw, len);
@@ -133,7 +133,7 @@ Buffer* Clipboard_PopBuffer(int which) {
 //		printf(" paste: os owned [%d]\n", which);
 		if(clipboard->os[which].length == 0) return NULL;
 //		printf("   no early return\n");
-		b = Buffer_New();
+		b = Buffer_New(NULL);
 		
 //		printf("[%d] %s (%ld)\n", which, clipboard->os[which].buf, clipboard->os[which].length);
 		Buffer_AppendRawText(b, clipboard->os[which].buf, clipboard->os[which].length);

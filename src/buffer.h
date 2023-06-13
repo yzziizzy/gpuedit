@@ -227,6 +227,8 @@ typedef struct Buffer {
 	
 	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
 	
+	int acMaxSkip;
+	
 	char useDict;
 	char* dictCharSet;
 	BufferPrefixNode* dictRoot;
@@ -251,7 +253,7 @@ typedef struct BufferCache {
 
 
 BufferCache* BufferCache_New();
-Buffer* BufferCache_GetPath(BufferCache* bc, char* path);
+Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs);
 void BufferCache_RemovePath(BufferCache* bc, char* realPath);
 
 
@@ -709,7 +711,7 @@ void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w);
 
 
 
-Buffer* Buffer_New();
+Buffer* Buffer_New(BufferSettings* bs);
 void Buffer_AddRef(Buffer* b);
 void Buffer_Delete(Buffer* b);
 Buffer* Buffer_Copy(Buffer* src);
@@ -891,9 +893,13 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(int,   tabWidth,             4,     0,    INT_MAX) \
 	SETTING(charp, font,                 "Courier New", NULL, NULL) \
 	SETTING(float, fontSize,             14,    1,    1920*16) \
-	SETTING(bool,  invertSelection,      true,  NULL,  NULL) \
+	SETTING(bool,  invertSelection,      true,  NULL, NULL) \
 	SETTING(int,   maxUndo,              4096,  0,    INT_MAX) \
+	SETTING(bool,  useDict,              true,  NULL, NULL) \
+	SETTING(charp, dictCharSet,          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", NULL, NULL) \
 	SETTING(int,   statusBarHeight,      20,    0,    INT_MAX) \
+	SETTING(int,   autocompleteMaxSkip,  20,    0,    100) \
+
 
 
 

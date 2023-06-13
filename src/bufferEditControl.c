@@ -1632,7 +1632,7 @@ void GBEC_ReplaceLineWithSelectionTransform(
 ) {
 	BufferRange cursor;
 	
-	Buffer* f = Buffer_New();
+	Buffer* f = Buffer_New(NULL);
 	Buffer_AppendRawText(f, format, strlen(format));
 	
 	// find first cursor token and remove it
