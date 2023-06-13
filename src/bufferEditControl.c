@@ -61,6 +61,7 @@ static void scrollDown(GUIBufferEditControl* w) {
 }
 
 
+
 static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 	Buffer* b = w->b;
 	
@@ -74,6 +75,7 @@ static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 	Vector2 mp = GUI_EventPos();
 	
 	if(gm->curEvent.button == 1) {
+	
 		Vector2 tl = w->tl;
 		Vector2 sz = w->sz;
 		

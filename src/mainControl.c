@@ -134,7 +134,7 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		// set this pane to be focused if any mouse button went up in it,
 		//   regardless of if a deeper element traps the event
 		// Don't refocus on wheel scrolling
-		if(gm->curEvent.type == GUIEVENT_MouseUp && (gm->curEvent.button == 1 || gm->curEvent.button == 2 || gm->curEvent.button == 3)) {
+		if(gm->curEvent.type == GUIEVENT_MouseDown && (gm->curEvent.button == 1 || gm->curEvent.button == 2 || gm->curEvent.button == 3)) {
 			
 			// hover focus
 			if(GUI_PointInBoxV_(gm, ptl, psz, gm->lastMousePos)) {
