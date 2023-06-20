@@ -29,6 +29,7 @@ general: {
 		//		{ type: "battery",     size: 15, },
 				{ type: "linecol",     size: 30, align: "l", format: "line %L:%C  [%T lines]" },
 				{ type: "bufmode",     size: 20, align: "l", format: "mode: %S [%D]" },
+				// { type: "bufpath",     size: 80, align: "l", format: "%P" },
 	],
 
 	MainControl_tabNameScrollFn: "sinusoidal", // None, Linear, Sinusoidal, Swing, Loop

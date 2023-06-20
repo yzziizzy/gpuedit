@@ -177,6 +177,39 @@ static size_t strfbufmode(char* s, size_t max, const char* format, GUIBufferEdit
 }
 
 
+static size_t strfbufpath(char* s, size_t max, const char* format, GUIBufferEditor* ed) {
+	size_t copied = 0;
+	char buffer[100];
+	int len = 0;
+	
+	for(int i = 0; format[i] != '\0'; i++) {
+		switch(format[i]) {
+			case '%':
+				switch(format[i + 1]) {
+					case 'P':
+						len = snprintf(buffer, 100, "%s", ed->sourceFile);
+						for(int j = 0; j < len; j++) memcpy(&s[copied], buffer, len);
+						copied += len;
+						i++;
+						break;
+						
+					case '%':
+						s[copied++] = '%';
+						i++;
+				}
+				break;
+				
+			default:
+				s[copied++] = format[i];
+		}
+	}
+	
+	s[copied++] = '\0';
+	
+	return copied;
+}
+
+
 
 static size_t strffindstate(char* s, size_t max, const char* format, GUIBufferEditor* ed) {
 	size_t copied = 0;
@@ -276,6 +309,10 @@ static void setLine(StatusBar* w, StatusBarItem* item) {
 		
 		case MCWID_BUFMODE:
 			strfbufmode(item->line, 100, item->format, w->ed);
+			break;
+		
+		case MCWID_BUFPATH:
+			strfbufpath(item->line, 100, item->format, w->ed);
 			break;
 		
 		case MCWID_LINECOL:
