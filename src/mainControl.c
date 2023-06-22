@@ -1339,7 +1339,8 @@ void MainControl_OnTabChange(MainControl* w) {
 
 
 MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = NULL,
 		.line_num = 1,
 		.set_focus = 1,
@@ -1348,7 +1349,8 @@ MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
 }
 
 MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = path,
 		.line_num = 1,
 	};
@@ -1356,7 +1358,8 @@ MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
 }
 
 MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path) {
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = path,
 		.line_num = 1,
 	};
@@ -1377,7 +1380,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 			GUIBufferEditor* gbe = MainControlPane_GoToTab(w->focusedPane, index);
 			
 			BufferLine* bl = Buffer_raw_GetLineByNum(gbe->b, opt->line_num);
-			if(bl) {
+			if(bl && opt->scroll_existing) {
 				GBEC_MoveCursorTo(gbe->ec, bl, 0);
 				GBEC_ClearAllSelections(gbe->ec);
 				GBEC_scrollToCursorOpt(gbe->ec, 1);

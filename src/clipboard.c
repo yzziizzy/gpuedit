@@ -54,6 +54,7 @@ void Clipboard_PushBuffer(int which, Buffer* b) {
 	
 	cc->b = Buffer_Copy(b);
 	Buffer_ToRawText(b, &cc->flatText, &cc->flatTextLen);
+	cc->flatText[--cc->flatTextLen] = '\0';
 	
 	Clipboard_SendToOS(which, cc->flatText, cc->flatTextLen, 0);
 
