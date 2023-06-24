@@ -849,6 +849,9 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st);
 
 
+int GUIBufferEditor_ReplaceNext(GUIBufferEditor* w);
+int GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* text);
+
 // for buffer lines. bad name. meh
 void drawTextLine(GUIManager* gm, BufferSettings* bs, GUIFont* f, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
 
