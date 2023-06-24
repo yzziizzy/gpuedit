@@ -54,6 +54,7 @@ void Clipboard_PushBuffer(int which, Buffer* b) {
 	
 	cc->b = Buffer_Copy(b);
 	Buffer_ToRawText(b, &cc->flatText, &cc->flatTextLen);
+	cc->flatText[--cc->flatTextLen] = '\0';
 	
 	Clipboard_SendToOS(which, cc->flatText, cc->flatTextLen, 0);
 
@@ -71,10 +72,12 @@ void Clipboard_PushRawText(int which, char* raw, size_t len) {
 	
 	ClipboardClip* cc = pcalloc(cc);
 	
-	cc->b = Buffer_New();
+	cc->b = Buffer_New(NULL);
 	cc->flatTextLen = len;
 	cc->flatText = strndup(raw, len);
 	Buffer_AppendRawText(cc->b, raw, len);
+
+	Clipboard_SendToOS(which, cc->flatText, cc->flatTextLen, 0);
 
 	if(RING_LEN(&clipboard->stack[which]) == RING_ALLOC(&clipboard->stack[which])) {
 		ClipboardClip* last = RING_TAIL(&clipboard->stack[which]);
@@ -88,22 +91,34 @@ void Clipboard_PushRawText(int which, char* raw, size_t len) {
 void Clipboard_PeekRawText(int which, char** rawOut, size_t* lenOut) {
 	if(!clipboard) return;
 	
-	if(RING_LEN(&clipboard->stack[which]) == 0) {
-		*rawOut = NULL;
-		*lenOut = 0;
+	if(clipboard->selfOwned[which]) {
+		if(RING_LEN(&clipboard->stack[which]) == 0) goto NO_CLIPBOARD;
+		
+		ClipboardClip* cc = RING_TAIL(&clipboard->stack[which]);
+		
+		*lenOut = cc->flatTextLen;
+		*rawOut = cc->flatText;
+		return;
+	}
+	else {
+		struct ClipBuffer cb = clipboard->os[which];
+		if(cb.length == 0) goto NO_CLIPBOARD;
+//		printf("[%d] %s (%ld)\n", which, cb.buf, cb.length);
+		*lenOut = cb.length;
+		*rawOut = cb.buf;
 		return;
 	}
 	
-	ClipboardClip* cc = RING_TAIL(&clipboard->stack[which]);
-	
-	*lenOut = cc->flatTextLen;
-	*rawOut = cc->flatText;
+NO_CLIPBOARD:
+	*rawOut = NULL;
+	*lenOut = 0;
 }
 
 
 Buffer* Clipboard_PeekBuffer(int which) {
 	return RING_TAIL(&clipboard->stack[which])->b;
 }
+
 
 
 Buffer* Clipboard_PopBuffer(int which) {
@@ -119,8 +134,9 @@ Buffer* Clipboard_PopBuffer(int which) {
 //		printf(" paste: os owned [%d]\n", which);
 		if(clipboard->os[which].length == 0) return NULL;
 //		printf("   no early return\n");
-		b = Buffer_New();
+		b = Buffer_New(NULL);
 		
+//		printf("[%d] %s (%ld)\n", which, clipboard->os[which].buf, clipboard->os[which].length);
 		Buffer_AppendRawText(b, clipboard->os[which].buf, clipboard->os[which].length);
 	}
 	

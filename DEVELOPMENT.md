@@ -14,34 +14,34 @@
 
 == Needed before fractal dogfooding ==
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
-* bugz: C-w not closing buffers (PromptAndClose needs MessagePipe conversion)
 * bugz: C-d comment not pushed into undo stack
 * bugz: redo of single paste is multiple commands
-* bugz: selection is created when grepopener opens a file
+* bugz: edit can read gibberish string data (repro: find sequence, backspace)
+* bugz: undo of typing leaves bad cursor position
 
+* debug pane showing all configs that were loaded, in order)
+* edit control improvements
+  * set correct selection on focus
+  * sequence movement commands
+  * click/selction interaction
+  * port to replace box as needed
+  * ctrl+backspace
 
 * render whitespace characters
 * ctrl+l/r jumps across tabs (sequence break on newline)
 * sequence breaks that actually make sense
-* cursor down on last line -> goto end of line
-* maybe a bug: selection buffer pastes always at the mouse cursor
 * selection paste option: mouse|latest/cursors
-* return to previously active tab if opener is closed without opening
+* paste: cursor at start/end of inserted text
 * redirect debug output to a logfile
-* lockup with multi-line selection when fuzzy-matcher is spawned
 
-* old find term highlighted on findreplace resume
-* sequence commands in findreplace input box
 * highlight findset while valid even if find tray closes (opt)
 * no centeroncursor for selection/sequence matches (opt?)
 * find modes: plain|fuzzy|pcre|escape
 * find match/ignore case
 
-* highlighter/theme colors from system colorX definitions
-
 * copy cannot paste to pgadmin3 (INCR? mime type?), godbolt.org in FF
 * undo breaks if selection reaches end of file
-* paste: cursor at start/end of inserted text
+
 * undo system selection not recreated based on selection direction?
 
 
@@ -90,7 +90,6 @@
 * Wire all the settings updates through the app
 * Adjustable scroll lines in fileBrowser, get from OS if possible
 * MIME type probing of some sort
-* Persist bookmarks
 * Horizontal scrollbar
 * Clean up C highlighter with provided allocators
 * Warn about duplicate key bindings

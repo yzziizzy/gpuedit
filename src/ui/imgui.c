@@ -1,5 +1,7 @@
 #include <ctype.h>
 
+#include "../clipboard.h"
+
 #include "gui.h"
 #include "gui_internal.h"
 
@@ -488,8 +490,30 @@ static void delete_selection(GUICursorData* cd, GUIString* str) {
 	
 	memmove(str->data + start, str->data + end, str->len - len + 1);
 	str->len -= len;
+//	printf("now %ld long\n", str->len);
 	cd->cursorPos = start;
 	cd->selectPivot = -1;
+}
+
+static void set_clipboard(int which, GUICursorData* cd, GUIString* str) {
+	char* tmp;
+	int selLen;
+	if(cd->selectPivot > cd->cursorPos) {
+		selLen = cd->selectPivot - cd->cursorPos;
+		tmp = malloc((selLen+1)*sizeof(*tmp));
+		memcpy(tmp, str->data + cd->cursorPos, selLen);
+		tmp[selLen] = 0;
+//		printf("case a: pushing %d chars '%*s'\n", cd->selectPivot - cd->cursorPos, cd->selectPivot - cd->cursorPos, str->data + cd->cursorPos); 
+	} else {
+		selLen = cd->cursorPos - cd->selectPivot;
+		tmp = malloc((selLen+1)*sizeof(*tmp));
+		memcpy(tmp, str->data + cd->selectPivot, selLen);
+		tmp[selLen] = 0;
+//		printf("case b: pushing %d chars '%*s'\n", cd->cursorPos - cd->selectPivot, cd->cursorPos - cd->selectPivot, str->data + cd->selectPivot);
+	}
+//	printf("pushing %d chars %s\n", selLen, tmp);
+	Clipboard_PushRawText(which, tmp, selLen);
+	free(tmp);
 }
 
 // return 1 on changes
@@ -497,30 +521,75 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 	int ret = 0;
 
 	switch(e->keycode) {
-		case XK_Left:
-			if(e->modifiers == GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
-				if(cd->cursorPos > 0) { // cant start a selection leftward from the left edge
-					cd->selectPivot = cd->cursorPos;
-					cd->cursorPos--;
+		case 'c':
+			if(cd->selectPivot > -1 && e->modifiers == GUIMODKEY_CTRL) {
+//				printf("DO COPY; captured 'c' with shift? %d, with ctrl? %d\n", e->modifiers & GUIMODKEY_SHIFT, e->modifiers & GUIMODKEY_CTRL);
+				set_clipboard(CLIP_PRIMARY, cd, str);
+			} else break;
+			goto BLINK;
+		
+		case 'v':
+			if(e->modifiers == GUIMODKEY_CTRL) {
+//				printf("DO PASTE; captured 'v' with shift? %d, with ctrl? %d\n", e->modifiers & GUIMODKEY_SHIFT, e->modifiers & GUIMODKEY_CTRL);
+				char* pasteData;
+				size_t pasteLen;
+				Clipboard_PeekRawText(CLIP_PRIMARY, &pasteData, &pasteLen);
+				
+//				printf("paste data: %s, len %ld)\n", pasteData, pasteLen);
+				
+				if(pasteLen > 0) {
+					if(cd->selectPivot > -1) delete_selection(cd, str);
+					check_string(str, pasteLen);
+					memmove(str->data + cd->cursorPos + pasteLen, str->data + cd->cursorPos, str->len - cd->cursorPos + 1);
+					memcpy(str->data + cd->cursorPos, pasteData, pasteLen);
+					str->len += pasteLen;
+					cd->cursorPos += pasteLen;
+					cd->blinkTimer = 0;
+					
+					GUI_CancelInput();
+					ret = 1;
 				}
+			} else break;
+			goto BLINK;
+		
+		case 'x':
+			if(e->modifiers == GUIMODKEY_CTRL) {
+//				printf("DO CUT; captured 'x' with shift? %d, with ctrl? %d\n", e->modifiers & GUIMODKEY_SHIFT, e->modifiers & GUIMODKEY_CTRL);
+				if(cd->selectPivot > -1) {
+					set_clipboard(CLIP_PRIMARY, cd, str);
+					delete_selection(cd, str);
+				}
+			} else break;
+			goto BLINK;
+		
+		case XK_Left:
+			if(e->modifiers == GUIMODKEY_SHIFT) { // start selection
+				if(cd->selectPivot == -1) {
+					cd->selectPivot = cd->cursorPos;
+				}
+				cd->cursorPos = cd->cursorPos - 1 <= 0 ? 0 : cd->cursorPos - 1;
+				set_clipboard(CLIP_SELECTION, cd, str);
 			}
+			// ctrl: move by sequences
 			else if(e->modifiers == 0) { // just move the cursor normally
 				cd->cursorPos = cd->cursorPos - 1 <= 0 ? 0 : cd->cursorPos - 1;
-				if(!(e->modifiers & GUIMODKEY_SHIFT)) cd->selectPivot = -1;
+				cd->selectPivot = -1;
 			}
 			else break;
 			goto BLINK;
 							
 		case XK_Right: 
-			if(e->modifiers == GUIMODKEY_SHIFT && cd->selectPivot == -1) { // start selection
-				if(cd->cursorPos < str->len) { // cant start a selection rightward from the right edge
+			if(e->modifiers == GUIMODKEY_SHIFT) { // start selection
+				if(cd->selectPivot == -1) {
 					cd->selectPivot = cd->cursorPos;
-					cd->cursorPos++;
 				}
+				cd->cursorPos = cd->cursorPos + 1 > str->len ? str->len : cd->cursorPos + 1;
+				set_clipboard(CLIP_SELECTION, cd, str);
 			}
+			// ctrl: move by sequences
 			else if(e->modifiers == 0) { // just move the cursor normally
 				cd->cursorPos = cd->cursorPos + 1 > str->len ? str->len : cd->cursorPos + 1;
-				if(!(e->modifiers & GUIMODKEY_SHIFT)) cd->selectPivot = -1;
+				cd->selectPivot = -1;
 			}
 			else break;
 			goto BLINK;
@@ -530,7 +599,7 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 				delete_selection(cd, str);
 			}
 			else if(cd->cursorPos > 0) { // just one character
-				memmove(str->data + cd->cursorPos - 1, str->data + cd->cursorPos, str->len - cd->cursorPos + 1);
+				memmove(str->data + cd->cursorPos - 1, str->data + cd->cursorPos, str->len - cd->cursorPos + 1 + 1); // extra +1 is a blind guess
 				cd->cursorPos = cd->cursorPos > 0 ? cd->cursorPos - 1 : 0;
 				str->len--;
 				cd->selectPivot = -1;
@@ -544,7 +613,7 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 				delete_selection(cd, str);
 			}
 			else if(cd->cursorPos < str->len) { // just one character
-				memmove(str->data + cd->cursorPos, str->data + cd->cursorPos + 1, str->len - cd->cursorPos);
+				memmove(str->data + cd->cursorPos, str->data + cd->cursorPos + 1, str->len - cd->cursorPos + 1); // extra +1 is a blind guess
 				str->len--;
 				cd->selectPivot = -1;
 				ret = 1;
@@ -553,6 +622,33 @@ int GUI_HandleCursor_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIEven
 			goto BLINK;
 							
 //			case XK_Return: ACTIVE(NULL); break;
+		case XK_Home:
+			// shift: create selection to start
+			// : move to start
+			if(e->modifiers & GUIMODKEY_SHIFT) {
+				cd->selectPivot = cd->cursorPos;
+				cd->cursorPos = 0;
+				set_clipboard(CLIP_SELECTION, cd, str);
+			}
+			else {
+				cd->cursorPos = 0;
+				cd->selectPivot = -1;
+			}
+			goto BLINK;
+		
+		case XK_End:
+			// shift: create selection to end
+			// : move to end
+			if(e->modifiers & GUIMODKEY_SHIFT) {
+				cd->selectPivot = cd->cursorPos;
+				cd->cursorPos = str->len;
+				set_clipboard(CLIP_SELECTION, cd, str);
+			}
+			else {
+				cd->cursorPos = str->len;
+				cd->selectPivot = -1;
+			}
+			goto BLINK;
 	}
 	
 	return ret;
@@ -673,6 +769,28 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 			// position the cursor
 			Vector2 mp = GUI_MousePos();
 			d->cursor.cursorPos = gui_charFromPixel(gm, font, fontSz, str->data, mp.x - tl.x);
+			d->cursor.cursorPos = MIN(d->cursor.cursorPos, str->len);
+		}
+		else if(GUI_MouseWentUp(2)) {
+			char* pasteData;
+			size_t pasteLen;
+			Clipboard_PeekRawText(CLIP_SELECTION, &pasteData, &pasteLen);
+			GUICursorData* cd = &d->cursor;
+				
+//			printf("paste data: %s, len %ld)\n", pasteData, pasteLen);
+				
+			if(pasteLen > 0) {
+				if(cd->selectPivot > -1) delete_selection(cd, str);
+				check_string(str, pasteLen);
+				memmove(str->data + cd->cursorPos + pasteLen, str->data + cd->cursorPos, str->len - cd->cursorPos + 1);
+				memcpy(str->data + cd->cursorPos, pasteData, pasteLen);
+				str->len += pasteLen;
+				cd->cursorPos += pasteLen;
+				cd->blinkTimer = 0;
+				
+				GUI_CancelInput();
+				ret |= 1;
+			}
 		}
 	}
 	
@@ -734,7 +852,9 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	
 	gm->curZ += 10.01;
 	
-	GUI_TextLine_(gm, str->data, str->len, V(tl.x + d->scrollX, tl.y ), o->fontName, fontSz, &o->colors[st].text);
+	if(str->len) {
+		GUI_TextLine_(gm, str->data, str->len, V(tl.x + d->scrollX, tl.y ), o->fontName, fontSz, &o->colors[st].text);
+	}
 	GUI_PopClip();
 	gm->curZ -= 10.01;
 	

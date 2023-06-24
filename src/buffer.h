@@ -227,6 +227,8 @@ typedef struct Buffer {
 	
 	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
 	
+	int acMaxSkip;
+	
 	char useDict;
 	char* dictCharSet;
 	BufferPrefixNode* dictRoot;
@@ -251,7 +253,7 @@ typedef struct BufferCache {
 
 
 BufferCache* BufferCache_New();
-Buffer* BufferCache_GetPath(BufferCache* bc, char* path);
+Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs);
 void BufferCache_RemovePath(BufferCache* bc, char* realPath);
 
 
@@ -521,6 +523,7 @@ typedef struct GUIFileOpt {
 	char* path;
 	intptr_t line_num;
 	int set_focus;
+	int scroll_existing;
 } GUIFileOpt;
 
 typedef struct GUIBubbleOpt {
@@ -672,9 +675,6 @@ void BufferRangeSet_FreeAll(BufferRangeSet* s);
 
 char* Buffer_StringFromSelection(Buffer* b, BufferRange* sel, size_t* outLen);
 
-void GBEC_GrowSelectionH(GUIBufferEditControl* w, colnum_t cols);
-void GBEC_GrowSelectionV(GUIBufferEditControl* w, colnum_t cols);
-
 // these functions operate on absolute positions
 void Buffer_AppendRawText(Buffer* b, char* source, intptr_t len);
 BufferLine* Buffer_AppendLine(Buffer* b, char* text, intptr_t len);
@@ -712,7 +712,7 @@ void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w);
 
 
 
-Buffer* Buffer_New();
+Buffer* Buffer_New(BufferSettings* bs);
 void Buffer_AddRef(Buffer* b);
 void Buffer_Delete(Buffer* b);
 Buffer* Buffer_Copy(Buffer* src);
@@ -849,6 +849,9 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st);
 
 
+int GUIBufferEditor_ReplaceNext(GUIBufferEditor* w);
+int GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* text);
+
 // for buffer lines. bad name. meh
 void drawTextLine(GUIManager* gm, BufferSettings* bs, GUIFont* f, struct Color4* textColor, char* txt, int charCount, Vector2 tl);
 
@@ -894,9 +897,13 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(int,   tabWidth,             4,     0,    INT_MAX) \
 	SETTING(charp, font,                 "Courier New", NULL, NULL) \
 	SETTING(float, fontSize,             14,    1,    1920*16) \
-	SETTING(bool,  invertSelection,      true,  NULL,  NULL) \
+	SETTING(bool,  invertSelection,      true,  NULL, NULL) \
 	SETTING(int,   maxUndo,              4096,  0,    INT_MAX) \
+	SETTING(bool,  useDict,              true,  NULL, NULL) \
+	SETTING(charp, dictCharSet,          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", NULL, NULL) \
 	SETTING(int,   statusBarHeight,      20,    0,    INT_MAX) \
+	SETTING(int,   autocompleteMaxSkip,  20,    0,    100) \
+
 
 
 

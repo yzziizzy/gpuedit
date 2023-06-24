@@ -61,6 +61,7 @@ static void scrollDown(GUIBufferEditControl* w) {
 }
 
 
+
 static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 	Buffer* b = w->b;
 	
@@ -74,6 +75,7 @@ static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 	Vector2 mp = GUI_EventPos();
 	
 	if(gm->curEvent.button == 1) {
+	
 		Vector2 tl = w->tl;
 		Vector2 sz = w->sz;
 		
@@ -104,12 +106,14 @@ static void dragStart(GUIBufferEditControl* w, GUIManager* gm) {
 
 static void dragStop(GUIBufferEditControl* w, GUIManager* gm) {
 
-	if(gm->curEvent.button == 1) {
+	if(gm->curEvent.button == 1 && (w->isDragScrolling || w->isDragScrollCoasting || w->isDragSelecting)) {
 		w->isDragSelecting = 0;
 		w->isDragScrollCoasting = 0;
 		w->isDragScrolling = 0;
 		
 		w->scrollDragStartOffset = 0;
+		
+		GBEC_SetSelectionFromPivot(w);
 	}
 	
 // 	w->scrollLines = MIN(w->buffer->numLines - w->linesOnScreen, w->scrollLines + w->linesPerScrollWheel);
@@ -571,28 +575,8 @@ void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered) {
 
 void GBEC_SetSelectionFromPivot(GUIBufferEditControl* w) {
 	w->sel->selecting = 1;
-	//printf("GBEC_SetSelectionFromPivot deprecated \n");
-	//exit(1);
-//	if(!w->sel->line[1]) {
-//		pcalloc(w->sel);
-		
-//		VEC_PUSH(&w->selSet->ranges, w->sel);
-//	}
 	
-//	w->sel->line[0] = w->current;
-//	w->sel->col[0] = w->curCol;
-	
-//	w->sel->line[1] = w->selectPivotLine;
-//	w->sel->col[1] = w->selectPivotCol;
-	
- //	BufferRange* br = w->sel;
- //	printf("sel0: %d:%d -> %d:%d\n", br->line[0]->lineNum, br->col[0], br->line[1]->lineNum, br->col[1]);
-	
-//	if(BufferRange_Normalize(w->sel)) {
-//		VEC_TRUNC(&w->selSet->ranges);
-//	}
-	
-//	GBEC_SelectionChanged(w);
+	GBEC_SelectionChanged(w);
 }
 
 
@@ -809,15 +793,13 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			break;
 		
 		case GUICMD_Buffer_GrowSelectionH:
-// 			if(!w->selectPivotLine) {
 			if(!HAS_SELECTION(w->sel)) {
 				w->sel->selecting = 1;
 				PIVOT_LINE(w->sel) = CURSOR_LINE(w->sel);
 				PIVOT_COL(w->sel) = CURSOR_COL(w->sel);
 			}
-// 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
 			GBEC_MoveCursorH(w, w->sel, cmd->amt);
-//			GBEC_SetSelectionFromPivot(w->ec);
+			GBEC_SetSelectionFromPivot(w);
 			break;
 		
 		case GUICMD_Buffer_GrowSelectionToNextSequence:
@@ -867,9 +849,8 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 				PIVOT_LINE(w->sel) = CURSOR_LINE(w->sel);
 				PIVOT_COL(w->sel) = CURSOR_COL(w->sel);
 			}
-// 			printf("pivot: %d, %d\n", w->selectPivotLine->lineNum, w->selectPivotCol);
-			GBEC_GrowSelectionV(w, cmd->amt);
-//			GBEC_SetSelectionFromPivot(w);
+			GBEC_MoveCursorV(w, w->sel, cmd->amt);
+			GBEC_SetSelectionFromPivot(w);
 			break;
 		
 		case GUICMD_Buffer_ClearSelection:
@@ -1653,7 +1634,7 @@ void GBEC_ReplaceLineWithSelectionTransform(
 ) {
 	BufferRange cursor;
 	
-	Buffer* f = Buffer_New();
+	Buffer* f = Buffer_New(NULL);
 	Buffer_AppendRawText(f, format, strlen(format));
 	
 	// find first cursor token and remove it
@@ -1749,8 +1730,16 @@ void GBEC_MoveEndH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols) {
 
 void GBEC_MoveMarkerV(GUIBufferEditControl* w, BufferRange* r, int c, linenum_t lines) {
 	// TODO: undo
-	
+	BufferLine* old_line = r->line[c];
 	Buffer_RelPosV(r->line[c], r->col[c], lines, &r->line[c], &r->col[c]);
+	
+	// jump to start/end if already on first/last line
+	if(r->line[c] == old_line) {
+		if(lines > 0) r->col[c] = r->line[c]->length;
+		else if(lines < 0) r->col[c] = 0;
+		r->colWanted = r->col[c];
+	}
+	
 	BufferRange_Normalize(r);
 }
 
@@ -1896,90 +1885,6 @@ void GBEC_StopSelecting(GUIBufferEditControl* w) {
 }
 
 
-// only to be used for cursor-based selection growth.
-void GBEC_GrowSelectionH(GUIBufferEditControl* w, colnum_t cols) {
-	Buffer* b = w->b;
-	
-	w->sel->selecting = 1;
-	GBEC_MoveCursorH(w, w->sel, cols);
-	/*
-	if(!HAS_SELECTION(w->sel)) {
-//		pcalloc(w->sel);
-		
-		w->sel->line[1] = w->sel->line[0];
-		w->sel->col[1] = w->sel->col[0];
-	
-		if(cols > 0) {
-			Buffer_RelPosH(w->sel->line[1], w->sel->col[1], cols, &w->sel->line[1], &w->sel->col[1]);
-		}
-		else {
-			w->sel->cursor = 1;
-			Buffer_RelPosH(w->sel->line[0], w->sel->col[0], cols, &w->sel->line[0], &w->sel->col[0]);
-		}
-		
-		return;
-	}
-	
-	if(!w->sel->cursor) {
-		Buffer_RelPosH(w->sel->line[1], w->sel->col[1], cols, &w->sel->line[1], &w->sel->col[1]);
-	}
-	else {
-		Buffer_RelPosH(w->sel->line[0], w->sel->col[0], cols, &w->sel->line[0], &w->sel->col[0]);
-	}
-	
-	// clear zero length selections
-	if(w->sel->line[0] == w->sel->line[1] && w->sel->col[0] == w->sel->col[1]) {
-		w->sel->line[1] = NULL;
-	}
-	*/
-	
-	GBEC_SelectionChanged(w);
-}
-
-
-
-void GBEC_GrowSelectionV(GUIBufferEditControl* w, linenum_t lines) {
-	Buffer* b = w->b;
-	
-	w->sel->selecting = 1;
-	GBEC_MoveCursorV(w, w->sel, lines);
-	/*
-	if(!HAS_SELECTION(w->sel)) {
-		
-		w->sel->line[1] = w->sel->line[0];
-		w->sel->col[1] = w->sel->col[0];
-	
-		if(lines > 0) {
-			Buffer_RelPosV(b, w->sel->line[1], w->sel->col[1], lines, &w->sel->line[1], &w->sel->col[1]);
-		}
-		else {
-			w->sel->cursor = 1;
-			Buffer_RelPosV(b, w->sel->line[0], w->sel->col[0], lines, &w->sel->line[0], &w->sel->col[0]);
-		}
-		
-		return;
-	}
-	
-	if(!w->sel->cursor) {
-		Buffer_RelPosV(b, w->sel->line[1], w->sel->col[1], lines, &w->sel->line[1], &w->sel->col[1]);
-	}
-	else {
-		Buffer_RelPosV(b, w->sel->line[0], w->sel->col[0], lines, &w->sel->line[0], &w->sel->col[0]);
-	}
-	
-	// TODO: handle pivoting around the beginning
-	
-	// clear zero length selections
-	if(w->sel->line[0] == w->sel->line[1] && w->sel->col[0] == w->sel->col[1]) {
-		w->sel->line[1] = NULL;
-	}
-	*/
-	
-	GBEC_SelectionChanged(w);
-}
-
-
-
 void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, colnum_t col, char* charSet) {
 	BufferRange sel;
 	
@@ -2033,7 +1938,6 @@ void GBEC_DeleteToPrevSequence(GUIBufferEditControl* w, BufferLine* l, colnum_t 
 
 
 void GBEC_SelectionChanged(GUIBufferEditControl* w) {
-	
 	Buffer* b = NULL;
 	
 	if(HAS_SELECTION(w->sel)) {

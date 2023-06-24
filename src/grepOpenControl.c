@@ -331,12 +331,14 @@ static void open_match(GrepOpenControl* w, int i) {
 
 	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);
 	char* path = resolve_path(path_raw);
-	intptr_t line_num = w->matches[w->cursorIndex].line_num;
+	intptr_t line_num = w->matches[i].line_num;
 	
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = path,
 		.line_num = line_num,
 		.set_focus = 0,
+		.scroll_existing = 1,
 	};
 	
 	if(w->gs->MainControl_openInPlace) {

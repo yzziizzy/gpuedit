@@ -66,6 +66,8 @@ typedef enum TabScrollType {
 	X(BATTERY) \
 	X(LINECOL) \
 	X(BUFMODE) \
+	X(BUFPATH) \
+	X(FINDSTATE) \
 
 
 typedef enum WidgetType {

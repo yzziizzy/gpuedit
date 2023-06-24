@@ -312,10 +312,10 @@ static void open_match(GUIFuzzyMatchControl* w, int i) {
 	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);
 	char* path = resolve_path(path_raw);
 	
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = path,
 		.line_num = 1,
-		.set_focus = 0,
 	};
 	
 	if(w->gs->MainControl_openInPlace) {

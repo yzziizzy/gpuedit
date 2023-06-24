@@ -284,8 +284,12 @@ static void grab_widsp(WidgetSpec** out, json_value_t* obj, char* prop) {
 						tmp[i].type = MCWID_BATTERY;
 					} else if(!strcasecmp(type_str, "bufmode")) {
 						tmp[i].type = MCWID_BUFMODE;
+					} else if(!strcasecmp(type_str, "bufpath")) {
+						tmp[i].type = MCWID_BUFPATH;
 					} else if(!strcasecmp(type_str, "linecol")) {
 						tmp[i].type = MCWID_LINECOL;
+					} else if(!strcasecmp(type_str, "findstate")) {
+						tmp[i].type = MCWID_FINDSTATE;
 					} else {
 						tmp[i].type = MCWID_NONE;
 					}

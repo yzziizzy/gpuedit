@@ -134,7 +134,7 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		// set this pane to be focused if any mouse button went up in it,
 		//   regardless of if a deeper element traps the event
 		// Don't refocus on wheel scrolling
-		if(gm->curEvent.type == GUIEVENT_MouseUp && (gm->curEvent.button == 1 || gm->curEvent.button == 2 || gm->curEvent.button == 3)) {
+		if(gm->curEvent.type == GUIEVENT_MouseDown && (gm->curEvent.button == 1 || gm->curEvent.button == 2 || gm->curEvent.button == 3)) {
 			
 			// hover focus
 			if(GUI_PointInBoxV_(gm, ptl, psz, gm->lastMousePos)) {
@@ -756,10 +756,17 @@ void MainControlPane_CloseTab(MainControlPane* w, int index) {
 		MainControlPane_EmptyTab(w);\
 		n_tabs = 1;
 	}
-	if(w->currentIndex > index || w->currentIndex > (n_tabs - 1)) {
-		w->currentIndex--;
+	
+	// find highest tabAccessIndex
+	int maxAccessIndex = 0;
+	VEC_EACH(&w->tabs, i, tab) {
+		if(tab->accessIndex > maxAccessIndex) {
+			maxAccessIndex = tab->accessIndex;
+			w->currentIndex = i;
+		}
 	}
 	w->currentIndex %= n_tabs;
+	
 	
 	t = VEC_ITEM(&w->tabs, w->currentIndex);
 	t->isActive = 1;
@@ -997,6 +1004,7 @@ void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts)
 	// construct a new file name
 	char* new = alloca(strlen(orig) + strlen(cext) + 2);
 	strncpy(new, orig, ext - orig);
+	new[ext-orig] = 0;
 	strcat(new, cext);
 	
 	MainControl_LoadFile(w, new);
@@ -1257,6 +1265,15 @@ static void setBreakpoint(char* file, intptr_t line, MainControl* w) {
 
 void MainControl_OnTabChange(MainControl* w) {
 	
+	for(int y = 0; y < w->yDivisions; y++)
+	for(int x = 0; x < w->xDivisions; x++) {
+		MainControlPane* p = w->paneSet[x + y * w->xDivisions];
+		if(p->tabs.len) {
+			MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
+			tab->accessIndex = ++p->lastTabAccessIndex;
+		}
+	}
+	
 	if(!w->gs->enableSessions) return;
 	
 	json_write_context_t jwc = {0};
@@ -1290,6 +1307,7 @@ void MainControl_OnTabChange(MainControl* w) {
 			
 			json_value_t* jtc = json_new_object(32);
 			if(t->saveSessionState) t->saveSessionState(t->client, jtc);
+			json_obj_set_key(jtc, "accessIndex", json_new_int(t->accessIndex));
 			json_obj_set_key(jt, "data", jtc);
 			
 			json_array_push_tail(jtabs, jt);
@@ -1321,7 +1339,8 @@ void MainControl_OnTabChange(MainControl* w) {
 
 
 MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = NULL,
 		.line_num = 1,
 		.set_focus = 1,
@@ -1330,7 +1349,8 @@ MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
 }
 
 MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = path,
 		.line_num = 1,
 	};
@@ -1338,7 +1358,8 @@ MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
 }
 
 MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path) {
-	GUIFileOpt opt = {
+	GUIFileOpt opt = {0};
+	opt = (GUIFileOpt){
 		.path = path,
 		.line_num = 1,
 	};
@@ -1359,8 +1380,9 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 			GUIBufferEditor* gbe = MainControlPane_GoToTab(w->focusedPane, index);
 			
 			BufferLine* bl = Buffer_raw_GetLineByNum(gbe->b, opt->line_num);
-			if(bl) {
+			if(bl && opt->scroll_existing) {
 				GBEC_MoveCursorTo(gbe->ec, bl, 0);
+				GBEC_ClearAllSelections(gbe->ec);
 				GBEC_scrollToCursorOpt(gbe->ec, 1);
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}
@@ -1370,10 +1392,6 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	}
 	
 	
-	
-	
-	
-	Buffer* buf = BufferCache_GetPath(w->bufferCache, opt->path);
 	
 	Settings* ls = Settings_Copy(w->s, SETTINGS_ALL);
 	
@@ -1391,7 +1409,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	
 
 	// buffer and editor creation
-	
+	Buffer* buf = BufferCache_GetPath(w->bufferCache, opt->path, bs);
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm, &w->rx);
 	GUIBufferEditor_UpdateSettings(gbe, ls);
 
@@ -1440,12 +1458,12 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	tab->client = gbe;
 	
 
-/*
+
 	if(opt->set_focus) {
-		int i = MainControl_FindTabIndexByHeaderP(w, tab->client);
-		MainControl_GoToTab(w, i);
+		int i = MainControlPane_FindTabIndexByBufferPath(p, opt->path);
+		MainControlPane_GoToTab(p, i);
 	}
-*/	
+	
 
 	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
 	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);

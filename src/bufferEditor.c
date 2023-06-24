@@ -72,7 +72,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		DEFAULTS(GUIEditOpts, eopts);
 		eopts.selectAll = 1;
-		if(GUI_Edit_(gm, &w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery, &eopts)){
+		if(GUI_Edit_(gm, &w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery, &eopts)) {
 			update = 1;
 		}
 		if(GUI_Edit_(gm, &w->replaceText, V(10, sz.y - sbh - 25), sz.x - 10 - 200, &w->replaceText, &eopts)) {
@@ -109,23 +109,38 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		bo.fontSize = 12;
 		
 		if(GUI_Button_(gm, ID(&w->findQuery)+1, V(sz.x - 200 + 10, sz.y - sbh - 55), "Find Next", &bo)) {
-			update = 1;
+			update = 2;
 		}
 		if(GUI_Button_(gm, ID(&w->replaceText)+1, V(sz.x - 200 + 10, sz.y - sbh - 25), "Replace", &bo)) {
-		
+			update = 3;
 		}
 		if(GUI_Button_(gm, ID(&w->replaceText)+2, V(sz.x - 200 + 10 + 95, sz.y - sbh - 25), "Replace All", &bo)) {
-		
+			update = 4;
 		}
 
 		gm->curZ -= 10;
 		
 		
-		if(update) {
-			GUIBufferEditor_UpdateFindPattern(w, w->findQuery.data);
+		switch(update) {
+			case 1:
+			case 2:
+				GUIBufferEditor_UpdateFindPattern(w, w->findQuery.data);
+				
+				GUIBufferEditor_RelativeFindMatch(w, 0, 1, w->findState); // this line probably causes the result cycling when typing
+				GUIBufferEditor_scrollToCursor(w);
+				break;
+			case 3:
+				GUIBufferEditor_ReplaceNext(w);
+				break;
+			case 4:
+				char* rtext = w->replaceText.data;
+				size_t len = w->replaceText.len;
+				
+				GUIBufferEditor_ReplaceAll(w, w->findState->findSet, rtext);
 			
-			GUIBufferEditor_RelativeFindMatch(w, 0, 1, w->findState); // this line probably causes the result cycling when typing
-			GUIBufferEditor_scrollToCursor(w);
+				// HACK
+				VEC_TRUNC(&w->findState->findSet->ranges);
+				break;
 		}
 		
 		if(!gm->drawMode && 
@@ -485,26 +500,41 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	BufferRange sel = {};
 	Buffer* b = w->ec->b;
 	char* str = NULL;
+	int fix_cursor = 0;
 	
 	if((mask & FM_SELECTION) && HAS_SELECTION(w->ec->sel) && w->ec->sel->line[0] == w->ec->sel->line[1]) {
 		str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
+		fix_cursor = 1;
+	}
+	else if(!str && (mask & FM_SEQUENCE) && charSet) {
+		Buffer_GetSequenceUnder(b, CURSOR_LINE(w->ec->sel), CURSOR_COL(w->ec->sel), charSet, &sel);
+		if((sel.line[0] == sel.line[1]) && (sel.col[1] - sel.col[0] > 0)) {
+			str = Buffer_StringFromSelection(b, &sel, NULL);
+			fix_cursor = 1;
+		}
+		else if(w->findState) {
+			w->findState->findSet->changeCounter++;
+			return GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
+		}
+		// unhandled / uninitialized else case?
+	}
+	else {
+		str = strdup("");
+		fix_cursor = 1;
+	}
+	
+	if(str) {
+		GUIString_Set(&w->findQuery, str);
+	}
+	if(fix_cursor) {
+		// GUI_Edit_Trigger_(w->gm, void * id, &w->findQuery, XK_End);
+		// move cursor to end of findQuery 
 	}
 	
 	BufferRange* searchSpace = NULL;
 	if(mask & FM_WITHIN_SELECTION && HAS_SELECTION(w->ec->sel) && w->ec->sel->line[0] != w->ec->sel->line[1]) { 
 		searchSpace = BufferRange_Copy(w->ec->sel);
 	}
-	else if(!str && (mask & FM_SEQUENCE) && charSet) {
-		Buffer_GetSequenceUnder(b, CURSOR_LINE(w->ec->sel), CURSOR_COL(w->ec->sel), charSet, &sel);
-		if((sel.line[0] == sel.line[1]) && (sel.col[1] - sel.col[0] > 0)) {
-			str = Buffer_StringFromSelection(b, &sel, NULL);
-		}
-	}
-	
-	if(str) {
-		GUIString_Set(&w->findQuery, str);
-	}
-	
 	
 	BufferFindState* st = BufferFindState_Create(w->b, str, NULL, searchSpace);
 	if(searchSpace) {
@@ -591,8 +621,11 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		
 		r = VEC_ITEM(&st->findSet->ranges, st->findIndex);
 	}
-	char fmt_buffer[420];
-	snprintf(fmt_buffer, 420, "%ld of %ld", st->findIndex + 1, VEC_LEN(&st->findSet->ranges));
+	else if(!r) {
+		return 3;
+	}
+//	char fmt_buffer[420];
+//	snprintf(fmt_buffer, 420, "%ld of %ld", st->findIndex + 1, VEC_LEN(&st->findSet->ranges));
 //	GUIText_setString(w->findResultsText, fmt_buffer);
 	
 	GBEC_MoveCursorTo(w->ec, r->line[0], r->col[0]);
@@ -601,6 +634,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 	
 	return 0;
 };
+
 
 
 void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
@@ -784,10 +818,33 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 }
 
 
+int GUIBufferEditor_ReplaceNext(GUIBufferEditor* w) {
+		Buffer* b = w->ec->b;
+		GUIBufferEditControl* ec = w->ec;
+		
+		if(!w->findState->findSet || w->findState->findSet && !VEC_LEN(&w->findState->findSet->ranges)) return 1;
+		
+		BufferRange* r = VEC_ITEM(&w->findState->findSet->ranges, w->findState->findIndex);
+		
+		if(r) {
+			Buffer_DeleteSelectionContents(b, r);
+			
+			char* rtext = w->replaceText.data;
+			size_t len = w->replaceText.len;
+			
+			Buffer_LineInsertChars(b, r->line[0], rtext, r->col[0], len);
+			GBEC_MoveCursorTo(ec, r->line[0], r->col[0]);
+			GBEC_MoveCursorH(ec, ec->sel, len);
+		}
+		
+		GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
+		
+		return 0;
+}
 
 
-void GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* text) {
-	if(!VEC_LEN(&rset->ranges)) return;
+int GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* text) {
+	if(!VEC_LEN(&rset->ranges)) return 1;
 	
 	Buffer* b = w->ec->b;
 	GUIBufferEditControl* ec = w->ec;
@@ -799,7 +856,7 @@ void GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* 
 			Buffer_LineInsertChars(b, r->line[0], text, r->col[0], len);
 		}
 	}
-	
+	return 0;
 }
 
 
@@ -913,28 +970,9 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 //			w->inputMode = 0;
 			break;
 		
-		case GUICMD_Buffer_ReplaceNext: { // TODO put this all in a better spot
-			Buffer* b = w->ec->b;
-			GUIBufferEditControl* ec = w->ec;
-			
-			if(!w->findState->findSet || w->findState->findSet && !VEC_LEN(&w->findState->findSet->ranges)) break;
-			
-			BufferRange* r = VEC_ITEM(&w->findState->findSet->ranges, w->findState->findIndex);
-			
-			if(r) {
-				Buffer_DeleteSelectionContents(b, r);
-				
-				char* rtext = w->replaceText.data;
-				size_t len = w->replaceText.len;
-				
-				Buffer_LineInsertChars(b, r->line[0], rtext, r->col[0], len);
-				GBEC_MoveCursorTo(ec, r->line[0], r->col[0]);
-				GBEC_MoveCursorH(ec, ec->sel, len);
-			}
-			
-			GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
+		case GUICMD_Buffer_ReplaceNext:
+			GUIBufferEditor_ReplaceNext(w);
 			break;
-		}
 		
 		case GUICMD_Buffer_ReplaceAll: {
 			char* rtext = w->replaceText.data;
@@ -1111,7 +1149,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 
 			// TODO: wipe out selections
 			// keep the scroll lines
-			w->b = Buffer_New();
+			w->b = Buffer_New(w->bs);
 			w->ec->b = w->b;
 			Buffer_LoadFromFile(w->b, w->sourceFile);
 			
