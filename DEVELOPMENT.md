@@ -1,3 +1,7 @@
+* fix autocomment not putting them after tabs
+* reload files from disk on changes?
+* multiple tab rows
+
 == Horrible outstanding regressions ==
 * Padding needed in font atlas
 * One frame lag on highlight update sometimes (related to buffer/gbec internal render function call ordering)
@@ -57,7 +61,7 @@
 * Horizontal scrollbar
 * Multiple MC tab rows
 * Tab Bar scrolling
-* Smart uncomment
+* Smart uncomment (handle leading whitespace)
 * Clipboard ring
 * Proper tabstops
 * Ability to change the highlighter
@@ -106,7 +110,8 @@
 * Notify style popups
 
 == Editor Features ==
-* A sort of smart "word" selector that contextually senses whend to stop: del> BufferSettings_Load = Settings_Load, buffer_settings_load = settings_load
+* A sort of split pane or overlay that keeps a struct def in view at the top/bottom/side, sized to the def with a limit
+* A sort of smart "word" selector that contextually senses when to stop: del> BufferSettings_Load = Settings_Load, buffer_settings_load = settings_load
 * Mode to execute macro with each click/keypress. Should show hover-cursor for precision. (Hover-cursor mode?)
 * Drag selection to new place
 * Move selection up/down n lines, shifting existing lines below/above
