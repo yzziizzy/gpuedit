@@ -796,7 +796,7 @@ intptr_t Buffer_IndentToPrevLine(Buffer* b, BufferLine* bl) {
 	BufferLine* p = bl->prev;
 	if(!p || !p->buf || p->length == 0) return 0;
 	
-	for(i = 0; i < p->length; i++) {
+	for(i = 0; i < p->length; i = i + 1) {
 		if(p->buf[i] != '\t') break;
 		
 		Buffer_LineInsertChars(b, bl, "\t", 0, 1);
@@ -1727,106 +1727,75 @@ int Buffer_FindSequenceEdgeForward(Buffer* b, BufferLine** linep, colnum_t* colp
 	intptr_t col = *colp;
 	BufferLine* l = *linep;
 	
-	int inside = -1;
-	int c;
-	
 	if(!l) return 0;
 	
-	while(1) {
-		// handle line endings
-		while(col > l->length) {
-			if(!l->next) { // end of file
-				*linep = l;
-				*colp = l->length;
-				return 0;
-			}
+	if(col == l->length) { // already at the end of the line
+		if(l->next) { // go to the beginning of the next line
+			*linep = l->next;
+			*colp = 0;
+		}
+		// else last line of the file, stay here.
 			
-			// TODO check charset for \n
-			l = l->next;
-			col = 0;
+		return 0;
+	}
+	
+	// the first character to skip sets the inside/outside flag
+	int inside = !!strchr(charSet, l->buf[col]);
+	// 0 for outside, 1 for inside the provided character set
+	
+	
+	while(1) {
+		if(col >= l->length) { // end of line
+			*linep = l;
+			*colp = l->length;
+			return 0;
 		}
 		
-		
-		c = (col == l->length) ? '\n' : l->buf[col];
-		
-		char* r = strchr(charSet, c);
-		
-		if(inside == 1) {
-			if(r == NULL) {
-				// found the transition
-				*linep = l;
-				*colp = col;
-				return 0; // in a sequence
-			}
-		}
-		else if(inside == 0) {
-			if(r != NULL) {
-				// found the transition
-				*linep = l;
-				*colp = col;
-				return 0; // in a sequence
-			}
-		}
-		else {
-			inside = r != NULL;
+		if(inside == !strchr(charSet, l->buf[col])) { // end of sequence
+			*linep = l;
+			*colp = col;
+			return 0;
 		}
 		
 		col++;
 	}
 	
-	// shouldn't reach here
-	
 	return 1;
 }
+
 
 int Buffer_FindSequenceEdgeBackward(Buffer* b, BufferLine** linep, colnum_t* colp, char* charSet) {
 	intptr_t col = *colp;
 	BufferLine* l = *linep;
 	
-	int inside = -1;
-	int c;
-	
-	col--;
-	
 	if(!l) return 0;
 	
-	while(1) {
-		// handle line endings
-		while(col <= 0) {
-			if(!l->prev) { // beginning of file
-				*linep = l;
-				*colp = 0;
-				return 0;
-			}
+	if(col == 0) { // already at the beginning of the line
+		if(l->prev) { // go to the end of the previous line
+			*linep = l->prev;
+			*colp = l->prev->length;
+		}
+		// else first line of the file, stay here.
 			
-			// TODO check charset for \n
-			l = l->prev;
-			col = l->length;
+		return 0;
+	}
+	
+		// the first character to skip sets the inside/outside flag
+	int inside = !!strchr(charSet, l->buf[col - 1]);
+	// 0 for outside, 1 for inside the provided character set
+	
+	
+	while(1) {
+		if(col == 0) { // beginning of line
+			*linep = l;
+			*colp = 0;
+			return 0;
 		}
 		
-		
-		c = (col == l->length) ? '\n' : l->buf[col];
-		
-		char* r = strchr(charSet, c);
-		
-		if(inside == 1) {
-			if(r == NULL) {
-				// found the transition
-				*linep = l;
-				*colp = MIN(col+1, l->length);
-				return 0; // in a sequence
-			}
-		}
-		else if(inside == 0) {
-			if(r != NULL) {
-				// found the transition
-				*linep = l;
-				*colp = MIN(col+1, l->length);
-				return 0; // in a sequence
-			}
-		}
-		else {
-			inside = r != NULL;
+		if(inside == !strchr(charSet, l->buf[col - 1])) { // end of sequence
+			*linep = l;
+			*colp = col;
+			return 0;
 		}
 		
 		col--;
