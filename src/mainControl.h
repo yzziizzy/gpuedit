@@ -58,6 +58,9 @@ typedef struct MainControlPane {
 	int lastTabAccessIndex;
 	VEC(MainControlTab*) tabs;
 	char tabAutoSortDirty;
+	
+	int tabsPerRow;
+	int numTabRows;
 } MainControlPane;
 
 
@@ -87,6 +90,9 @@ typedef struct MainControl {
 	Vector2i focusedPos;
 	int xDivisions;
 	int yDivisions;
+	
+	int maxTabRows;
+	float minTabWidth; // in pixels, before row splitting
 	
 	float editorOffset;
 	float editorHeight;

@@ -574,6 +574,11 @@ void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered) {
 
 
 void GBEC_SetSelectionFromPivot(GUIBufferEditControl* w) {
+	if(!w->sel->line[0] || !w->sel->line[1] || (w->sel->line[0] == w->sel->line[1] && w->sel->col[0] == w->sel->col[1])) {
+		w->sel->selecting = 0;
+		return;
+	}
+	
 	w->sel->selecting = 1;
 	
 	GBEC_SelectionChanged(w);
@@ -1944,7 +1949,7 @@ void GBEC_SelectionChanged(GUIBufferEditControl* w) {
 		b = Buffer_FromSelection(w->b, w->sel);
 	}
 	
-	if(b) {
+	if(b && b->first) {
 		Clipboard_PushBuffer(CLIP_SELECTION, b);
 		Buffer_Delete(b);
 	}
