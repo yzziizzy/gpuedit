@@ -978,24 +978,37 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		case GUICMD_Buffer_DeleteCurLine: {
 			// preserve proper cursor position
 			if(HAS_SELECTION(w->sel)) {
-				BufferLine* cur = CURSOR_LINE(w->sel)->prev;
-				if(!cur) cur = PIVOT_LINE(w->sel)->next;
+				BufferLine* cur;
+				
+				if(CURSOR_LINE(w->sel)->lineNum < PIVOT_LINE(w->sel)->lineNum) {
+					cur = CURSOR_LINE(w->sel)->prev;
+					if(!cur) cur = PIVOT_LINE(w->sel)->next;
+				}
+				else {
+					cur = CURSOR_LINE(w->sel)->next;
+					if(!cur) cur = PIVOT_LINE(w->sel)->prev;
+				}
 				intptr_t col = CURSOR_COL(w->sel);
 				
-				BufferLine* bl = CURSOR_LINE(w->sel);
-				BufferLine* next = bl->next;
-				BufferLine* last = PIVOT_LINE(w->sel);
-				if(PIVOT_COL(w->sel) == 0) {
+				assert(w->sel->line[0]);
+				assert(w->sel->line[1]);
+				assert(w->sel->col[0] >= 0);
+				assert(w->sel->col[1] >= 0);
+				
+				BufferLine* bl = w->sel->line[0];
+				BufferLine* next;
+				BufferLine* last = w->sel->line[1];
+				if(w->sel->col[1] == 0) {
 					last = last->prev;
 					cur = PIVOT_LINE(w->sel);
 				}
 				
 				while(bl) {
+					next = bl->next;
 					Buffer_DeleteLine(b, bl);
 					
 					if(bl == last) break;
 					bl = next;
-					next = bl->next;
 				}
 				
 				GBEC_ClearCurrentSelection(w);
@@ -1518,6 +1531,8 @@ void GBEC_ClearCurrentSelection(GUIBufferEditControl* w) {
 	if(HAS_SELECTION(w->sel)) {
 		// TODO current
 		w->sel->selecting = 0;
+		PIVOT_LINE(w->sel) = NULL;
+		PIVOT_COL(w->sel) = -1;
 	}
 	
 	// TODO current
