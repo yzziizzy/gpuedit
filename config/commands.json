@@ -190,6 +190,10 @@
 			{elem: "Buffer", cmd: "GrowSelectionToNextSequence", mods: "CS", key: "XK_Right", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "GrowSelectionToPrevSequence", mods: "CS", key: "XK_Left", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", flags: ["scrollToCursor", "resetCursorBlink"]},
 			{elem: "Buffer", cmd: "FindStartSequenceUnderCursor", mods: "CS",  key: "f", amt: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", setMode: 1, flags: []},
+			{elem: "Buffer", cmd: "PrependToSequence", mods: "C",  key: "8", amt: [".->abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", "*"], flags: ["rehighlight", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "PrependToSequence", mods: "C",  key: "7", amt: [".->abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", "&"], flags: ["rehighlight", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "SurroundSequence", mods: "C",  key: "9", amt: [".->abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", "(", ")"], flags: ["rehighlight", "resetCursorBlink", "undoSeqBreak"]},
+			{elem: "Buffer", cmd: "SurroundSequence", mods: "C",  key: "0", amt: [".->abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", "(", ")"], flags: ["rehighlight", "resetCursorBlink", "undoSeqBreak"]},
 			
 			{elem: "Buffer", cmd: "PrintACDict", mods: "CT",  key: "d", flags: []},
 			{elem: "Buffer", cmd: "ACProvoke", mods: "C",  key: "XK_space", flags: []},

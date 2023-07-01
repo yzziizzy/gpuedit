@@ -882,6 +882,20 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			GBEC_DeleteToPrevSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->str);
 			break;
 			
+		case GUICMD_Buffer_PrependToSequence:
+			GBEC_PrependToSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->pstr[0], cmd->pstr[1]);
+			GBEC_MoveCursorH(w, w->sel, strlen(cmd->pstr[1]));
+			break;
+		
+		case GUICMD_Buffer_AppendToSequence:
+			GBEC_AppendToSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->pstr[0], cmd->pstr[1]);
+			break;
+			
+		case GUICMD_Buffer_SurroundSequence:
+			GBEC_SurroundSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->pstr[0], cmd->pstr[1], cmd->pstr[2]);
+			GBEC_MoveCursorH(w, w->sel, strlen(cmd->pstr[1]));
+			break;
+		
 		case GUICMD_Buffer_GoToEOL:
 			if(HAS_SELECTION(w->sel)) GBEC_ClearAllSelections(w);
 			CURSOR_COL(w->sel) = CURSOR_LINE(w->sel)->length;
@@ -1644,6 +1658,21 @@ void GBEC_UnsurroundRange(GUIBufferEditControl* w, BufferRange* r, char* begin, 
 	if(len2) GBEC_MoveEndH(w, r, -len2);
 }
 
+
+void GBEC_PrependToSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* str) {
+	Buffer_FindSequenceEdgeBackward(w->b, &line, &col, seq);
+	Buffer_LineInsertChars(w->b, line, str, col, strlen(str));
+}
+
+void GBEC_AppendToSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* str) {
+	Buffer_FindSequenceEdgeForward(w->b, &line, &col, seq);
+	Buffer_LineInsertChars(w->b, line, str, col, strlen(str));
+}
+
+void GBEC_SurroundSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* left, char* right) {
+	GBEC_AppendToSequence(w, line, col, seq, right);
+	GBEC_PrependToSequence(w, line, col, seq, left);
+}
 
 
 void GBEC_ReplaceLineWithSelectionTransform(
