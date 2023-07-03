@@ -58,6 +58,10 @@ void Buffer_AddRef(Buffer* b) {
 	b->refs++;
 }
 
+void Buffer_DecRef(Buffer* b) {
+	b->refs--;
+}
+
 static void ac_free_tree(BufferPrefixNode* n) {
 	BufferPrefixNode* k = n->kids;
 	while(k) {
@@ -70,8 +74,7 @@ static void ac_free_tree(BufferPrefixNode* n) {
 }
 
 void Buffer_Delete(Buffer* b) {
-//	b->refs--;
-//	if(b->refs > 0) return;
+	if(b->refs > 0) return;
 	
 	if(b->filePath) free(b->filePath);
 	
@@ -118,6 +121,7 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 		rp = resolve_path(path);
 		
 		if(!HT_get(&bc->byRealPath, rp, &b)) {
+			Buffer_AddRef(b);
 			return b;
 		}
 	}
@@ -144,6 +148,17 @@ void BufferCache_RemovePath(BufferCache* bc, char* realPath) {
 //    Undo Functions
 //
 
+
+static void undo_free_text(BufferUndo* u) {
+	switch(u->action) {
+		case UndoAction_DeleteText:
+		case UndoAction_InsertText:
+		case UndoAction_DeleteLine:
+		case UndoAction_InsertLineAt:
+			if(u->text) free(u->text);
+			u->text = NULL;
+	}
+}
 
 static int undo_avail(Buffer* b) {
 	return b->undoMax - b->undoFill;
@@ -173,14 +188,7 @@ static BufferUndo* undo_inc(Buffer* b, int changeCount) {
 		// the oldest item slips off the stack
 		
 		// clean up the old data
-		switch(u->action) {
-			case UndoAction_DeleteText:
-			case UndoAction_InsertText:
-			case UndoAction_DeleteLine:
-			case UndoAction_InsertLineAt:
-				if(u->text) free(u->text);
-				u->text = NULL;
-		}
+		undo_free_text(u);
 		
 		b->undoOldest = (b->undoOldest + 1) % b->undoMax;
 //		printf("oldest adjustment\n");
@@ -256,9 +264,7 @@ static BufferUndo* undo_peek(Buffer* b) {
 // clean up all memory related to the undo system
 void Buffer_FreeAllUndo(Buffer* b) {
 	for(intptr_t i = 0; i < b->undoFill; i++) {
-		if(b->undoRing[i].text) {
-			free(b->undoRing[i].text);
-		}
+		undo_free_text(&b->undoRing[i]);
 	}
 	
 	free(b->undoRing);

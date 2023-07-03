@@ -714,6 +714,7 @@ void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w);
 
 Buffer* Buffer_New(BufferSettings* bs);
 void Buffer_AddRef(Buffer* b);
+void Buffer_DecRef(Buffer* b);
 void Buffer_Delete(Buffer* b);
 Buffer* Buffer_Copy(Buffer* src);
 Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);

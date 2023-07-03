@@ -202,10 +202,14 @@ void Clipboard_Init() {
 	RING_INIT(&clipboard->stack[2], 1);
 }
 
+void Buffer_DecRef(Buffer* b);
 void Buffer_Delete(Buffer* b);
 
 void ClipboardClip_free(ClipboardClip* clip) {
-	if(clip->b) Buffer_Delete(clip->b);
+	if(clip->b) {
+		Buffer_DecRef(clip->b);
+		Buffer_Delete(clip->b);
+	}
 	if(clip->flatText) free(clip->flatText);
 	free(clip);
 }

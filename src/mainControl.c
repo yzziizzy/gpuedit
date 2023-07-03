@@ -484,7 +484,15 @@ static int message_handler(MainControl* w, Message* m) {
 			MainControl_GrepOpen(w, (char*)m->data);
 			free(m->data);
 			break;
-			
+		
+		case MSG_BufferRefDec: {
+			Buffer* b = (Buffer*)m->data;
+			if(b->refs == 0) {
+				BufferCache_RemovePath(w->bufferCache, b->sourceFile);
+			}
+			break;
+		}
+		
 		default:
 			return 0;
 	}
@@ -736,11 +744,13 @@ void MainControl_CloseTab(MainControl* w, int index) {
 }
 
 void MainControlPane_CloseTab(MainControlPane* w, int index) {
-	
 	MainControlTab* t = VEC_ITEM(&w->tabs, index);
+	
+	if(t->beforeClose) t->beforeClose(t);
 	
 	VEC_RM_SAFE(&w->tabs, index);
 	
+	if(t->afterClose) t->afterClose(t);
 	
 	if(t->onDestroy) t->onDestroy(t);
 	if(t->title) free(t->title);
@@ -1215,7 +1225,7 @@ static int gbeBeforeClose(MainControlTab* t) {
 static int gbeAfterClose(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
-	Settings_Free(gbe->s);
+	// Settings_Free(gbe->s);
 	GUIBufferEditor_Destroy(gbe);
 	return 0;
 }

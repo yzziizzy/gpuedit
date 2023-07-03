@@ -558,29 +558,28 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 		gm->lastActiveID = gm->activeID;
 		
 		VEC_EACHP(&gm->focusNotifiers, i, not) {
+			if(not->id != lastActiveID) continue;
 			
-			if(not->id == lastActiveID) {
-				
-				gm->curEvent = (GUIEvent){0};
-				gm->curEvent = (GUIEvent){
-					.type = GUIEVENT_Blur,
-					.keycode = not->elem,
-				};
-				
-				GUIManager_RunRenderPass(gm, pfp, 0);
-			}
-			else if(not->id == cachedActiveID) {
-				
-				gm->curEvent = (GUIEvent){0};
-				gm->curEvent = (GUIEvent){
-					.type = GUIEVENT_Focus,
-					.keycode = not->elem,
-				};
-				
-				GUIManager_RunRenderPass(gm, pfp, 0);
-			}
-
+			printf("blur element (%d) %p\n", GUIEVENT_Blur, not->id);
+			gm->curEvent = (GUIEvent){0};
+			gm->curEvent = (GUIEvent){
+				.type = GUIEVENT_Blur,
+				.keycode = not->elem,
+			};
 			
+			GUIManager_RunRenderPass(gm, pfp, 0);
+		}
+		VEC_EACHP(&gm->focusNotifiers, i, not) {
+			if(not->id != cachedActiveID) continue;
+			
+			printf("focus element (%d) %p\n", GUIEVENT_Focus, not->id);
+			gm->curEvent = (GUIEvent){0};
+			gm->curEvent = (GUIEvent){
+				.type = GUIEVENT_Focus,
+				.keycode = not->elem,
+			};
+			
+			GUIManager_RunRenderPass(gm, pfp, 0);
 		}
 		
 		VEC_TRUNC(&gm->focusNotifiers);

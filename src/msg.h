@@ -12,8 +12,7 @@
 	X(CloseMe) \
 	X(GrepOpener) \
 	X(CmdFwd) \
-
-
+	X(BufferRefDec) \
 
 
 
