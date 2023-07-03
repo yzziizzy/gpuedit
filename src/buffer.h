@@ -663,7 +663,9 @@ void GBEC_ClearAllSelections(GUIBufferEditControl* w);
 void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel);
 void GBEC_SelectSequenceUnder(GUIBufferEditControl* w, BufferLine* l, colnum_t col, char* charSet);
 void Buffer_GetSequenceUnder(Buffer* b, BufferLine* l, colnum_t col, char* charSet, BufferRange* out);
-
+void GBEC_PrependToSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* str);
+void GBEC_AppendToSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* str);
+void GBEC_SurroundSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* left, char* right);
 
 void BufferFindState_FreeAll(BufferFindState* st);
 

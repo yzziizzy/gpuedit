@@ -1117,7 +1117,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel) {
 	
 	BufferLine* blc, *blc_prev, *bl;
 	
-	if(!src->first || !sel->line[0]) return b;
+	if(!src->first || !sel->line[0] || !sel->line[1]) return b;
 	
 	// single-line selection
 	if(sel->line[0] == sel->line[1]) {

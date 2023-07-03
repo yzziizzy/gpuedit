@@ -82,6 +82,9 @@
 	X(Buffer, MoveToPrevSequence) \
 	X(Buffer, DeleteToNextSequence) \
 	X(Buffer, DeleteToPrevSequence) \
+	X(Buffer, PrependToSequence) \
+	X(Buffer, AppendToSequence) \
+	X(Buffer, SurroundSequence) \
 	X(Buffer, GrowSelectionToNextSequence) \
 	X(Buffer, GrowSelectionToPrevSequence) \
 	X(Buffer, GrowSelectionToSOL) \

@@ -574,6 +574,11 @@ void GBEC_scrollToCursorOpt(GUIBufferEditControl* w, int centered) {
 
 
 void GBEC_SetSelectionFromPivot(GUIBufferEditControl* w) {
+	if(!w->sel->line[0] || !w->sel->line[1] || (w->sel->line[0] == w->sel->line[1] && w->sel->col[0] == w->sel->col[1])) {
+		w->sel->selecting = 0;
+		return;
+	}
+	
 	w->sel->selecting = 1;
 	
 	GBEC_SelectionChanged(w);
@@ -877,6 +882,20 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			GBEC_DeleteToPrevSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->str);
 			break;
 			
+		case GUICMD_Buffer_PrependToSequence:
+			GBEC_PrependToSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->pstr[0], cmd->pstr[1]);
+			GBEC_MoveCursorH(w, w->sel, strlen(cmd->pstr[1]));
+			break;
+		
+		case GUICMD_Buffer_AppendToSequence:
+			GBEC_AppendToSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->pstr[0], cmd->pstr[1]);
+			break;
+			
+		case GUICMD_Buffer_SurroundSequence:
+			GBEC_SurroundSequence(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel), cmd->pstr[0], cmd->pstr[1], cmd->pstr[2]);
+			GBEC_MoveCursorH(w, w->sel, strlen(cmd->pstr[1]));
+			break;
+		
 		case GUICMD_Buffer_GoToEOL:
 			if(HAS_SELECTION(w->sel)) GBEC_ClearAllSelections(w);
 			CURSOR_COL(w->sel) = CURSOR_LINE(w->sel)->length;
@@ -973,24 +992,37 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		case GUICMD_Buffer_DeleteCurLine: {
 			// preserve proper cursor position
 			if(HAS_SELECTION(w->sel)) {
-				BufferLine* cur = CURSOR_LINE(w->sel)->prev;
-				if(!cur) cur = PIVOT_LINE(w->sel)->next;
+				BufferLine* cur;
+				
+				if(CURSOR_LINE(w->sel)->lineNum < PIVOT_LINE(w->sel)->lineNum) {
+					cur = CURSOR_LINE(w->sel)->prev;
+					if(!cur) cur = PIVOT_LINE(w->sel)->next;
+				}
+				else {
+					cur = CURSOR_LINE(w->sel)->next;
+					if(!cur) cur = PIVOT_LINE(w->sel)->prev;
+				}
 				intptr_t col = CURSOR_COL(w->sel);
 				
-				BufferLine* bl = CURSOR_LINE(w->sel);
-				BufferLine* next = bl->next;
-				BufferLine* last = PIVOT_LINE(w->sel);
-				if(PIVOT_COL(w->sel) == 0) {
+				assert(w->sel->line[0]);
+				assert(w->sel->line[1]);
+				assert(w->sel->col[0] >= 0);
+				assert(w->sel->col[1] >= 0);
+				
+				BufferLine* bl = w->sel->line[0];
+				BufferLine* next;
+				BufferLine* last = w->sel->line[1];
+				if(w->sel->col[1] == 0) {
 					last = last->prev;
 					cur = PIVOT_LINE(w->sel);
 				}
 				
 				while(bl) {
+					next = bl->next;
 					Buffer_DeleteLine(b, bl);
 					
 					if(bl == last) break;
 					bl = next;
-					next = bl->next;
 				}
 				
 				GBEC_ClearCurrentSelection(w);
@@ -1513,6 +1545,8 @@ void GBEC_ClearCurrentSelection(GUIBufferEditControl* w) {
 	if(HAS_SELECTION(w->sel)) {
 		// TODO current
 		w->sel->selecting = 0;
+		PIVOT_LINE(w->sel) = NULL;
+		PIVOT_COL(w->sel) = -1;
 	}
 	
 	// TODO current
@@ -1624,6 +1658,21 @@ void GBEC_UnsurroundRange(GUIBufferEditControl* w, BufferRange* r, char* begin, 
 	if(len2) GBEC_MoveEndH(w, r, -len2);
 }
 
+
+void GBEC_PrependToSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* str) {
+	Buffer_FindSequenceEdgeBackward(w->b, &line, &col, seq);
+	Buffer_LineInsertChars(w->b, line, str, col, strlen(str));
+}
+
+void GBEC_AppendToSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* str) {
+	Buffer_FindSequenceEdgeForward(w->b, &line, &col, seq);
+	Buffer_LineInsertChars(w->b, line, str, col, strlen(str));
+}
+
+void GBEC_SurroundSequence(GUIBufferEditControl* w, BufferLine* line, colnum_t col, char* seq, char* left, char* right) {
+	GBEC_AppendToSequence(w, line, col, seq, right);
+	GBEC_PrependToSequence(w, line, col, seq, left);
+}
 
 
 void GBEC_ReplaceLineWithSelectionTransform(
@@ -1944,7 +1993,7 @@ void GBEC_SelectionChanged(GUIBufferEditControl* w) {
 		b = Buffer_FromSelection(w->b, w->sel);
 	}
 	
-	if(b) {
+	if(b && b->first) {
 		Clipboard_PushBuffer(CLIP_SELECTION, b);
 		Buffer_DecRef(b);
 		Buffer_Delete(b);
