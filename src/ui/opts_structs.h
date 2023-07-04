@@ -228,6 +228,7 @@ typedef struct Color3 {
 
 
 #undef charp
+#undef bool
 
 
 
