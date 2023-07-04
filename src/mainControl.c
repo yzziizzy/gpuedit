@@ -1225,7 +1225,7 @@ static int gbeBeforeClose(MainControlTab* t) {
 static int gbeAfterClose(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
-	// Settings_Free(gbe->s);
+	Settings_Free(gbe->s);
 	GUIBufferEditor_Destroy(gbe);
 	return 0;
 }

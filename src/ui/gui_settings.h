@@ -91,7 +91,7 @@ void GUISettings_LoadDefaults(GUIManager* gm, GUISettings* s);
 void GUISettings_LoadFromFile(GUIManager* gm, GUISettings* s, char* path);
 void GUISettings_LoadJSON(GUIManager* gm, GUISettings* s, struct json_value* jsv);
 GUISettings* GUISettings_Alloc(GUIManager* gm);
-void GUISettings_Free(GUISettings* s);
+void GUISettings_Free(void* useless, GUISettings* s);
 
 
 #endif // __gputk_gui_settings_h__

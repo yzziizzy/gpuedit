@@ -72,7 +72,7 @@ GUISettings* GUISettings_Copy(GUIManager* gm, GUISettings* orig) {
 #define free_Font(x)
 #define free_charp(x) free(x);
 #define free_charpp(x) freeptrlist(x);
-void GUISettings_Free(GUISettings* s) {
+void GUISettings_Free(void* useless, GUISettings* s) {
 	#define SETTING(type, name, val ,min,max) free_##type(s->name);
 		GUI_SETTING_LIST
 	#undef SETTING
@@ -91,6 +91,8 @@ void GUISettings_Free(GUISettings* s) {
 #define set_Font(x) x;
 #define set_charp(x) strdup(x);
 #define set_charpp(x) strlistdup(x);
+#define set_Vector2(x) x;
+#define set_Color4(x) x;
 
 
 
@@ -200,6 +202,7 @@ void GUISettings_LoadDefaults(GUIManager* gm, GUISettings* s) {
 	#define F0(a,b0,b1,b2) a = b0;
 	#define F1(a,b0,b1,b2) a = b1;
 	#define F2(a,b0,b1,b2) a = b2;
+	//#define XX(t,n,v) n = set_##t(v);
 	#define XX(t,n,v) n = v;
 	
 	#define H0(a, b) I0(a, O(F0)b)
