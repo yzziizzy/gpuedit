@@ -58,7 +58,7 @@
 			{elem: "Main", cmd: "QuitWithoutSave", mods: "CS", key: "q", amt: 0},
 			{elem: "Main", cmd: "OpenFileBrowser", mods: "", key: "XK_F2", amt: 0},
 			{elem: "Main", cmd: "FuzzyOpener", mods: "", key: "XK_F4", amt: 0},
-//			{elem: "Main", cmd: "GrepOpen", mods: "CS", key: "p", amt: 0},
+			{elem: "Main", cmd: "GrepOpen", mods: "CS", key: "g", amt: 0},
 			{elem: "Main", cmd: "Calculator", mods: "T", key: "/", amt: 0},
 			{elem: "Main", cmd: "SimpleWindowTest", mods: "C", key: "u", amt: 0},
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
