@@ -244,9 +244,15 @@ typedef struct Buffer {
 
 
 
+typedef struct BufferOpenHistory {
+	char* realPath;
+	int line;
+	int col;
+} BufferOpenHistory;
+
 
 typedef struct BufferCache {
-
+	HT(BufferOpenHistory*) openHistory;
 	HT(Buffer*) byRealPath; 
 	
 } BufferCache;
@@ -255,6 +261,13 @@ typedef struct BufferCache {
 BufferCache* BufferCache_New();
 Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs);
 void BufferCache_RemovePath(BufferCache* bc, char* realPath);
+
+BufferOpenHistory* BufferOpenHistory_New();
+void BufferOpenHistory_Delete(BufferOpenHistory* boh);
+BufferOpenHistory* BufferCache_GetPathHistory(BufferCache* bc, char* realPath);
+void BufferCache_RemovePathHistory(BufferCache* bc, char* realPath);
+void BufferCache_SetPathHistory(BufferCache* bc, char* realPath, int line, int col);
+
 
 
 typedef struct BufferACMatch {

@@ -296,7 +296,7 @@ do { \
 	SFREE(w->sourceFile);
 	
 	Buffer_DecRef(w->b);
-	MessagePipe_Send(w->tx, MSG_BufferRefDec, w->b, NULL);
+	MessagePipe_Send(w->tx, MSG_BufferRefDec, w, NULL);
 	Buffer_Delete(w->b);
 
 	

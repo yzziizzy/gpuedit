@@ -11,6 +11,8 @@ general: {
 	highlightersPath: "./src/highlighters/",
 	highlightStylesPath: "./config/",
 
+	sessionFileHistory: 100,
+
 	"MainControl_startupTabs": [
 		{ "type": "Buffer", "path": "./testfile.c", },
 		{ "type": "Buffer", "path": "./testfile.h", },

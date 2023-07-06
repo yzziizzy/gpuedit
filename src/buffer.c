@@ -107,6 +107,7 @@ void Buffer_InitEmpty(Buffer* b) {
 
 BufferCache* BufferCache_New() {
 	BufferCache* bc = pcalloc(bc);
+	HT_init(&bc->openHistory, 64);
 	HT_init(&bc->byRealPath, 64);
 	return bc;
 }
@@ -143,6 +144,37 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 void BufferCache_RemovePath(BufferCache* bc, char* realPath) {
 	HT_delete(&bc->byRealPath, realPath);
 }
+
+
+BufferOpenHistory* BufferOpenHistory_New() {
+	BufferOpenHistory* boh = pcalloc(boh);
+	return boh;
+}
+
+void BufferOpenHistory_Delete(BufferOpenHistory* boh) {
+	free(boh->realPath);
+	free(boh);
+}
+
+BufferOpenHistory* BufferCache_GetPathHistory(BufferCache* bc, char* realPath) {
+	BufferOpenHistory* boh = NULL;
+	HT_get(&bc->openHistory, realPath, &boh);
+	return boh;
+}
+
+void BufferCache_RemovePathHistory(BufferCache* bc, char* realPath) {
+	HT_delete(&bc->openHistory, realPath);
+}
+
+void BufferCache_SetPathHistory(BufferCache* bc, char* realPath, int line, int col) {
+	BufferOpenHistory* boh = BufferOpenHistory_New();
+	boh->realPath = strdup(realPath);
+	boh->line = line;
+	boh->col = col;
+	
+	HT_set(&bc->openHistory, realPath, boh);
+}
+
 
 //
 //    Undo Functions
