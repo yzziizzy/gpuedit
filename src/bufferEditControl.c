@@ -1995,6 +1995,7 @@ void GBEC_SelectionChanged(GUIBufferEditControl* w) {
 	
 	if(b && b->first) {
 		Clipboard_PushBuffer(CLIP_SELECTION, b);
+		Buffer_DecRef(b);
 		Buffer_Delete(b);
 	}
 	// undo system hook?

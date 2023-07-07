@@ -484,7 +484,20 @@ static int message_handler(MainControl* w, Message* m) {
 			MainControl_GrepOpen(w, (char*)m->data);
 			free(m->data);
 			break;
-			
+		
+		case MSG_BufferRefDec: {
+			GUIBufferEditor* gbe = (GUIBufferEditor*)m->data;
+			if(gbe->b->refs == 0) {
+				if(w->gs->sessionFileHistory > 0) {
+					int line = CURSOR_LINE(gbe->ec->sel)->lineNum;
+					int col = CURSOR_COL(gbe->ec->sel);
+					BufferCache_SetPathHistory(w->bufferCache, gbe->b->sourceFile, line, col);
+				}
+				BufferCache_RemovePath(w->bufferCache, gbe->b->sourceFile);
+			}
+			break;
+		}
+		
 		default:
 			return 0;
 	}
@@ -736,11 +749,13 @@ void MainControl_CloseTab(MainControl* w, int index) {
 }
 
 void MainControlPane_CloseTab(MainControlPane* w, int index) {
-	
 	MainControlTab* t = VEC_ITEM(&w->tabs, index);
+	
+	if(t->beforeClose) t->beforeClose(t);
 	
 	VEC_RM_SAFE(&w->tabs, index);
 	
+	if(t->afterClose) t->afterClose(t);
 	
 	if(t->onDestroy) t->onDestroy(t);
 	if(t->title) free(t->title);
@@ -1319,6 +1334,21 @@ void MainControl_OnTabChange(MainControl* w) {
 	
 	json_obj_set_key(root, "panes", jpanes);
 	
+	// save buffer history
+	if(w->gs->sessionFileHistory > 0) {
+		json_value_t* jhistory = json_new_object(16); // size from config/HT macro?
+		HT_EACH(&w->bufferCache->openHistory, path, BufferOpenHistory*, history) {
+			json_value_t* jp = json_new_object(16);
+			
+			json_obj_set_key(jp, "line", json_new_int(history->line));
+			json_obj_set_key(jp, "col", json_new_int(history->col));
+			
+			json_obj_set_key(jhistory, path, jp);
+		}
+		
+		json_obj_set_key(root, "history", jhistory);
+	}
+	
 	jwc.sb = json_string_buffer_create(8192);
 	jwc.fmt.indentChar = ' ';
 	jwc.fmt.indentAmt = 4;
@@ -1409,6 +1439,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 	
 
 	// buffer and editor creation
+	BufferOpenHistory* boh = BufferCache_GetPathHistory(w->bufferCache, opt->path);
 	Buffer* buf = BufferCache_GetPath(w->bufferCache, opt->path, bs);
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm, &w->rx);
 	GUIBufferEditor_UpdateSettings(gbe, ls);
@@ -1464,9 +1495,19 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt)
 		MainControlPane_GoToTab(p, i);
 	}
 	
-
-	GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
-	GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
+	if(boh && !opt->scroll_existing) {
+		GBEC_MoveCursorToNum(gbe->ec, boh->line, boh->col);
+		GBEC_SetScrollCentered(gbe->ec, boh->line, boh->col);
+	}
+	else {
+		GBEC_MoveCursorToNum(gbe->ec, opt->line_num, 0);
+		GBEC_SetScrollCentered(gbe->ec, opt->line_num, 0);
+	}
+	
+	if(boh) {
+		BufferCache_RemovePathHistory(w->bufferCache, boh->realPath);
+		BufferOpenHistory_Delete(boh);
+	}
 	
 	gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
 	

@@ -79,6 +79,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			
 		}
 		
+		
 		GUI_Notify_(gm, 0, &w->replaceText, GUI_CMD_GUISYM_FindBox);
 		GUI_Notify_(gm, 0, &w->findQuery, GUI_CMD_GUISYM_FindBox);
 		
@@ -294,7 +295,8 @@ do { \
 	
 	SFREE(w->sourceFile);
 	
-	// this is internally reference counted
+	Buffer_DecRef(w->b);
+	MessagePipe_Send(w->tx, MSG_BufferRefDec, w, NULL);
 	Buffer_Delete(w->b);
 
 	
@@ -1143,7 +1145,11 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		{
 			struct hlinfo* hl = w->b->hl; // preserve the meta info
 			
+			Buffer_DecRef(w->b);
+			MessagePipe_Send(w->tx, MSG_BufferRefDec, w->b, NULL);
 			Buffer_Delete(w->b);
+			
+			// TODO: check if there are other references and do something sensible
 //			w->ec->selectPivotLine = NULL;
 //			w->ec->selectPivotCol = 0;
 
