@@ -530,23 +530,6 @@ typedef struct GUIBufferEditor {
 
 
 
-
-
-typedef struct GUIFileOpt {
-	char* path;
-	intptr_t line_num;
-	int set_focus;
-	int scroll_existing;
-} GUIFileOpt;
-
-typedef struct GUIBubbleOpt {
-	char* ev;
-	char* sel;
-} GUIBubbleOpt;
-
-
-
-
 struct GUIManager;
 typedef struct GUIManager GUIManager;
 

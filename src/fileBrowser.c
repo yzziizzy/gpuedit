@@ -95,6 +95,25 @@ float col_type_widths[] = {
 
 
 
+void send_open_message(FileBrowser* w, char* path) {
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
+		.path = path,
+		.line_num = 1,
+	};
+	
+	if(w->gs->MainControl_openInPlace) {
+		opt.set_focus = 1;
+	}
+	
+	MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
+	
+	if(w->gs->MainControl_openInPlace) {
+		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
+	}
+}
+
+
 
 #include "ui/macros_on.h"
 void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
@@ -162,8 +181,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 					
 					FileBrowser_Refresh(w);
 				}
-				else
-					MessagePipe_Send(w->upstream, MSG_OpenFile, e->name, NULL);
+				else send_open_message(w, e->name);
 				
 				GUI_CancelInput();
 			}
@@ -403,14 +421,14 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 			}
 			else if(w->numSelected == 0) {
 				FileBrowserEntry* e = &VEC_ITEM(&w->entries, w->cursorIndex);
-				MessagePipe_Send(w->upstream, MSG_OpenFile, e->fullPath, NULL);				
+				send_open_message(w, e->fullPath);
 			}
 			else { // open selected files
 				for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
 					FileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
 					if(!e->isSelected) {
-						MessagePipe_Send(w->upstream, MSG_OpenFile, e->fullPath, NULL);
+						send_open_message(w, e->fullPath);
 					}
 				}
 				
@@ -488,7 +506,7 @@ FileBrowserEntry* FileBrowser_CollectSelected(FileBrowser* w, intptr_t* szOut) {
 
 
 
-FileBrowser* FileBrowser_New(GUIManager* gm, MessagePipe* mp, char* path) {
+FileBrowser* FileBrowser_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* path) {
 
 	FileBrowser* w = pcalloc(w);
 	
@@ -498,6 +516,8 @@ FileBrowser* FileBrowser_New(GUIManager* gm, MessagePipe* mp, char* path) {
 	w->lineHeight = 20;
 	w->leftMargin = 20;
 	w->curDir = realpath(path, NULL);
+	
+	w->gs = Settings_GetSection(s, SETTINGS_General);
 	
 	for(int i = 0; gm->gs->fileBrowserColumnOrder[i]; i++) {
 		char* name = gm->gs->fileBrowserColumnOrder[i];
