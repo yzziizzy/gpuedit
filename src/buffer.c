@@ -1929,7 +1929,7 @@ void Buffer_CollapseWhitespace(Buffer* b, BufferLine* l, colnum_t col) {
 static void ac_insert_word(BufferPrefixNode* n, char* s, size_t len) {
 	n->refs++;
 	
-	if(!*s || len == 0) {
+	if(len == 0 || !*s) {
 		n->trefs++;
 		return;
 	}
