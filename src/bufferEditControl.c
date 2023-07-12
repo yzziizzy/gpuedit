@@ -470,6 +470,11 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		}
 		// TODO: check scrollLines and scrollCols
 	
+		if(w->autocompleteOptions) {
+			if(w->autocompleteOptions->matches) free(w->autocompleteOptions->matches);
+			free(w->autocompleteOptions);
+			w->autocompleteOptions = NULL;
+		}
 	}
 	
 }
