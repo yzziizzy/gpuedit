@@ -161,8 +161,8 @@ void MainControl_OpenMainMenu(MainControl* w);
 MainControlTab* MainControl_NewEmptyBuffer(MainControl* w);
 MainControlTab* MainControl_LoadFile(MainControl* w, char* path);
 MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path);
-MainControlTab* MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt);
-MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt);
+MainControlTab* MainControl_LoadFileOpt(MainControl* w, MessageFileOpt* opt);
+MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* opt);
 void MainControl_OpenFileBrowser(MainControl* w, char* path);
 
 void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);

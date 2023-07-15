@@ -50,6 +50,13 @@ typedef struct MessagePipe {
 
 
 
+typedef struct MessageFileOpt {
+	char* path;
+	intptr_t line_num;
+	int set_focus;
+	int scroll_existing;
+} MessageFileOpt;
+
 
 int MessagePipe_Send(MessagePipe* pipe, enum MessageType type, void* data, FreeFn f);
 void MessagePipe_Listen(MessagePipe* pipe, MessageHandlerFn fn, void* data);

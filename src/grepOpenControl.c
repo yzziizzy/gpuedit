@@ -333,8 +333,8 @@ static void open_match(GrepOpenControl* w, int i) {
 	char* path = resolve_path(path_raw);
 	intptr_t line_num = w->matches[i].line_num;
 	
-	GUIFileOpt opt = {0};
-	opt = (GUIFileOpt){
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
 		.path = path,
 		.line_num = line_num,
 		.set_focus = 0,

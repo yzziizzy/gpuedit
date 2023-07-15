@@ -312,8 +312,8 @@ static void open_match(GUIFuzzyMatchControl* w, int i) {
 	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);
 	char* path = resolve_path(path_raw);
 	
-	GUIFileOpt opt = {0};
-	opt = (GUIFileOpt){
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
 		.path = path,
 		.line_num = 1,
 	};

@@ -272,15 +272,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 		// load buffer history
 		if(as->mc->gs->sessionFileHistory > 0) {
 			json_value_t* jhistory = json_obj_get_val(jsf->root, "history");
-			void* iter = NULL;
-			char* key;
-			json_value_t* val;
-			if(jhistory && json_obj_next(jhistory, &iter, &key, &val)) {
-				for(; iter; json_obj_next(jhistory, &iter, &key, &val)) {
-					int line = json_obj_get_int(val, "line", 1);
-					int col = json_obj_get_int(val, "col", 0);
-					BufferCache_SetPathHistory(as->mc->bufferCache, key, line, col);
-				}
+			JSON_OBJ_EACH(jhistory, key, val) {
+				int line = json_obj_get_int(val, "line", 1);
+				int col = json_obj_get_int(val, "col", 0);
+				BufferCache_SetPathHistory(as->mc->bufferCache, key, line, col);
 			}
 		}
 		

@@ -304,28 +304,6 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 
 
 
-
-/*
-
-static void userEvent(GUIHeader* w_, GUIEvent* gev) {
-	MainControl* w = (MainControl*)w_;
-	
-	} else if(0 == strcmp(gev->userType, "SmartBubble")) {
-		GUIBubbleOpt* opt = (GUIBubbleOpt*)gev->userData;
-		if(0 == strcmp(opt->ev, "FuzzyOpen")) {
-			MainControl_FuzzyOpener(w, opt->sel);
-			gev->cancelled = 1;
-		} else if(0 == strcmp(opt->ev, "GrepOpen")) {
-			MainControl_GrepOpen(w, opt->sel);
-			gev->cancelled = 1;
-		} else {
-			printf("MainControl::SmartBubble unknown ev '%s'\n", opt->ev);
-		}
-	}
-}
-
-*/
-
 void* args[4];
 
 void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
@@ -477,7 +455,7 @@ static int message_handler(MainControl* w, Message* m) {
 			break;
 		
 		case MSG_OpenFileOpt:
-			MainControl_LoadFileOpt(w, (GUIFileOpt*)m->data);
+			MainControl_LoadFileOpt(w, (MessageFileOpt*)m->data);
 			break;
 			
 		case MSG_GrepOpener:
@@ -1071,7 +1049,7 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path) {
 //		return;
 //	}
 
-	FileBrowser* fb = FileBrowser_New(w->gm, &w->rx, path);
+	FileBrowser* fb = FileBrowser_New(w->gm, w->s, &w->rx, path);
 //	fb->gs = w->gs;
 
 	MainControlTab* tab = MainControl_AddGenericTab(w, fb, path);
@@ -1369,8 +1347,8 @@ void MainControl_OnTabChange(MainControl* w) {
 
 
 MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
-	GUIFileOpt opt = {0};
-	opt = (GUIFileOpt){
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
 		.path = NULL,
 		.line_num = 1,
 		.set_focus = 1,
@@ -1379,8 +1357,8 @@ MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
 }
 
 MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
-	GUIFileOpt opt = {0};
-	opt = (GUIFileOpt){
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
 		.path = path,
 		.line_num = 1,
 	};
@@ -1388,19 +1366,19 @@ MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
 }
 
 MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path) {
-	GUIFileOpt opt = {0};
-	opt = (GUIFileOpt){
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
 		.path = path,
 		.line_num = 1,
 	};
 	return MainControlPane_LoadFileOpt(p, &opt);
 }
 
-MainControlTab* MainControl_LoadFileOpt(MainControl* w, GUIFileOpt* opt) {
+MainControlTab* MainControl_LoadFileOpt(MainControl* w, MessageFileOpt* opt) {
 	return MainControlPane_LoadFileOpt(w->focusedPane, opt);
 }
 
-MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, GUIFileOpt* opt) {
+MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* opt) {
 	
 	MainControl* w = p->mc;
 	
