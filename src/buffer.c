@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #include "common_math.h"
 
@@ -108,20 +109,25 @@ void Buffer_InitEmpty(Buffer* b) {
 BufferCache* BufferCache_New() {
 	BufferCache* bc = pcalloc(bc);
 	HT_init(&bc->openHistory, 64);
-	HT_init(&bc->byRealPath, 64);
+	HT_init(&bc->byFileID, 64);
 	return bc;
 }
 
 Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 	char* rp = NULL;
 	Buffer* b;
+	FileID id;
 	
 	if(strlen(path) == 0) path = NULL;
 	
 	if(path) {
 		rp = resolve_path(path);
 		
-		if(!HT_get(&bc->byRealPath, rp, &b)) {
+		struct stat st;
+		stat(rp, &st);
+		id = (FileID){.dev = st.st_dev, .inode = st.st_ino};
+		
+		if(!HT_get(&bc->byFileID, id, &b)) {
 			Buffer_AddRef(b);
 			return b;
 		}
@@ -134,7 +140,7 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 	}
 	
 	if(path && rp) {
-		HT_set(&bc->byRealPath, rp, b);
+		HT_set(&bc->byFileID, id, b);
 	}
 	
 	return b;
@@ -142,7 +148,12 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 
 
 void BufferCache_RemovePath(BufferCache* bc, char* realPath) {
-	HT_delete(&bc->byRealPath, realPath);
+	
+	struct stat st;
+	stat(realPath, &st);
+	FileID id = {.dev = st.st_dev, .inode = st.st_ino};
+
+	HT_delete(&bc->byFileID, id);
 }
 
 

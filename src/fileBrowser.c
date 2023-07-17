@@ -96,9 +96,11 @@ float col_type_widths[] = {
 
 
 void send_open_message(FileBrowser* w, char* path) {
+	char* path2 = resolve_path(path);
+
 	MessageFileOpt opt = {0};
 	opt = (MessageFileOpt){
-		.path = path,
+		.path = path2,
 		.line_num = 1,
 	};
 	
@@ -107,6 +109,8 @@ void send_open_message(FileBrowser* w, char* path) {
 	}
 	
 	MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
+	
+	free(path2);
 	
 	if(w->gs->MainControl_openInPlace) {
 		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
@@ -123,15 +127,15 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	struct tm tm = {};
 	time_t time = 0;
 	
-	
-	int linesOnScreen = ((sz.y - w->headerHeight) / w->lineHeight) - w->isRootDir;
-	
-	if(w->cursorIndex < w->scrollOffset) {
-		w->scrollOffset = w->cursorIndex;
+	w->linesOnScreen = ((sz.y - w->headerHeight) / w->lineHeight) - w->isRootDir;
+
+	if(gm->drawMode) {
+		w->scrollOffset += gm->scrollDist * -3;
+		w->scrollOffset = lclamp(w->scrollOffset, 0, w->linesOnScreen);
 	}
-	else if(w->cursorIndex >= w->scrollOffset + linesOnScreen - 1) {
-		w->scrollOffset = w->cursorIndex - linesOnScreen + 1;
-	}
+	
+
+	
 	
 //	w->/*scrollOffset*/ = 10/*;*/
 	
@@ -140,7 +144,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	
 	
 	// calculate scrollbar offset
-	float max_scroll = VEC_LEN(&w->entries) - linesOnScreen;
+	float max_scroll = VEC_LEN(&w->entries) - w->linesOnScreen;
 	float scroll_pct = w->scrollOffset / max_scroll;
 	float sboff = scroll_pct * (sz.y - sbh);
 	
@@ -156,9 +160,10 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		if(cmd) {
 			FileBrowser_ProcessCommand(w, cmd);
 			GUI_CancelInput();
+			return;
 		}
 		
-		if(GUI_MouseWentUp(1)) {
+		if(gm->curEvent.type == GUIEVENT_MouseUp && gm->curEvent.button == 1 && gm->curEvent.multiClick == 2) {
 			// determine the clicked line
 			Vector2 mp = GUI_MousePos();
 			int cline = floor((mp.y - w->headerHeight) / w->lineHeight) + (int)w->scrollOffset - 1 - !w->isRootDir;
@@ -261,10 +266,18 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 			
 		FileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
 		
+		Vector2 line_tl = V(tl.x + w->leftMargin, tl.y + (lh * linesDrawn) + w->headerHeight);
+		Vector2 line_sz = V(sz.x, lh - 1);
+		
 		gm->curZ = z + 1;
 		if(e->isSelected) { // backgrounds for selected items
-			GUI_Rect(V(tl.x + w->leftMargin, tl.y + (lh * linesDrawn) + w->headerHeight), V(sz.x, lh), &gm->defaults.selectedItemBgColor);
+			GUI_Rect(line_tl, line_sz, &gm->defaults.selectedItemBgColor);
 		}
+		else if(GUI_MouseInside(line_tl, line_sz)) {
+			GUI_Rect(line_tl, V(line_sz.x, line_sz.y + 1), &gm->defaults.selectedItemBgColor);
+		
+		}
+		
 		
 		
 		gm->curZ = z + 3;
@@ -384,15 +397,37 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 	switch(cmd->cmd) {
 		case GUICMD_FileBrowser_MoveCursorV:
 			w->cursorIndex = (w->cursorIndex + cmd->amt + VEC_LEN(&w->entries)) % (intptr_t)VEC_LEN(&w->entries);
+			
+				
+	
+			if(w->cursorIndex < w->scrollOffset) {
+				w->scrollOffset = w->cursorIndex;
+			}
+			else if(w->cursorIndex >= w->scrollOffset + w->linesOnScreen - 1) {
+				w->scrollOffset = w->cursorIndex - w->linesOnScreen + 1;
+			}
+			
+			
 			break;
 			
 		case GUICMD_FileBrowser_CursorMoveNoWrap:
 			w->cursorIndex += cmd->amt;
 			w->cursorIndex = w->cursorIndex >= (intptr_t)VEC_LEN(&w->entries) - 1 ? (intptr_t)VEC_LEN(&w->entries) - 1: w->cursorIndex;
 			w->cursorIndex = w->cursorIndex < 0 ? 0 : w->cursorIndex;
+			
+				
+			
+			if(w->cursorIndex < w->scrollOffset) {
+				w->scrollOffset = w->cursorIndex;
+			}
+			else if(w->cursorIndex >= w->scrollOffset + w->linesOnScreen - 1) {
+				w->scrollOffset = w->cursorIndex - w->linesOnScreen + 1;
+			}
+			
 			break;
 			
-		case GUICMD_FileBrowser_ParentDir: {
+		case GUICMD_FileBrowser_UpDir: {
+			printf("foobar\n");
 			char* p = getParentDir(w->curDir);
 			free(w->curDir);
 			w->curDir = p;

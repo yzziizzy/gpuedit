@@ -372,6 +372,7 @@ void GUIManager_HandleMouseClick(GUIManager* gm, InputState* is, InputEvent* iev
 			else multiClick = 2;
 		}
 		
+		
 		// shift the click history
 		gm->clickHistory[b][2] = gm->clickHistory[b][1];
 		gm->clickHistory[b][1] = gm->clickHistory[b][0];

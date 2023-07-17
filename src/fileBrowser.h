@@ -68,6 +68,8 @@ typedef struct FileBrowser {
 	float headerHeight;
 	// iconsize, font params, etc
 	
+	int linesOnScreen;
+	
 	VEC(FileBrowserColumnInfo) columnInfo;
 	
 	GUIWindow* scrollbar;

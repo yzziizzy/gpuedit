@@ -251,9 +251,16 @@ typedef struct BufferOpenHistory {
 } BufferOpenHistory;
 
 
+// uniquely identifies a file (not a path, but the underlying file) on a particular system
+// inodes are only unique within a filesystem
+typedef struct FileID {
+	dev_t dev;
+	ino_t inode;
+} FileID;
+
 typedef struct BufferCache {
 	HT(BufferOpenHistory*) openHistory;
-	HT(Buffer*) byRealPath; 
+	HT(FileID, Buffer*) byFileID; 
 	
 } BufferCache;
 
