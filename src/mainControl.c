@@ -391,6 +391,7 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		
 	case GUICMD_Main_CloseTab:
 		MainControl_CloseTab(w, w->focusedPane->currentIndex);
+		return; // no more commands, bufferEditor and tab are gone
 		break;
 		
 	case GUICMD_Main_SaveAndCloseTab:

@@ -1105,6 +1105,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 				printf("Buffer saving disabled.\n");
 			}
 			MessagePipe_Send(w->tx, MSG_CloseMe, w, NULL);
+			return 0; // no more commands, bufferEditor and tab are gone
 			
 			break;
 		
@@ -1117,6 +1118,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			if(w->b->undoSaveIndex == w->b->undoCurrent) {
 				// changes are saved, so just close
 				MessagePipe_Send(w->tx, MSG_CloseMe, w, NULL);
+				return 0; // no more commands, bufferEditor and tab are gone
 				break;
 			}
 			
