@@ -21,11 +21,14 @@ typedef struct GUIFuzzyMatchControl {
 	fcandidate* candidates;
 	char** contents;
 	char*** stringBuffers;
-	
+	float proj_gutter;
+	char** projnames;
 
 	
 	MessagePipe* upstream;
 	GeneralSettings* gs;
+	GUIFont* font;
+	float fontsize;
 //	GUI_Cmd* commands;
 	
 } GUIFuzzyMatchControl;

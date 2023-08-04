@@ -4,6 +4,7 @@
 typedef struct {
 	char* basepath;
 	char* filepath;
+	char* projname;
 } fcandidate;
 
 typedef struct {

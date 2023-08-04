@@ -12,6 +12,7 @@ typedef struct {
 	intptr_t line_num;
 	char* line;
 	char* render_line;
+	char* projname;
 } gocandidate;
 
 
@@ -23,13 +24,18 @@ typedef struct GrepOpenControl {
 	int scrollLine;
 	char** contents;
 	char*** stringBuffers;
+	float proj_gutter;
+	char** projnames;
 	
 	float lineHeight;
 	float leftMargin;
+	GUIFont* font;
+	float fontsize;
 	
 	MessagePipe* upstream;
 	BufferSettings* bs;
 	GeneralSettings* gs;
+	
 	
 } GrepOpenControl;
 

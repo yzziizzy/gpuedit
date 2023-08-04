@@ -242,11 +242,13 @@ static void click(GUIBufferEditControl* w, GUIManager* gm) {
 		
 		w->cursorBlinkTimer = 0;
 		
+		BufferRange_Normalize(w->sel);
+		
 		if(shift) {
 			GBEC_SetSelectionFromPivot(w);
 		}
 		
-		BufferRange_Normalize(w->sel);
+		
 		
 		// maybe nudge the screen down a tiny bit
 		GBEC_MoveCursorTo(w, CURSOR_LINE(w->sel), CURSOR_COL(w->sel));
