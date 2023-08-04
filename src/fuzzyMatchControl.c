@@ -22,7 +22,7 @@
 
 static void open_match(GUIFuzzyMatchControl* w, int i);
 
-// #define DBG printf
+//#define DBG printf
 #define DBG(...) 
 
 
@@ -93,17 +93,20 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 		
-		Vector2 btl = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_proj = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_file = {tl.x + gutter + w->proj_gutter + gutter, tl.y + 20 + (lh * linesDrawn)};
 		Vector2 bsz = {sz.x - gutter, (lh)};
 		
 		if(w->cursorIndex == i) { // backgrounds for selected items
 			struct Color4* color = &gm->defaults.selectedItemBgColor;
-			GUI_Rect(btl, bsz, color);
+			GUI_Rect(btl_proj, bsz, color);
 		}
 
 		gm->curZ++;
+		// the project name
+		GUI_TextLine(w->matches[i].projname, strlen(w->matches[i].projname), btl_proj, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
 		// the file name
-		GUI_TextLine(w->matches[i].filepath, strlen(w->matches[i].filepath), btl, "Arial",  16, &gm->defaults.selectedItemTextColor);
+		GUI_TextLine(w->matches[i].filepath, strlen(w->matches[i].filepath), btl_file, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
 		gm->curZ--;
 		
 		linesDrawn++;
@@ -175,8 +178,38 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 //	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
 //	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;
 	
+	w->fontsize = 16;
+	GUIFont* font = GUI_FindFont(gm, "Arial", w->fontsize);
+	if(!font) font = gm->defaults.font;
+	w->font = font;
+	
+	
+	
 	w->lineHeight = 25;
 	w->leftMargin = 20;
+	
+	w->proj_gutter = 20;
+	
+	int n_paths = 0;
+	char ** projnames;
+	while(w->gs->MainControl_searchPaths[n_paths]) {
+		n_paths++;
+	}
+	projnames = malloc(sizeof(*projnames) * (n_paths + 1));
+	
+	char** parts;
+	long out_len = 0;
+	for(int i=0;i<n_paths;i++) {
+		parts = strsplit(w->gs->MainControl_searchPaths[i], '/', &out_len);
+		if(!parts || !out_len) continue;
+		projnames[i] = strdup(parts[out_len-1]);
+		w->proj_gutter = MAX(w->proj_gutter, gui_getTextLineWidth(gm, w->font, w->fontsize, projnames[i], strlen(projnames[i])));
+		for(int j=0;j<out_len;j++) free(parts[j]);
+		free(parts);
+	}
+	projnames[n_paths] = NULL;
+	w->projnames = projnames;
+	
 	
 	if(searchTerm) {
 //		w->searchTerm = strdup(searchTerm);
@@ -239,6 +272,8 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 			DBG("got filepath: %s\n", stringBuffers[i][j]);
 			candidates[n_candidates + j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates + j].filepath = stringBuffers[i][j];
+			candidates[n_candidates + j].projname = w->projnames[i];
+//			candidates[n_candidates + j].render_line = sprintfdup("%s %s"
 		}
 
 		i++;
