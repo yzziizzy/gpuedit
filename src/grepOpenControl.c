@@ -84,22 +84,33 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 	
 	gm->curZ++;
 	
+	float file_gutter = 50;
+	for(intptr_t i = w->scrollLine; w->matches && i < w->matchCnt; i++) {
+		file_gutter = MAX(file_gutter, gui_getTextLineWidth(gm, w->font, w->fontsize, w->matches[i].render_line, strlen(w->matches[i].render_line)));
+	}
+	
 	for(intptr_t i = w->scrollLine; w->matches && i < w->matchCnt; i++) {
 		DBG("rendering match: %ld\n", i);
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 		
-		Vector2 btl = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_proj = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_file = {btl_proj.x + w->proj_gutter + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_line = {btl_file.x + file_gutter + gutter, tl.y + 20 + (lh * linesDrawn)};
 		Vector2 bsz = {sz.x - gutter, (lh)};
 		
 		if(w->cursorIndex == i) { // backgrounds for selected items
 			struct Color4* color = &gm->defaults.selectedItemBgColor;
-			GUI_Rect(btl, bsz, color);
+			GUI_Rect(btl_proj, bsz, color);
 		}
 
 		gm->curZ++;
+		// the project name
+		GUI_TextLine(w->matches[i].projname, strlen(w->matches[i].projname), btl_proj, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
 		// the file name
-		GUI_TextLine(w->matches[i].render_line, strlen(w->matches[i].render_line), btl, "Arial",  16, &gm->defaults.selectedItemTextColor);
+		GUI_TextLine(w->matches[i].render_line, strlen(w->matches[i].render_line), btl_file, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
+		// the matching line
+		GUI_TextLine(w->matches[i].line, strlen(w->matches[i].line), btl_line, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
 		gm->curZ--;
 		
 		linesDrawn++;
@@ -212,8 +223,37 @@ GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* m
 	w->bs = Settings_GetSection(s, SETTINGS_Buffer); // lineNumBase, lineNumCharset
 	w->gs = Settings_GetSection(s, SETTINGS_General);
 
+
+	w->fontsize = 16;
+	GUIFont* font = GUI_FindFont(gm, "Arial", w->fontsize);
+	if(!font) font = gm->defaults.font;
+	w->font = font;
+	
+	
 	w->lineHeight = 25;
 	w->leftMargin = 20;
+	
+	w->proj_gutter = 20;
+	
+	int n_paths = 0;
+	char ** projnames;
+	while(w->gs->MainControl_searchPaths[n_paths]) {
+		n_paths++;
+	}
+	projnames = malloc(sizeof(*projnames) * (n_paths + 1));
+	
+	char** parts;
+	long out_len = 0;
+	for(int i=0;i<n_paths;i++) {
+		parts = strsplit(w->gs->MainControl_searchPaths[i], '/', &out_len);
+		if(!parts || !out_len) continue;
+		projnames[i] = strdup(parts[out_len-1]);
+		w->proj_gutter = MAX(w->proj_gutter, gui_getTextLineWidth(gm, w->font, w->fontsize, projnames[i], strlen(projnames[i])));
+		for(int j=0;j<out_len;j++) free(parts[j]);
+		free(parts);
+	}
+	projnames[n_paths] = NULL;
+	w->projnames = projnames;
 
 	if(searchTerm) {
 		w->searchTerm.data = strdup(searchTerm);
@@ -275,11 +315,13 @@ void GrepOpenControl_Refresh(GrepOpenControl* w) {
 			candidates[n_candidates+j].line_num = atol(candidates[n_candidates+j].line);
 			candidates[n_candidates+j].line = cleanup_line(candidates[n_candidates+j].line);
 			sprintlongb(lnbuf, w->bs->lineNumBase, candidates[n_candidates+j].line_num, w->bs->lineNumCharset);
-			candidates[n_candidates+j].render_line = sprintfdup("%s:%s  %s",
+			candidates[n_candidates+j].render_line = sprintfdup("%s:%s", candidates[n_candidates+j].filepath, lnbuf);
+			candidates[n_candidates+j].projname = w->projnames[i];
+			/*candidates[n_candidates+j].render_line = sprintfdup("%s:%s  %s",
 				candidates[n_candidates+j].filepath,
 				lnbuf,
 				candidates[n_candidates+j].line
-			);
+			);*/
 		}
 
 		i++;

@@ -94,7 +94,7 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 		
 		Vector2 btl_proj = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
-		Vector2 btl_file = {tl.x + gutter + w->proj_gutter + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_file = {btl_proj.x + w->proj_gutter + gutter, tl.y + 20 + (lh * linesDrawn)};
 		Vector2 bsz = {sz.x - gutter, (lh)};
 		
 		if(w->cursorIndex == i) { // backgrounds for selected items
