@@ -284,6 +284,7 @@ static void click(GUIBufferEditControl* w, GUIManager* gm) {
 			// TODO: undo
 			BufferRange pasteRange;
 			Buffer_InsertBufferAt(b, b2, line, col, &pasteRange);
+			GUIBufferEditControl_MarkRefreshHighlight(w);
 		}
 	}
 	else if(gm->curEvent.button == 4) { // scroll up
