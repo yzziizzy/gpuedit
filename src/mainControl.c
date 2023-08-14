@@ -219,6 +219,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	
 	
 	// ---------- only drawing code after this point ----------
+	if(!gm->drawMode) return;
 	
 	// TEMP
 	VEC_EACH(&w->tabs, i, t) {
@@ -466,7 +467,7 @@ static int message_handler(MainControl* w, Message* m) {
 		
 		case MSG_BufferRefDec: {
 			GUIBufferEditor* gbe = (GUIBufferEditor*)m->data;
-			if(gbe->b->refs == 0) {
+			if(gbe->b->refs == 0 && gbe->b->sourceFile) {
 				if(w->gs->sessionFileHistory > 0) {
 					int line = CURSOR_LINE(gbe->ec->sel)->lineNum;
 					int col = CURSOR_COL(gbe->ec->sel);
@@ -735,10 +736,13 @@ void MainControlPane_CloseTab(MainControlPane* w, int index) {
 	VEC_RM_SAFE(&w->tabs, index);
 	
 	if(t->afterClose) t->afterClose(t);
+	t->client = NULL; // not functioning inside _Destroy handlers?
 	
 	if(t->onDestroy) t->onDestroy(t);
 	if(t->title) free(t->title);
+	
 	free(t);
+	t = NULL; // make sure no bad reuse in rest of function
 	
 	// TODO: check active
 	
@@ -1069,6 +1073,19 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path) {
 }
 
 
+
+static int fmcBeforeClose(MainControlTab* t) {
+	
+	return 0;
+}
+
+static void fmcAfterClose(MainControlTab* t) {
+	GUIFuzzyMatchControl* fmc = (GUIFuzzyMatchControl*)t->client;
+	
+	GUIFuzzyMatchControl_Destroy(fmc);
+	t->client = NULL;
+}
+
 void MainControl_FuzzyOpener(MainControl* w, char* searchTerm) {
 	MainControlPane_FuzzyOpener(w->focusedPane, searchTerm);
 }
@@ -1086,8 +1103,8 @@ void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
 	tab->type = MCTAB_FuzzyOpener;
 	tab->render = (void*)GUIFuzzyMatchControl_Render;
 	tab->client = fmc;
-	//tab->beforeClose = gbeBeforeClose;
-	//tab->beforeClose = gbeAfterClose;
+	tab->beforeClose = fmcBeforeClose;
+	tab->afterClose = fmcAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
 	MainControlPane_nthTabOfType(w, MCTAB_FuzzyOpener, 1);
@@ -1095,6 +1112,19 @@ void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
 	GUIFuzzyMatchControl_Refresh(fmc);
 	
 	MainControl_OnTabChange(w->mc);
+}
+
+
+static int gocBeforeClose(MainControlTab* t) {
+	
+	return 0;
+}
+
+static void gocAfterClose(MainControlTab* t) {
+	GrepOpenControl* goc = (GrepOpenControl*)t->client;
+	
+	GrepOpenControl_Destroy(goc);
+	t->client = NULL;
 }
 
 
@@ -1206,12 +1236,13 @@ static int gbeBeforeClose(MainControlTab* t) {
 	return 0;
 }
 
-static int gbeAfterClose(MainControlTab* t) {
+static void gbeAfterClose(MainControlTab* t) {
 	GUIBufferEditor* gbe = (GUIBufferEditor*)t->client;
 	
 	Settings_Free(gbe->s);
 	GUIBufferEditor_Destroy(gbe);
-	return 0;
+	t->client = NULL;
+	return;
 }
 
 
@@ -1461,7 +1492,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	MainControlTab* tab = MainControlPane_AddGenericTab(p, gbe, shortname);
 	tab->type = MCTAB_Buffer;
 	tab->beforeClose = gbeBeforeClose;
-	tab->beforeClose = gbeAfterClose;
+	tab->afterClose = gbeAfterClose;
 	tab->everyFrame = gbeEveryFrame;
 	tab->render = (void*)GUIBufferEditor_Render;
 	tab->saveSessionState = (void*)GUIBufferEditor_SaveSessionState;

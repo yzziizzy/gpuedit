@@ -38,8 +38,9 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w);
 void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
-void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd);
+int GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd);
 
+void GUIFuzzyMatchControl_Destroy(GUIFuzzyMatchControl* w);
 
 
 #endif // __gpuedit_fuzzyMatchControl_h__

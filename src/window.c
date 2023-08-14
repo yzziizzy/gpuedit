@@ -29,7 +29,7 @@ static double game_server_diff = 0;
 void initGLEW();
 
  
- 
+
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 

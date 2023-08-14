@@ -710,6 +710,7 @@ int BufferRangeSet_Normalize(BufferRangeSet* rs);
 colnum_t BufferLine_GetIndentCol(BufferLine* l);
 
 
+
 // HACK: temporary junk
 void GUIBufferEditControl_MarkRefreshHighlight(GUIBufferEditControl* w);
 void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w);

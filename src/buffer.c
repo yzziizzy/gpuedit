@@ -55,13 +55,19 @@ Buffer* Buffer_New(BufferSettings* bs) {
 }
 
 
+#define MAX_REFS_THRESHOLD 15
 void Buffer_AddRef(Buffer* b) {
 	b->refs++;
+	b->refs = MAX(b->refs, 0);
+	if(b->refs > MAX_REFS_THRESHOLD) dbg("suspiciously many references [%d] to buffer <%s>", b->refs, b->sourceFile);
 }
 
 void Buffer_DecRef(Buffer* b) {
 	b->refs--;
+	b->refs = MAX(b->refs, 0);
+	if(b->refs > MAX_REFS_THRESHOLD) dbg("suspiciously many references [%d] to buffer <%s>", b->refs, b->sourceFile);
 }
+#undef MAX_REFS_THRESHOLD
 
 static void ac_free_tree(BufferPrefixNode* n) {
 	BufferPrefixNode* k = n->kids;
@@ -178,12 +184,13 @@ void BufferCache_RemovePathHistory(BufferCache* bc, char* realPath) {
 }
 
 void BufferCache_SetPathHistory(BufferCache* bc, char* realPath, int line, int col) {
+	if(!realPath) return;
 	BufferOpenHistory* boh = BufferOpenHistory_New();
 	boh->realPath = strdup(realPath);
 	boh->line = line;
 	boh->col = col;
 	
-	HT_set(&bc->openHistory, realPath, boh);
+	HT_set(&bc->openHistory, boh->realPath, boh);
 }
 
 
@@ -1117,9 +1124,11 @@ Buffer* Buffer_Copy(Buffer* src) {
 	bs->autocompleteMaxSkip = src->acMaxSkip;
 	bs->useDict = src->useDict;
 	bs->dictCharSet = src->dictCharSet;
-	BufferSettings_Free(NULL, bs);
 	
 	b = Buffer_New(bs);
+	BufferSettings_Free(NULL, bs);
+	
+	
 	
 	// TODO: undo
 	

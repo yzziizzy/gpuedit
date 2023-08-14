@@ -16,7 +16,8 @@
 == Needed before fractal dogfooding ==
 * probe searchPath entries for presence of git and fallback to regular ls
 * if no .gpuedit.json, add launch dir to searchPaths
-* autocomplete: render above line at bottom of screen, left of text if at right of screen 
+* autocomplete: render above line at bottom of screen, left of text if at right of screen
+* ctrl+n: create /tmp/gpuedit.123456, delete on tab close rather than program exit
 
 * bugz: buffer open/scroll is off by 1 (GBEC linesOnScreen unset)
 * bugz: C-d comment not pushed into undo stack

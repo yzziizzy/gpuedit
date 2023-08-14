@@ -53,10 +53,21 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 		GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_FuzzyMatcher, &gm->curEvent, 0, NULL);
 		
 		if(cmd) {
-			GUIFuzzyMatchControl_ProcessCommand(w, cmd);
-			GUI_CancelInput();
+			int cmd_result = GUIFuzzyMatchControl_ProcessCommand(w, cmd);
+			switch(cmd_result) {
+				case 0:
+					GUI_CancelInput();
+					break;
+				case 1:
+					// command not handled
+					break;
+				case 2: // editor is gone or other reason to process no more commands
+					GUI_CancelInput();
+					return;
+				default:
+					dbg("unexpected GUIFuzzyMatchControl_ProcessCommand result [%d]", cmd_result);
+			}
 		}
-		
 		
 		if(GUI_MouseWentUp(1)) {
 			if(GUI_MouseInside(tl, sz)) {
@@ -142,13 +153,12 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 
 
 
-void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) {
-	long amt;
+int GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) {
 
 	switch(cmd->cmd) {
 		case GUICMD_FuzzyMatcher_Exit:
 			MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
-			break;
+			return 2;
 			
 		case GUICMD_FuzzyMatcher_MoveCursorV:
 			if(w->matchCnt == 0) break;
@@ -159,11 +169,15 @@ void GUIFuzzyMatchControl_ProcessCommand(GUIFuzzyMatchControl* w, GUI_Cmd* cmd) 
 			if(w->matchCnt == 0) break;
 			
 			open_match(w, w->cursorIndex);
+			if(w->gs->MainControl_openInPlace) return 2;
 			break;
 		}
 		
+		default:
+			return 1; // command not handled
 	}
 	
+	return 0;
 }
 
 
@@ -338,6 +352,39 @@ CLEANUP:
 	//free(matches);
 	// free(filepaths);
 
+}
+
+
+void GUIFuzzyMatchControl_Destroy(GUIFuzzyMatchControl* w) {
+	int i;
+	for(i=0; w->projnames[i]; i++) {
+		free(w->projnames[i]);
+	}
+	free(w->projnames);
+	
+	if(w->stringBuffers) {
+		i = 0;
+		while(w->stringBuffers[i]) {
+			free(w->stringBuffers[i]);
+			i++;
+		}
+		free(w->stringBuffers);
+	}
+
+	if(w->contents) {
+		i = 0;
+		while(w->contents[i]) {
+			free(w->contents[i]);
+			i++;
+		}
+		free(w->contents);
+	}
+
+	if(w->matches) {
+		free(w->matches);
+	}
+
+	free(w);
 }
 
 
