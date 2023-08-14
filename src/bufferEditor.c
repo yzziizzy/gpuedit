@@ -777,8 +777,12 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 			if(bl == ssr->line[1]) slen = MIN(ssr->col[1], slen);
 			if(bl == ssr->line[0]) slen -= ssr->col[0];
 			
-			res = pcre2_match(st->findRE, bl->buf + nextFindChar, slen, off, opts, st->findMatch, NULL);
-			
+//			if(bl->lineNum > 700 && bl->lineNum < 900) {
+//				dbg("off %d, slen: %d, nfc: %ld, ssrline1 %d, ssrline0 %d", off, slen, nextFindChar, ssr->col[1], ssr->col[0]);
+//				dbg("matching line %d at <%s>", bl->lineNum, bl->buf + nextFindChar);
+//			}
+			res = pcre2_match(st->findRE, bl->buf + nextFindChar, slen - nextFindChar, off, opts, st->findMatch, NULL);
+//, slen, off, opts, st->findMatch, NULL);
 			if(res > 0) {
 				// found a match
 			
@@ -1096,7 +1100,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 			
 		}
-			
+		
 
 		case GUICMD_Buffer_Save: 
 			if(!g_DisableSave) {

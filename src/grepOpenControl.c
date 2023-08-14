@@ -217,9 +217,9 @@ int GrepOpenControl_ProcessCommand(GrepOpenControl* w, GUI_Cmd* cmd) {
 		case GUICMD_GrepOpen_OpenFile: {
 			if(w->matchCnt == 0) break;
 			
+			int openinplace = w->gs->MainControl_openInPlace;
 			open_match(w, w->cursorIndex);
-
-			if(w->gs->MainControl_openInPlace) return 2;
+			if(openinplace) return 2;
 			break;
 		}
 		

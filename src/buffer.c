@@ -1999,6 +1999,7 @@ int Buffer_AddDictWord(Buffer* b, char* word, size_t len) {
 }
 
 int Buffer_RemoveDictWord(Buffer* b, char* word, size_t len) {
+//	dbg("removing word <'%s'> [%lu]", word, len);
 	ac_remove_word(b->dictRoot, word, len);
 	return 0;
 }
