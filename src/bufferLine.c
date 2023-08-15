@@ -192,7 +192,7 @@ void BufferLine_InsertChars(BufferLine* l, char* text, colnum_t col, intptr_t le
 	memcpy(l->buf + col, text, len);
 	
 	l->length += len;
-	l->buf[l->length] = 0; // just in case
+//	l->buf[l->length] = 0; // just in case
 }
 
 
@@ -210,7 +210,7 @@ void BufferLine_DeleteChars(BufferLine* l, intptr_t offset, intptr_t len) {
 	
 //	printf("delchar len:%ld, %ld\n", len, l->length);
 	l->length -= len;
-	l->buf[l->length] = 0;
+//	l->buf[l->length] = 0;
 }
 
 
@@ -229,7 +229,7 @@ void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len) {
 
 void BufferLine_TruncateAfter(BufferLine* l, colnum_t col) {
 	if(l->length < col) return;
-	l->buf[col - 1] = 0;
+//	l->buf[col - 1] = 0;
 	l->length = col - 1;
 }
 

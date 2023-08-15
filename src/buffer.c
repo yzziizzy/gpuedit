@@ -1975,7 +1975,7 @@ static void ac_remove_word(BufferPrefixNode* n, char* s, size_t len) {
 
 
 	// TODO: GC zeroed nodes
-	if(!*s || len == 0) {
+	if(len == 0 || !*s) {
 		n->trefs--;
 		
 		return;
