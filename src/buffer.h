@@ -737,7 +737,7 @@ void BufferRangeSet_DeleteLineNotify(BufferRangeSet* rs, BufferRange* dsel);
 
 // These functions operate on and with the cursor
 BufferLine* Buffer_AdvanceLines(Buffer* b, int n);
-void GBEC_InsertLinebreak(GUIBufferEditControl* b);
+void GBEC_InsertLinebreak(GUIBufferEditControl* b, int moveCursor);
 //void BufferRange_MoveCursorV(GUIBufferEditControl* w, BufferRange* r, linenum_t lines);
 //void GBEC_MoveCursorH(GUIBufferEditControl* w, BufferRange* r, colnum_t cols);
 //void GBEC_MoveCursorHSel(GUIBufferEditControl* w, colnum_t cols);
@@ -765,6 +765,8 @@ void GBEC_UnsurroundRange(GUIBufferEditControl* w, BufferRange* r, char* begin, 
 void GBEC_MoveToFirstCharOrSOL(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
+
+int GBEC_IsBracePair(char left, char right);
 
 void GBEC_PushCursor(GUIBufferEditControl* w, BufferLine* bl, colnum_t col);
 

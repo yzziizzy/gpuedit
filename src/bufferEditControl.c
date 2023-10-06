@@ -988,14 +988,54 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			break;
 		
 		case GUICMD_Buffer_SplitLine:
-			GBEC_InsertLinebreak(w);
+			GBEC_InsertLinebreak(w, 1);
 			break;
 
-		case GUICMD_Buffer_SplitLineIndent:
-			GBEC_InsertLinebreak(w);
+		case GUICMD_Buffer_SplitLineIndent: {
+			GBEC_InsertLinebreak(w, 1);
 			intptr_t tabs = Buffer_IndentToPrevLine(b, CURSOR_LINE(w->sel));
 			GBEC_MoveCursorTo(w, CURSOR_LINE(w->sel), tabs);
 			break;
+		}
+		
+		case GUICMD_Buffer_SplitLineIndentSmart: {
+			int in_brace_pair = 0;
+			char left = 0;
+			char right = 0;
+			if(HAS_SELECTION(w->sel)) {
+				Buffer_UndoSequenceBreak(b, 0, CURSOR_LINE(w->sel)->lineNum, CURSOR_COL(w->sel), 
+					PIVOT_LINE(w->sel)->lineNum, PIVOT_COL(w->sel), 0);
+				Buffer_DeleteSelectionContents(b, w->sel);
+				GBEC_MoveCursorTo(w, w->sel->line[0], w->sel->col[0]); // correct;
+				
+				GBEC_ClearAllSelections(w);
+			}
+			colnum_t col = CURSOR_COL(w->sel);
+			BufferLine* bl_orig = CURSOR_LINE(w->sel);
+			if(col > 0) {
+				left = bl_orig->buf[col-1];
+			}
+			if(col <= bl_orig->length) {
+				right = bl_orig->buf[col];
+			}
+			if(left && right) {
+				in_brace_pair = GBEC_IsBracePair(left, right);
+			}
+			
+			GBEC_InsertLinebreak(w, 1);
+			intptr_t tabs = Buffer_IndentToPrevLine(b, CURSOR_LINE(w->sel));
+			BufferLine* bl_empty = CURSOR_LINE(w->sel);
+			GBEC_MoveCursorTo(w, bl_empty, tabs);
+			if(in_brace_pair) {
+				GBEC_InsertLinebreak(w, 1);
+				Buffer_IndentToPrevLine(b, CURSOR_LINE(w->sel));
+				// add the extra indent level
+				Buffer_LineInsertChars(b, bl_empty, "\t", 0, 1);
+				tabs++;
+				GBEC_MoveCursorTo(w, bl_empty, tabs);
+			}
+			break;
+		}
 		
 		case GUICMD_Buffer_DeleteCurLine: {
 			// preserve proper cursor position
@@ -1548,6 +1588,19 @@ void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl) {
 }
 
 
+int GBEC_IsBracePair(char left, char right) {
+	int n_types = 3;
+	char* lefts = "([{";
+	char* rights = ")]}";
+
+	for(int i=0; i<n_types; i++) {
+		if(left == lefts[i] && right == rights[i]) return 1;
+	}
+
+	return 0;
+}
+
+
 // TODO: undo
 void GBEC_ClearCurrentSelection(GUIBufferEditControl* w) {
 	if(HAS_SELECTION(w->sel)) {
@@ -1590,7 +1643,7 @@ void GBEC_SetCurrentSelectionRange(GUIBufferEditControl* w, BufferRange* r) {
 }
 
 
-void GBEC_InsertLinebreak(GUIBufferEditControl* w) {
+void GBEC_InsertLinebreak(GUIBufferEditControl* w, int moveCursor) {
 	BufferLine* l = CURSOR_LINE(w->sel);
 	Buffer* b = w->b;
 	// TODO multicursor
@@ -1606,7 +1659,9 @@ void GBEC_InsertLinebreak(GUIBufferEditControl* w) {
 		// TODO: undo cursor move
 	}
 	
-	GBEC_MoveCursorTo(w, CURSOR_LINE(w->sel), 0);
+	if(moveCursor) {
+		GBEC_MoveCursorTo(w, CURSOR_LINE(w->sel), 0);
+	}
 	
 	// TODO: undo
 	// TODO: maybe shrink the alloc
