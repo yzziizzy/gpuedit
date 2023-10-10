@@ -229,7 +229,7 @@ void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len) {
 
 void BufferLine_TruncateAfter(BufferLine* l, colnum_t col) {
 	if(l->length < col) return;
-	l->buf[col - 1] = 0;
+//	l->buf[col - 1] = 0;
 	l->length = col - 1;
 }
 

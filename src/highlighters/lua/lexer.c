@@ -149,7 +149,7 @@ RETRY:
 	assert(0);
 	// never gets here
 ERROR:
-	printf("Lexer error at line %d:%d: state %d(%s) %d='%c' \n", st->linenum, st->charnum, st->state, state_names[st->state], c, c);
+	//printf("Lexer error at line %d:%d: state %d(%s) %d='%c' \n", st->linenum, st->charnum, st->state, state_names[st->state], c, c);
 	st->state = LST_NULL; 
 	st->blen = 0;
 	return 1;

@@ -39,6 +39,7 @@
 	X(Buffer, InsertString) \
 	X(Buffer, SplitLine) \
 	X(Buffer, SplitLineIndent) \
+	X(Buffer, SplitLineIndentSmart) \
 	X(Buffer, Backspace) \
 	X(Buffer, Delete) \
 	X(Buffer, DeleteCurLine) \

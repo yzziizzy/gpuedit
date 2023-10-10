@@ -173,17 +173,26 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	
 	// command processing
 	if(!gm->drawMode && GUI_InputAvailable()) {
-	
 		size_t numCmds;
 		GUI_Cmd* cmd = Commands_ProbeCommand(gm, GUIELEMENT_Buffer, &gm->curEvent, &w->inputState, &numCmds);
 		int needRehighlight = 0;
-		for(int j = 0; j < numCmds; j++) { 
-			if(!GUIBufferEditor_ProcessCommand(w, cmd+j, &needRehighlight)) {
-				GUI_CancelInput();
-				
-				if(needRehighlight || cmd[j].flags & GUICMD_FLAG_rehighlight) {
-					GUIBufferEditControl_MarkRefreshHighlight(w->ec);
-				}
+		for(int j = 0; j < numCmds; j++) {
+			int cmd_result = GUIBufferEditor_ProcessCommand(w, cmd+j, &needRehighlight);
+			switch(cmd_result) {
+				case 0:
+					GUI_CancelInput();
+					if(needRehighlight || cmd[j].flags & GUICMD_FLAG_rehighlight) {
+						GUIBufferEditControl_MarkRefreshHighlight(w->ec);
+					}
+					break;
+				case 1:
+					// command not handled
+					break;
+				case 2: // editor is gone or other reason to process no more commands
+					GUI_CancelInput();
+					return;
+				default:
+					dbg("unexpected GUIBufferEditor_ProcessCommand result [%d]", cmd_result);
 			}
 		}
 		
@@ -292,7 +301,6 @@ do { \
 	} \
 } while(0)
 	
-	
 	SFREE(w->sourceFile);
 	
 	Buffer_DecRef(w->b);
@@ -307,6 +315,8 @@ do { \
 	
 	
 	free(w);
+	
+	return;
 }
 
 void GUIBufferEditor_SaveSessionState(GUIBufferEditor* w, json_value_t* out) {
@@ -767,8 +777,12 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 			if(bl == ssr->line[1]) slen = MIN(ssr->col[1], slen);
 			if(bl == ssr->line[0]) slen -= ssr->col[0];
 			
-			res = pcre2_match(st->findRE, bl->buf + nextFindChar, slen, off, opts, st->findMatch, NULL);
-			
+//			if(bl->lineNum > 700 && bl->lineNum < 900) {
+//				dbg("off %d, slen: %d, nfc: %ld, ssrline1 %d, ssrline0 %d", off, slen, nextFindChar, ssr->col[1], ssr->col[0]);
+//				dbg("matching line %d at <%s>", bl->lineNum, bl->buf + nextFindChar);
+//			}
+			res = pcre2_match(st->findRE, bl->buf + nextFindChar, slen - nextFindChar, off, opts, st->findMatch, NULL);
+//, slen, off, opts, st->findMatch, NULL);
 			if(res > 0) {
 				// found a match
 			
@@ -1086,7 +1100,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 			
 		}
-			
+		
 
 		case GUICMD_Buffer_Save: 
 			if(!g_DisableSave) {
@@ -1105,7 +1119,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 				printf("Buffer saving disabled.\n");
 			}
 			MessagePipe_Send(w->tx, MSG_CloseMe, w, NULL);
-			return 0; // no more commands, bufferEditor and tab are gone
+			return 2; // no more commands, bufferEditor and tab are gone
 			
 			break;
 		
@@ -1118,7 +1132,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			if(w->b->undoSaveIndex == w->b->undoCurrent) {
 				// changes are saved, so just close
 				MessagePipe_Send(w->tx, MSG_CloseMe, w, NULL);
-				return 0; // no more commands, bufferEditor and tab are gone
+				return 2; // no more commands, bufferEditor and tab are gone
 				break;
 			}
 			

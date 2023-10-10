@@ -44,8 +44,9 @@ GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* m
 void GrepOpenControl_Refresh(GrepOpenControl* w);
 void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
-void GrepOpenControl_ProcessCommand(GrepOpenControl* w, GUI_Cmd* cmd);
+int GrepOpenControl_ProcessCommand(GrepOpenControl* w, GUI_Cmd* cmd);
 
+void GrepOpenControl_Destroy(GrepOpenControl* w);
 
 
 #endif // __gpuedit_grepOpenControl_h__
