@@ -767,6 +767,8 @@ void GBEC_MoveToFirstCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl);
 
 int GBEC_IsBracePair(char left, char right);
+int GBEC_IsOpenBrace(char left);
+int GBEC_IsCloseBrace(char right);
 
 void GBEC_PushCursor(GUIBufferEditControl* w, BufferLine* bl, colnum_t col);
 
