@@ -102,6 +102,11 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 	}
 	
 	for(intptr_t i = w->scrollLine; w->matches && i < w->matchCnt; i++) {
+		if(w->matches[i].excluded) {
+			DBG("Match <%s> excluded [%d]\n", w->matches[i].filepath, w->matches[i].excluded);
+			continue;
+		}
+		
 		DBG("rendering match: %ld\n", i);
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
@@ -291,7 +296,7 @@ void GrepOpenControl_Refresh(GrepOpenControl* w) {
 
 	// printf("launching grep opener\n");
 	char* cmd = "/usr/bin/git";
-	char* args[] = {cmd, "-C", NULL, "grep", "-niI", "--full-name", w->searchTerm.data, NULL};
+	char* args[] = {cmd, "-C", NULL, "grep", "-niI", "--full-name", "-e", w->searchTerm.data, NULL};
 
 	int i = 0;
 	int j = 0;
@@ -308,9 +313,9 @@ void GrepOpenControl_Refresh(GrepOpenControl* w) {
 	}
 	if(n_paths == 0) return;
 
-	candidates = malloc(max_candidates*sizeof(*candidates));
-	contents = malloc(sizeof(*contents)*(n_paths+1));
-	stringBuffers = malloc(sizeof(*stringBuffers)*(n_paths+1));
+	candidates = pcallocn(candidates, max_candidates);
+	contents = pcallocn(contents, n_paths+1);
+	stringBuffers = pcallocn(stringBuffers, n_paths+1);
 
 	i = 0;
 	while(w->gs->MainControl_searchPaths[i]) {
@@ -324,6 +329,17 @@ void GrepOpenControl_Refresh(GrepOpenControl* w) {
 		}
 		for(j=0;j<n_filepaths;j++) {
 			// DBG("got filepath: %s\n", stringBuffers[i][j]);
+			// filter by excludePaterns
+			candidates[n_candidates + j].excluded = 0;
+			for(int k = 0; w->gs->MainControl_excludePatterns[k]; k++) {
+				if(strstr(stringBuffers[i][j], w->gs->MainControl_excludePatterns[k])) {
+					DBG("Excluded: %s\n", stringBuffers[i][j]);
+					candidates[n_candidates+j].excluded = 1;
+					break;
+				}
+			}
+			
+			
 			candidates[n_candidates+j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates+j].filepath = stringBuffers[i][j];
 			candidates[n_candidates+j].line = split_result(candidates[n_candidates+j].filepath);

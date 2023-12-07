@@ -1028,7 +1028,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			
 			GBEC_InsertLinebreak(w, 1);
 			intptr_t tabs = Buffer_IndentToPrevLine(b, CURSOR_LINE(w->sel));
-			GBEC_MoveCursorTo(w, bl_orig->next, tabs);
+			GBEC_MoveCursorTo(w, CURSOR_LINE(w->sel), tabs);
 			
 			if(in_brace_pair) {
 				GBEC_InsertLinebreak(w, 1);

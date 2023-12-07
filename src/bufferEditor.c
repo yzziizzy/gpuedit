@@ -1036,11 +1036,10 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			
 		case GUICMD_Buffer_FindStartSequenceUnderCursor:
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
-			
 			break;
 			
 		case GUICMD_Buffer_FindStartFromSelection:
-			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE);
+			GUIBufferEditor_SmartFind(w, cmd->str, FM_SELECTION);
 			break;
 			
 		case GUICMD_Buffer_FindStop:

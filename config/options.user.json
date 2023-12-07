@@ -6,7 +6,9 @@ general: {
 	"MainControl_searchPaths": [
 		// "/home/<your_user/projects/foo",
 	],
-
+	"MainControl_excludePatterns": [
+		// "/ignore-this-subfolder/",
+	],
 	// set this to the absolute path to override the default commands
 	// commandsPath: "/home/<your_user>/commands.json",
 
