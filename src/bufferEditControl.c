@@ -1000,6 +1000,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 		
 		case GUICMD_Buffer_SplitLineIndentSmart: {
 			int in_brace_pair = 0;
+			int brace_at_eol = 0;
 			char left = 0;
 			char right = 0;
 			if(HAS_SELECTION(w->sel)) {
@@ -1015,25 +1016,33 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			if(col > 0) {
 				left = bl_orig->buf[col-1];
 			}
-			if(col <= bl_orig->length) {
+			if(col < bl_orig->length) {
 				right = bl_orig->buf[col];
 			}
 			if(left && right) {
 				in_brace_pair = GBEC_IsBracePair(left, right);
 			}
+			else if(left && col == bl_orig->length) {
+				brace_at_eol = GBEC_IsOpenBrace(left);
+			}
 			
 			GBEC_InsertLinebreak(w, 1);
 			intptr_t tabs = Buffer_IndentToPrevLine(b, CURSOR_LINE(w->sel));
-			BufferLine* bl_empty = CURSOR_LINE(w->sel);
-			GBEC_MoveCursorTo(w, bl_empty, tabs);
+			GBEC_MoveCursorTo(w, CURSOR_LINE(w->sel), tabs);
+			
 			if(in_brace_pair) {
 				GBEC_InsertLinebreak(w, 1);
 				Buffer_IndentToPrevLine(b, CURSOR_LINE(w->sel));
-				// add the extra indent level
-				Buffer_LineInsertChars(b, bl_empty, "\t", 0, 1);
-				tabs++;
-				GBEC_MoveCursorTo(w, bl_empty, tabs);
+				GBEC_MoveCursorTo(w, bl_orig->next, tabs);
 			}
+			
+			if(in_brace_pair || brace_at_eol) {
+				// add the extra indent level
+				Buffer_LineInsertChars(b, CURSOR_LINE(w->sel), "\t", 0, 1);
+				tabs++;
+				GBEC_MoveCursorTo(w, CURSOR_LINE(w->sel), tabs);
+			}
+			
 			break;
 		}
 		
@@ -1589,14 +1598,38 @@ void GBEC_MoveToLastCharOfLine(GUIBufferEditControl* w, BufferLine* bl) {
 
 
 int GBEC_IsBracePair(char left, char right) {
-	int n_types = 3;
 	char* lefts = "([{";
 	char* rights = ")]}";
+	int n_types = strlen(lefts);
 
 	for(int i=0; i<n_types; i++) {
 		if(left == lefts[i] && right == rights[i]) return 1;
 	}
 
+	return 0;
+}
+
+
+int GBEC_IsOpenBrace(char left) {
+	char* lefts = "([{";
+	int n_types = strlen(lefts);
+
+	for(int i=0; i<n_types; i++) {
+		if(left == lefts[i]) return 1;
+	}
+	
+	return 0;
+}
+
+
+int GBEC_IsCloseBrace(char right) {
+	char* rights = ")]}";
+	int n_types = strlen(rights);
+
+	for(int i=0; i<n_types; i++) {
+		if(right == rights[i]) return 1;
+	}
+	
 	return 0;
 }
 

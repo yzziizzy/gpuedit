@@ -5,6 +5,7 @@ typedef struct {
 	char* basepath;
 	char* filepath;
 	char* projname;
+	int excluded;
 } fcandidate;
 
 typedef struct {

@@ -100,6 +100,11 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 	gm->curZ++;
 	
 	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
+		if(w->matches[i].excluded) {
+			DBG("Match <%s> excluded [%d]\n", w->matches[i].filepath, w->matches[i].excluded);
+			continue;
+		}
+		
 		DBG("rendering match: %ld\n", i);
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
@@ -206,11 +211,11 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 	w->proj_gutter = 20;
 	
 	int n_paths = 0;
-	char ** projnames;
+	char** projnames;
 	while(w->gs->MainControl_searchPaths[n_paths]) {
 		n_paths++;
 	}
-	projnames = malloc(sizeof(*projnames) * (n_paths + 1));
+	projnames = pcallocn(projnames, n_paths + 1);
 	
 	char** parts;
 	long out_len = 0;
@@ -266,9 +271,9 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	}
 	if(n_paths == 0) return;
 
-	candidates = malloc(max_candidates * sizeof(*candidates));
-	contents = malloc(sizeof(*contents) * (n_paths + 1));
-	stringBuffers = malloc(sizeof(*stringBuffers) * (n_paths + 1));
+	candidates = pcallocn(candidates, max_candidates);
+	contents = pcallocn(contents, n_paths + 1);
+	stringBuffers = pcallocn(stringBuffers, n_paths + 1);
 	
 	i = 0;
 	while(w->gs->MainControl_searchPaths[i]) {
@@ -285,6 +290,16 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 		
 		for(j = 0; j < n_filepaths; j++) {
 			DBG("got filepath: %s\n", stringBuffers[i][j]);
+			
+			candidates[n_candidates + j].excluded = 0;
+			for(int k = 0; w->gs->MainControl_excludePatterns[k]; k++) {
+				if(strstr(stringBuffers[i][j], w->gs->MainControl_excludePatterns[k])) {
+					DBG("Excluded: %s [pattern: %s]\n", stringBuffers[i][j], w->gs->MainControl_excludePatterns[k]);
+					candidates[n_candidates+j].excluded = 1;
+					break;
+				}
+			}
+			
 			candidates[n_candidates + j].basepath = w->gs->MainControl_searchPaths[i];
 			candidates[n_candidates + j].filepath = stringBuffers[i][j];
 			candidates[n_candidates + j].projname = w->projnames[i];

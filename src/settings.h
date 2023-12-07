@@ -109,6 +109,7 @@ typedef struct WidgetSpec {
 	SETTING(float,    MainControl_tabNameScrollAnimTime,    3.0,  NULL, NULL) \
 	SETTING(int,      MainControl_tabHeight,                20,    0,    1920*16) \
 	SETTING(charpp,   MainControl_searchPaths,              ((char*[]){"./", NULL}),  NULL, NULL) \
+	SETTING(charpp,   MainControl_excludePatterns,          ((char*[]){NULL}), NULL, NULL) \
 	SETTING(int,   Terminal_lineHeight,         20,    0,    INT_MAX) \
 	SETTING(int,   Terminal_colWidth,           10,    0,    INT_MAX) \
 	SETTING(charp, Terminal_fontName,           "Courier New", NULL, NULL) \

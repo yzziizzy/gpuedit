@@ -13,6 +13,7 @@ typedef struct {
 	char* line;
 	char* render_line;
 	char* projname;
+	int excluded;
 } gocandidate;
 
 
