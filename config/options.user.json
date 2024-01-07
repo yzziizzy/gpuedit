@@ -8,6 +8,7 @@ general: {
 	],
 	"MainControl_excludePatterns": [
 		// "/ignore-this-subfolder/",
+		// "ignore-file.txt",
 	],
 	// set this to the absolute path to override the default commands
 	// commandsPath: "/home/<your_user>/commands.json",
