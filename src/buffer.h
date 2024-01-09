@@ -429,25 +429,45 @@ typedef enum BufferInputMode {
 
 
 
+#define FINDMASK_LIST \
+	X(SELECTION) \
+	X(SEQUENCE) \
+	X(WITHIN_SELECTION) \
+
+enum {
+#define X(a, ...) FM_##a##_ORD,
+	FINDMASK_LIST
+#undef X
+};
 
 typedef enum FindMask {
 	FM_NONE = 0,
-	FM_SELECTION = 1,
-	FM_SEQUENCE = 2,
-	FM_WITHIN_SELECTION = 4,
+#define X(a, ...) FM_##a = 1 << FM_##a##_ORD,
+	FINDMASK_LIST
+#undef X
 } FindMask_t;
 
+
+
+#define MATCHMODE_LIST \
+	X(NONE) \
+	X(PLAIN) \
+	X(PCRE) \
+	X(FUZZY) \
+
+	
 typedef enum MatchMode {
-	GFMM_NONE,
-	GFMM_PLAIN,
-	GFMM_PCRE,
-	GFMM_FUZZY,
+#define X(a, ...) GFMM_##a,
+	MATCHMODE_LIST
+#undef X
+	FM_MAX_VALUE
 } MatchMode_t;
 
 typedef struct GUIFindOpt {
 	char case_cmp;
 	MatchMode_t match_mode;
 } GUIFindOpt;
+
 
 typedef struct BufferFindState {
 	// configurable

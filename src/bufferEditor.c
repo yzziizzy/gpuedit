@@ -216,6 +216,38 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			GUI_CircleFilled(V(sz.x - 30, sz.y - (sbh) + 2), (sbh - 4), 0, C4(1,0,0,1), C4(1,0,0,1));
 			gm->curZ -= 100;
 		}
+		
+		
+		
+		// debug data for the find and replace system
+		
+		float top = 190;
+		
+		gm->curZ += 1000;
+		
+		GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Input Mode: %d", w->inputState.mode);
+		top -= 20;
+		GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Input Overlays: 0x%.4x", w->inputState.overlays);
+		top -= 20;
+		
+		GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Find Query [%ld]: \"%.*s\"", w->findQuery.len, w->findQuery.len, w->findQuery.data);
+		top -= 20;
+		
+		if(!w->findState) {
+			
+			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Find State: NULL");
+			top -= 20;
+		}
+		else {
+			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Find State:");
+			top -= 20;
+			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  # matches: %ld", VEC_LEN(&w->findState->findSet->ranges));
+			top -= 20;
+			
+		}
+		
+		gm->curZ -= 1000;
+		
 	}
 	
 	
@@ -572,6 +604,20 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	
 	return 0;
 }
+
+
+
+/* 
+
+add mode/overlay/within-selection-present/num-results debug indicator in gui
+find reproduceable sequence to error state
+
+BUG: search within selection ignore the cursor pos on the start line
+
+*/
+
+
+
 
 
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st) {
