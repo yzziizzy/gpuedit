@@ -296,7 +296,7 @@ void GrepOpenControl_Refresh(GrepOpenControl* w) {
 
 	// printf("launching grep opener\n");
 	char* cmd = "/usr/bin/git";
-	char* args[] = {cmd, "-C", NULL, "grep", "-niI", "--full-name", "-e", w->searchTerm.data, NULL};
+	char* args[] = {cmd, "-C", NULL, "grep", "-niI", /*"--full-name",*/ "-e", w->searchTerm.data, NULL};
 
 	int i = 0;
 	int j = 0;
