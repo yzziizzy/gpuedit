@@ -515,20 +515,30 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	int fix_cursor = 0;
 	
 	if((mask & FM_SELECTION) && HAS_SELECTION(w->ec->sel) && w->ec->sel->line[0] == w->ec->sel->line[1]) {
+		GUIBufferEditor_StopFind(w);
 		str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
 		fix_cursor = 1;
+		printf("Stopping find and setting search from selection string <%s>\n", str);
 	}
 	else if(!str && (mask & FM_SEQUENCE) && charSet) {
 		Buffer_GetSequenceUnder(b, CURSOR_LINE(w->ec->sel), CURSOR_COL(w->ec->sel), charSet, &sel);
 		if((sel.line[0] == sel.line[1]) && (sel.col[1] - sel.col[0] > 0)) {
+			GUIBufferEditor_StopFind(w);
 			str = Buffer_StringFromSelection(b, &sel, NULL);
 			fix_cursor = 1;
+			printf("Stopping find and setting search from sequence string <%s>\n", str);
 		}
 		else if(w->findState) {
+			printf("Continuing with existing find state\n");
 			w->findState->findSet->changeCounter++;
 			return GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
 		}
 		// unhandled / uninitialized else case?
+		else {
+			printf("unhandled / uninitialized else case. First search or findstate was cleared?\n");
+			str = strdup("");
+			fix_cursor = 1;
+		}
 	}
 	else {
 		str = strdup("");
@@ -650,6 +660,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 
 
 void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
+	printf("Find state cleared by StopFind\n");
 	
 	w->ec->findSearchSpace = NULL;
 	BufferFindState_FreeAll(w->findState);
@@ -658,7 +669,9 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 }
 
 void BufferFindState_FreeAll(BufferFindState* st) {
+	printf("Requested to free find state\n");
 	if(!st) return;
+	printf("Freeing find state\n");
 	// clean up errors
 	if(st->findREError) {
 		free(st->findREError);
@@ -986,6 +999,11 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 //			w->inputMode = 0;
 			break;
 		
+		
+	///////////////////////////////////
+	// START FIND & REPLACE COMMANDS //
+	///////////////////////////////////
+		
 		case GUICMD_Buffer_ReplaceNext:
 			GUIBufferEditor_ReplaceNext(w);
 			break;
@@ -1047,23 +1065,18 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 						
 		case GUICMD_Buffer_FindStart:
-			GUIBufferEditor_StopFind(w);
 			GUIBufferEditor_SmartFind(w, NULL, FM_SELECTION);
-			
 			GUI_SetActive(&w->findQuery);
 			break;
 				
 		case GUICMD_Buffer_FindResume:
-//			w->inputMode = BIM_Find;
 			if(!w->findState) {
 				GUIBufferEditor_SmartFind(w, NULL, FM_SELECTION);
 			}
-			
 			GUI_SetActive(&w->findQuery);
 			
 			break;
 		case GUICMD_Buffer_SmartFind:
-//			w->inputMode = BIM_Find;
 			GUIBufferEditor_SmartFind(w, cmd->str, FM_SEQUENCE | FM_SELECTION | FM_WITHIN_SELECTION);
 			GUI_SetActive(&w->findQuery);
 			break;
@@ -1075,7 +1088,13 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 		case GUICMD_Buffer_FindPrev:
 			GUIBufferEditor_RelativeFindMatch(w, -1, 1, w->findState);
 			break;
-			
+		
+		/////////////////////////////////
+		// END FIND & REPLACE COMMANDS //
+		/////////////////////////////////
+		
+		
+		
 		case GUICMD_Buffer_CollapseWhitespace:
 			Buffer_CollapseWhitespace(w->b, CURSOR_LINE(w->ec->sel), w->ec->sel->col[0]);
 			break;
