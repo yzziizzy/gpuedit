@@ -462,7 +462,6 @@ static int message_handler(MainControl* w, Message* m) {
 			
 		case MSG_GrepOpener:
 			MainControl_GrepOpen(w, (char*)m->data);
-			free(m->data);
 			break;
 		
 		case MSG_BufferRefDec: {

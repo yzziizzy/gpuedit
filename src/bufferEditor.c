@@ -1110,11 +1110,13 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			BufferRange r = *w->ec->sel;
 			
 			if(!HAS_SELECTION(&r)) {
-				Buffer_GetSequenceUnder(w->b, CURSOR_LINE(&r), CURSOR_COL(&r), cmd->str, &r);
+				Buffer_GetSequenceUnder(w->b, CURSOR_LINE(&r), CURSOR_COL(&r), cmd->pstr[1], &r);
 			}
 			
 			char* s = Buffer_StringFromSelection(w->b, &r, NULL);
-			MessagePipe_Send(w->tx, MSG_GrepOpener, s, NULL);
+			char* s_msg = sprintfdup(cmd->pstr[0], s);
+			free(s);
+			MessagePipe_Send(w->tx, MSG_GrepOpener, s_msg, free);
 			break;
 			
 		}
