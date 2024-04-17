@@ -31,6 +31,19 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	
 	if(w->gotoLineTrayOpen) top += 40;
 	
+	if(w->b->changedOnDisk) {
+
+		gm->curZ += 20;
+		GUI_Rect(tl, V(sz.x, 20), &C4H(ff0000ff));
+		gm->curZ += 1;
+		GUI_Printf(tl, "Arial", 14, C4(0,0,0,1), "File Changed On Disk");
+		gm->curZ -= 21;		
+		
+		sz.y -= 20;
+		tl.y += 20;
+//		w->b->changedOnDisk = 0;
+	}
+	
 	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
 	
 	float sbh = w->statusBarHeight * w->showStatusBar;

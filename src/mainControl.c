@@ -1184,8 +1184,8 @@ void MainControlPane_EmptyTab(MainControlPane* w) {
 
 
 void MainControlPane_Calculator(MainControlPane* w) {
-	
-	GUICalculatorControl* c = GUICalculatorControl_New(w->gm, w->gs, &w->rx);
+/*	
+	GUICalculatorControl* c = GUICalculatorControl_New(w->mc->gm, w->mc->s, &w->mc->rx);
 	
 	MainControlTab* tab = MainControlPane_AddGenericTab(w, c, "calculator");
 	tab->type = MCTAB_Calculator;
@@ -1193,6 +1193,7 @@ void MainControlPane_Calculator(MainControlPane* w) {
 	tab->client = c;
 
 	MainControlPane_nthTabOfType(w, MCTAB_Calculator, 1);
+*/
 }
 
 /*

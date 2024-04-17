@@ -988,6 +988,8 @@ void appLoop(XStuff* xs, AppState* as, InputState* is) {
 		as->lastFrameTime = as->frameTime;
 		
 		
+		BufferCache_CheckWatches(as->bufferCache);
+		
 		checkResize(xs, as);
 		
 			

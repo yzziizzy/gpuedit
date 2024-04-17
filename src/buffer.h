@@ -204,6 +204,7 @@ typedef struct Buffer {
 	int64_t numLines;
 	
 	char* filePath;
+	int watchDesc;
 	
 	// TODO: also goes to GUIBufferEditControl
 	struct hlinfo* hl;
@@ -226,6 +227,9 @@ typedef struct Buffer {
 	int changeCounter;
 	
 	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
+	char changedOnDisk;
+	char deletedOnDisk;
+	char movedOnDisk;
 	
 	int acMaxSkip;
 	
@@ -261,13 +265,16 @@ typedef struct FileID {
 typedef struct BufferCache {
 	HT(BufferOpenHistory*) openHistory;
 	HT(FileID, Buffer*) byFileID; 
+	HT(int, Buffer*) byWatchDesc; 
 	
+	int inotify;
 } BufferCache;
 
 
 BufferCache* BufferCache_New();
 Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs);
 void BufferCache_RemovePath(BufferCache* bc, char* realPath);
+void BufferCache_CheckWatches(BufferCache* bc);
 
 BufferOpenHistory* BufferOpenHistory_New();
 void BufferOpenHistory_Delete(BufferOpenHistory* boh);
@@ -747,6 +754,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);
+int Buffer_Compare(Buffer* a, Buffer* b);
 void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* data);
 void Buffer_NotifyChanges(BufferChangeNotification* note);
 void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
