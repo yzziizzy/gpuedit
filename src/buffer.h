@@ -878,7 +878,7 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, BufferFindState* st);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w); 
 
 // used to change the search query without changing any other parameters or find state
-int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s);
+int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s, ssize_t len);
 
 // activates finding using data near the cursor
 // This is the single function to use externally to the find subsystem to start finding in BufferEditor

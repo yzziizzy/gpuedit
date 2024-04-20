@@ -5,6 +5,7 @@
 #define C(r,g,b)  (&((Color4){r,g,b,1.0}))
 #define C4(r,g,b,a)  (&((Color4){r,g,b,a}))
 #define V(_x,_y) ((Vector2){.x=(_x),.y=(_y)})
+#define Z (gm->curZ)
 
 #define DEFAULTS(type, var) type var = gm->defaults.type;
 #define ID(a) ((void*)(a))

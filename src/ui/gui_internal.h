@@ -305,27 +305,27 @@ void GUI_EndWindow_(GUIManager* gm);
 
 // returns true if clicked
 int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o);
-#define GUI_Button(a,b,c) GUI_Button_(gm, a,b,c, gm->defaults.GUIButtonOpts)
+#define GUI_Button(a,b,c) GUI_Button_(gm, a,b,c, &gm->defaults.GUIButtonOpts)
 
 // returns true if toggled on
 int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o);
-#define GUI_ToggleButton(a,b,c,d) GUI_ToggleButton_(gm, a,b,c,d, gm->defaults.GUIToggleButtonOpts)
+#define GUI_ToggleButton(a,b,c,d) GUI_ToggleButton_(gm, a,b,c,d, &gm->defaults.GUIToggleButtonOpts)
 
 // returns true if checked
 int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o);
-#define GUI_Checkbox(a,b,c,d) GUI_Checkbox_(gm, a,b,c,d, gm->defaults.GUICheckboxOpts)
+#define GUI_Checkbox(a,b,c,d) GUI_Checkbox_(gm, a,b,c,d, &gm->defaults.GUICheckboxOpts)
 
 // returns true if *this* radio button is active
 int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o);
-#define GUI_RadioBox(a, b, c, d, e) GUI_RadioBox_(gm, a,b,c,d,e, gm->defaults.GUIRadioBoxOpts)
+#define GUI_RadioBox(a, b, c, d, e) GUI_RadioBox_(gm, a,b,c,d,e, &gm->defaults.GUIRadioBoxOpts)
 
 // returns 1 on change
 int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float min, float max, float incr, float* value, GUIFloatSliderOpts* o);
-#define GUI_FloatSlider(a,b,c,d,e,f) GUI_FloatSlider_(gm, a,b,c,d,e,f, gm->defaults.GUIFloatSliderOpts)
+#define GUI_FloatSlider(a,b,c,d,e,f) GUI_FloatSlider_(gm, a,b,c,d,e,f, &gm->defaults.GUIFloatSliderOpts)
 
 // returns 1 on change
 int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, long min, long max, long* value, GUIIntSliderOpts* o);
-#define GUI_IntSlider(a,b,c,d,e) GUI_IntSlider_(gm, a,b,c,d,e, gm->defaults.GUIIntSliderOpts)
+#define GUI_IntSlider(a,b,c,d,e) GUI_IntSlider_(gm, a,b,c,d,e, &gm->defaults.GUIIntSliderOpts)
 
 // returns 1 when the value changes _due to this control_
 int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, char** options, int* selectedOption, GUIOptionSliderOpts* o);

@@ -37,6 +37,38 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		GUI_Rect(tl, V(sz.x, 20), &C4H(ff0000ff));
 		gm->curZ += 1;
 		GUI_Printf(tl, "Arial", 14, C4(0,0,0,1), "File Changed On Disk");
+		
+//		GUI_Button(ID(&w->b->changedOnDisk), V(tl.x + sz.x - 200 + 10, tl.y + 2), "Revert");
+		
+		void* id = ID(&w->b->changedOnDisk);
+		/*
+		HOVER_HOT(id)
+		
+		if(gm->activeID == id) {
+			if(GUI_MouseWentUp(1)) {
+				if(gm->hotID == id) result = 1;
+				ACTIVE(NULL);
+				GUI_CancelInput();
+			}
+		}
+		else CLICK_HOT_TO_ACTIVE(id)
+	
+		// bail early if not drawing
+		if(gm->drawMode) {
+		
+			int st = CUR_STATE(id);
+			
+			GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+		
+			
+			gm->curZ += 0.01;
+			GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
+			gm->curZ -= 0.01;
+		}
+		*/
+		
+		
+		
 		gm->curZ -= 21;		
 		
 		sz.y -= 20;
@@ -138,7 +170,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		switch(update) {
 			case 1:
 			case 2:
-				GUIBufferEditor_UpdateFindPattern(w, w->findQuery.data);
+				GUIBufferEditor_UpdateFindPattern(w, w->findQuery.data, w->findQuery.len);
 				
 				GUIBufferEditor_RelativeFindMatch(w, 0, 1, w->findState); // this line probably causes the result cycling when typing
 				GUIBufferEditor_scrollToCursor(w);
@@ -233,8 +265,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		
 		// debug data for the find and replace system
-		
-		float top = 190;
+		/*
+		float top = 290;
 		
 		gm->curZ += 1000;
 		
@@ -257,7 +289,25 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  # matches: %ld", VEC_LEN(&w->findState->findSet->ranges));
 			top -= 20;
 			
+			if(w->findState->searchSpace) {		
+				GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  SearchS: %ld:%d -> %ld:%d",
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->line[0]->lineNum,
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->col[0],
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->line[1]->lineNum,
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->col[1]
+				);
+				top -= 20;
+			}
+			else {
+				GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  SearchS: NULL");
+				top -= 20;		
+			}
+		
 		}
+		*/
+
+			
+		
 		
 		gm->curZ -= 1000;
 		
@@ -469,7 +519,7 @@ int BufferFindState_CompileRE(BufferFindState* st) {
 	int errno;
 	PCRE2_SIZE erroff;
 	PCRE2_UCHAR errbuf[256];
-	//printf("starting RE find: '%s'\n", pattern);
+//	printf("starting RE find: '%s'\n", st->pattern);
 	
 	// free previous regex 
 	if(st->findRE) {
@@ -513,12 +563,12 @@ int BufferFindState_CompileRE(BufferFindState* st) {
 
 
 // used to change the search query without changing any other parameters or find state
-int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s) {
+int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s, ssize_t len) {
 	int ret;
 	if(!w->findState) return 1;
 	
 	if(w->findState->pattern) free(w->findState->pattern);
-	w->findState->pattern = strdup(s);
+	w->findState->pattern = strndup(s, len);
 	
 	if(ret = BufferFindState_CompileRE(w->findState)) return ret;
 	
@@ -560,27 +610,36 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	int fix_cursor = 0;
 	
 	if((mask & FM_SELECTION) && HAS_SELECTION(w->ec->sel) && w->ec->sel->line[0] == w->ec->sel->line[1]) {
+		
 		GUIBufferEditor_StopFind(w);
+		
 		str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
 		fix_cursor = 1;
-		printf("Stopping find and setting search from selection string <%s>\n", str);
+//		printf("Stopping find and setting search from selection string <%s>\n", str);
 	}
 	else if(!str && (mask & FM_SEQUENCE) && charSet) {
+		
 		Buffer_GetSequenceUnder(b, CURSOR_LINE(w->ec->sel), CURSOR_COL(w->ec->sel), charSet, &sel);
+		
 		if((sel.line[0] == sel.line[1]) && (sel.col[1] - sel.col[0] > 0)) {
 			GUIBufferEditor_StopFind(w);
+			
 			str = Buffer_StringFromSelection(b, &sel, NULL);
 			fix_cursor = 1;
-			printf("Stopping find and setting search from sequence string <%s>\n", str);
+			
+//			printf("Stopping find and setting search from sequence string <%s>\n", str);
 		}
 		else if(w->findState) {
-			printf("Continuing with existing find state\n");
+//			printf("Continuing with existing find state\n");
+			
 			w->findState->findSet->changeCounter++;
+			
 			return GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
 		}
 		// unhandled / uninitialized else case?
 		else {
-			printf("unhandled / uninitialized else case. First search or findstate was cleared?\n");
+//			printf("unhandled / uninitialized else case. First search or findstate was cleared?\n");
+			
 			str = strdup("");
 			fix_cursor = 1;
 		}
@@ -594,6 +653,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 		GUIString_Set(&w->findQuery, str);
 	}
 	if(fix_cursor) {
+//		printf("fix_cursor set, but nothing done.\n");
 		// GUI_Edit_Trigger_(w->gm, void * id, &w->findQuery, XK_End);
 		// move cursor to end of findQuery 
 	}
@@ -719,7 +779,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 
 
 void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
-	printf("Find state cleared by StopFind\n");
+//	printf("Find state cleared by StopFind\n");
 	
 	w->ec->findSearchSpace = NULL;
 	BufferFindState_FreeAll(w->findState);
@@ -728,9 +788,9 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 }
 
 void BufferFindState_FreeAll(BufferFindState* st) {
-	printf("Requested to free find state\n");
+//	printf("Requested to free find state\n");
 	if(!st) return;
-	printf("Freeing find state\n");
+//	printf("Freeing find state\n");
 	// clean up errors
 	if(st->findREError) {
 		free(st->findREError);
@@ -828,6 +888,7 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 	int findREErrorChar;
 	
 	if(BufferFindState_CompileRE(st)) {
+//		printf("failed to compile regular expression\n");
 		return 1;
 	}
 		
@@ -837,6 +898,8 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 	
 	
 	VEC_EACH(&st->searchSpace->ranges, ssri, ssr) {
+//		printf("searching range: %d:%d -> %d:%d\n", ssr->line[0]->lineNum, ssr->col[0], ssr->line[1]->lineNum, ssr->col[1]);
+	
 		BufferLine* bl = ssr->line[0];
 		int off = 0; // this is for partial matches
 		uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;
