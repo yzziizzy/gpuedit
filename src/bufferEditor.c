@@ -29,40 +29,70 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		ACTIVE(w->ec);
 	}
 	
-	if(w->gotoLineTrayOpen) top += 40;
 	
-	if(w->b->changedOnDisk) {
+	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
+	
+	if(w->b->preservedVersion) {
 
 		gm->curZ += 20;
-		GUI_Rect(tl, V(sz.x, 20), &C4H(ff0000ff));
+		GUI_Rect(V(0, top), V(sz.x, 20), &C4H(ff0000ff));
 		gm->curZ += 1;
-		GUI_Printf(tl, "Arial", 14, C4(0,0,0,1), "File Changed On Disk");
+		GUI_Printf(V(0, top), "Arial", 14, C4(0,0,0,1), "File Changed On Disk");
 		
 //		GUI_Button(ID(&w->b->changedOnDisk), V(tl.x + sz.x - 200 + 10, tl.y + 2), "Revert");
 		
-		void* id = ID(&w->b->changedOnDisk);
-		/*
-		HOVER_HOT(id)
+		
+		Color4 mcl[3] = {
+			C4H(008800ff),
+			C4H(00aa00ff),
+			C4H(00bb00ff),
+		};
+		Color4 cl[3] = {
+			C4H(880000ff),
+			C4H(aa0000ff),
+			C4H(bb0000ff),
+		};
+		
+		if(GUI_RectButton(ID(&w->b->changedOnDisk), V(sz.x - 150, top), V(150, 20), "Revert (NYI)", "Arial", 14, &C4H(000000ff), cl)) {
+			
+		}	
+		
+		if(GUI_RectButton(ID(&w->b->changedOnDisk) + 1, V(sz.x - 150 - 150 - 2, top), V(150, 20), "Meh", "Arial", 14, &C4H(000000ff), mcl)) {
+			Buffer_Delete(w->b->preservedVersion);
+			w->b->preservedVersion = NULL;
+		}	
+//		if(GUI_MouseInside(V(0, top), V(sz.x, 20))) {
+	/*		HOT(id);
+		}
 		
 		if(gm->activeID == id) {
 			if(GUI_MouseWentUp(1)) {
-				if(gm->hotID == id) result = 1;
+				if(gm->hotID == id) clicked = 1;
 				ACTIVE(NULL);
 				GUI_CancelInput();
 			}
 		}
 		else CLICK_HOT_TO_ACTIVE(id)
+		
+		if(clicked) {
+			printf("revert\n");
+		}
 	
-		// bail early if not drawing
 		if(gm->drawMode) {
 		
 			int st = CUR_STATE(id);
 			
-			GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+			Color4 cl[3] = {
+				C4H(ff0000ff),
+				C4H(ff44ffff),
+				C4H(880000ff),
+			};
+			
+			GUI_Rect(V(sz.x - 200, top), V(200, 20), &cl[CUR_STATE(id)]);
 		
 			
 			gm->curZ += 0.01;
-			GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
+			GUI_TextLineCentered("Revert", -1, V(sz.x - 200, top), V(200, 20), "Arial", 14, &C4H(fff));
 			gm->curZ -= 0.01;
 		}
 		*/
@@ -71,12 +101,13 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		gm->curZ -= 21;		
 		
-		sz.y -= 20;
-		tl.y += 20;
+//		sz.y -= 20;
+		top += 20;
 //		w->b->changedOnDisk = 0;
 	}
 	
-	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
+	if(w->gotoLineTrayOpen) top += 40;
+	
 	
 	float sbh = w->statusBarHeight * w->showStatusBar;
 	Vector2 ecsz = V(sz.x, sz.y - sbh - w->trayOpen * 60 - top);
@@ -212,8 +243,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	// forward activeness to the edit control
 	if(gm->activeID == w) ACTIVE(w->ec);
 
-	GUI_PushClip(V(0,top), ecsz);
-	GBEC_Render(w->ec, gm, V(0,top), ecsz, pfp);
+	GUI_PushClip(V(0, top), ecsz);
+	GBEC_Render(w->ec, gm, V(0, top), ecsz, pfp);
 	GUI_PopClip();
 	
 	// command processing
@@ -351,6 +382,15 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		}
 		
 	}
+	else if(note->action == BCA_SwapBuffer) {	
+		// The existing buffer is being replaced by the new one
+		Buffer* new = note->b2;
+		Buffer* old = note->b;
+		
+		GUIBufferEditor_StopFind(w);
+		
+		w->b = new;
+	}	
 }
 
 

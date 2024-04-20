@@ -168,6 +168,7 @@ enum BufferChangeAction {
 	BCA_DeleteLines,
 	BCA_Undo_MoveCursor,
 	BCA_Undo_SetSelection,
+	BCA_SwapBuffer,
 };
 
 typedef struct BufferChangeNotification {
@@ -176,6 +177,8 @@ typedef struct BufferChangeNotification {
 	char isReverse;
 	
 	int action;
+	
+	Buffer* b2; // the new buffer used in BCA_SwapBuffer
 } BufferChangeNotification;
 
 typedef void (*bufferChangeNotifyFn)(BufferChangeNotification* note, void* data);
@@ -226,10 +229,12 @@ typedef struct Buffer {
 // 	char isModified;
 	int changeCounter;
 	
-	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
+	char* sourceFile;
+	Buffer* preservedVersion; // for when the file on disk changes
 	char changedOnDisk;
 	char deletedOnDisk;
 	char movedOnDisk;
+	char isPreserved; // flag for if this Buffer is in some other buffer's preservedVersion pointer
 	
 	int acMaxSkip;
 	

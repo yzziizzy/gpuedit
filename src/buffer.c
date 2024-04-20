@@ -245,6 +245,20 @@ void BufferCache_CheckWatches(BufferCache* bc) {
 				b->deletedOnDisk = 0;
 				b->movedOnDisk = 0;
 			}
+			else {
+				b2->preservedVersion = b;
+				
+				BufferChangeNotification note = {0};
+				note.b = b;
+				note.b2 = b2;
+				note.action = BCA_SwapBuffer;
+				
+				Buffer_NotifyChanges(&note);
+				
+				b2->watchDesc = b->watchDesc;
+				b->watchDesc = -1;
+				HT_set(&bc->byWatchDesc, b2->watchDesc, b2);
+			}
 		}
 	}
 		
@@ -1580,6 +1594,22 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	return 0;
 }
 
+
+//// Swap out all the lines, but try to preserve as much state as possible
+//int Buffer_ReloadFromBuffer(Buffer* dst, Buffer* src) {
+//	
+//	// Clear a bunch of non-preservable internal state
+//	
+//	
+//	// Reset and Disable
+//	
+//	// Clear out the lines
+//	BufferLine* bl = dst->first;
+//	while(bl) {
+//		Buffer_DeleteLine(dst, bl);
+//		bl = bl->next;
+//	}
+//}
 
 // returns 0 for equal, nonzero for unequal
 int Buffer_Compare(Buffer* a, Buffer* b) {

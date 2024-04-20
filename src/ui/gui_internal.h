@@ -307,6 +307,19 @@ void GUI_EndWindow_(GUIManager* gm);
 int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o);
 #define GUI_Button(a,b,c) GUI_Button_(gm, a,b,c, &gm->defaults.GUIButtonOpts)
 
+int GUI_RectButton_(
+	GUIManager* gm, 
+	void* id, 
+	Vector2 tl, 
+	Vector2 sz, 
+	char* text, 
+	char* fontName, 
+	float fontSize, 
+	Color4* fontColor, 
+	Color4 colors[3]
+);
+#define GUI_RectButton(...) GUI_RectButton_(gm, __VA_ARGS__)
+
 // returns true if toggled on
 int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o);
 #define GUI_ToggleButton(a,b,c,d) GUI_ToggleButton_(gm, a,b,c,d, &gm->defaults.GUIToggleButtonOpts)

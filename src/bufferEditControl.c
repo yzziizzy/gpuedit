@@ -479,6 +479,28 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 			w->autocompleteOptions = NULL;
 		}
 	}
+	else if(note->action == BCA_SwapBuffer) {	
+		// The existing buffer is being replaced by the new one
+		Buffer* new = note->b2;
+		Buffer* old = note->b;
+		
+		// clear out anything that caches line pointers, but try to preserve it in spirit
+		GBEC_CancelAutocomplete(w);
+		
+		if(w->sel->line[0]) w->sel->line[0] = Buffer_raw_GetLineByNum(new, w->sel->line[0]->lineNum);
+		if(w->sel->line[1]) w->sel->line[1] = Buffer_raw_GetLineByNum(new, w->sel->line[1]->lineNum);
+		
+		GBEC_ClearAllSelections(w);
+		BufferRangeSet_FreeAll(w->findSet);
+		BufferRangeSet_FreeAll(w->findSearchSpace);
+		
+		w->findSet = NULL;
+		w->findSearchSpace = NULL;
+		
+		GUIBufferEditControl_MarkRefreshHighlight(w);
+		
+		w->b = new;
+	}
 	
 }
 
