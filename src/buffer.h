@@ -168,6 +168,7 @@ enum BufferChangeAction {
 	BCA_DeleteLines,
 	BCA_Undo_MoveCursor,
 	BCA_Undo_SetSelection,
+	BCA_SwapBuffer,
 };
 
 typedef struct BufferChangeNotification {
@@ -176,6 +177,8 @@ typedef struct BufferChangeNotification {
 	char isReverse;
 	
 	int action;
+	
+	Buffer* b2; // the new buffer used in BCA_SwapBuffer
 } BufferChangeNotification;
 
 typedef void (*bufferChangeNotifyFn)(BufferChangeNotification* note, void* data);
@@ -204,6 +207,7 @@ typedef struct Buffer {
 	int64_t numLines;
 	
 	char* filePath;
+	int watchDesc;
 	
 	// TODO: also goes to GUIBufferEditControl
 	struct hlinfo* hl;
@@ -225,7 +229,12 @@ typedef struct Buffer {
 // 	char isModified;
 	int changeCounter;
 	
-	char* sourceFile; // should be in GBEditor, but needed here for undo compatibility 
+	char* sourceFile;
+	Buffer* preservedVersion; // for when the file on disk changes
+	char changedOnDisk;
+	char deletedOnDisk;
+	char movedOnDisk;
+	char isPreserved; // flag for if this Buffer is in some other buffer's preservedVersion pointer
 	
 	int acMaxSkip;
 	
@@ -261,13 +270,16 @@ typedef struct FileID {
 typedef struct BufferCache {
 	HT(BufferOpenHistory*) openHistory;
 	HT(FileID, Buffer*) byFileID; 
+	HT(int, Buffer*) byWatchDesc; 
 	
+	int inotify;
 } BufferCache;
 
 
 BufferCache* BufferCache_New();
 Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs);
 void BufferCache_RemovePath(BufferCache* bc, char* realPath);
+void BufferCache_CheckWatches(BufferCache* bc);
 
 BufferOpenHistory* BufferOpenHistory_New();
 void BufferOpenHistory_Delete(BufferOpenHistory* boh);
@@ -429,25 +441,45 @@ typedef enum BufferInputMode {
 
 
 
+#define FINDMASK_LIST \
+	X(SELECTION) \
+	X(SEQUENCE) \
+	X(WITHIN_SELECTION) \
+
+enum {
+#define X(a, ...) FM_##a##_ORD,
+	FINDMASK_LIST
+#undef X
+};
 
 typedef enum FindMask {
 	FM_NONE = 0,
-	FM_SELECTION = 1,
-	FM_SEQUENCE = 2,
-	FM_WITHIN_SELECTION = 4,
+#define X(a, ...) FM_##a = 1 << FM_##a##_ORD,
+	FINDMASK_LIST
+#undef X
 } FindMask_t;
 
+
+
+#define MATCHMODE_LIST \
+	X(NONE) \
+	X(PLAIN) \
+	X(PCRE) \
+	X(FUZZY) \
+
+	
 typedef enum MatchMode {
-	GFMM_NONE,
-	GFMM_PLAIN,
-	GFMM_PCRE,
-	GFMM_FUZZY,
+#define X(a, ...) GFMM_##a,
+	MATCHMODE_LIST
+#undef X
+	FM_MAX_VALUE
 } MatchMode_t;
 
 typedef struct GUIFindOpt {
 	char case_cmp;
 	MatchMode_t match_mode;
 } GUIFindOpt;
+
 
 typedef struct BufferFindState {
 	// configurable
@@ -727,6 +759,7 @@ Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);
+int Buffer_Compare(Buffer* a, Buffer* b);
 void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* data);
 void Buffer_NotifyChanges(BufferChangeNotification* note);
 void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
@@ -850,7 +883,7 @@ int GUIBufferEditor_StartFind(GUIBufferEditor* w, BufferFindState* st);
 void GUIBufferEditor_StopFind(GUIBufferEditor* w); 
 
 // used to change the search query without changing any other parameters or find state
-int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s);
+int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s, ssize_t len);
 
 // activates finding using data near the cursor
 // This is the single function to use externally to the find subsystem to start finding in BufferEditor

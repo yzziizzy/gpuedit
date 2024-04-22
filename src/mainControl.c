@@ -16,7 +16,7 @@
 #include "fileBrowser.h"
 #include "fuzzyMatchControl.h"
 #include "grepOpenControl.h"
-//#include "calcControl.h"
+#include "calcControl.h"
 //#include "terminal.h"
 
 // temporary, should be separated
@@ -350,7 +350,7 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		break;
 		
 	case GUICMD_Main_Calculator:
-//		MainControl_Calculator(w);
+		MainControlPane_Calculator(w->focusedPane);
 		break;
 		
 	case GUICMD_Main_Terminal:
@@ -1181,23 +1181,21 @@ void MainControlPane_EmptyTab(MainControlPane* w) {
 	MainControlPane_nthTabOfType(w, MCTAB_Empty, 1);
 }
 
-/*
-void MainControl_Calculator(MainControl* w) {
-	
 
-	GUICalculatorControl* c = GUICalculatorControl_New(w->header.gm);
-	c->gs = w->gs;
-	c->commands = w->commands;
+void MainControlPane_Calculator(MainControlPane* w) {
+/*	
+	GUICalculatorControl* c = GUICalculatorControl_New(w->mc->gm, w->mc->s, &w->mc->rx);
 	
-	MainControlTab* tab = MainControl_AddGenericTab(w, &c->header, "calculator");
-	tab->type = MCTAB_CALCULATOR;
-	
-	c->header.parent = (GUIHeader*)w;
+	MainControlTab* tab = MainControlPane_AddGenericTab(w, c, "calculator");
+	tab->type = MCTAB_Calculator;
+	tab->render = (void*)GUICalculatorControl_Render;
+	tab->client = c;
 
-	MainControl_nthTabOfType(w, MCTAB_CALCULATOR, 1);
+	MainControlPane_nthTabOfType(w, MCTAB_Calculator, 1);
+*/
 }
 
-
+/*
 void MainControl_Terminal(MainControl* w) {
 	
 

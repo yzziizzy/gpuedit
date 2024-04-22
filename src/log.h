@@ -24,7 +24,7 @@ void LOG(int verbosity, char* fmt, ...);
 #ifdef DEBUG
 	#define dbg(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __FILE__, __LINE__ __VA_OPT__(,) __VA_ARGS__);
 #else
-	#define dbg(...)
+	#define dbg(...) ((void)0);
 #endif
 
 extern int g_log_verbosity_level;

@@ -4,6 +4,7 @@
 #undef C
 #undef C4
 #undef V
+#undef Z
 
 #undef DEFAULTS
 #undef ID

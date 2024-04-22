@@ -29,9 +29,85 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		ACTIVE(w->ec);
 	}
 	
-	if(w->gotoLineTrayOpen) top += 40;
 	
 	GUI_BeginWindow(w, tl, sz, gm->curZ, 0);
+	
+	if(w->b->preservedVersion) {
+
+		gm->curZ += 20;
+		GUI_Rect(V(0, top), V(sz.x, 20), &C4H(ff0000ff));
+		gm->curZ += 1;
+		GUI_Printf(V(0, top), "Arial", 14, C4(0,0,0,1), "File Changed On Disk");
+		
+//		GUI_Button(ID(&w->b->changedOnDisk), V(tl.x + sz.x - 200 + 10, tl.y + 2), "Revert");
+		
+		
+		Color4 mcl[3] = {
+			C4H(008800ff),
+			C4H(00aa00ff),
+			C4H(00bb00ff),
+		};
+		Color4 cl[3] = {
+			C4H(880000ff),
+			C4H(aa0000ff),
+			C4H(bb0000ff),
+		};
+		
+		if(GUI_RectButton(ID(&w->b->changedOnDisk), V(sz.x - 150, top), V(150, 20), "Revert (NYI)", "Arial", 14, &C4H(000000ff), cl)) {
+			
+		}	
+		
+		if(GUI_RectButton(ID(&w->b->changedOnDisk) + 1, V(sz.x - 150 - 150 - 2, top), V(150, 20), "Meh", "Arial", 14, &C4H(000000ff), mcl)) {
+			Buffer_Delete(w->b->preservedVersion);
+			w->b->preservedVersion = NULL;
+		}	
+//		if(GUI_MouseInside(V(0, top), V(sz.x, 20))) {
+	/*		HOT(id);
+		}
+		
+		if(gm->activeID == id) {
+			if(GUI_MouseWentUp(1)) {
+				if(gm->hotID == id) clicked = 1;
+				ACTIVE(NULL);
+				GUI_CancelInput();
+			}
+		}
+		else CLICK_HOT_TO_ACTIVE(id)
+		
+		if(clicked) {
+			printf("revert\n");
+		}
+	
+		if(gm->drawMode) {
+		
+			int st = CUR_STATE(id);
+			
+			Color4 cl[3] = {
+				C4H(ff0000ff),
+				C4H(ff44ffff),
+				C4H(880000ff),
+			};
+			
+			GUI_Rect(V(sz.x - 200, top), V(200, 20), &cl[CUR_STATE(id)]);
+		
+			
+			gm->curZ += 0.01;
+			GUI_TextLineCentered("Revert", -1, V(sz.x - 200, top), V(200, 20), "Arial", 14, &C4H(fff));
+			gm->curZ -= 0.01;
+		}
+		*/
+		
+		
+		
+		gm->curZ -= 21;		
+		
+//		sz.y -= 20;
+		top += 20;
+//		w->b->changedOnDisk = 0;
+	}
+	
+	if(w->gotoLineTrayOpen) top += 40;
+	
 	
 	float sbh = w->statusBarHeight * w->showStatusBar;
 	Vector2 ecsz = V(sz.x, sz.y - sbh - w->trayOpen * 60 - top);
@@ -125,7 +201,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		switch(update) {
 			case 1:
 			case 2:
-				GUIBufferEditor_UpdateFindPattern(w, w->findQuery.data);
+				GUIBufferEditor_UpdateFindPattern(w, w->findQuery.data, w->findQuery.len);
 				
 				GUIBufferEditor_RelativeFindMatch(w, 0, 1, w->findState); // this line probably causes the result cycling when typing
 				GUIBufferEditor_scrollToCursor(w);
@@ -167,8 +243,8 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 	// forward activeness to the edit control
 	if(gm->activeID == w) ACTIVE(w->ec);
 
-	GUI_PushClip(V(0,top), ecsz);
-	GBEC_Render(w->ec, gm, V(0,top), ecsz, pfp);
+	GUI_PushClip(V(0, top), ecsz);
+	GBEC_Render(w->ec, gm, V(0, top), ecsz, pfp);
 	GUI_PopClip();
 	
 	// command processing
@@ -216,6 +292,56 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			GUI_CircleFilled(V(sz.x - 30, sz.y - (sbh) + 2), (sbh - 4), 0, C4(1,0,0,1), C4(1,0,0,1));
 			gm->curZ -= 100;
 		}
+		
+		
+		
+		// debug data for the find and replace system
+		/*
+		float top = 290;
+		
+		gm->curZ += 1000;
+		
+		GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Input Mode: %d", w->inputState.mode);
+		top -= 20;
+		GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Input Overlays: 0x%.4x", w->inputState.overlays);
+		top -= 20;
+		
+		GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Find Query [%ld]: \"%.*s\"", w->findQuery.len, w->findQuery.len, w->findQuery.data);
+		top -= 20;
+		
+		if(!w->findState) {
+			
+			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Find State: NULL");
+			top -= 20;
+		}
+		else {
+			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Find State:");
+			top -= 20;
+			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  # matches: %ld", VEC_LEN(&w->findState->findSet->ranges));
+			top -= 20;
+			
+			if(w->findState->searchSpace) {		
+				GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  SearchS: %ld:%d -> %ld:%d",
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->line[0]->lineNum,
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->col[0],
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->line[1]->lineNum,
+					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->col[1]
+				);
+				top -= 20;
+			}
+			else {
+				GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  SearchS: NULL");
+				top -= 20;		
+			}
+		
+		}
+		*/
+
+			
+		
+		
+		gm->curZ -= 1000;
+		
 	}
 	
 	
@@ -256,6 +382,15 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		}
 		
 	}
+	else if(note->action == BCA_SwapBuffer) {	
+		// The existing buffer is being replaced by the new one
+		Buffer* new = note->b2;
+		Buffer* old = note->b;
+		
+		GUIBufferEditor_StopFind(w);
+		
+		w->b = new;
+	}	
 }
 
 
@@ -424,7 +559,7 @@ int BufferFindState_CompileRE(BufferFindState* st) {
 	int errno;
 	PCRE2_SIZE erroff;
 	PCRE2_UCHAR errbuf[256];
-	//printf("starting RE find: '%s'\n", pattern);
+//	printf("starting RE find: '%s'\n", st->pattern);
 	
 	// free previous regex 
 	if(st->findRE) {
@@ -468,12 +603,12 @@ int BufferFindState_CompileRE(BufferFindState* st) {
 
 
 // used to change the search query without changing any other parameters or find state
-int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s) {
+int GUIBufferEditor_UpdateFindPattern(GUIBufferEditor* w, char* s, ssize_t len) {
 	int ret;
 	if(!w->findState) return 1;
 	
 	if(w->findState->pattern) free(w->findState->pattern);
-	w->findState->pattern = strdup(s);
+	w->findState->pattern = strndup(s, len);
 	
 	if(ret = BufferFindState_CompileRE(w->findState)) return ret;
 	
@@ -515,27 +650,36 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	int fix_cursor = 0;
 	
 	if((mask & FM_SELECTION) && HAS_SELECTION(w->ec->sel) && w->ec->sel->line[0] == w->ec->sel->line[1]) {
+		
 		GUIBufferEditor_StopFind(w);
+		
 		str = Buffer_StringFromSelection(b, w->ec->sel, NULL);
 		fix_cursor = 1;
-		printf("Stopping find and setting search from selection string <%s>\n", str);
+//		printf("Stopping find and setting search from selection string <%s>\n", str);
 	}
 	else if(!str && (mask & FM_SEQUENCE) && charSet) {
+		
 		Buffer_GetSequenceUnder(b, CURSOR_LINE(w->ec->sel), CURSOR_COL(w->ec->sel), charSet, &sel);
+		
 		if((sel.line[0] == sel.line[1]) && (sel.col[1] - sel.col[0] > 0)) {
 			GUIBufferEditor_StopFind(w);
+			
 			str = Buffer_StringFromSelection(b, &sel, NULL);
 			fix_cursor = 1;
-			printf("Stopping find and setting search from sequence string <%s>\n", str);
+			
+//			printf("Stopping find and setting search from sequence string <%s>\n", str);
 		}
 		else if(w->findState) {
-			printf("Continuing with existing find state\n");
+//			printf("Continuing with existing find state\n");
+			
 			w->findState->findSet->changeCounter++;
+			
 			return GUIBufferEditor_RelativeFindMatch(w, 1, 1, w->findState);
 		}
 		// unhandled / uninitialized else case?
 		else {
-			printf("unhandled / uninitialized else case. First search or findstate was cleared?\n");
+//			printf("unhandled / uninitialized else case. First search or findstate was cleared?\n");
+			
 			str = strdup("");
 			fix_cursor = 1;
 		}
@@ -549,6 +693,7 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 		GUIString_Set(&w->findQuery, str);
 	}
 	if(fix_cursor) {
+//		printf("fix_cursor set, but nothing done.\n");
 		// GUI_Edit_Trigger_(w->gm, void * id, &w->findQuery, XK_End);
 		// move cursor to end of findQuery 
 	}
@@ -582,6 +727,20 @@ int GUIBufferEditor_SmartFind(GUIBufferEditor* w, char* charSet, FindMask_t mask
 	
 	return 0;
 }
+
+
+
+/* 
+
+add mode/overlay/within-selection-present/num-results debug indicator in gui
+find reproduceable sequence to error state
+
+BUG: search within selection ignore the cursor pos on the start line
+
+*/
+
+
+
 
 
 int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int continueFromCursor, BufferFindState* st) {
@@ -660,7 +819,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 
 
 void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
-	printf("Find state cleared by StopFind\n");
+//	printf("Find state cleared by StopFind\n");
 	
 	w->ec->findSearchSpace = NULL;
 	BufferFindState_FreeAll(w->findState);
@@ -669,9 +828,9 @@ void GUIBufferEditor_StopFind(GUIBufferEditor* w) {
 }
 
 void BufferFindState_FreeAll(BufferFindState* st) {
-	printf("Requested to free find state\n");
+//	printf("Requested to free find state\n");
 	if(!st) return;
-	printf("Freeing find state\n");
+//	printf("Freeing find state\n");
 	// clean up errors
 	if(st->findREError) {
 		free(st->findREError);
@@ -769,6 +928,7 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 	int findREErrorChar;
 	
 	if(BufferFindState_CompileRE(st)) {
+//		printf("failed to compile regular expression\n");
 		return 1;
 	}
 		
@@ -778,6 +938,8 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 	
 	
 	VEC_EACH(&st->searchSpace->ranges, ssri, ssr) {
+//		printf("searching range: %d:%d -> %d:%d\n", ssr->line[0]->lineNum, ssr->col[0], ssr->line[1]->lineNum, ssr->col[1]);
+	
 		BufferLine* bl = ssr->line[0];
 		int off = 0; // this is for partial matches
 		uint32_t opts = PCRE2_NOTEMPTY | PCRE2_NOTEMPTY_ATSTART;

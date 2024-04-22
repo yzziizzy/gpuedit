@@ -14,78 +14,141 @@ static void setAnswer(GUICalculatorControl* w, double d);
 
 
 
-static void render(GUIHeader* w_, PassFrameParams* pfp) {
-	GUICalculatorControl* w = (GUICalculatorControl*)w_;
-	GUIHeader* h = &w->header;
-	GUIManager* gm = h->gm;
+#include "ui/macros_on.h"
+
+void GUICalculatorControl_Render(GUICalculatorControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	
-	Vector2 tl = h->absTopLeft;	
-	
-	gui_drawTextLine(gm, 
-		(Vector2){tl.x + 20, tl.y + h->size.y - 50}, 
-		(Vector2){h->size.x - 20, 20}, 
-		&h->absClip, 
-		&gm->defaults.selectedItemTextColor, h->absZ + 0.1, 
-		w->answer, strlen(w->answer)
-	);
-	
+//	if(GUI_MouseInside(tl, sz)) {
+//		ACTIVE(&w->searchTerm);
+//	}
 
-	
-	GUIHeader_renderChildren(&w->header, pfp);
-}
-
-
-
-static void updatePos(GUIHeader* w_, GUIRenderParams* grp, PassFrameParams* pfp) {
-	GUICalculatorControl* w = (GUICalculatorControl*)w_;
-
-	w->history->header.size.y = w_->size.y - (w->inputBox->header.size.y * 2);
-
-	gui_defaultUpdatePos(&w->header, grp, pfp);
-}
-
-
-
-
-
-
-static void reap(GUIHeader* w_) {
-	GUICalculatorControl* w = (GUICalculatorControl*)w_;
-	if(w->answer) {
-		free(w->answer);
-		w->answer = NULL;
+	if(gm->activeID == w) {
+		ACTIVE(&w->searchTerm);
 	}
-}
-
-
-static void gainedFocus(GUIHeader* w_, GUIEvent* gev) {
-	GUICalculatorControl* w = (GUICalculatorControl*)w_;
 	
-	GUIManager_pushFocusedObject(w->header.gm, &w->inputBox->header);
+
+	gm->curZ += 10;
+	
+	DEFAULTS(GUIEditOpts, eopts);
+	eopts.selectAll = 1;
+	if(GUI_Edit_(gm, &w->searchTerm, tl, sz.x, &w->searchTerm, &eopts)) {
+		GUIFuzzyMatchControl_Refresh(w);
+	}
+	gm->curZ -= 10;
+
+
+	if(GUI_InputAvailable()) {
+		GUI_Cmd* cmd = Commands_ProbeCommandMode(gm, GUIELEMENT_FuzzyMatcher, &gm->curEvent, 0, NULL);
+		
+		if(cmd) {
+			int cmd_result = GUIFuzzyMatchControl_ProcessCommand(w, cmd);
+			switch(cmd_result) {
+				case 0:
+					GUI_CancelInput();
+					break;
+				case 1:
+					// command not handled
+					break;
+				case 2: // editor is gone or other reason to process no more commands
+					GUI_CancelInput();
+					return;
+				default:
+					dbg("unexpected GUIFuzzyMatchControl_ProcessCommand result [%d]", cmd_result);
+			}
+		}
+		
+		if(GUI_MouseWentUp(1)) {
+			if(GUI_MouseInside(tl, sz)) {
+				ACTIVE(&w->searchTerm);
+			}
+			// determine the clicked line
+			Vector2 mp = GUI_MousePos();
+			int cline = floor((mp.y - 20) / w->lineHeight) - 1;
+			
+			if(cline >= 0 && cline <= (int)w->matchCnt - 1) {
+				open_match(w, cline);
+				GUI_CancelInput();
+			}
+		}
+	}
+
+
+	if(!gm->drawMode) return;
+
+
+	// draw general background
+	GUI_Rect(tl, sz, &gm->defaults.windowBgColor);
+	
+	// 	drawTextLine();
+	float lh = w->lineHeight;
+	float gutter = w->leftMargin + 20;
+	
+	int linesDrawn = 0;
+	
+	gm->curZ++;
+	
+	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
+		if(w->matches[i].excluded) {
+			DBG("Match <%s> excluded [%d]\n", w->matches[i].filepath, w->matches[i].excluded);
+			continue;
+		}
+		
+		DBG("rendering match: %ld\n", i);
+	
+		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
+		
+		Vector2 btl_proj = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_file = {btl_proj.x + w->proj_gutter + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 bsz = {sz.x - gutter, (lh)};
+		
+		if(w->cursorIndex == i) { // backgrounds for selected items
+			struct Color4* color = &gm->defaults.selectedItemBgColor;
+			GUI_Rect(btl_proj, bsz, color);
+		}
+
+		gm->curZ++;
+		// the project name
+		GUI_TextLine(w->matches[i].projname, strlen(w->matches[i].projname), btl_proj, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
+		// the file name
+		GUI_TextLine(w->matches[i].filepath, strlen(w->matches[i].filepath), btl_file, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
+		gm->curZ--;
+		
+		linesDrawn++;
+	}
+
 }
 
+#include "ui/macros_off.h"
 
 
-static void handleCommand(GUIHeader* w_, GUI_Cmd* cmd) {
-	GUICalculatorControl* w = (GUICalculatorControl*)w_;
-	GUICalculatorControl_ProcessCommand(w, cmd);
-}
+
 
 void GUICalculatorControl_ProcessCommand(GUICalculatorControl* w, GUI_Cmd* cmd) {
-	long amt;
 
 	switch(cmd->cmd) {
-		case FuzzyMatcherCmd_Exit:
-			GUIManager_BubbleUserEvent(w->header.gm, &w->header, "closeMe");			
+		case GUICMD_Calculator_Exit:
+			MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
+			return 2;
+			
+		case GUICMD_FuzzyMatcher_MoveCursorV:
+			if(w->matchCnt == 0) break;
+			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
 			break;
 			
-		case FuzzyMatcherCmd_CursorMove:
-//			if(w->matchCnt == 0) break;
-//			w->cursorIndex = (cmd->amt + w->cursorIndex + w->matchCnt) % w->matchCnt;
-			break;
+		case GUICMD_FuzzyMatcher_OpenFile: {
+			if(w->matchCnt == 0) break;
 			
+			int openinplace = w->gs->MainControl_openInPlace;
+			open_match(w, w->cursorIndex);
+			if(openinplace) return 2;
+			break;
+		}
+		
+		default:
+			return 1; // command not handled
 	}
 	
+	return 0;
 }
 
 
@@ -106,68 +169,19 @@ static void userEvent(GUIHeader* w_, GUIEvent* gev) {
 }
 
 
-GUICalculatorControl* GUICalculatorControl_New(GUIManager* gm) {
+GUICalculatorControl* GUICalculatorControl_New(GUIManager* gm, Settings* s, MessagePipe* mp) {
 
-	static struct gui_vtbl static_vt = {
-		.Render = (void*)render,
-		.Reap = reap,
-		.UpdatePos = (void*)updatePos,
-		.HandleCommand = (void*)handleCommand,
-	};
-	
-	static struct GUIEventHandler_vtbl event_vt = {
-//		.KeyDown = keyDown,
-		.GainedFocus = gainedFocus,
-		//.Click = click,
-		//.DoubleClick = click,
-// 		.ScrollUp = scrollUp,
-// 		.ScrollDown = scrollDown,
-// 		.DragStart = dragStart,
-// 		.DragStop = dragStop,
-// 		.DragMove = dragMove,
-// 		.ParentResize = parentResize,
-		.User = userEvent,
-	};
-	
-	
 	GUICalculatorControl* w = pcalloc(w);
 	
-	gui_headerInit(&w->header, gm, &static_vt, &event_vt);
-	w->header.cursor = GUIMOUSECURSOR_ARROW;
-	w->header.flags = GUI_MAXIMIZE_X | GUI_MAXIMIZE_Y;
-	w->header.cmdElementType = CUSTOM_ELEM_TYPE_Calc;
 	
+//	w->ansalloc = 128;
+//	w->answer = calloc(1, sizeof(*w->answer) * w->ansalloc);
 	
-	w->inputBox = GUIEdit_New(gm, "");
-	
-	w->inputBox->header.flags |= GUI_MAXIMIZE_X;
-	w->inputBox->header.gravity = GUI_GRAV_BOTTOM_LEFT;
-	w->inputBox->header.topleft.y = 0;
-	w->inputBox->header.topleft.x = 0;
-	w->inputBox->header.size.y = 25;
-	
-	
-	w->history = GUIStringList_New(gm);
-	w->history->header.flags |= GUI_MAXIMIZE_X;
-	w->history->header.size.y = 200;
-	w->history->maxItems = 20;
-	
-	w->ansalloc = 128;
-	w->answer = calloc(1, sizeof(*w->answer) * w->ansalloc);
-	
-	
-	GUI_RegisterObject(w, w->inputBox);
-	GUI_RegisterObject(w, w->history);
 	
 	return w;
 }
 
 
-
-static void setAnswer(GUICalculatorControl* w, double d) {
-	snprintf(w->answer, w->ansalloc, "%f", d);
-	GUIStringList_PrependItem(w->history, w->answer);
-}
 
 
 

@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 #include <sys/stat.h>
+#include <sys/inotify.h>
 
 #include "common_math.h"
 
@@ -116,6 +118,20 @@ BufferCache* BufferCache_New() {
 	BufferCache* bc = pcalloc(bc);
 	HT_init(&bc->openHistory, 64);
 	HT_init(&bc->byFileID, 64);
+	HT_init(&bc->byWatchDesc, 64);
+	
+	bc->inotify = -1;
+	bc->inotify = inotify_init1(IN_NONBLOCK);
+	if(bc->inotify == -1) {
+		if(EMFILE == errno) {
+			fprintf(stderr, "inotify_init() failed due to insufficient system resources. Filesystem change monitoring disabled.\n");
+		}
+		else {
+			fprintf(stderr, "inotify_init() failed. Filesystem change monitoring disabled.\n");
+		}
+	}
+	
+	
 	return bc;
 }
 
@@ -140,13 +156,27 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 	}
 	
 	b = Buffer_New(bs);
+	b->watchDesc = -1;
 	
 	if(!path || Buffer_LoadFromFile(b, rp)) {
 		Buffer_InitEmpty(b);
 	}
 	
 	if(path && rp) {
+		b->filePath = rp;
+		
 		HT_set(&bc->byFileID, id, b);
+	
+		// set the watch
+		int wd = inotify_add_watch(bc->inotify, rp, IN_CLOSE_WRITE | IN_DELETE_SELF /*| IN_MODIFY*/ | IN_MOVE_SELF);
+		if(wd > 0) {
+			HT_set(&bc->byWatchDesc, wd, b);
+			b->watchDesc = wd;
+		}
+		else {
+			fprintf(stderr, "Failed to place inotify watch on %s\n", rp);
+		}
+		
 	}
 	
 	return b;
@@ -159,8 +189,81 @@ void BufferCache_RemovePath(BufferCache* bc, char* realPath) {
 	stat(realPath, &st);
 	FileID id = {.dev = st.st_dev, .inode = st.st_ino};
 
+	Buffer* b = NULL;
+	HT_get(&bc->byFileID, id, &b);
+	
 	HT_delete(&bc->byFileID, id);
+	
+	if(b && b->watchDesc) {
+		HT_delete(&bc->byWatchDesc, b->watchDesc);
+		inotify_rm_watch(bc->inotify, b->watchDesc);
+	}
 }
+
+
+void BufferCache_CheckWatches(BufferCache* bc) {
+	
+	
+	while(1) {
+		struct inotify_event ev = {0};
+		if(read(bc->inotify, &ev, sizeof(ev)) <= 0) break;
+//		
+//		printf("got inotify event for %d:'%.*s':", ev.wd, ev.len, ev.name);
+//	
+//		if(ev.mask & IN_CLOSE_WRITE) printf("IN_CLOSE_WRITE ");
+//		if(ev.mask & IN_DELETE_SELF) printf("IN_DELETE_SELF ");
+//		if(ev.mask & IN_MODIFY) printf("IN_MODIFY ");
+//		if(ev.mask & IN_MOVE_SELF) printf("IN_MOVE_SELF ");
+//		printf("\n");
+//
+		Buffer* b = NULL;
+		HT_get(&bc->byWatchDesc, ev.wd, &b);
+		if(!b) {
+			printf("file watch not found\n");
+			continue;
+		}
+		
+		
+		if(ev.mask & IN_DELETE_SELF) { 
+			b->deletedOnDisk = 1;
+		}
+		else if(ev.mask & IN_MOVE_SELF) {
+			b->movedOnDisk = 1;
+		}
+		else {
+			
+			Buffer* b2 = Buffer_New(NULL);
+			if(Buffer_LoadFromFile(b2, b->filePath)) {
+				b->deletedOnDisk = 1;
+				continue;
+			}
+			
+			// compare new to old
+			b->changedOnDisk = Buffer_Compare(b, b2);
+			
+			if(!b->changedOnDisk) {
+				b->deletedOnDisk = 0;
+				b->movedOnDisk = 0;
+			}
+			else {
+				b2->preservedVersion = b;
+				
+				BufferChangeNotification note = {0};
+				note.b = b;
+				note.b2 = b2;
+				note.action = BCA_SwapBuffer;
+				
+				Buffer_NotifyChanges(&note);
+				
+				b2->watchDesc = b->watchDesc;
+				b->watchDesc = -1;
+				HT_set(&bc->byWatchDesc, b2->watchDesc, b2);
+			}
+		}
+	}
+		
+}
+
 
 
 BufferOpenHistory* BufferOpenHistory_New() {
@@ -1487,6 +1590,41 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	
 	if(b->sourceFile) free(b->sourceFile);
 	b->sourceFile = strdup(path);
+	
+	return 0;
+}
+
+
+//// Swap out all the lines, but try to preserve as much state as possible
+//int Buffer_ReloadFromBuffer(Buffer* dst, Buffer* src) {
+//	
+//	// Clear a bunch of non-preservable internal state
+//	
+//	
+//	// Reset and Disable
+//	
+//	// Clear out the lines
+//	BufferLine* bl = dst->first;
+//	while(bl) {
+//		Buffer_DeleteLine(dst, bl);
+//		bl = bl->next;
+//	}
+//}
+
+// returns 0 for equal, nonzero for unequal
+int Buffer_Compare(Buffer* a, Buffer* b) {
+	if(a->numLines != b->numLines) return 1;
+	
+	BufferLine* la = a->first;
+	BufferLine* lb = b->first;
+	
+	while(la && lb) {
+		if(la->length != lb->length) return 1;
+		if(0 != strncmp(la->buf, lb->buf, la->length)) return 1;
+		
+		la = la->next;
+		lb = lb->next;
+	}
 	
 	return 0;
 }

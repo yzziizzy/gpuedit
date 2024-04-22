@@ -172,7 +172,7 @@ void MainControl_Hexedit(MainControl* w, char* path);
 
 void MainControl_GrepOpen(MainControl* w, char* searchTerm);
 void MainControlPane_EmptyTab(MainControlPane* w);
-void MainControl_Calculator(MainControl* w);
+void MainControlPane_Calculator(MainControlPane* w);
 void MainControl_Terminal(MainControl* w);
 void MainControl_CloseBuffer(MainControl* w, int index);
 void MainControl_CloseAllBufferPtr(MainControl* w, Buffer* p);

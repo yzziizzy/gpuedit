@@ -74,6 +74,46 @@ int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts*
 	return result;
 }
 
+// returns 1 if clicked
+int GUI_RectButton_(
+	GUIManager* gm, 
+	void* id, 
+	Vector2 tl, 
+	Vector2 sz, 
+	char* text, 
+	char* fontName, 
+	float fontSize, 
+	Color4* fontColor, 
+	Color4 colors[3]
+) {
+	int result = 0;
+	
+	HOVER_HOT(id)
+	
+	if(gm->activeID == id) {
+		if(GUI_MouseWentUp(1)) {
+			if(gm->hotID == id) result = 1;
+			ACTIVE(NULL);
+			GUI_CancelInput();
+		}
+	}
+	else CLICK_HOT_TO_ACTIVE(id)
+
+	// bail early if not drawing
+	if(!gm->drawMode) return result;
+	
+	int st = CUR_STATE(id);
+	
+	GUI_Rect(tl, sz, &colors[CUR_STATE(id)]);
+
+	
+	gm->curZ += 0.01;
+	GUI_TextLineCentered(text, strlen(text), tl, sz, fontName, fontSize, fontColor);
+	gm->curZ -= 0.01;
+	
+	return result;
+}
+
 
 // returns true if toggled on 
 int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o) {
