@@ -95,6 +95,9 @@
 			{elem: "FileBrowser", cmd: "ToggleSelect", mods: "", key: "XK_space", amt: 0},
 			/*{elem: "FileBrowser", cmd: "JumpToLetter", mods: "", key: "", amt: 0}, */
 			
+			
+			{elem: "Buffer", cmd: "SmartAlign", mods: "CS", key: "a", amt 0, flags: ["rehighlight", "resetCursorBlink", "undoSeqBreak"]},
+			
 			{elem: "Buffer", cmd: "MoveCursorH", mods: "", key: "XK_Left", amt: -1, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "MoveCursorH", mods: "", key: "XK_Right", amt: 1, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1, flags: ["provokeAC", "scrollToCursor", "resetCursorBlink", "undoSeqBreak"]},

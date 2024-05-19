@@ -804,6 +804,10 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 	
 	switch(cmd->cmd) {
 	
+		case GUICMD_Buffer_SmartAlign:
+			GBEC_SmartAlign(w, cmd->str);
+			break;
+	
 		case GUICMD_Buffer_MacroToggleRecording: 
 			w->isRecording = !w->isRecording;
 			if(w->isRecording) {
@@ -1541,6 +1545,224 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 	}
 	
 	return 0;
+}
+
+
+int count_line_segments(BufferLine* line, char sep) {
+	int segs = 1;
+	int offset = 0;
+	
+	char* next = strchr(line->buf, sep);
+	while(next && offset < line->length) {
+		segs++;
+		next = strchr(next+1, sep);
+		offset = next - line->buf;
+	}
+	printf("have %d segments in line_ref\n", segs);
+	return segs;
+}
+
+
+struct segment_data {
+	int valid_line;
+	int* offsets;
+	int* lens;
+};
+void calculate_line_segments(BufferLine* line, char sep, int ref_n, struct segment_data* sdata) {
+	
+	// find cursor's parenlvl
+	// seek lines that enter the same parenlvl at the same offset
+	// copy everything outside of that paenlvl as-is
+	// parse segments within that parenlvl
+	
+	char* first = strchr
+	
+	int seg_n = 1;
+	
+	int strlvl = 0;
+	int parenlvl = 0;
+	
+	for(int i=0; i<line->length; i++) {
+		char c = line->buf[i];
+		if(strlvl) {
+			if(c == '"') {
+				strlvl--;
+			}
+			else if(c == '\\') {
+				i++;
+			}
+		}
+		else if(parenlvl) {
+			if(c == ')') {
+				parenlvl--;
+			}
+		}
+		else if(c == '"') {
+			strlvl++;
+		}
+		else if(c == '(') {
+			parenlvl++
+		}
+		else if(c 
+	}
+	
+	
+	
+	
+	char* next = NULL;
+	char* prev = line->buf;
+	for(int i=0; i<ref_n; i++) {
+		sdata->offsets[i] = offset;
+		
+		
+		
+		next = strchr(prev+1, sep);
+		if(!next) {
+			next = &line->buf[line->length];
+		}
+		
+		offset = next - line->buf;
+		
+		
+		for(int j=-1; next[j]; j--) {
+			if(next[j] != ' ' && next[j] != '\t') {
+				sdata->lens[i] = (offset - sdata->offsets[i]) + j + 1;
+				break;
+			}
+		}
+		
+		prev = next;
+	}
+	
+}
+
+void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator) {
+	int max_skip = 1; // config: skip <n> lines with non-matching segments
+	int min_spaces = 1; // config: ensure <n> spaces between segments
+	
+	// parse cursor line for canonical number of segments
+	
+	BufferLine* line_ref = CURSOR_LINE(w->sel);
+	int ref_n = count_line_segments(line_ref, separator[0]);
+	if(ref_n < 2) {
+		printf("insufficient segments for alignment\n");
+		return;
+	}
+	
+	BufferLine* line_start = NULL;
+	BufferLine* line_end = NULL;
+	
+	if(HAS_SELECTION(w->sel)) {
+		// only look in the selection
+		// define line_start/line_end from selection
+		line_start = w->sel->line[0];
+		line_end = w->sel->line[1];
+	}
+	else {
+		// find up/down from cursor line to define line_start/line_end
+		BufferLine* line = NULL;
+		int failcount = 0;
+		
+		failcount = 0;
+		line = line_ref->prev;
+		for(;line && failcount <= max_skip;line = line->prev) {
+			int seg_n = count_line_segments(line, separator[0]);
+			if(seg_n == ref_n) {
+				line_start = line;
+				failcount = 0;
+			}
+			else {
+				failcount++;
+			}
+		}
+		failcount = 0;
+		line = line_ref->next;
+		for(;line && failcount <= max_skip;line = line->next) {
+			int seg_n = count_line_segments(line, separator[0]);
+			if(seg_n == ref_n) {
+				line_end = line;
+				failcount = 0;
+			}
+			else {
+				failcount++;
+			}
+		}
+		
+		
+	}
+	
+	int n_lines = line_end->lineNum - line_start->lineNum;
+	
+	
+	
+	// search each separator in line_ref, then choose the 'best' one
+	// temp: only use first separator
+	
+	
+	BufferLine* line = NULL;
+	
+	struct segment_data* sdata = pcallocn(sdata, n_lines);
+	int* seg_maxes = pcallocn(seg_maxes, n_lines);
+	line = line_start;
+	for(int i=0; i<n_lines; i++) {
+		sdata[i].offsets = pcallocn(sdata[i].offsets, ref_n);
+		sdata[i].lens = pcallocn(sdata[i].lens, ref_n);
+		calculate_line_segments(line, separator[0], ref_n, &sdata[i]);
+		
+		for(int j=0; j<ref_n; j++) {
+			int line_seg_len = sdata[i].lens[j];
+			if(line_seg_len > seg_maxes[j]) {
+				seg_maxes[j] = line_seg_len;
+			}
+		}
+		
+		line = line->next;
+	}
+//	int line_ref_idx = line_ref->lineNum - line_start->lineNum;
+	
+	// create a new text and then replace it
+	int line_len = 0;//VEC_ITEM(&segment_data[line_ref_idx].offsets[0]);
+	for(int i=0; i<n_lines; i++) {
+		line_len += seg_maxes[i];
+	}
+	
+	line = line_start;
+	for(int i=0; i<n_lines; i++) {
+		int line_offset = sdata[i].offsets[0];
+		int newlen = line_offset+line_len+1;
+		char* newbuf = pcallocn(newbuf, newlen);
+		for(int j=0; j<newlen; j++) newbuf[j] = ' ';
+		
+		int pos_old = 0;
+		int pos_new = 0;
+		memcpy(newbuf+pos_new, line->buf+pos_old, line_offset);
+		pos_new = line_offset;
+		for(int j=0; j<ref_n; j++) {
+			pos_old = sdata[i].offsets[j];
+			
+			memcpy(newbuf+pos_new, line->buf+pos_old, sdata[i].lens[j]);
+			
+			pos_new += seg_maxes[j];
+		}
+		
+		BufferLine_SetText(line, newbuf, newlen);
+		line = line->next;
+	}
+	
+	
+	
+	
+	// setup maxes array [max length of segment data]
+	// populate from line_start to line_end
+	free(seg_maxes);
+	for(int i=0; i<n_lines; i++) {
+		free(sdata[i].offsets);
+		free(sdata[i].lens);
+	}
+	free(sdata);
+	// cleanup our shit
+//	VEC_FREE(&refdata.start_offsets);
+//	VEC_FREE(&refdata.lens);
 }
 
 

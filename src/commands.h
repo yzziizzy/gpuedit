@@ -129,6 +129,7 @@
 	X(Buffer, ScrollColsH) \
 	X(Buffer, ScrollScreenPctH) \
 	X(Buffer, NextHighlighter) \
+	X(Buffer, SmartAlign) \
 	X(Buffer, SmartBubbleSelection) \
 	X(Buffer, MacroToggleRecording) \
 	X(Buffer, MacroReplay) \

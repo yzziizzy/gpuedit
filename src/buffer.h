@@ -826,6 +826,8 @@ void Buffer_PrintDict(Buffer* b);
 BufferACMatchSet* Buffer_FindDictMatches(Buffer* b, BufferRange* r);
 void GBEC_CancelAutocomplete(GUIBufferEditControl* w);
 
+void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator);
+
 // temp
 int GUIBufferEditor_FindWord(GUIBufferEditor* w, char* word);
 
