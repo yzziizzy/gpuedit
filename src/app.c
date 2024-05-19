@@ -306,7 +306,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 		}
 		MainControlPane_GoToTab(as->mc->focusedPane, 0);
 	}
-	
+	as->mc->sessionLoaded = 1;
 //	as->mc->focusedPane = as->mc->paneSet[1];
 //	MainControl_LoadFile(as->mc, "testfile.c");
 //	MainControl_LoadFile(as->mc, "testfile.h");

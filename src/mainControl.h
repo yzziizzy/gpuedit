@@ -110,6 +110,8 @@ typedef struct MainControl {
 	Settings* s;
 	GeneralSettings* gs;
 	
+	int sessionLoaded;
+	
 	// TEMP HACK
 	HT(char*) breakpoints;
 	

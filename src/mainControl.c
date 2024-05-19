@@ -1298,6 +1298,8 @@ void MainControl_OnTabChange(MainControl* w) {
 	
 	if(!w->gs->enableSessions) return;
 	
+	if(!w->sessionLoaded) return; // prevent multiple writes during startup
+	
 	json_write_context_t jwc = {0};
 	
 	json_value_t* root = json_new_object(8);
@@ -1366,6 +1368,7 @@ void MainControl_OnTabChange(MainControl* w) {
 	
 	json_stringify(&jwc, root);
 //	printf("%.*s\n", (int)jwc.sb->length, jwc.sb->buf);
+	
 	write_whole_file("./.gpuedit.session", jwc.sb->buf, jwc.sb->length);
 	
 	// TODO: write file
