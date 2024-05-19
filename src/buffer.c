@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/inotify.h>
+#include <libgen.h>
 
 #include "common_math.h"
 
@@ -36,6 +37,8 @@ Buffer* Buffer_New(BufferSettings* bs) {
 	} else {
 		tmp = bs;
 	}
+	
+	HT_init(&b->gccErrors, 128);
 	
 	b->nextLineID = 1;
 	b->refs = 1;
@@ -142,6 +145,7 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 	
 	if(strlen(path) == 0) path = NULL;
 	
+	// check if the file already has a buffer
 	if(path) {
 		rp = resolve_path(path);
 		
@@ -157,9 +161,47 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 	
 	b = Buffer_New(bs);
 	b->watchDesc = -1;
+	b->gccWatchDesc = -1;
 	
 	if(!path || Buffer_LoadFromFile(b, rp)) {
 		Buffer_InitEmpty(b);
+	}
+	
+	// gcc error json file
+	if(rp && bs->gccBasePath) {
+		char* realBasePath = resolve_path(bs->gccBasePath);
+		printf("realbase: %s\n", realBasePath);
+		
+		char* subend = rp;
+		for(char* a = realBasePath; *a && *subend == *a; a++, subend++);
+		
+		printf("prefix: %s\n", strndup(realBasePath, subend - realBasePath));
+		
+		b->gccRelPath = strdup(subend);
+		printf("relpath: %s\n", b->gccRelPath);
+		
+		char* s = sprintfdup("%s%s", subend, bs->gccErrorJSONSuffix);
+		b->gccErrorJSONPath = path_join(realBasePath, bs->gccErrorJSONPath, s);
+		printf("s: %s\n", s);
+		free(s);
+		
+		b->gccErrorJSONFilename = basename(b->gccErrorJSONPath);
+		b->gccErrorJSONDir = dirname(strdup(b->gccErrorJSONPath));
+		
+		
+		int wd = inotify_add_watch(bc->inotify, b->gccErrorJSONPath, IN_CLOSE_WRITE | IN_DELETE_SELF);
+		if(wd > 0) {
+			HT_set(&bc->byWatchDesc, wd, b);
+			b->gccWatchDesc = wd;
+		}
+		else {
+			fprintf(stderr, "Failed to place inotify watch on %s\n", b->gccErrorJSONPath);
+		}
+		
+		b->reloadGCCErrorFile = 1;
+		printf("json: %s\n", b->gccErrorJSONPath);
+		
+		printf("\n\n");
 	}
 	
 	if(path && rp) {
@@ -1630,6 +1672,88 @@ int Buffer_Compare(Buffer* a, Buffer* b) {
 }
 
 
+
+void Buffer_ReloadGCCErrorFile(Buffer* b) {
+	b->reloadGCCErrorFile = 0;
+	
+	// clear out all the cached error data
+	HT_destroy(&b->gccErrors);
+	HT_init(&b->gccErrors, 128);
+	
+	
+	json_file_t* jsf = json_load_path(b->gccErrorJSONPath);
+	if(!jsf) return;
+	
+	if(jsf->error_str) printf("json error: %s %ld:%ld\n", jsf->error_str, jsf->error_line_num, jsf->error_char_num);
+	
+	if(jsf->root->type != JSON_TYPE_ARRAY) goto CLEANUP;
+	
+	json_link_t* tllink = jsf->root->arr.head;
+	while(tllink) {
+		printf("kind: %s \n", json_obj_get_str(tllink->v, "kind")); // == "error"
+		printf("message: %s \n", json_obj_get_str(tllink->v, "message"));
+		
+		json_value_t* locs_j = json_obj_get_val(tllink->v, "locations");
+		
+		json_link_t* llink = locs_j->arr.head;
+		while(llink) {
+			json_value_t* loc_j = llink->v;
+			
+			JSON_OBJ_EACH(loc_j, key, val) {
+				printf("key: %s\n", key);
+			}
+			
+			json_value_t* start_j = json_obj_get_val(loc_j, "caret");
+			json_value_t* end_j = json_obj_get_val(loc_j, "finish");
+			
+			char* sfile = json_obj_get_str(start_j, "file");
+			long sline = json_obj_get_int(start_j, "line", -1);
+			long scol = json_obj_get_int(start_j, "byte-column", -1);
+			
+			long eline = sline;
+			long ecol = scol;
+			
+			if(end_j) {
+				char* efile = json_obj_get_str(end_j, "file");
+				eline = json_obj_get_int(end_j, "line", -1);
+				ecol = json_obj_get_int(end_j, "byte-column", -1);
+			
+				printf("%s:%ld:%ld-%ld: %s\n", sfile, sline, scol, ecol, json_obj_get_str(tllink->v, "message"));
+			}
+			else {
+				printf("%s:%ld:%ld: %s\n", sfile, sline, scol, json_obj_get_str(tllink->v, "message"));
+			}
+			
+			BufferAnnotation* an = pcalloc(an);
+			HT_set(&b->gccErrors, sline, an);
+			
+			PIVOT_LINE(&an->ref) = Buffer_raw_GetLineByNum(b, sline);
+			CURSOR_LINE(&an->ref) = Buffer_raw_GetLineByNum(b, eline);
+			PIVOT_COL(&an->ref) = scol;
+			CURSOR_COL(&an->ref) = ecol;
+			
+			BufferRange_Normalize(&an->ref);
+			
+			an->linesNeeded = 2;
+			an->message = strdup(json_obj_get_str(tllink->v, "message"));
+			
+			llink = llink->next;
+		}
+	
+		tllink = tllink->next;
+	}
+	
+	if(HT_fill(&b->gccErrors)) {
+//		VEC_SORT(&b->gccErrors, gcc_error_sort_fn);
+		
+		Buffer_NotifyAnnotationChange(b);
+	}
+	
+CLEANUP:
+	json_file_free(jsf);
+}
+
+
 void Buffer_LineEnsureEnding(Buffer* b, BufferLine* bl, char* text, intptr_t length) {
 	if(!text) return;
 	if(!length) return;
@@ -2436,6 +2560,33 @@ void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine) 
 		.sel.col[1] = eLine->length,
 		
 		.action = BCA_DeleteLines,
+	};
+
+	Buffer_NotifyChanges(&note);
+}
+void Buffer_NotifyLineAddition(Buffer* b, BufferLine* sLine, BufferLine* eLine) {
+	BufferChangeNotification note = {
+		.b = b,
+		.sel.line[0] = sLine,
+		.sel.line[1] = eLine,
+		.sel.col[0] = 0,
+		.sel.col[1] = eLine->length,
+		
+		.action = BCA_AddLines,
+	};
+
+	Buffer_NotifyChanges(&note);
+}
+
+void Buffer_NotifyAnnotationChange(Buffer* b) {
+	BufferChangeNotification note = {
+		.b = b,
+		.sel.line[0] = 0,
+		.sel.line[1] = 0,
+		.sel.col[0] = -1,
+		.sel.col[1] = -1,
+		
+		.action = BCA_AnnotationsChanged,
 	};
 
 	Buffer_NotifyChanges(&note);
