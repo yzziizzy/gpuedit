@@ -665,7 +665,6 @@ void FontManager_addFont(FontManager* fm, char* name, int genSize) {
 
 void FontManager_createAtlas(FontManager* fm) {
 	char buf[32];
-	int padding = 1; // in pixels, on all sides
 	
 	
 	// order the characters by height then width, tallest and widest first.
@@ -700,6 +699,8 @@ void FontManager_createAtlas(FontManager* fm) {
 	int hext = maxHeight;
 	int rowWidth = 0;
 	
+	int padding = 1;
+	
 	// copy the chars into the atlas, cleaning as we go
 	uint8_t* texData = malloc(sizeof(*texData) * pot * pot);
 	memset(texData, 255, sizeof(*texData) * pot * pot);
@@ -713,11 +714,11 @@ void FontManager_createAtlas(FontManager* fm) {
 	VEC_EACH(&fm->gen, ind, gen) {
 //		if(gen->bitmap) continue;
 		
-		if(rowWidth + gen->sdfDataSize.x > pot) {
+		if(rowWidth + gen->sdfDataSize.x + padding*2 > pot) {
 			row++;
 			rowWidth = 0;
-			hext += prevhext;
-			prevhext = gen->sdfDataSize.y;
+			hext += prevhext + padding*2;
+			prevhext = gen->sdfDataSize.y + padding*2;
 			
 			// next texture
 			if(hext + prevhext > pot) { 
@@ -736,10 +737,22 @@ void FontManager_createAtlas(FontManager* fm) {
 			}
 		}
 		
+		// fill in the padding
+		// BUG: only works on padding = 1 atm
+		uint8_t padding_val = gen->bitmap ? 0 : 255;
+		for(int x = 0; x < gen->sdfDataSize.x + 2; x++) {
+			texData[pot*hext + rowWidth + x] = padding_val;
+			texData[pot*(hext + gen->sdfDataSize.y + padding) + rowWidth + x] = padding_val;
+		}
+		for(int y = 0; y <= gen->sdfDataSize.y; y++) {
+			texData[pot*(hext + y) + rowWidth] = padding_val;
+			texData[pot*(hext + y) + rowWidth + gen->sdfDataSize.x + padding] = padding_val;
+		}
+		
 		// blit the sdf bitmap data
 		blit(
 			gen->sdfBounds.min.x, gen->sdfBounds.min.y, // src x and y offset for the image
-			rowWidth, hext, // dst offset
+			rowWidth + padding, hext + padding, // dst offset
 			gen->sdfDataSize.x, gen->sdfDataSize.y, // width and height
 			gen->sdfGlyphSize.x, pot, // src and dst row widths
 			gen->sdfGlyph, // source
@@ -754,11 +767,11 @@ void FontManager_createAtlas(FontManager* fm) {
 		else c = &gen->font->regular[gen->code];
 		
 		c->texIndex = VEC_LEN(&fm->atlas);
-		c->texelOffset.x = rowWidth;
-		c->texelOffset.y = hext;
+		c->texelOffset.x = rowWidth + padding;
+		c->texelOffset.y = hext + padding;
 		c->texelSize = gen->sdfDataSize;
-		c->texNormOffset.x = (float)rowWidth / (float)pot;
-		c->texNormOffset.y = (float)hext / (float)pot;
+		c->texNormOffset.x = (float)c->texelOffset.x / (float)pot;
+		c->texNormOffset.y = (float)c->texelOffset.y / (float)pot;
 		c->texNormSize.x = (float)gen->sdfDataSize.x / (float)pot;
 		c->texNormSize.y = (float)gen->sdfDataSize.y / (float)pot;
 		
@@ -779,7 +792,7 @@ void FontManager_createAtlas(FontManager* fm) {
 //		printf("ltoff: %f, %f \n", c->topLeftOffset.x, c->topLeftOffset.y);
 		
 		// advance the write offset
-		rowWidth += gen->sdfDataSize.x;
+		rowWidth += gen->sdfDataSize.x + padding*2;
 		
 		// clean up the FontGen struct
 		free(gen->sdfGlyph);
@@ -798,7 +811,7 @@ void FontManager_createAtlas(FontManager* fm) {
 
 
 // bump on format changes. there is no backward compatibility. saving is for caching only.
-static uint16_t GUIFONT_ATLAS_FILE_VERSION = 70;
+static uint16_t GUIFONT_ATLAS_FILE_VERSION = 71;
 
 void FontManager_saveAtlas(FontManager* fm, char* path) {
 	FILE* f;

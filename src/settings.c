@@ -8,6 +8,15 @@
 #include "c_json/json.h"
 
 
+char* safe_strdup(char* x) {
+	if(x) return strdup(x);
+	return NULL;
+}
+
+void safe_free(void* x) {
+	if(x) free(x);
+}
+
 char* mctab_type_names[] = {
 	[MCTAB_None] = "None",
 #define X(x,...) [MCTAB_##x] = #x,

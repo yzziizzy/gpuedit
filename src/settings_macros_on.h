@@ -16,7 +16,7 @@
 #define set_bool(x) x;
 #define set_float(x) x;
 #define set_double(x) x;
-#define set_charp(x) strdup(x);
+#define set_charp(x) safe_strdup(x);
 #define set_charpp(x) strlistdup(x);
 #define set_Color4(x) x;
 #define set_tabsp(x) tabspeclistdup(x);
@@ -27,7 +27,7 @@
 #define free_bool(x)
 #define free_float(x)
 #define free_double(x)
-#define free_charp(x) free(x);
+#define free_charp(x) if(x) free(x);
 #define free_charpp(x) freeptrlist(x);
 #define free_tabsp(x) freetabspeclist(x);
 #define free_Color4(x)
@@ -39,7 +39,7 @@
 #define copy_bool(x) x;
 #define copy_float(x) x;
 #define copy_double(x) x;
-#define copy_charp(x) strdup(x);
+#define copy_charp(x) safe_strdup(x);
 #define copy_charpp(x) strlistdup(x);
 #define copy_Color4(x) x;
 #define copy_tabsp(x) tabspeclistdup(x);

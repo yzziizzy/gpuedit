@@ -1444,6 +1444,8 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	ThemeSettings* ts = Settings_GetSection(ls, SETTINGS_Theme);
 	GeneralSettings* gs = Settings_GetSection(ls, SETTINGS_General);
 	
+	if(gs->gccBasePath && !bs->gccBasePath) bs->gccBasePath = strdup(gs->gccBasePath);
+	if(gs->gccErrorJSONPath && !bs->gccErrorJSONPath) bs->gccErrorJSONPath = strdup(gs->gccErrorJSONPath);
 
 	// buffer and editor creation
 	BufferOpenHistory* boh = BufferCache_GetPathHistory(w->bufferCache, opt->path);
