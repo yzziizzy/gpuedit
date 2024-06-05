@@ -324,13 +324,14 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		// annotations
 		
 		if(bl->flags & BL_ANNOTATION_FLAG) {
-			yoff += bs->lineHeight;
-			ytop += bs->lineHeight;
-			
+
 			BufferAnnotation* ann;
 			HT_get(&b->gccErrors, bl->lineNum, &ann);
 			
 			if(ann) {
+				yoff += bs->lineHeight;
+				ytop += bs->lineHeight;
+			
 				drawTextLine(
 					gm, 
 					bs,

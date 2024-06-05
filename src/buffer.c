@@ -88,7 +88,7 @@ static void ac_free_tree(BufferPrefixNode* n) {
 void Buffer_Delete(Buffer* b) {
 	if(b->refs > 0) return;
 	
-	if(b->filePath) free(b->filePath);
+	if(b->sourceFile) free(b->sourceFile);
 	
 	// free all the lines
 	BufferLine* bl = b->first;
@@ -205,7 +205,6 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 	}
 	
 	if(path && rp) {
-		b->filePath = rp;
 		
 		HT_set(&bc->byFileID, id, b);
 	
@@ -220,6 +219,8 @@ Buffer* BufferCache_GetPath(BufferCache* bc, char* path, BufferSettings* bs) {
 		}
 		
 	}
+	
+	if(rp) free(rp);
 	
 	return b;
 }
@@ -249,15 +250,15 @@ void BufferCache_CheckWatches(BufferCache* bc) {
 	while(1) {
 		struct inotify_event ev = {0};
 		if(read(bc->inotify, &ev, sizeof(ev)) <= 0) break;
-//		
-//		printf("got inotify event for %d:'%.*s':", ev.wd, ev.len, ev.name);
-//	
-//		if(ev.mask & IN_CLOSE_WRITE) printf("IN_CLOSE_WRITE ");
-//		if(ev.mask & IN_DELETE_SELF) printf("IN_DELETE_SELF ");
-//		if(ev.mask & IN_MODIFY) printf("IN_MODIFY ");
-//		if(ev.mask & IN_MOVE_SELF) printf("IN_MOVE_SELF ");
-//		printf("\n");
-//
+		
+		printf("got inotify event for %d:'%.*s':", ev.wd, ev.len, ev.name);
+	
+		if(ev.mask & IN_CLOSE_WRITE) printf("IN_CLOSE_WRITE ");
+		if(ev.mask & IN_DELETE_SELF) printf("IN_DELETE_SELF ");
+		if(ev.mask & IN_MODIFY) printf("IN_MODIFY ");
+		if(ev.mask & IN_MOVE_SELF) printf("IN_MOVE_SELF ");
+		printf("\n");
+
 		Buffer* b = NULL;
 		HT_get(&bc->byWatchDesc, ev.wd, &b);
 		if(!b) {
@@ -275,20 +276,24 @@ void BufferCache_CheckWatches(BufferCache* bc) {
 		else {
 			
 			Buffer* b2 = Buffer_New(NULL);
-			if(Buffer_LoadFromFile(b2, b->filePath)) {
+			if(Buffer_LoadFromFile(b2, b->sourceFile)) {
 				b->deletedOnDisk = 1;
+				printf("deletedondisk\n");
 				continue;
 			}
 			
 			// compare new to old
 			b->changedOnDisk = Buffer_Compare(b, b2);
-			
+			printf("changedOnDisk: %ud\n", (int)b->changedOnDisk);
 			if(!b->changedOnDisk) {
 				b->deletedOnDisk = 0;
 				b->movedOnDisk = 0;
 			}
 			else {
 				b2->preservedVersion = b;
+				
+				
+				
 				
 				BufferChangeNotification note = {0};
 				note.b = b;
@@ -300,6 +305,12 @@ void BufferCache_CheckWatches(BufferCache* bc) {
 				b2->watchDesc = b->watchDesc;
 				b->watchDesc = -1;
 				HT_set(&bc->byWatchDesc, b2->watchDesc, b2);
+				
+				
+				
+				
+				// TODO: HT(FileID, Buffer*) byFileID; 
+//	HT(int, Buffer*) byWatchDesc; 
 			}
 		}
 	}
@@ -1613,6 +1624,7 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	char* o;
 	
 	f = fopen(path, "rb");
+	if(!f) printf("could not open '%s': %s \n", path, strerror(errno));
 	if(!f) return 1;
 	
 	

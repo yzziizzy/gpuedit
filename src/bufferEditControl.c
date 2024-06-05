@@ -661,7 +661,7 @@ void GBEC_RecalcLineOffsets(GUIBufferEditControl* w) {
 			bl->flags |= BL_ANNOTATION_FLAG;
 		}
 		else {
-			bl->flags ^= BL_ANNOTATION_FLAG;
+			bl->flags &= ~BL_ANNOTATION_FLAG;
 		}
 		
 		bl = bl->next;

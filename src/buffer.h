@@ -218,7 +218,6 @@ typedef struct Buffer {
 	
 	int64_t numLines;
 	
-	char* filePath;
 	int watchDesc;
 	int gccWatchDesc;
 	
