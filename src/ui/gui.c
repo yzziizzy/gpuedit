@@ -172,7 +172,7 @@ float gui_getTextLineWidth(
 ) {
 	if(txt == NULL || charCount == 0) return 0;
 	
-	font = gm->defaults.font;
+	if(!font) font = gm->defaults.font; // HACK
 	if(!fontsize) fontsize = gm->defaults.fontSize; // HACK
 	float adv = 0;
 	
@@ -207,7 +207,7 @@ int gui_charFromPixel (
 ) {
 	if(txt == NULL || pixelOffset <= 0) return 0;
 	
-	font = gm->defaults.font;
+	if(!font) font = gm->defaults.font; // HACK
 	if(!fontsize) fontsize = gm->defaults.fontSize; // HACK
 	float adv = 0;
 	

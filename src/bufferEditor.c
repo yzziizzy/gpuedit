@@ -406,7 +406,8 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm, MessagePipe* tx) {
 
 	
 	GUIBufferEditor* w = pcalloc(w);
-	w->gm = gm;	GUIString_Init(&w->findQuery);
+	w->gm = gm;
+	GUIString_Init(&w->findQuery);
 	GUIString_Init(&w->replaceText);
 	
 	w->ec = GUIBufferEditControl_New(gm);

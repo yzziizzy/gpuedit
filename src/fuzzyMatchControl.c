@@ -101,11 +101,11 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 	
 	for(intptr_t i = 0; w->matches && i < w->matchCnt; i++) {
 		if(w->matches[i].excluded) {
-			DBG("Match <%s> excluded [%d]\n", w->matches[i].filepath, w->matches[i].excluded);
+//			DBG("Match <%s> excluded [%d]\n", w->matches[i].filepath, w->matches[i].excluded);
 			continue;
 		}
 		
-		DBG("rendering match: %ld\n", i);
+//		DBG("rendering match: %ld\n", i);
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 		
@@ -199,7 +199,8 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 //	w->header.cmdElementType = CUSTOM_ELEM_TYPE_FuzzyMatcher;
 	
 	w->fontsize = 16;
-	GUIFont* font = GUI_FindFont(gm, "Arial", w->fontsize);
+	#define MAGIC_UI_FONTNAME "Arial"
+	GUIFont* font = GUI_FindFont(gm, MAGIC_UI_FONTNAME, w->fontsize);
 	if(!font) font = gm->defaults.font;
 	w->font = font;
 	
@@ -223,7 +224,8 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 		parts = strsplit(w->gs->MainControl_searchPaths[i], '/', &out_len);
 		if(!parts || !out_len) continue;
 		projnames[i] = strdup(parts[out_len-1]);
-		w->proj_gutter = MAX(w->proj_gutter, gui_getTextLineWidth(gm, w->font, w->fontsize, projnames[i], strlen(projnames[i])));
+		float txtw = gui_getTextLineWidth(gm, w->font, w->fontsize, projnames[i], strlen(projnames[i]));
+		w->proj_gutter = MAX(w->proj_gutter, txtw);
 		for(int j=0;j<out_len;j++) free(parts[j]);
 		free(parts);
 	}
@@ -232,10 +234,10 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 	
 	
 	if(searchTerm) {
-//		w->searchTerm = strdup(searchTerm);
-//		w->searchBox = GUIEdit_New(gm, searchTerm);
-	} else {
-//		w->searchBox = GUIEdit_New(gm, "");
+		GUIString_Set(&w->searchTerm, searchTerm);
+	}
+	else {
+		GUIString_Init(&w->searchTerm);
 	}
 	
 	
@@ -243,7 +245,7 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 }
 
 void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
-	//printf("seearch term: '%s'\n", w->searchTerm);
+//	printf("seearch term: '%s'\n", w->searchTerm.data);
 	size_t max_candidates = 1024;
 	fcandidate* candidates = NULL;
 	size_t n_candidates = 0;
@@ -252,9 +254,11 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	char** contents = NULL;
 	char*** stringBuffers = NULL;
 	
-	w->cursorIndex = 0; 
+	w->cursorIndex = 0;
 	
-	DBG("~~ begin fuzzy opener\n");
+	w->searchTerm.data[w->searchTerm.len] = '\0';
+	
+	DBG("~~ begin fuzzy opener <search: %s>\n", w->searchTerm.data);
 	char* cmd = "/usr/bin/git";
 	char* args[] = {cmd, "-C", NULL, "ls-files", "-co", "--exclude-standard", NULL};
 	
@@ -262,7 +266,7 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	int j = 0;
 	int n_paths = 0;
 	
-	if(!w->searchTerm.data) {
+	if(!w->searchTerm.data || !w->searchTerm.len) {
 		goto CLEANUP;
 	}
 	
@@ -289,12 +293,12 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 		}
 		
 		for(j = 0; j < n_filepaths; j++) {
-			DBG("got filepath: %s\n", stringBuffers[i][j]);
+//			DBG("got filepath: %s\n", stringBuffers[i][j]);
 			
 			candidates[n_candidates + j].excluded = 0;
 			for(int k = 0; w->gs->MainControl_excludePatterns[k]; k++) {
 				if(strstr(stringBuffers[i][j], w->gs->MainControl_excludePatterns[k])) {
-					DBG("Excluded: %s [pattern: %s]\n", stringBuffers[i][j], w->gs->MainControl_excludePatterns[k]);
+//					DBG("Excluded: %s [pattern: %s]\n", stringBuffers[i][j], w->gs->MainControl_excludePatterns[k]);
 					candidates[n_candidates+j].excluded = 1;
 					break;
 				}
@@ -368,6 +372,14 @@ CLEANUP:
 	//free(matches);
 	// free(filepaths);
 
+}
+
+
+void GUIFuzzyMatchControl_SaveSessionState(GUIFuzzyMatchControl* w, json_value_t* out) {
+	if(!w->searchTerm.len) return;
+	
+	w->searchTerm.data[w->searchTerm.len] = '\0';
+	json_obj_set_key(out, "path", json_new_str(w->searchTerm.data));
 }
 
 

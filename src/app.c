@@ -262,7 +262,28 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
 				}
 				else if(0 == strcmp("FuzzyOpener", type)) {
-					MainControlPane_FuzzyOpener(pane, "");
+					json_value_t* jdata = json_obj_get_val(jtab, "data");
+					
+					char* path = json_obj_get_str(jdata, "path");
+					printf("loading FuzzyOpener with path <%s>\n", path);
+					if(!path) path = "";
+					
+					MainControlTab* mct = MainControlPane_FuzzyOpener(pane, path);
+					
+					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
+					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
+				}
+				else if(0 == strcmp("GrepOpener", type)) {
+					json_value_t* jdata = json_obj_get_val(jtab, "data");
+					
+					char* query = json_obj_get_str(jdata, "query");
+					printf("loading GrepOpener with query <%s>\n", query);
+					if(!query) query = "";
+					
+					MainControlTab* mct = MainControlPane_GrepOpen(pane, query);
+					
+					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
+					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
 				}
 			}
 			

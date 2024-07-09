@@ -949,7 +949,7 @@ void* MainControlPane_GoToTab(MainControlPane* w, int i) {
 }
 
 
-void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n) {
+MainControlTab* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n) {
 	int n_match = 0;
 	VEC_EACH(&w->tabs, i, tab) {
 		if(tab->type == type) {
@@ -971,7 +971,7 @@ void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n) {
 			
 			MainControl_OnTabChange(w->mc);
 			
-			return tab->client;
+			return tab;
 		}
 	}
 	
@@ -1085,14 +1085,14 @@ static void fmcAfterClose(MainControlTab* t) {
 	t->client = NULL;
 }
 
-void MainControl_FuzzyOpener(MainControl* w, char* searchTerm) {
-	MainControlPane_FuzzyOpener(w->focusedPane, searchTerm);
+MainControlTab* MainControl_FuzzyOpener(MainControl* w, char* searchTerm) {
+	return MainControlPane_FuzzyOpener(w->focusedPane, searchTerm);
 }
 
-void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
-	void* o = MainControlPane_nthTabOfType(w, MCTAB_FuzzyOpener, 1);
+MainControlTab* MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
+	MainControlTab* o = MainControlPane_nthTabOfType(w, MCTAB_FuzzyOpener, 1);
 	if(o != NULL) {
-		return;
+		return o;
 	}
 
 	GUIFuzzyMatchControl* fmc = GUIFuzzyMatchControl_New(w->mc->gm, w->mc->s, &w->mc->rx, "./", searchTerm);
@@ -1101,6 +1101,7 @@ void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
 	MainControlTab* tab = MainControlPane_AddGenericTab(w, fmc, "fuzzy matcher");
 	tab->type = MCTAB_FuzzyOpener;
 	tab->render = (void*)GUIFuzzyMatchControl_Render;
+	tab->saveSessionState = (void*)GUIFuzzyMatchControl_SaveSessionState;
 	tab->client = fmc;
 	tab->beforeClose = fmcBeforeClose;
 	tab->afterClose = fmcAfterClose;
@@ -1111,6 +1112,8 @@ void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm) {
 	GUIFuzzyMatchControl_Refresh(fmc);
 	
 	MainControl_OnTabChange(w->mc);
+	
+	return tab;
 }
 
 
@@ -1127,30 +1130,38 @@ static void gocAfterClose(MainControlTab* t) {
 }
 
 
-void MainControl_GrepOpen(MainControl* w, char* searchTerm) {
-	void* o = MainControlPane_nthTabOfType(w->focusedPane, MCTAB_GrepOpener, 1);
+MainControlTab* MainControl_GrepOpen(MainControl* w, char* searchTerm) {
+	return MainControlPane_GrepOpen(w->focusedPane, searchTerm);
+}
+
+
+MainControlTab* MainControlPane_GrepOpen(MainControlPane* w, char* searchTerm) {
+	MainControlTab* o = MainControlPane_nthTabOfType(w, MCTAB_GrepOpener, 1);
 	if(o != NULL) {
-		return;
+		return o;
 	}
 
-	GrepOpenControl* goc = GrepOpenControl_New(w->gm, w->s, &w->rx, searchTerm);
-	goc->gs = w->gs;
+	GrepOpenControl* goc = GrepOpenControl_New(w->mc->gm, w->mc->s, &w->mc->rx, searchTerm);
+	goc->gs = w->mc->gs;
 //	goc->commands = w->commands;
-	MainControlTab* tab = MainControl_AddGenericTab(w, goc, "grep opener");
+	MainControlTab* tab = MainControl_AddGenericTab(w->mc, goc, "grep opener");
 	tab->type = MCTAB_GrepOpener;
 	tab->render = (void*)GrepOpenControl_Render;
+	tab->saveSessionState = (void*)GrepOpenControl_SaveSessionState;
 	tab->client = goc;
-	//tab->beforeClose = gbeBeforeClose;
-	//tab->beforeClose = gbeAfterClose;
+	tab->beforeClose = gocBeforeClose;
+	tab->afterClose = gocAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
 	// goc->header.parent = (GUIHeader*)w;
 
-	MainControlPane_nthTabOfType(w->focusedPane, MCTAB_GrepOpener, 1);
+	MainControlPane_nthTabOfType(w, MCTAB_GrepOpener, 1);
 	
 	GrepOpenControl_Refresh(goc);
 	
-	MainControl_OnTabChange(w);
+	MainControl_OnTabChange(w->mc);
+	
+	return tab;
 }
 
 

@@ -152,7 +152,7 @@ void MainControlPane_SortTabs(MainControlPane* w);
 void* MainControlPane_NextTab(MainControlPane* w, char cyclic);
 void* MainControlPane_PrevTab(MainControlPane* w, char cyclic);
 void* MainControlPane_GoToTab(MainControlPane* w, int i);
-void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n);
+MainControlTab* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n);
 
 
 void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd);
@@ -164,15 +164,16 @@ MainControlTab* MainControl_NewEmptyBuffer(MainControl* w);
 MainControlTab* MainControl_LoadFile(MainControl* w, char* path);
 MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path);
 MainControlTab* MainControl_LoadFileOpt(MainControl* w, MessageFileOpt* opt);
-MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* opt);
+MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* w, MessageFileOpt* opt);
 void MainControl_OpenFileBrowser(MainControl* w, char* path);
 
-void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
-void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
+MainControlTab* MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
+MainControlTab* MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
 
 void MainControl_Hexedit(MainControl* w, char* path);
 
-void MainControl_GrepOpen(MainControl* w, char* searchTerm);
+MainControlTab* MainControl_GrepOpen(MainControl* w, char* searchTerm);
+MainControlTab* MainControlPane_GrepOpen(MainControlPane* w, char* searchTerm);
 void MainControlPane_EmptyTab(MainControlPane* w);
 void MainControlPane_Calculator(MainControlPane* w);
 void MainControl_Terminal(MainControl* w);
