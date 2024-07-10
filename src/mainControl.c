@@ -1004,7 +1004,9 @@ void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts)
 	new[ext-orig] = 0;
 	strcat(new, cext);
 	
-	MainControl_LoadFile(w, new);
+	MainControlTab* tab_conj = MainControl_LoadFile(w, new);
+	if(!tab_conj) return;
+	
 	MainControlPane_GoToTab(w->focusedPane, MainControl_FindTabIndexByBufferPath(w, new));
 }
 
@@ -1442,6 +1444,15 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 		}
 	}
 	
+	
+	if(!opt->path) {
+		fprintf(stderr, "Error: cannot open file with NULL path.\n");
+		return NULL;
+	}
+	if(!is_regular_file(opt->path)) {
+		fprintf(stderr, "Error: path <%s> is not a regular file.\n", opt->path);
+		return NULL;
+	}
 	
 	
 	Settings* ls = Settings_Copy(w->s, SETTINGS_ALL);

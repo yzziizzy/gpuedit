@@ -256,6 +256,11 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 					if(!path) continue;
 					
 					MainControlTab* mct = MainControlPane_LoadFile(pane, path);
+					if(!mct) {
+						fprintf(stderr, "Error: could not open session file with path <%s>.\n", path);
+						continue;
+					}
+					
 					GUIBufferEditor_LoadSessionState((GUIBufferEditor*)mct->client, jdata);
 					
 					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
@@ -269,6 +274,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 					if(!path) path = "";
 					
 					MainControlTab* mct = MainControlPane_FuzzyOpener(pane, path);
+					if(!mct) {
+						fprintf(stderr, "Error: could not open session FuzzyOpener with path <%s>.\n", path);
+						continue;
+					}
 					
 					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
 					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
@@ -281,6 +290,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 					if(!query) query = "";
 					
 					MainControlTab* mct = MainControlPane_GrepOpen(pane, query);
+					if(!mct) {
+						fprintf(stderr, "Error: could not spawn session GrepOpener with query <%s>.\n", query);
+						continue;
+					}
 					
 					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
 					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
