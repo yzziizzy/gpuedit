@@ -458,6 +458,8 @@ void GrepOpenControl_Destroy(GrepOpenControl* w) {
 }
 
 
+
+
 static void open_match(GrepOpenControl* w, int i) {
 
 	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);

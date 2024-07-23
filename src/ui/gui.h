@@ -250,6 +250,11 @@ typedef struct GUIWindow {
 #include "opts_structs.h"
 
 
+typedef struct GUI_PaneTargeter {
+	uint8_t self;
+} GUI_PaneTargeter;
+
+
 /*
 
 */
@@ -277,6 +282,7 @@ typedef struct GUIManager {
 	HT(int) cmdElementLookup;
 	VEC(GUI_CmdModeInfo) commandModes;
 	GUI_Cmd tmpCmd;
+	VEC(GUI_PaneTargeter) paneTargeters;
 	
 	VEC(struct {
 		void* id;
@@ -395,6 +401,8 @@ void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title);
 void GUIManager_SetCursor(GUIManager* gm, int cursor);
 
 void GUI_Notify_(GUIManager* gm, int type, void* id, uint64_t elem);
+
+
 
 
 

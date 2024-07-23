@@ -337,13 +337,21 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		MainControl_OpenFileBrowser(w, "./");
 		break;
 
-	case GUICMD_Main_FuzzyOpener:
-		MainControl_FuzzyOpener(w, NULL);
+	case GUICMD_Main_FuzzyOpener: {
+		MessageFuzzyOpt opt = {
+			.paneTargeter = cmd->paneTargeter,
+		};
+		MainControl_FuzzyOpener(w, &opt);
 		break;
+	}
 	
-	case GUICMD_Main_GrepOpen:
-		MainControl_GrepOpen(w, NULL);
+	case GUICMD_Main_GrepOpen: {
+		MessageGrepOpt opt = {
+			.paneTargeter = cmd->paneTargeter,
+		};
+		MainControl_GrepOpen(w, &opt);
 		break;
+	}
 
 	case GUICMD_Main_OpenConjugate:
 		MainControl_OpenConjugate(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->amt);
@@ -461,7 +469,7 @@ static int message_handler(MainControl* w, Message* m) {
 			break;
 			
 		case MSG_GrepOpener:
-			MainControl_GrepOpen(w, (char*)m->data);
+			MainControl_GrepOpen(w, (MessageGrepOpt*)m->data);
 			break;
 		
 		case MSG_BufferRefDec: {
@@ -481,6 +489,35 @@ static int message_handler(MainControl* w, Message* m) {
 			return 0;
 	}
 	return 1;
+}
+
+
+MainControlPane* MainControl_ChoosePane(MainControl* w, int16_t paneTargeter) {
+	GUIManager* gm = w->gm;
+	
+	if(paneTargeter == -1) return w->focusedPane;
+	
+	// get targeter
+	// loop over panes -> sort
+	// return the best match
+	GUI_PaneTargeter t = VEC_ITEM(&gm->paneTargeters, paneTargeter);
+	
+	MainControlPane* fp = w->focusedPane;
+	MainControlPane* pane = NULL;
+	for(int x=0; x<w->xDivisions; x++) {
+	for(int y=0; y<w->yDivisions; y++) {
+		pane = w->paneSet[x + w->xDivisions * y];
+		if(t.self && fp == pane) {
+			printf("choose pane (%d,%d): focusedPane\n", x, y);
+			break;
+		}
+		else if(!t.self && fp != pane) {
+			printf("choose pane (%d,%d): other pane\n", x, y);
+			break;
+		}
+	}}
+	
+	return pane ? pane : fp;
 }
 
 
@@ -1087,7 +1124,18 @@ static void fmcAfterClose(MainControlTab* t) {
 	t->client = NULL;
 }
 
-MainControlTab* MainControl_FuzzyOpener(MainControl* w, char* searchTerm) {
+MainControlTab* MainControl_FuzzyOpener(MainControl* w, MessageFuzzyOpt* opt) {
+	MainControlPane* pane = NULL;
+	char* searchTerm = NULL;
+	int16_t paneTargeter = -1;
+	
+	if(opt) {
+		paneTargeter = opt->paneTargeter;
+		searchTerm = opt->searchTerm;
+	}
+	
+	pane = MainControl_ChoosePane(w, paneTargeter);
+	
 	return MainControlPane_FuzzyOpener(w->focusedPane, searchTerm);
 }
 
@@ -1132,8 +1180,18 @@ static void gocAfterClose(MainControlTab* t) {
 }
 
 
-MainControlTab* MainControl_GrepOpen(MainControl* w, char* searchTerm) {
-	return MainControlPane_GrepOpen(w->focusedPane, searchTerm);
+MainControlTab* MainControl_GrepOpen(MainControl* w, MessageGrepOpt* opt) {
+	MainControlPane* pane = NULL;
+	char* searchTerm = NULL;
+	int16_t paneTargeter = -1;
+	
+	if(opt) {
+		paneTargeter = opt->paneTargeter;
+		searchTerm = opt->searchTerm;
+	}
+	
+	pane = MainControl_ChoosePane(w, paneTargeter);
+	return MainControlPane_GrepOpen(pane, searchTerm);
 }
 
 
@@ -1146,7 +1204,7 @@ MainControlTab* MainControlPane_GrepOpen(MainControlPane* w, char* searchTerm) {
 	GrepOpenControl* goc = GrepOpenControl_New(w->mc->gm, w->mc->s, &w->mc->rx, searchTerm);
 	goc->gs = w->mc->gs;
 //	goc->commands = w->commands;
-	MainControlTab* tab = MainControl_AddGenericTab(w->mc, goc, "grep opener");
+	MainControlTab* tab = MainControlPane_AddGenericTab(w, goc, "grep opener");
 	tab->type = MCTAB_GrepOpener;
 	tab->render = (void*)GrepOpenControl_Render;
 	tab->saveSessionState = (void*)GrepOpenControl_SaveSessionState;

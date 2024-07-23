@@ -1277,9 +1277,13 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			}
 			
 			char* s = Buffer_StringFromSelection(w->b, &r, NULL);
-			char* s_msg = sprintfdup(cmd->pstr[0], s);
+			MessageGrepOpt opt = {0};
+			opt.searchTerm = sprintfdup(cmd->pstr[0], s);
 			free(s);
-			MessagePipe_Send(w->tx, MSG_GrepOpener, s_msg, free);
+			
+			opt.paneTargeter = cmd->paneTargeter;
+			MessagePipe_Send(w->tx, MSG_GrepOpener, &opt, NULL);
+			free(opt.searchTerm);
 			break;
 			
 		}

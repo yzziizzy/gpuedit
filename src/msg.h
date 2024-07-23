@@ -52,10 +52,27 @@ typedef struct MessagePipe {
 
 typedef struct MessageFileOpt {
 	char* path;
+	
 	intptr_t line_num;
-	int set_focus;
-	int scroll_existing;
+	
+	uint8_t set_focus;
+	uint8_t scroll_existing;
+	int16_t paneTargeter;
 } MessageFileOpt;
+
+
+typedef struct MessageFuzzyOpt {
+	char* searchTerm;
+	
+	int16_t paneTargeter;
+} MessageFuzzyOpt;
+
+
+typedef struct MessageGrepOpt {
+	char* searchTerm;
+	
+	int16_t paneTargeter;
+} MessageGrepOpt;
 
 
 int MessagePipe_Send(MessagePipe* pipe, enum MessageType type, void* data, FreeFn f);

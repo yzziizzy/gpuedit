@@ -24,7 +24,7 @@ void BufferLine_AppendLine(BufferLine* l, BufferLine* src) {
 
 
 void BufferLine_SetText(BufferLine* l, char* text, intptr_t len) {
-	if(len == 0) {
+	if(len <= 0) {
 		l->length = 0;
 		return;
 	};

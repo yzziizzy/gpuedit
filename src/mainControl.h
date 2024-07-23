@@ -121,6 +121,7 @@ typedef struct MainControl {
 MainControlPane* MainControlPane_New(MainControl* mc);
 void MainControlPane_Free(MainControlPane* w, int freeTabContent);
 
+MainControlPane* MainControl_ChoosePane(MainControl* w, int16_t paneTargeter);
 
 MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, char* title);
 void MainControlPane_CloseTab(MainControlPane* w, int index);
@@ -167,12 +168,13 @@ MainControlTab* MainControl_LoadFileOpt(MainControl* w, MessageFileOpt* opt);
 MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* w, MessageFileOpt* opt);
 void MainControl_OpenFileBrowser(MainControl* w, char* path);
 
-MainControlTab* MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
+MainControlTab* MainControl_FuzzyOpener(MainControl* w, MessageFuzzyOpt* opt);
 MainControlTab* MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
 
 void MainControl_Hexedit(MainControl* w, char* path);
 
-MainControlTab* MainControl_GrepOpen(MainControl* w, char* searchTerm);
+
+MainControlTab* MainControl_GrepOpen(MainControl* w, MessageGrepOpt* opt);
 MainControlTab* MainControlPane_GrepOpen(MainControlPane* w, char* searchTerm);
 void MainControlPane_EmptyTab(MainControlPane* w);
 void MainControlPane_Calculator(MainControlPane* w);
