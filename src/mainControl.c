@@ -502,22 +502,26 @@ MainControlPane* MainControl_ChoosePane(MainControl* w, int16_t paneTargeter) {
 	// return the best match
 	GUI_PaneTargeter t = VEC_ITEM(&gm->paneTargeters, paneTargeter);
 	
-	MainControlPane* fp = w->focusedPane;
-	MainControlPane* pane = NULL;
+	MainControlPane *fp, *p, *out;
+	fp = w->focusedPane;
+	p = NULL;
+	out = fp;
 	for(int x=0; x<w->xDivisions; x++) {
 	for(int y=0; y<w->yDivisions; y++) {
-		pane = w->paneSet[x + w->xDivisions * y];
-		if(t.self && fp == pane) {
+		p = w->paneSet[x + w->xDivisions * y];
+		if(t.self && fp == p) {
 			printf("choose pane (%d,%d): focusedPane\n", x, y);
+			out = fp;
 			break;
 		}
-		else if(!t.self && fp != pane) {
+		else if(!t.self && fp != p) {
 			printf("choose pane (%d,%d): other pane\n", x, y);
+			out = p;
 			break;
 		}
 	}}
 	
-	return pane ? pane : fp;
+	return out;
 }
 
 
@@ -1157,10 +1161,12 @@ MainControlTab* MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm
 	tab->afterClose = fmcAfterClose;
 	//tab->everyFrame = gbeEveryFrame;
 	
+	
 	MainControlPane_nthTabOfType(w, MCTAB_FuzzyOpener, 1);
 
 	GUIFuzzyMatchControl_Refresh(fmc);
 	
+	// focus the new tab (and possibly different pane)?
 	MainControl_OnTabChange(w->mc);
 	
 	return tab;
@@ -1219,6 +1225,7 @@ MainControlTab* MainControlPane_GrepOpen(MainControlPane* w, char* searchTerm) {
 	
 	GrepOpenControl_Refresh(goc);
 	
+	// focus the new tab (and possibly different pane)?
 	MainControl_OnTabChange(w->mc);
 	
 	return tab;
