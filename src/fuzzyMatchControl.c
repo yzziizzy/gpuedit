@@ -426,6 +426,7 @@ static void open_match(GUIFuzzyMatchControl* w, int i) {
 	opt = (MessageFileOpt){
 		.path = path,
 		.line_num = 1,
+		.paneTargeter = -1,
 	};
 	
 	if(w->gs->MainControl_openInPlace) {

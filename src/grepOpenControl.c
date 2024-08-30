@@ -472,6 +472,7 @@ static void open_match(GrepOpenControl* w, int i) {
 		.line_num = line_num,
 		.set_focus = 0,
 		.scroll_existing = 1,
+		.paneTargeter = -1,
 	};
 	
 	if(w->gs->MainControl_openInPlace) {

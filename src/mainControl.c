@@ -354,7 +354,7 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 	}
 
 	case GUICMD_Main_OpenConjugate:
-		MainControl_OpenConjugate(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->amt);
+		MainControl_OpenConjugate(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->amt, cmd->paneTargeter);
 		break;
 		
 	case GUICMD_Main_Calculator:
@@ -971,6 +971,8 @@ void* MainControlPane_PrevTab(MainControlPane* w, char cyclic) {
 
 
 void* MainControlPane_GoToTab(MainControlPane* w, int i) {
+	MainControl_SetFocusedPane(w->mc, w);
+	
 	int len = VEC_LEN(&w->tabs);
 	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
 	a->isActive = 0;
@@ -1020,12 +1022,20 @@ MainControlTab* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type,
 }
 
 
-void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts) {
+MainControlTab* MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts, int16_t paneTargeter) {
+	MainControlPane* pane = NULL;
+	printf("open conjugate with pane targeter: %d\n", paneTargeter);
+	pane = MainControl_ChoosePane(w, paneTargeter);
+	return MainControlPane_OpenConjugate(pane, tab, exts);
+}
+
+
+MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab* tab, char** exts) {
 	
-	if(tab->type != MCTAB_Buffer) return;
+	if(tab->type != MCTAB_Buffer) return NULL;
 	
 	char* orig = ((GUIBufferEditor*)tab->client)->sourceFile;
-	if(!orig) return;
+	if(!orig) return NULL;
 	
 	char* ext = path_ext(orig);
 	char* cext = NULL;
@@ -1037,7 +1047,7 @@ void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts)
 		break;
 	}
 	
-	if(!cext) return;
+	if(!cext) return NULL;
 	
 	// construct a new file name
 	char* new = alloca(strlen(orig) + strlen(cext) + 2);
@@ -1045,10 +1055,22 @@ void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts)
 	new[ext-orig] = 0;
 	strcat(new, cext);
 	
-	MainControlTab* tab_conj = MainControl_LoadFile(w, new);
-	if(!tab_conj) return;
 	
-	MainControlPane_GoToTab(w->focusedPane, MainControl_FindTabIndexByBufferPath(w, new));
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
+		.path = new,
+		.line_num = 1,
+		.paneTargeter = -1,
+	};
+	MainControlTab* tab_conj = MainControlPane_LoadFileOpt(w, &opt);
+	
+	if(!tab_conj) return NULL;
+	
+	MainControlPane_GoToTab(w, MainControlPane_FindTabIndexByBufferPath(w, new));
+	
+//	MainControl_OnTabChange(w->mc);
+	
+	return tab_conj;
 }
 
 
@@ -1462,6 +1484,7 @@ MainControlTab* MainControl_NewEmptyBuffer(MainControl* w) {
 		.path = NULL,
 		.line_num = 1,
 		.set_focus = 1,
+		.paneTargeter = -1,
 	};
 	return MainControl_LoadFileOpt(w, &opt);
 }
@@ -1471,6 +1494,7 @@ MainControlTab* MainControl_LoadFile(MainControl* w, char* path) {
 	opt = (MessageFileOpt){
 		.path = path,
 		.line_num = 1,
+		.paneTargeter = -1,
 	};
 	return MainControlPane_LoadFileOpt(w->focusedPane, &opt);
 }
@@ -1480,12 +1504,21 @@ MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path) {
 	opt = (MessageFileOpt){
 		.path = path,
 		.line_num = 1,
+		.paneTargeter = -1,
 	};
 	return MainControlPane_LoadFileOpt(p, &opt);
 }
 
 MainControlTab* MainControl_LoadFileOpt(MainControl* w, MessageFileOpt* opt) {
-	return MainControlPane_LoadFileOpt(w->focusedPane, opt);
+	MainControlPane* pane = NULL;
+	int16_t paneTargeter = -1;
+	
+	if(opt) {
+		paneTargeter = opt->paneTargeter;
+	}
+	
+	pane = MainControl_ChoosePane(w, paneTargeter);
+	return MainControlPane_LoadFileOpt(pane, opt);
 }
 
 MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* opt) {
@@ -1495,7 +1528,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	if(opt->path) {
 		int index = MainControl_FindTabIndexByBufferPath(w, opt->path);
 		if(index > -1) {
-			GUIBufferEditor* gbe = MainControlPane_GoToTab(w->focusedPane, index);
+			GUIBufferEditor* gbe = MainControlPane_GoToTab(p, index);
 			
 			BufferLine* bl = Buffer_raw_GetLineByNum(gbe->b, opt->line_num);
 			if(bl && opt->scroll_existing) {
@@ -1505,7 +1538,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}
 			gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
-			return VEC_ITEM(&w->focusedPane->tabs, index);
+			return VEC_ITEM(&p->tabs, index);
 		}
 	}
 	
