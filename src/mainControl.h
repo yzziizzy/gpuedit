@@ -57,6 +57,8 @@ typedef struct MainControlPane {
 	int currentIndex;
 	int lastTabAccessIndex;
 	VEC(MainControlTab*) tabs;
+	MainControlTab* dragTab;
+	int dragIndex;
 	char tabAutoSortDirty;
 	
 	int tabsPerRow;
@@ -149,6 +151,7 @@ MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab
 int MainControl_FindTabIndexByBufferPath(MainControl* w, char* path);
 int MainControl_FindTabIndexByClient(MainControl* w, void* client);
 
+void MainControlPane_MoveTab(MainControlPane* w, int ind_old, int ind_new);
 void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b);
 void MainControlPane_SortTabs(MainControlPane* w);
 void* MainControlPane_NextTab(MainControlPane* w, char cyclic);

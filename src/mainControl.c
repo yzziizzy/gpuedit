@@ -194,15 +194,40 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	if(!gm->drawMode) {
 	
 		VEC_EACH(&w->tabs, i, tab) {
-		
-			if(GUI_MouseInside(V(tl.x + tabw * i + i + 1, tl.y), V(tabw - 1, mc->tabHeight))) {
-				if(GUI_MouseWentUp(1)) {
-					MainControlPane_GoToTab(w, i);
-				}
-				else if(GUI_MouseWentUp(2)) {
-					MainControlPane_CloseTab(w, i);
-				}
+			int intab = GUI_MouseInside(V(tl.x + tabw * i + i + 1, tl.y), V(tabw - 1, mc->tabHeight));
+			int inleft = GUI_MouseInside(V(tl.x + tabw * i + i + 1, tl.y), V(tabw / 2 - 1, mc->tabHeight));
+			int isdrug = tab == w->dragTab;
+			
+			if(!intab && gm->curEvent.type != GUIEVENT_DragStop) continue;
+			
+			switch(gm->curEvent.type) {
+				case GUIEVENT_MouseUp:
+					if(gm->curEvent.button == 1) {
+						MainControlPane_GoToTab(w, i);
+					}
+					else if(gm->curEvent.button == 2) {
+						MainControlPane_CloseTab(w, i);
+					}
+					break;
+				case GUIEVENT_DragStart:
+					w->dragTab = tab;
+					w->dragIndex = i;
+					break;
+				case GUIEVENT_DragStop:
+					w->dragTab = NULL;
+					w->dragIndex = -1;
+					break;
+				case GUIEVENT_DragMove:
+					if(!isdrug && w->dragIndex > -1) {
+						if((inleft && w->dragIndex > i) || (w->dragIndex < i)) {
+							// move dragTab to where tab is, shifting appropriately
+							MainControlPane_MoveTab(w, w->dragIndex, i);
+							w->dragIndex = i;
+						}
+					}
+					break;
 			}
+			
 		
 		}
 	}
@@ -529,6 +554,7 @@ MainControlPane* MainControlPane_New(MainControl* mc) {
 	MainControlPane* w = pcalloc(w);
 	w->mc = mc;
 	w->currentIndex = -1;
+	w->dragIndex = -1;
 	mc->numPanes++;
 	
 	return w;
@@ -882,6 +908,31 @@ static int tab_sort_fn(void* _a, void* _b) {
 		case MCTAB_FileOpener:
 			return strcmp(a->title, b->title);
 	}
+}
+
+
+void MainControlPane_MoveTab(MainControlPane* w, int ind_old, int ind_new) {
+	int len = VEC_LEN(&w->tabs);
+	if(len < 2) return; // can't move without two tabs
+	if(ind_old > (len - 1)) return; // invalid old index
+	if(ind_new > (len - 1)) return; // invalid new index
+	if(ind_old == ind_new) return; // nothing to do
+	
+	MainControlTab* tab = VEC_ITEM(&w->tabs, ind_old);
+	VEC_RM_SAFE(&w->tabs, ind_old);
+	VEC_INSERT_AT(&w->tabs, tab, ind_new);
+	
+	int min = MIN(ind_old, ind_new);
+	int max = MAX(ind_old, ind_new);
+	int wentleft = ind_new < ind_old;
+	
+	if(w->currentIndex >= min && w->currentIndex <= max) {
+		if(w->currentIndex == ind_old) w->currentIndex = ind_new;
+		else if(wentleft) w->currentIndex++;
+		else w->currentIndex--;
+	}
+	
+	MainControl_OnTabChange(w->mc);
 }
 
 
