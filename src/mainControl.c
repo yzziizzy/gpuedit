@@ -227,7 +227,6 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 					}
 					break;
 			}
-			
 		
 		}
 	}
@@ -1577,7 +1576,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	MainControl* w = p->mc;
 	
 	if(opt->path) {
-		int index = MainControl_FindTabIndexByBufferPath(w, opt->path);
+		int index = MainControlPane_FindTabIndexByBufferPath(p, opt->path);
 		if(index > -1) {
 			GUIBufferEditor* gbe = MainControlPane_GoToTab(p, index);
 			
@@ -1589,7 +1588,8 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}
 			gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
-			return VEC_ITEM(&p->tabs, index);
+			MainControlTab* tab = VEC_ITEM(&p->tabs, index);
+			return tab;
 		}
 	}
 	
