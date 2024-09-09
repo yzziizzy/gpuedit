@@ -147,6 +147,8 @@ MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* ti
 void MainControl_CloseTab(MainControl* w, int index);
 MainControlTab* MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts, int16_t paneTargeter);
 MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab* tab, char** exts);
+MainControlTab* MainControl_OpenSelf(MainControl* w, MainControlTab* tab, int16_t paneTargeter);
+
 
 int MainControl_FindTabIndexByBufferPath(MainControl* w, char* path);
 int MainControl_FindTabIndexByClient(MainControl* w, void* client);

@@ -183,6 +183,7 @@
 	X(Main, LoadFile) \
 	X(Main, NewEmptyBuffer) \
 	X(Main, OpenConjugate) \
+	X(Main, OpenSelf) \
 	X(Main, ReloadTab) \
 	X(Main, CloseTab) \
 	X(Main, SaveAndCloseTab) \

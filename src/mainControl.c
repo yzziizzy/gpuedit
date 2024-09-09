@@ -380,6 +380,10 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 	case GUICMD_Main_OpenConjugate:
 		MainControl_OpenConjugate(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->amt, cmd->paneTargeter);
 		break;
+
+	case GUICMD_Main_OpenSelf:
+		MainControl_OpenSelf(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->paneTargeter);
+		break;
 		
 	case GUICMD_Main_Calculator:
 		MainControlPane_Calculator(w->focusedPane);
@@ -1121,6 +1125,28 @@ MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab
 //	MainControl_OnTabChange(w->mc);
 	
 	return tab_conj;
+}
+
+
+
+MainControlTab* MainControl_OpenSelf(MainControl* w, MainControlTab* tab, int16_t paneTargeter) {
+	MainControlPane* pane = NULL;
+	printf("open self with pane targeter: %d\n", paneTargeter);
+	pane = MainControl_ChoosePane(w, paneTargeter);
+	
+	if(pane == w->focusedPane) return tab;
+	
+	GUIBufferEditor* gbe = (GUIBufferEditor*)tab->client;
+	if(!gbe->sourceFile) return tab;
+	
+	MessageFileOpt opt = {0};
+	opt = (MessageFileOpt){
+		.path = gbe->sourceFile,
+		.line_num = gbe->ec->scrollLines,
+		.paneTargeter = -1,
+	};
+	
+	return MainControlPane_LoadFileOpt(pane, &opt);
 }
 
 

@@ -67,7 +67,7 @@
 			{elem: "Main", cmd: "Terminal", mods: "T", key: "t", amt: 0},
 			
 			{elem: "Main", cmd: "OpenConjugate", mods: "C", key: "h", amt: ["c", "h"]},
-			
+//			{elem: "Main", cmd: "OpenSelf", mods: "CS", key: "o", pane: "o", amt: 0}, // open/jump to same file in other pane
 			
 			{elem: "Main", cmd: "FontNudgeWidth", mods: "CAT", key: "XK_Next", amt: -1},
 			{elem: "Main", cmd: "FontNudgeWidth", mods: "CAT", key: "XK_Prior", amt: 1},
