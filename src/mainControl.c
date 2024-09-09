@@ -1134,10 +1134,10 @@ MainControlTab* MainControl_OpenSelf(MainControl* w, MainControlTab* tab, int16_
 	printf("open self with pane targeter: %d\n", paneTargeter);
 	pane = MainControl_ChoosePane(w, paneTargeter);
 	
-	if(pane == w->focusedPane) return tab;
+	if(pane == w->focusedPane) return NULL;
 	
 	GUIBufferEditor* gbe = (GUIBufferEditor*)tab->client;
-	if(!gbe->sourceFile) return tab;
+	if(!gbe->sourceFile) return NULL;
 	
 	MessageFileOpt opt = {0};
 	opt = (MessageFileOpt){
@@ -1146,7 +1146,13 @@ MainControlTab* MainControl_OpenSelf(MainControl* w, MainControlTab* tab, int16_
 		.paneTargeter = -1,
 	};
 	
-	return MainControlPane_LoadFileOpt(pane, &opt);
+	MainControlTab* tab_self = MainControlPane_LoadFileOpt(pane, &opt);
+	
+	if(!tab_self) return NULL;
+	
+	MainControlPane_GoToTab(pane, MainControlPane_FindTabIndexByBufferPath(pane, gbe->sourceFile));
+	
+	return tab_self;
 }
 
 
