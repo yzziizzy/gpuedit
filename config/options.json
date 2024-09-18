@@ -22,6 +22,7 @@ general: {
 	
 	"MainControl_openInPlace": 0,
 	"MainControl_autoSortTabs": 0,
+//	MainControl_paneTabLimit: 8, // auto-close oldest (not pinned) tab after n tabs open
 
 	"MainControl_statusWidgets": [
 //				{ type: "hello_world", size: 15, align: "r", "format": "" },

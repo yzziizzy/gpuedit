@@ -435,12 +435,13 @@ static void open_match(GUIFuzzyMatchControl* w, int i) {
 	
 	MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
 
-	free(path_raw);
-	free(path);
-	
 	if(w->gs->MainControl_openInPlace) {
 		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
 	}
+
+	free(path_raw);
+	free(path);
+	
 }
 
 

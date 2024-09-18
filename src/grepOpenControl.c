@@ -479,14 +479,16 @@ static void open_match(GrepOpenControl* w, int i) {
 		opt.set_focus = 1;
 	}
 	
+	
 	MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
+
+	if(w->gs->MainControl_openInPlace) {
+		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
+	}
 
 	free(path_raw);
 	free(path);
 	
-	if(w->gs->MainControl_openInPlace) {
-		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
-	}
 }
 
 

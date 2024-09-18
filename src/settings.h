@@ -107,6 +107,7 @@ typedef struct WidgetSpec {
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(bool,  MainControl_autoSortTabs,    false, NULL, NULL) \
 	SETTING(bool,  MainControl_scrollTabNames,  true,  NULL, NULL) \
+	SETTING(int,   MainControl_paneTabLimit,    0,     0,    INT_MAX) \
 	SETTING(scrollfn, MainControl_tabNameScrollFn,          2,    NULL, NULL) \
 	SETTING(float,    MainControl_tabNameScrollStartLinger, 2.0,  NULL, NULL) \
 	SETTING(float,    MainControl_tabNameScrollEndLinger,   2.0,  NULL, NULL) \

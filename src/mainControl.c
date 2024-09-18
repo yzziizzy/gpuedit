@@ -1469,6 +1469,10 @@ static void setBreakpoint(char* file, intptr_t line, MainControl* w) {
 
 void MainControl_OnTabChange(MainControl* w) {
 	
+	// update access indices
+	// and reap excess tabs per w->gs->paneTabLimit
+	// and auto-sort according to prefs
+	int tabLimit = w->gs->MainControl_paneTabLimit;
 	for(int y = 0; y < w->yDivisions; y++)
 	for(int x = 0; x < w->xDivisions; x++) {
 		MainControlPane* p = w->paneSet[x + y * w->xDivisions];
@@ -1476,7 +1480,27 @@ void MainControl_OnTabChange(MainControl* w) {
 			MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
 			tab->accessIndex = ++p->lastTabAccessIndex;
 		}
+		
+		while(tabLimit > 0 && VEC_LEN(&p->tabs) > tabLimit) {
+			MainControlTab* oldest = NULL;
+			int oldestIndex = INT_MAX;
+			int index = -1;
+			VEC_EACH(&p->tabs, i, t) {
+				if (t->accessIndex < oldestIndex) {
+//					printf("oldest tab is now %d [%s]\n", t->accessIndex, t->title);
+					oldestIndex = t->accessIndex;
+					oldest = t;
+					index = i;
+				}
+			}
+			if(index > -1) {
+//				printf("closing tab %d [%s]\n", oldest->accessIndex, oldest->title);
+				MainControlPane_CloseTab(p, index);
+			}
+		}
 	}
+	
+	
 	
 	if(!w->gs->enableSessions) return;
 	
