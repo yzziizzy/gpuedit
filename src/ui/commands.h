@@ -157,6 +157,8 @@ typedef struct GUI_Cmd {
 	uint32_t cmd;
 	uint32_t flags;
 	
+	int16_t paneTargeter;
+	
 	union {
 		long amt;
 		char* str;
@@ -214,6 +216,7 @@ void Commands_UpdateModes(GUIManager* gm, GUI_CmdModeState* st, GUI_Cmd* cmd, si
 GUI_CmdModeInfo* Commands_GetModeInfo(GUIManager* gm, int id);
 GUI_CmdModeInfo* Commands_GetOverlay(GUIManager* gm, int bitIndex);
 int Commands_GetModeID(GUIManager* gm, char* name);
+int16_t Commands_GetPaneTargeter(GUIManager* gm, char* defStr);
 
 GUI_CmdList* Commands_SeparateCommands(GUI_Cmd* in);
 

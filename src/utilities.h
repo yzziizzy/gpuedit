@@ -44,7 +44,7 @@ if(!(p)) { \
 
 
 #define pcalloc(x) x = calloc(1, sizeof(*(x)))
-#define pcallocn(x, n) x = calloc(1, sizeof(*(x))*n)
+#define pcallocn(x, n) x = calloc(1, sizeof(*(x)) * (n))
 
 
 #ifndef NO_TERM_COLORS

@@ -41,6 +41,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	if(!b) return;
 	if(!b->first) return;
 	
+	if(b->reloadGCCErrorFile) Buffer_ReloadGCCErrorFile(b);
+	
 //	BufferUndo_DebugRender(gm, b, V(500, 20), V(200, 800), pfp);
 	
 	
@@ -81,7 +83,11 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	// scroll down
 	// TODO: cache a pointer
-	for(intptr_t i = 0; i < gbe->scrollLines && bl->next; i++) bl = bl->next; 
+	long scrollPixels = gbe->scrollLines * gbe->bs->lineHeight;
+	linenum_t sl = 0;
+	for(; VEC_ITEM(&gbe->lineOffsets, sl) < scrollPixels; sl++); 
+	for(intptr_t i = 0; i < sl && bl->next; i++) bl = bl->next; 
+	
 	
 	int inSelection = 0;
 	int maxCols = 10000;
@@ -92,7 +98,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	struct Color4 lineColors[] = {
 		ts->lineNumColor,
 		ts->lineNumBookmarkColor,
-		ts->lineNumBreakpointColor
+		ts->lineNumBreakpointColor,
+		{.5,.5,1,1}
 	};
 
 	StyleInfo* styles;
@@ -118,6 +125,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			Color4* lnc = &lineColors[0];
 			if(bl->flags & BL_BOOKMARK_FLAG) lnc = &lnc[1];
 			if(bl->flags & BL_BREAKPOINT_FLAG) lnc = &lnc[2];
+			if(bl->flags & BL_ANNOTATION_FLAG) lnc = &lnc[3]; //temp
 
 			gm->curZ++;
 			drawTextLine(
@@ -312,6 +320,31 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 
 		if(ytop > edh) break; // end of buffer control
 
+
+		// annotations
+		
+		if(bl->flags & BL_ANNOTATION_FLAG) {
+
+			BufferAnnotation* ann;
+			HT_get(&b->gccErrors, bl->lineNum, &ann);
+			
+			if(ann) {
+				yoff += bs->lineHeight;
+				ytop += bs->lineHeight;
+			
+				drawTextLine(
+					gm, 
+					bs,
+					f,
+					&lineColors[0], 
+					ann->message, 
+					100, 
+					(Vector2){tl.x, yoff}
+				);
+			}
+		}
+		
+
 		// advance to the next line
 		yoff += bs->lineHeight;
 		ytop += bs->lineHeight;
@@ -319,6 +352,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		linesRendered++;
 		if(linesRendered > lineTo - lineFrom) break;
 		
+		
+
 		
 	}
 	

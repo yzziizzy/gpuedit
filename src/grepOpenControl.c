@@ -29,6 +29,8 @@ static void open_match(GrepOpenControl* w, int i);
 
 void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 
+	float z = gm->curZ;
+
 	gm->curZ += 10;
 		
 	DEFAULTS(GUIEditOpts, eopts);
@@ -37,7 +39,7 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 		GrepOpenControl_Refresh(w);
 	}
 	
-	gm->curZ -= 10;
+//	gm->curZ -= 10;
 
 
 	if(GUI_InputAvailable()) {
@@ -128,11 +130,12 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 		GUI_TextLine(w->matches[i].render_line, strlen(w->matches[i].render_line), btl_file, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
 		// the matching line
 		GUI_TextLine(w->matches[i].line, strlen(w->matches[i].line), btl_line, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
-		gm->curZ--;
+//		gm->curZ--;
 		
 		linesDrawn++;
 	}
 
+	gm->curZ = z;
 }
 
 #include "ui/macros_off.h"
@@ -276,9 +279,13 @@ GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* m
 	w->projnames = projnames;
 
 	if(searchTerm) {
-		w->searchTerm.data = strdup(searchTerm);
-		w->searchTerm.len = strlen(w->searchTerm.data);
-		w->searchTerm.alloc = w->searchTerm.len;
+		GUIString_Set(&w->searchTerm, searchTerm);
+//		w->searchTerm.data = strdup(searchTerm);
+//		w->searchTerm.len = strlen(w->searchTerm.data);
+//		w->searchTerm.alloc = w->searchTerm.len;
+	}
+	else {
+		GUIString_Init(&w->searchTerm);
 	}
 	
 	return w;
@@ -294,9 +301,11 @@ void GrepOpenControl_Refresh(GrepOpenControl* w) {
 	char** contents = NULL;
 	char*** stringBuffers = NULL;
 
+	w->searchTerm.data[w->searchTerm.len] = '\0';
+
 	// printf("launching grep opener\n");
 	char* cmd = "/usr/bin/git";
-	char* args[] = {cmd, "-C", NULL, "grep", "-niI", /*"--full-name",*/ "-e", w->searchTerm.data, NULL};
+	char* args[] = {cmd, "-C", NULL, "grep", "-niIP", /*"--full-name",*/ "-e", w->searchTerm.data, NULL};
 
 	int i = 0;
 	int j = 0;
@@ -400,8 +409,18 @@ CLEANUP:
 }
 
 
+
+void GrepOpenControl_SaveSessionState(GrepOpenControl* w, json_value_t* out) {
+	if(!w->searchTerm.len) return;
+	
+	w->searchTerm.data[w->searchTerm.len] = '\0';
+	json_obj_set_key(out, "query", json_new_str(w->searchTerm.data));
+}
+
+
+
 void GrepOpenControl_Destroy(GrepOpenControl* w) {
-int i;
+	int i;
 	for(i=0; w->projnames[i]; i++) {
 		free(w->projnames[i]);
 	}
@@ -439,6 +458,8 @@ int i;
 }
 
 
+
+
 static void open_match(GrepOpenControl* w, int i) {
 
 	char* path_raw = path_join(w->matches[i].basepath, w->matches[i].filepath);
@@ -451,20 +472,23 @@ static void open_match(GrepOpenControl* w, int i) {
 		.line_num = line_num,
 		.set_focus = 0,
 		.scroll_existing = 1,
+		.paneTargeter = -1,
 	};
 	
 	if(w->gs->MainControl_openInPlace) {
 		opt.set_focus = 1;
 	}
 	
+	
 	MessagePipe_Send(w->upstream, MSG_OpenFileOpt, &opt, NULL);
+
+	if(w->gs->MainControl_openInPlace) {
+		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
+	}
 
 	free(path_raw);
 	free(path);
 	
-	if(w->gs->MainControl_openInPlace) {
-		MessagePipe_Send(w->upstream, MSG_CloseMe, w, NULL);
-	}
 }
 
 

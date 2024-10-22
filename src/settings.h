@@ -5,6 +5,8 @@
 #include "sti/vec.h"
 
 
+char* safe_strdup(char* x);
+void safe_free(void* x);
 
 
 // bits for masking the settings sections
@@ -98,11 +100,14 @@ typedef struct WidgetSpec {
 	SETTING(bool,  enableVSync,        false,   NULL, NULL) \
 	SETTING(bool,  enableSessions,     true,    NULL, NULL) \
 	SETTING(int,   sessionFileHistory, 100,     0, 1000) \
+	SETTING(charp, gccBasePath,        NULL,    NULL, NULL) \
+	SETTING(charp, gccErrorJSONPath,   NULL,    NULL, NULL) \
 	SETTING(tabsp, MainControl_startupTabs,     ((TabSpec[]){{.type=MCTAB_FuzzyOpener, .path=NULL}, {.type=MCTAB_None, .path=NULL}}), NULL, NULL) \
 	SETTING(widsp, MainControl_statusWidgets,   ((WidgetSpec[]){{.type=MCWID_LINECOL, .size=20, .align='l', .format="line: %L:%C"}, {.type=MCWID_NONE, .size=0}}), NULL, NULL) \
 	SETTING(bool,  MainControl_openInPlace,     false, NULL, NULL) \
 	SETTING(bool,  MainControl_autoSortTabs,    false, NULL, NULL) \
 	SETTING(bool,  MainControl_scrollTabNames,  true,  NULL, NULL) \
+	SETTING(int,   MainControl_paneTabLimit,    0,     0,    INT_MAX) \
 	SETTING(scrollfn, MainControl_tabNameScrollFn,          2,    NULL, NULL) \
 	SETTING(float,    MainControl_tabNameScrollStartLinger, 2.0,  NULL, NULL) \
 	SETTING(float,    MainControl_tabNameScrollEndLinger,   2.0,  NULL, NULL) \

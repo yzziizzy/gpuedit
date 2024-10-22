@@ -57,8 +57,8 @@
 			
 			{elem: "Main", cmd: "QuitWithoutSave", mods: "CS", key: "q", amt: 0},
 			{elem: "Main", cmd: "OpenFileBrowser", mods: "", key: "XK_F2", amt: 0},
-			{elem: "Main", cmd: "FuzzyOpener", mods: "", key: "XK_F4", amt: 0},
-			{elem: "Main", cmd: "GrepOpen", mods: "CS", key: "g", amt: 0},
+//			{elem: "Main", cmd: "FuzzyOpener", mods: "", key: "XK_F4", amt: 0}, // fuzzy opener block below
+//			{elem: "Main", cmd: "GrepOpen", mods: "CS", key: "g", amt: 0}, // grep opener block below
 			{elem: "Main", cmd: "Calculator", mods: "T", key: "/", amt: 0},
 			{elem: "Main", cmd: "SimpleWindowTest", mods: "C", key: "u", amt: 0},
 			{elem: "Main", cmd: "CloseTab", mods: "CS", key: "w", amt: 0},
@@ -67,7 +67,7 @@
 			{elem: "Main", cmd: "Terminal", mods: "T", key: "t", amt: 0},
 			
 			{elem: "Main", cmd: "OpenConjugate", mods: "C", key: "h", amt: ["c", "h"]},
-			
+//			{elem: "Main", cmd: "OpenSelf", mods: "CS", key: "o", pane: "o", amt: 0}, // open/jump to same file in other pane
 			
 			{elem: "Main", cmd: "FontNudgeWidth", mods: "CAT", key: "XK_Next", amt: -1},
 			{elem: "Main", cmd: "FontNudgeWidth", mods: "CAT", key: "XK_Prior", amt: 1},
@@ -76,15 +76,28 @@
 			
 			{elem: "Buffer", cmd: "ToggleGDBBreakpoint", mods: "A", key: "b", amt: 0},
 			
+			
+			{elem: "Main", cmd: "FuzzyOpener", mods: "", key: "XK_F4", amt: 0},
 			{elem: "FuzzyMatcher", cmd: "Exit", mods: "", key: "XK_Escape", amt: 0},
 			{elem: "FuzzyMatcher", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1},
 			{elem: "FuzzyMatcher", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1},
 			{elem: "FuzzyMatcher", cmd: "OpenFile", mods: "", key: "XK_Return", amt: 0},
 			
+			
+			{elem: "Main", cmd: "GrepOpen", mods: "CS", key: "g", amt: 0},
+			// abusive amount, 1st element is a format string, 2nd is a charset
+			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "g", amt: ["%s", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"], },
+			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CA", key: "g", pane: "o", amt: ["%s", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"], },
+			// pane: "o" causes the command to target "other" pane,
+			// i.e. the first pane that is not the focused pane
+			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "t", amt: ["typedef.+\\b%s", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"] },
+			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CA", key: "t", pane: "o", amt: ["typedef.+\\b%s", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"] },
+			
 			{elem: "GrepOpen", cmd: "Exit", mods: "", key: "XK_Escape", amt: 0},
 			{elem: "GrepOpen", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1},
 			{elem: "GrepOpen", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1},
 			{elem: "GrepOpen", cmd: "OpenFile", mods: "", key: "XK_Return", amt: 0},
+			
 			
 			{elem: "FileBrowser", cmd: "CursorMoveNoWrap", mods: "", key: "XK_Up", amt: -1},
 			{elem: "FileBrowser", cmd: "CursorMoveNoWrap", mods: "", key: "XK_Down", amt: 1},
@@ -144,7 +157,6 @@
 				amt: ["%s", "%c", "typedef struct %s {\n\t%c\n} %s;"], flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "LineEnsureEnding", mods: "C", key: ";", amt: ";", flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "LineEnsureEnding", mods: "C", key: "{", amt: "{", flags: ["rehighlight", "undoSeqBreak"]},
-			{elem: "Buffer", cmd: "SmartBubbleSelection", mods: "CS", key: "p", amt: ["%s", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"], },
 			{elem: "Buffer", cmd: "SmartComment", mods: "C", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "StrictUncomment", mods: "CS", key: "d", amt: ["//", "/*", "*/"], flags: ["rehighlight", "undoSeqBreak"]},
 			{elem: "Buffer", cmd: "DeleteCurLine", mods: "C", key: "k", amt: 0, flags: ["scrollToCursor", "rehighlight", "undoSeqBreak"]},

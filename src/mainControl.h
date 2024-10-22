@@ -57,6 +57,8 @@ typedef struct MainControlPane {
 	int currentIndex;
 	int lastTabAccessIndex;
 	VEC(MainControlTab*) tabs;
+	MainControlTab* dragTab;
+	int dragIndex;
 	char tabAutoSortDirty;
 	
 	int tabsPerRow;
@@ -110,6 +112,8 @@ typedef struct MainControl {
 	Settings* s;
 	GeneralSettings* gs;
 	
+	int sessionLoaded;
+	
 	// TEMP HACK
 	HT(char*) breakpoints;
 	
@@ -119,6 +123,7 @@ typedef struct MainControl {
 MainControlPane* MainControlPane_New(MainControl* mc);
 void MainControlPane_Free(MainControlPane* w, int freeTabContent);
 
+MainControlPane* MainControl_ChoosePane(MainControl* w, int16_t paneTargeter);
 
 MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, char* title);
 void MainControlPane_CloseTab(MainControlPane* w, int index);
@@ -140,17 +145,21 @@ void MainControl_FocusPane(MainControl* w, int x, int y);
 MainControlPane* MainControl_GetPane(MainControl* w, int x, int y);
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
 void MainControl_CloseTab(MainControl* w, int index);
-void MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts);
+MainControlTab* MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts, int16_t paneTargeter);
+MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab* tab, char** exts);
+MainControlTab* MainControl_OpenSelf(MainControl* w, MainControlTab* tab, int16_t paneTargeter);
+
 
 int MainControl_FindTabIndexByBufferPath(MainControl* w, char* path);
 int MainControl_FindTabIndexByClient(MainControl* w, void* client);
 
+void MainControlPane_MoveTab(MainControlPane* w, int ind_old, int ind_new);
 void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b);
 void MainControlPane_SortTabs(MainControlPane* w);
 void* MainControlPane_NextTab(MainControlPane* w, char cyclic);
 void* MainControlPane_PrevTab(MainControlPane* w, char cyclic);
 void* MainControlPane_GoToTab(MainControlPane* w, int i);
-void* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n);
+MainControlTab* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type, int n);
 
 
 void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd);
@@ -162,15 +171,17 @@ MainControlTab* MainControl_NewEmptyBuffer(MainControl* w);
 MainControlTab* MainControl_LoadFile(MainControl* w, char* path);
 MainControlTab* MainControlPane_LoadFile(MainControlPane* p, char* path);
 MainControlTab* MainControl_LoadFileOpt(MainControl* w, MessageFileOpt* opt);
-MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* opt);
+MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* w, MessageFileOpt* opt);
 void MainControl_OpenFileBrowser(MainControl* w, char* path);
 
-void MainControl_FuzzyOpener(MainControl* w, char* searchTerm);
-void MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
+MainControlTab* MainControl_FuzzyOpener(MainControl* w, MessageFuzzyOpt* opt);
+MainControlTab* MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
 
 void MainControl_Hexedit(MainControl* w, char* path);
 
-void MainControl_GrepOpen(MainControl* w, char* searchTerm);
+
+MainControlTab* MainControl_GrepOpen(MainControl* w, MessageGrepOpt* opt);
+MainControlTab* MainControlPane_GrepOpen(MainControlPane* w, char* searchTerm);
 void MainControlPane_EmptyTab(MainControlPane* w);
 void MainControlPane_Calculator(MainControlPane* w);
 void MainControl_Terminal(MainControl* w);

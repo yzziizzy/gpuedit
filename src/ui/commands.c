@@ -121,6 +121,8 @@ void GUIManager_InitCommands(GUIManager* gm) {
 	
 	HT_init(&gm->cmdElementLookup, 2048);
 	
+	VEC_INIT(&gm->paneTargeters);
+	
 	for(int i = 0; elemList[i].n; i++) {
 		GUIManager_AddCommandElement(gm, elemList[i].n, elemList[i].id);
 //		HT_set(&gm->cmdElementLookup, elemList[i].n, elemList[i].id);
@@ -394,6 +396,42 @@ int Commands_GetModeID(GUIManager* gm, char* name) {
 	};
 	
 	return id;
+}
+
+
+int16_t Commands_GetPaneTargeter(GUIManager* gm, char* defStr) {
+	GUI_PaneTargeter p = {
+		.self=1,
+	};
+	int valid = 0;
+	
+	if(!strcmp(defStr, "o")) {
+		p.self = 0;
+		valid = 1;
+	}
+	
+	// TODO: an actual targeted specification syntax and parser
+	
+	if(!valid) {
+		printf("Error invalid paneTargeter defStr <%s>, using default targeter\n", defStr);
+		return -1;
+	}
+	
+	int index = -1;
+	VEC_EACH(&gm->paneTargeters, i, pt) {
+		printf("p.self: %d, pt.self: %d\n", p.self, pt.self);
+		if(p.self == pt.self) {
+			printf("matched targeter %ld\n", i);
+			index = i;
+			break;
+		}
+	}
+	if(index == -1) {
+		VEC_PUSH(&gm->paneTargeters, p);
+		index = VEC_LEN(&gm->paneTargeters) - 1;
+	}
+	
+	return index;
 }
 
 
@@ -676,6 +714,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 	else {
 		// command enum
 		s = json_obj_get_str(entry, "cmd");
+//		printf("reading command entry <%s>\n", s);
 		if(s == NULL && validate && cmd->cmd == 0) {
 			L1("Command List entry missing cmd name\n");
 			return 1;
@@ -907,6 +946,16 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 			
 			cmd->flags = flags;
 		}
+	}
+	
+	if(!json_obj_get_key(entry, "pane", &v)) {
+		if(v->type == JSON_TYPE_STRING) {
+			cmd->paneTargeter = Commands_GetPaneTargeter(gm, v->s);
+			printf("setting paneTargeter [%d] for command\n", cmd->paneTargeter);
+		}
+	}
+	else {
+		cmd->paneTargeter = -1;
 	}
 	
 	return 0;

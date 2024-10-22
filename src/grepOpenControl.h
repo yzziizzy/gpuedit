@@ -41,13 +41,18 @@ typedef struct GrepOpenControl {
 } GrepOpenControl;
 
 
+
+
 GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* mp, char* searchTerm);
 void GrepOpenControl_Refresh(GrepOpenControl* w);
 void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFrameParams* pfp);
 
+void GrepOpenControl_SaveSessionState(GrepOpenControl* w, json_value_t* out);
+
 int GrepOpenControl_ProcessCommand(GrepOpenControl* w, GUI_Cmd* cmd);
 
 void GrepOpenControl_Destroy(GrepOpenControl* w);
+
 
 
 #endif // __gpuedit_grepOpenControl_h__

@@ -102,6 +102,7 @@ void send_open_message(FileBrowser* w, char* path) {
 	opt = (MessageFileOpt){
 		.path = path2,
 		.line_num = 1,
+		.paneTargeter = -1,
 	};
 	
 	if(w->gs->MainControl_openInPlace) {

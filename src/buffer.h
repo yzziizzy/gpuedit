@@ -18,6 +18,7 @@
 #define BL_BOOKMARK_FLAG   (1<<0)
 #define BL_BREAKPOINT_FLAG (1<<1)
 #define BL_UTF8_FLAG       (1<<2)
+#define BL_ANNOTATION_FLAG (1<<3)
 
 struct hlinfo;
 struct BufferSettings;
@@ -107,6 +108,14 @@ typedef struct BufferRangeDrawInfo {
 	// update notifications
 } BufferRangeDrawInfo;
 
+typedef struct {
+	BufferRange ref;
+	int linesNeeded; // how many extra visual lines this annotation needs
+	
+	char* message;
+} BufferAnnotation;
+
+
 
 // http://texteditors.org/cgi-bin/wiki.pl?Implementing_Undo_For_Text_Editors
 
@@ -166,6 +175,9 @@ enum BufferChangeAction {
 	BCA_NULL,
 	BCA_DeleteChars,
 	BCA_DeleteLines,
+	BCA_AddChars,
+	BCA_AddLines,
+	BCA_AnnotationsChanged,
 	BCA_Undo_MoveCursor,
 	BCA_Undo_SetSelection,
 	BCA_SwapBuffer,
@@ -206,8 +218,15 @@ typedef struct Buffer {
 	
 	int64_t numLines;
 	
-	char* filePath;
 	int watchDesc;
+	int gccWatchDesc;
+	
+	char* gccRelPath; // path to this file from gccBasePath
+	char* gccErrorJSONPath; // full path and file name of the json file
+	char* gccErrorJSONFilename; // just file name of the json file
+	char* gccErrorJSONDir; // just file name of the json file
+	
+	HT(linenum_t, BufferAnnotation*) gccErrors;
 	
 	// TODO: also goes to GUIBufferEditControl
 	struct hlinfo* hl;
@@ -235,6 +254,8 @@ typedef struct Buffer {
 	char deletedOnDisk;
 	char movedOnDisk;
 	char isPreserved; // flag for if this Buffer is in some other buffer's preservedVersion pointer
+	
+	char reloadGCCErrorFile;
 	
 	int acMaxSkip;
 	
@@ -332,7 +353,7 @@ typedef struct GUIBufferEditControl {
 	
 	char outlineCurLine;
 
-	intptr_t scrollLines; // current scroll position, 0-based
+	intptr_t scrollLines; // current scroll position in VISUAL lines, 0-based. There may be more visual lines than buffer lines.
 	intptr_t scrollCols; // NYI, waiting on next line draw fn iteration
 	intptr_t wantedScrollLine; // used before the first render. kind of an ugly hack, for now
 	intptr_t wantedScrollCol; // used before the first render. kind of an ugly hack, for now
@@ -373,6 +394,11 @@ typedef struct GUIBufferEditControl {
 	// read only
 	int linesOnScreen; // number of *full* lines that fit on screen
 	int colsOnScreen; // number of *full* columns that fit on screen
+	
+	
+	VEC(uint64_t) lineOffsets; // how far IN PIXELS a line is from the top of the BUFFER.
+	                           //   this includes ALL annotations and other visual offsets.
+	
 	
 	// cached during event processing
 	Vector2 tl, sz;
@@ -748,6 +774,7 @@ void GUIBufferEditControl_MarkRefreshHighlight(GUIBufferEditControl* w);
 void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w);
 void GUIBufferEditor_ProbeHighlighter(GUIBufferEditor* w);
 
+void GBEC_RecalcLineOffsets(GUIBufferEditControl* w);
 
 
 Buffer* Buffer_New(BufferSettings* bs);
@@ -756,6 +783,7 @@ void Buffer_DecRef(Buffer* b);
 void Buffer_Delete(Buffer* b);
 Buffer* Buffer_Copy(Buffer* src);
 Buffer* Buffer_FromSelection(Buffer* src, BufferRange* sel);
+void Buffer_ReloadGCCErrorFile(Buffer* b);
 void Buffer_ToRawText(Buffer* b, char** out, size_t* len);
 int Buffer_SaveToFile(Buffer* b, char* path);
 int Buffer_LoadFromFile(Buffer* b, char* path);
@@ -763,6 +791,8 @@ int Buffer_Compare(Buffer* a, Buffer* b);
 void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* data);
 void Buffer_NotifyChanges(BufferChangeNotification* note);
 void Buffer_NotifyLineDeletion(Buffer* b, BufferLine* sLine, BufferLine* eLine);
+void Buffer_NotifyLineAddition(Buffer* b, BufferLine* sLine, BufferLine* eLine);
+void Buffer_NotifyAnnotationChange(Buffer* b);
 void Buffer_NotifyUndoMoveCursor(Buffer* b, BufferLine* line, colnum_t col);
 void Buffer_NotifyUndoSetSelection(Buffer* b, BufferLine* startL, colnum_t startC, BufferLine* endL, colnum_t endC, char isReverse);
 void BufferRange_DeleteLineNotify(BufferRange* r, BufferRange* dsel);
@@ -949,6 +979,9 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(charp, dictCharSet,          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", NULL, NULL) \
 	SETTING(int,   statusBarHeight,      20,    0,    INT_MAX) \
 	SETTING(int,   autocompleteMaxSkip,  20,    0,    100) \
+	SETTING(charp, gccBasePath,          NULL,  NULL, NULL) \
+	SETTING(charp, gccErrorJSONPath,     NULL,  NULL, NULL) \
+	SETTING(charp, gccErrorJSONSuffix,   ".gcc.json", NULL, NULL) \
 
 
 

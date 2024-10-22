@@ -430,6 +430,7 @@ void GBEC_Update(GUIBufferEditControl* w, Vector2 tl, Vector2 sz, PassFrameParam
 
 
 
+
 // called by the buffer when things change
 static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 	GUIBufferEditControl* w = (GUIBufferEditControl*)_w;
@@ -472,12 +473,31 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 			// TODO: check deleted chars and re-regex		
 		}
 		// TODO: check scrollLines and scrollCols
+		
+		
+		// TODO: line offsets
+		GBEC_RecalcLineOffsets(w);
+		
 	
 		if(w->autocompleteOptions) {
 			if(w->autocompleteOptions->matches) free(w->autocompleteOptions->matches);
 			free(w->autocompleteOptions);
 			w->autocompleteOptions = NULL;
 		}
+	}
+	else if(note->action == BCA_AddLines) {	
+		GBEC_RecalcLineOffsets(w);
+	}
+	else if(note->action == BCA_AnnotationsChanged) {
+		Buffer* b = w->b;
+		
+		// save the cursor position in screen lines
+		int curScreenLine = VEC_ITEM(&w->lineOffsets, CURSOR_LINE(w->sel)->lineNum);
+		
+		GBEC_RecalcLineOffsets(w);
+		
+		// update scroll positions so the screen doesn't move relative to the cursor
+		// TODO: 
 	}
 	else if(note->action == BCA_SwapBuffer) {	
 		// The existing buffer is being replaced by the new one
@@ -612,6 +632,41 @@ void GBEC_SetSelectionFromPivot(GUIBufferEditControl* w) {
 	w->sel->selecting = 1;
 	
 	GBEC_SelectionChanged(w);
+}
+
+
+void GBEC_RecalcLineOffsets(GUIBufferEditControl* w) {
+	Buffer* b = w->b;
+	
+	// recalculate all the line offsets
+	VEC_CREALLOC(&w->lineOffsets, b->numLines);
+	
+	int ani = 0;
+	int64_t acc = 0;
+	linenum_t lnum = 0;
+	BufferLine* bl = b->first;
+	while(bl) {
+		VEC_ITEM(&w->lineOffsets, lnum) = acc;
+		acc += w->bs->lineHeight;
+		
+		BufferAnnotation* ann = NULL;
+		
+		if(ani < HT_fill(&b->gccErrors)) {
+			HT_get(&b->gccErrors, bl->lineNum, &ann);
+		}
+		
+		if(ann && PIVOT_LINE(&ann->ref) == bl) {
+			acc += w->bs->lineHeight * ann->linesNeeded;
+			ani++; 
+			bl->flags |= BL_ANNOTATION_FLAG;
+		}
+		else {
+			bl->flags &= ~BL_ANNOTATION_FLAG;
+		}
+		
+		bl = bl->next;
+		lnum++;
+	}
 }
 
 
@@ -763,6 +818,7 @@ void GUIBufferEditControl_SetBuffer(GUIBufferEditControl* w, Buffer* b) {
 	CURSOR_COL(w->sel) = 0;
 	
 	Buffer_RegisterChangeListener(b, bufferChangeNotify, w);
+	GBEC_RecalcLineOffsets(w);
 }
 
 

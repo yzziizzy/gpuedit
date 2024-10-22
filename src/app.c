@@ -160,6 +160,8 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 	as->gs = Settings_GetSection(as->globalSettings, SETTINGS_General);
 	
+	printf("err path: %s\n", as->gs->gccErrorJSONPath);
+	
 	if(no_sessions) as->gs->enableSessions = 0;
 	
 	ThemeSettings* theme = Settings_GetSection(as->globalSettings, SETTINGS_Theme);
@@ -254,13 +256,47 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 					if(!path) continue;
 					
 					MainControlTab* mct = MainControlPane_LoadFile(pane, path);
+					if(!mct) {
+						fprintf(stderr, "Error: could not open session file with path <%s>.\n", path);
+						continue;
+					}
+					
 					GUIBufferEditor_LoadSessionState((GUIBufferEditor*)mct->client, jdata);
 					
 					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
 					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
 				}
 				else if(0 == strcmp("FuzzyOpener", type)) {
-					MainControlPane_FuzzyOpener(pane, "");
+					json_value_t* jdata = json_obj_get_val(jtab, "data");
+					
+					char* path = json_obj_get_str(jdata, "path");
+					printf("loading FuzzyOpener with path <%s>\n", path);
+					if(!path) path = "";
+					
+					MainControlTab* mct = MainControlPane_FuzzyOpener(pane, path);
+					if(!mct) {
+						fprintf(stderr, "Error: could not open session FuzzyOpener with path <%s>.\n", path);
+						continue;
+					}
+					
+					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
+					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
+				}
+				else if(0 == strcmp("GrepOpener", type)) {
+					json_value_t* jdata = json_obj_get_val(jtab, "data");
+					
+					char* query = json_obj_get_str(jdata, "query");
+					printf("loading GrepOpener with query <%s>\n", query);
+					if(!query) query = "";
+					
+					MainControlTab* mct = MainControlPane_GrepOpen(pane, query);
+					if(!mct) {
+						fprintf(stderr, "Error: could not spawn session GrepOpener with query <%s>.\n", query);
+						continue;
+					}
+					
+					mct->accessIndex = json_obj_get_int(jtab, "accessIndex", 0);
+					pane->lastTabAccessIndex = MAX(mct->accessIndex, pane->lastTabAccessIndex);
 				}
 			}
 			
@@ -304,7 +340,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 		}
 		MainControlPane_GoToTab(as->mc->focusedPane, 0);
 	}
-	
+	as->mc->sessionLoaded = 1;
 //	as->mc->focusedPane = as->mc->paneSet[1];
 //	MainControl_LoadFile(as->mc, "testfile.c");
 //	MainControl_LoadFile(as->mc, "testfile.h");
