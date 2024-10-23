@@ -1604,221 +1604,217 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 }
 
 
-int count_line_segments(BufferLine* line, char sep) {
-	int segs = 1;
-	int offset = 0;
-	
-	char* next = strchr(line->buf, sep);
-	while(next && offset < line->length) {
-		segs++;
-		next = strchr(next+1, sep);
-		offset = next - line->buf;
-	}
-	printf("have %d segments in line_ref\n", segs);
-	return segs;
-}
 
 
-struct segment_data {
-	int valid_line;
-	int* offsets;
-	int* lens;
+
+/////////////////
+// SMART ALIGN //
+
+struct align_segment {
+	colnum_t a, b;
+	int len;
 };
-void calculate_line_segments(BufferLine* line, char sep, int ref_n, struct segment_data* sdata) {
-	
-	// find cursor's parenlvl
-	// seek lines that enter the same parenlvl at the same offset
-	// copy everything outside of that paenlvl as-is
-	// parse segments within that parenlvl
-	
-	char* first = strchr
-	
-	int seg_n = 1;
-	
-	int strlvl = 0;
-	int parenlvl = 0;
-	
-	for(int i=0; i<line->length; i++) {
-		char c = line->buf[i];
-		if(strlvl) {
-			if(c == '"') {
-				strlvl--;
+struct align_line {
+	BufferLine* bl;
+	int n_segs;
+	VEC(struct align_segment) segs;
+	int total_len;
+};
+
+
+void calculate_align_line(BufferLine* bl, char sep, struct align_line* al) {
+	al->bl = bl;
+	// walk the line looking for sep
+	int seeking = 1;
+	int seg_start = 0;
+	struct align_segment seg = {0};
+	for(int i = 0; i < bl->length; i++) {
+		if(seeking && bl->buf[i] == ' ') {
+			continue;
+		}
+		
+		if(bl->buf[i] == sep) {
+			if(seeking) {
+				seg.a = i;
 			}
-			else if(c == '\\') {
-				i++;
-			}
+			seg.b = i;
+			seg.len = seg.b - seg.a;
+			al->n_segs++;
+			al->total_len += seg.len;
+			VEC_PUSH(&al->segs, seg);
+			
+			seeking = 1;
+			seg.a = 0;
+			seg.b = 0;
+			seg.len = 0;
+		} else if(seeking) {
+			seg.a = i;
+			seeking = 0;			
 		}
-		else if(parenlvl) {
-			if(c == ')') {
-				parenlvl--;
-			}
-		}
-		else if(c == '"') {
-			strlvl++;
-		}
-		else if(c == '(') {
-			parenlvl++
-		}
-		else if(c 
 	}
 	
-	
-	
-	
-	char* next = NULL;
-	char* prev = line->buf;
-	for(int i=0; i<ref_n; i++) {
-		sdata->offsets[i] = offset;
-		
-		
-		
-		next = strchr(prev+1, sep);
-		if(!next) {
-			next = &line->buf[line->length];
-		}
-		
-		offset = next - line->buf;
-		
-		
-		for(int j=-1; next[j]; j--) {
-			if(next[j] != ' ' && next[j] != '\t') {
-				sdata->lens[i] = (offset - sdata->offsets[i]) + j + 1;
-				break;
-			}
-		}
-		
-		prev = next;
+	if(!seeking) {
+		seg.b = bl->length;
+		seg.len = seg.b - seg.a;
+		al->n_segs++;
+		al->total_len += seg.len;
+		VEC_PUSH(&al->segs, seg);
 	}
 	
 }
+
+
+void align_line_init(struct align_line* al) {
+	VEC_INIT(&al->segs);
+}
+
+
+void align_line_free(struct align_line* al) {
+	VEC_FREE(&al->segs);
+	free(al);
+}
+
 
 void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator) {
 	int max_skip = 1; // config: skip <n> lines with non-matching segments
 	int min_spaces = 1; // config: ensure <n> spaces between segments
+	char sep = separator[0]; // should be done for each separator; exercise for the reader
 	
 	// parse cursor line for canonical number of segments
+	struct align_line* al_ref = pcalloc(al_ref);
+	align_line_init(al_ref);
+	
 	
 	BufferLine* line_ref = CURSOR_LINE(w->sel);
-	int ref_n = count_line_segments(line_ref, separator[0]);
-	if(ref_n < 2) {
+	calculate_align_line(line_ref, sep, al_ref);
+	if(al_ref->n_segs < 2) {
 		printf("insufficient segments for alignment\n");
+		align_line_free(al_ref);
 		return;
 	}
 	
-	BufferLine* line_start = NULL;
-	BufferLine* line_end = NULL;
+	VEC(struct align_line*) align_list;
+	VEC_INIT(&align_list);
+	VEC_PUSH(&align_list, al_ref);
+	BufferLine* next = line_ref->next;
+	BufferLine* prev = line_ref->prev;
+	int skip_next = 0,
+		skip_prev = 0;
 	
-	if(HAS_SELECTION(w->sel)) {
-		// only look in the selection
-		// define line_start/line_end from selection
-		line_start = w->sel->line[0];
-		line_end = w->sel->line[1];
-	}
-	else {
-		// find up/down from cursor line to define line_start/line_end
-		BufferLine* line = NULL;
-		int failcount = 0;
-		
-		failcount = 0;
-		line = line_ref->prev;
-		for(;line && failcount <= max_skip;line = line->prev) {
-			int seg_n = count_line_segments(line, separator[0]);
-			if(seg_n == ref_n) {
-				line_start = line;
-				failcount = 0;
+	struct align_line *al_next, *al_prev;
+	while(next || prev) {
+		// get next line segments, if right amount push to align_list and set next
+		// else increment skip_next and set or null next
+		if(next) {
+//			printf("testing next buffer line %d (%p)\n", next->lineNum, next);
+			al_next = pcalloc(al_next);
+			align_line_init(al_next);
+			calculate_align_line(next, sep, al_next);
+			
+			if(al_next->n_segs == al_ref->n_segs) {
+				VEC_PUSH(&align_list, al_next);
+				skip_next = 0;
+				next = al_next->bl->next;
+			}
+			else if(skip_next < max_skip) {
+				skip_next++;
+				next = al_next->bl->next;
+				align_line_free(al_next);
 			}
 			else {
-				failcount++;
+				align_line_free(al_next);
+				next = NULL;
 			}
 		}
-		failcount = 0;
-		line = line_ref->next;
-		for(;line && failcount <= max_skip;line = line->next) {
-			int seg_n = count_line_segments(line, separator[0]);
-			if(seg_n == ref_n) {
-				line_end = line;
-				failcount = 0;
+		
+		// get prev line segments, if right amount push to align_list and set prev
+		// else increment skip_prev and set or null prev
+		if(prev) {
+//			printf("testing prev buffer line %d (%p)\n", prev->lineNum, prev);
+			al_prev = pcalloc(al_prev);
+			align_line_init(al_prev);
+			calculate_align_line(prev, sep, al_prev);
+			
+			if(al_prev->n_segs == al_ref->n_segs) {
+				VEC_PUSH(&align_list, al_prev);
+				skip_prev = 0;
+				prev = al_prev->bl->prev;
+			}
+			else if(skip_prev < max_skip) {
+				skip_prev++;
+				prev = al_prev->bl->prev;
+				align_line_free(al_prev);
 			}
 			else {
-				failcount++;
+				align_line_free(al_prev);
+				prev = NULL;
 			}
 		}
-		
-		
 	}
 	
-	int n_lines = line_end->lineNum - line_start->lineNum;
-	
-	
-	
-	// search each separator in line_ref, then choose the 'best' one
-	// temp: only use first separator
-	
-	
-	BufferLine* line = NULL;
-	
-	struct segment_data* sdata = pcallocn(sdata, n_lines);
-	int* seg_maxes = pcallocn(seg_maxes, n_lines);
-	line = line_start;
-	for(int i=0; i<n_lines; i++) {
-		sdata[i].offsets = pcallocn(sdata[i].offsets, ref_n);
-		sdata[i].lens = pcallocn(sdata[i].lens, ref_n);
-		calculate_line_segments(line, separator[0], ref_n, &sdata[i]);
-		
-		for(int j=0; j<ref_n; j++) {
-			int line_seg_len = sdata[i].lens[j];
-			if(line_seg_len > seg_maxes[j]) {
-				seg_maxes[j] = line_seg_len;
+	int* seg_maxes = pcallocn(seg_maxes, al_ref->n_segs);
+	// find max length of each segment
+	VEC_EACH(&align_list, i, al) {
+		VEC_EACH(&al->segs, j, seg) {
+			if(seg.len > seg_maxes[j]) {
+				seg_maxes[j] = seg.len;
 			}
 		}
-		
-		line = line->next;
 	}
-//	int line_ref_idx = line_ref->lineNum - line_start->lineNum;
-	
-	// create a new text and then replace it
-	int line_len = 0;//VEC_ITEM(&segment_data[line_ref_idx].offsets[0]);
-	for(int i=0; i<n_lines; i++) {
-		line_len += seg_maxes[i];
-	}
-	
-	line = line_start;
-	for(int i=0; i<n_lines; i++) {
-		int line_offset = sdata[i].offsets[0];
-		int newlen = line_offset+line_len+1;
-		char* newbuf = pcallocn(newbuf, newlen);
-		for(int j=0; j<newlen; j++) newbuf[j] = ' ';
-		
-		int pos_old = 0;
-		int pos_new = 0;
-		memcpy(newbuf+pos_new, line->buf+pos_old, line_offset);
-		pos_new = line_offset;
-		for(int j=0; j<ref_n; j++) {
-			pos_old = sdata[i].offsets[j];
+	// then loop again and copy/pad the lines
+	struct align_segment seg_prev;
+	char* spaces = "                                                            ";
+	VEC_EACH(&align_list, i, al) {
+		int out_max = 1024;
+		int out_len = 0;
+		char* out_text = malloc(out_max*sizeof(*out_text));
+		VEC_EACH(&al->segs, j, seg) {
+			if(j > 0) {// && j < al->n_segs) {
+				 
+				
+				
+				int prev_diff = seg_maxes[j-1] + min_spaces - seg_prev.len;
+				int pad_len = MAX(prev_diff, min_spaces);
+				
+				if(out_max < out_len + pad_len + 1 /*sep len*/) {
+					out_max *= 2;
+					out_text = realloc(out_text, out_max*sizeof(*out_text));
+				}
+				
+				out_text[out_len++] = sep;
+				memset(out_text+out_len*sizeof(*out_text), ' ', pad_len);
+				out_len += pad_len;
+				
+				
+				// copy this into the line:
+				// sep + MAX(min_spaces, prev_diff) spaces
+				
+			}
+			// copy al->bl[seg->a, seg->b] into new line
+//			printf("copying seg[%ld] of line[%d] (%d chars)\n", j, al->bl->lineNum, seg.len);
 			
-			memcpy(newbuf+pos_new, line->buf+pos_old, sdata[i].lens[j]);
+			if(out_max < out_len + seg.len) {
+				out_max *= 2;
+				out_text = realloc(out_text, out_max*sizeof(*out_text));
+			}
 			
-			pos_new += seg_maxes[j];
+			memcpy(out_text+out_len*sizeof(*out_text), &al->bl->buf[seg.a], seg.len);
+			out_len += seg.len;
+			
+			seg_prev = seg;
 		}
-		
-		BufferLine_SetText(line, newbuf, newlen);
-		line = line->next;
+		Buffer_LineTruncateAfter(w->b, al->bl, 0);
+		Buffer_LineAppendText(w->b, al->bl, out_text, out_len);
+		free(out_text);
 	}
 	
-	
-	
-	
-	// setup maxes array [max length of segment data]
-	// populate from line_start to line_end
-	free(seg_maxes);
-	for(int i=0; i<n_lines; i++) {
-		free(sdata[i].offsets);
-		free(sdata[i].lens);
+	// afterwards free remaining align_line data
+	VEC_EACH(&align_list, i, al) {
+		align_line_free(al);
 	}
-	free(sdata);
-	// cleanup our shit
-//	VEC_FREE(&refdata.start_offsets);
-//	VEC_FREE(&refdata.lens);
+	
+	return;
+
 }
 
 
