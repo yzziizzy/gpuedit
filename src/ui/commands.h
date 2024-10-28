@@ -42,21 +42,21 @@ enum {
 
 #define GUI_COMMAND_LIST \
 	X(SYSTEM, Nop) \
-	X(Edit, Copy) \
-	X(Edit, Cut) \
-	X(Edit, Paste) \
-	X(Edit, MoveCursorH) \
-	X(Edit, GrowSelectionH) \
-	X(Edit, GoToStart) \
-	X(Edit, GoToEnd) \
-	X(Edit, GrowSelToStart) \
-	X(Edit, GrowSelToEnd) \
-	X(Edit, InsertChar) \
-	X(Edit, Delete) \
-	X(Edit, Backspace) \
-	X(Edit, Clear) \
-	X(Edit, Undo) \
-	X(Edit, Redo) \
+	X(Edit,   Copy) \
+	X(Edit,   Cut) \
+	X(Edit,   Paste) \
+	X(Edit,   MoveCursorH) \
+	X(Edit,   GrowSelectionH) \
+	X(Edit,   GoToStart) \
+	X(Edit,   GoToEnd) \
+	X(Edit,   GrowSelToStart) \
+	X(Edit,   GrowSelToEnd) \
+	X(Edit,   InsertChar) \
+	X(Edit,   Delete) \
+	X(Edit,   Backspace) \
+	X(Edit,   Clear) \
+	X(Edit,   Undo) \
+	X(Edit,   Redo) \
 	EXTERN_GUI_COMMAND_LIST
 
 

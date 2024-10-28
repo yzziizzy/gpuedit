@@ -1619,6 +1619,8 @@ struct align_line {
 	int n_segs;
 	VEC(struct align_segment) segs;
 	int total_len;
+	
+	unsigned char last_empty;
 };
 
 
@@ -1629,10 +1631,6 @@ void calculate_align_line(BufferLine* bl, char sep, struct align_line* al) {
 	int seg_start = 0;
 	struct align_segment seg = {0};
 	for(int i = 0; i < bl->length; i++) {
-		if(seeking && bl->buf[i] == ' ') {
-			continue;
-		}
-		
 		if(bl->buf[i] == sep) {
 			if(seeking) {
 				seg.a = i;
@@ -1647,20 +1645,25 @@ void calculate_align_line(BufferLine* bl, char sep, struct align_line* al) {
 			seg.a = 0;
 			seg.b = 0;
 			seg.len = 0;
+		} else if(seeking && bl->buf[i] == ' ') {
+			continue;
 		} else if(seeking) {
 			seg.a = i;
 			seeking = 0;			
 		}
 	}
 	
-	if(!seeking) {
-		seg.b = bl->length;
-		seg.len = seg.b - seg.a;
-		al->n_segs++;
-		al->total_len += seg.len;
-		VEC_PUSH(&al->segs, seg);
+	if(seeking) {
+		seg.a = bl->length;
 	}
 	
+	seg.b = bl->length;
+	seg.len = seg.b - seg.a;
+	al->n_segs++;
+	al->total_len += seg.len;
+	VEC_PUSH(&al->segs, seg);
+	
+	if(!seg.len) al->last_empty = 1;
 }
 
 
@@ -1678,20 +1681,27 @@ void align_line_free(struct align_line* al) {
 void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator) {
 	int max_skip = 1; // config: skip <n> lines with non-matching segments
 	int min_spaces = 1; // config: ensure <n> spaces between segments
-	char sep = separator[0]; // should be done for each separator; exercise for the reader
+//	char sep = separator[0]; // should be done for each separator; exercise for the reader
 	
 	// parse cursor line for canonical number of segments
-	struct align_line* al_ref = pcalloc(al_ref);
-	align_line_init(al_ref);
-	
-	
+	struct align_line* al_ref;// = pcalloc(al_ref);
 	BufferLine* line_ref = CURSOR_LINE(w->sel);
-	calculate_align_line(line_ref, sep, al_ref);
-	if(al_ref->n_segs < 2) {
-		printf("insufficient segments for alignment\n");
+	char sep;
+//	align_line_init(al_ref);
+	
+	for(int i=0; separator[i]; i++) {
+		sep = separator[i];
+		al_ref = pcalloc(al_ref);
+		align_line_init(al_ref);
+		calculate_align_line(line_ref, sep, al_ref);
+		if(al_ref->n_segs - al_ref->last_empty > 1) break;
+		
+		printf("insufficient segments for alignment sep: <%c>\n", sep);
 		align_line_free(al_ref);
-		return;
+		al_ref = NULL;
 	}
+	
+	if(!al_ref) return;
 	
 	VEC(struct align_line*) align_list;
 	VEC_INIT(&align_list);
