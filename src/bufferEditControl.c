@@ -1785,6 +1785,9 @@ void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator) {
 				
 				int prev_diff = seg_maxes[j-1] + min_spaces - seg_prev.len;
 				int pad_len = MAX(prev_diff, min_spaces);
+				if(sep == ' ') {
+					pad_len = MAX(pad_len-1, 0);
+				}
 				
 				if(out_max < out_len + pad_len + 1 /*sep len*/) {
 					out_max *= 2;
