@@ -67,11 +67,15 @@
 * Horizontal scrollbar
 * Multiple MC tab rows
 * Tab Bar scrolling
+* ctrl+; should trim extra whitespace before appending the ;
 * Smart uncomment (handle leading whitespace)
 * Clipboard ring
 * Proper tabstops
 * Ability to change the highlighter
 * Open file command
+* Autocomplete strategies:
+** Most recently used words
+** n-gram frequency completion
 * Find should jump to next match if the current one is deleted with a command
 * Shortcut config presets
 * Outline box style of highlighting
@@ -196,6 +200,7 @@
 * "tabs as spaces" mode
 
 == BUGS ==
+* Paste should insert an undo sequence break before happening
 * Files wrongly show as "changed" after cursor moves after being opened 
 * Sequence cursor moves don't clear the current selection or change it
 * Might not still be valid: Fix undo not restoring text properly after overflow and segfault fixes 

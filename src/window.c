@@ -10,6 +10,7 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/extensions/Xfixes.h> // clipboard notification
+#include <X11/extensions/Xrender.h>
 #include <X11/cursorfont.h>
 
 #include <GL/glew.h>
@@ -71,7 +72,7 @@ int xErrorHandler(Display *dpy, XErrorEvent *ev) {
 	xLastError = ev;
 	XGetErrorText(dpy, ev->error_code, xLastErrorStr, 1024);
 	
-	fprintf(stderr, "X Error %d: %s", ev->error_code, xLastErrorStr);
+	fprintf(stderr, "X Error %d: %s\n", ev->error_code, xLastErrorStr);
 	
     return 0;
 }
@@ -135,6 +136,9 @@ static void clipNotify(int which, XStuff* xs) {
 // this function will exit() on fatal errors. what good is error handling then?
 int initXWindow(XStuff* xs) {
 	
+	
+	XSetErrorHandler(&xErrorHandler);
+	
 	GLXFBConfig* fbconfigs;
 	GLXFBConfig chosenFBC;
 	int fbcount, i;
@@ -173,7 +177,12 @@ int initXWindow(XStuff* xs) {
 		
 		vi = glXGetVisualFromFBConfig(xs->display, fbconfigs[i]);
 		if(!vi) continue;
-			
+		
+		XRenderPictFormat *pf = XRenderFindVisualFormat(xs->display, vi->visual);
+		if(!pf) continue;
+
+		if(pf->direct.alphaMask <= 0) continue;
+		
 		glXGetFBConfigAttrib(xs->display, fbconfigs[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 		glXGetFBConfigAttrib(xs->display, fbconfigs[i], GLX_SAMPLES, &samples);
 		glerr("samples");
@@ -197,6 +206,9 @@ int initXWindow(XStuff* xs) {
 	
 	xs->colorMap = XCreateColormap(xs->display, xs->rootWin, xs->vi->visual, AllocNone);
 	setWinAttr.colormap = xs->colorMap;
+	setWinAttr.background_pixmap = None;
+	setWinAttr.border_pixmap = None;
+    setWinAttr.border_pixel = 0;
 	setWinAttr.event_mask = 
 		  ExposureMask 
 		| KeyPressMask 
@@ -211,7 +223,7 @@ int initXWindow(XStuff* xs) {
 // 		| SelectionMask
 		;
 
-	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 700, 700, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
+	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 700, 700, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWBackPixmap | CWBorderPixel | CWEventMask, &setWinAttr);
 
 	XMapWindow(xs->display, xs->clientWin);
 	
@@ -262,7 +274,7 @@ int initXWindow(XStuff* xs) {
 		exit(1);
 	}
 	
-	XSetErrorHandler(&xErrorHandler);
+	
 	
 	xs->glctx = glXCreateContextAttribsARB(xs->display, chosenFBC, 0, True, context_attr);
 	

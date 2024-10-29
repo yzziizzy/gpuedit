@@ -66,7 +66,7 @@ char* lib_headers_needed[] = {
 	"gl", "glu", "glew",
 	"libpcre2-8", 
 	"libpng", 
-	"x11", "xfixes",
+	"x11", "xfixes", "xrender",
 	NULL
 };
 
@@ -75,7 +75,7 @@ char* libs_needed[] = {
 	"gl", "glu", "glew",
 	"libpcre2-8", 
 	"libpng",
-	"x11", "xfixes",
+	"x11", "xfixes", "xrender",
 	NULL,
 };
 
