@@ -443,8 +443,8 @@ void GUIManager_HandleKeyInput(GUIManager* gm, InputState* is, InputEvent* iev, 
 static int gui_vert_sort_fn(GUIUnifiedVertex* a, GUIUnifiedVertex* b) {
 	return a->z == b->z ? 0 : (a->z > b->z ? 1 : -1);
 }
-static int gui_win_sort_fn(GUIWindow* a, GUIWindow* b) {
-	return a->z == b->z ? 0 : (a->z > b->z ? 1 : -1);
+static int gui_win_sort_fn(GUIWindow** a, GUIWindow** b) {
+	return (*a)->z == (*b)->z ? 0 : ((*a)->z > (*b)->z ? 1 : -1);
 }
 
 
