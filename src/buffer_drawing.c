@@ -266,7 +266,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 						gm->curZ = z + 4;
 						GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, yoff), f, fsize, fg);
 						gm->curZ = z + 2;
-						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth), bs->lineHeight), bg);
+						if(inSelection) GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth), bs->lineHeight), bg);
 					}
 					
 					adv += bs->charWidth;
