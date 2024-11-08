@@ -144,6 +144,7 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p);
 void MainControl_FocusPane(MainControl* w, int x, int y);
 MainControlPane* MainControl_GetPane(MainControl* w, int x, int y);
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
+void MainControlPane_afterTabClose(MainControlPane* w)
 void MainControl_CloseTab(MainControl* w, int index);
 MainControlTab* MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts, int16_t paneTargeter);
 MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab* tab, char** exts);
@@ -156,6 +157,7 @@ int MainControl_FindTabIndexByClient(MainControl* w, void* client);
 void MainControlPane_MoveTab(MainControlPane* w, int ind_old, int ind_new);
 void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b);
 void MainControlPane_SortTabs(MainControlPane* w);
+void MainControl_RepaneTab(MainControlPane* a, MainControlPane* b, int ind_a, int ind_b);
 void* MainControlPane_NextTab(MainControlPane* w, char cyclic);
 void* MainControlPane_PrevTab(MainControlPane* w, char cyclic);
 void* MainControlPane_GoToTab(MainControlPane* w, int i);

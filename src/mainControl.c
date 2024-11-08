@@ -434,7 +434,24 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 	case GUICMD_Main_SaveAndCloseTab:
 		printf("NYI\n"); // see BufferCmd_SaveAndClose and BufferCmd_PromptAndClose
 		break;
-		
+	
+	case GUICMD_Main_RepaneTabH: {
+		MainControlPane* a = w->focusedPane;
+		MainControlPane* b = MainControl_GetPane(w, w->focusedPos.x + cmd->amt, w->focusedPos.y);
+		int ind_a = a->currentIndex;
+		int ind_b = VEC_LEN(&b->tabs);
+		MainControl_RepaneTab(a, b, ind_a, ind_b);
+		break;
+	}
+	case GUICMD_Main_RepaneTabV: {
+		MainControlPane* a = w->focusedPane;
+		MainControlPane* b = MainControl_GetPane(w, w->focusedPos.x, w->focusedPos.y + cmd->amt);
+		int ind_a = a->currentIndex;
+		int ind_b = VEC_LEN(&b->tabs);
+		MainControl_RepaneTab(a, b, ind_a, ind_b);
+		break;
+	}
+	
 	case GUICMD_Main_SortTabs: MainControlPane_SortTabs(w->focusedPane); break;
 	case GUICMD_Main_MoveTabR: MainControlPane_SwapTabs(w->focusedPane, w->focusedPane->currentIndex, w->focusedPane->currentIndex + 1); break;
 	case GUICMD_Main_MoveTabL: MainControlPane_SwapTabs(w->focusedPane, w->focusedPane->currentIndex, w->focusedPane->currentIndex - 1); break;
@@ -793,6 +810,30 @@ MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, 
 }
 
 
+void MainControlPane_afterTabClose(MainControlPane* w) {
+	// update the current tab index
+	size_t n_tabs = VEC_LEN(&w->tabs);
+	if(!n_tabs) {
+		// closing the last real tab will no longer destroy a pane or exit
+		MainControlPane_EmptyTab(w);\
+		n_tabs = 1;
+	}
+	
+	// find highest tabAccessIndex
+	int maxAccessIndex = 0;
+	VEC_EACH(&w->tabs, i, tab) {
+		if(tab->accessIndex > maxAccessIndex) {
+			maxAccessIndex = tab->accessIndex;
+			w->currentIndex = i;
+		}
+	}
+	w->currentIndex %= n_tabs;
+	
+	
+	MainControlTab* t = VEC_ITEM(&w->tabs, w->currentIndex);
+	t->isActive = 1;
+}
+
 void MainControl_CloseTab(MainControl* w, int index) {
 	MainControlPane_CloseTab(w->focusedPane, index);
 }
@@ -816,27 +857,7 @@ void MainControlPane_CloseTab(MainControlPane* w, int index) {
 	// TODO: check active
 	
 	
-	// update the current tab index
-	size_t n_tabs = VEC_LEN(&w->tabs);
-	if(!n_tabs) {
-		// closing the last real tab will no longer destroy a pane or exit
-		MainControlPane_EmptyTab(w);\
-		n_tabs = 1;
-	}
-	
-	// find highest tabAccessIndex
-	int maxAccessIndex = 0;
-	VEC_EACH(&w->tabs, i, tab) {
-		if(tab->accessIndex > maxAccessIndex) {
-			maxAccessIndex = tab->accessIndex;
-			w->currentIndex = i;
-		}
-	}
-	w->currentIndex %= n_tabs;
-	
-	
-	t = VEC_ITEM(&w->tabs, w->currentIndex);
-	t->isActive = 1;
+	MainControlPane_afterTabClose(w);
 	
 	MainControl_OnTabChange(w->mc);
 }
@@ -952,6 +973,54 @@ void MainControlPane_SortTabs(MainControlPane* w) {
 	w->currentIndex = VEC_FIND(&w->tabs, &cur);
 	
 	MainControl_OnTabChange(w->mc);
+}
+
+
+void MainControl_RepaneTab(MainControlPane* a, MainControlPane* b, int ind_a, int ind_b) {
+	// get a->tabs[ind_a]
+	// insert tab at b->ind_b
+	// focus b->tabs[ind_b]
+	// close a->tabs[ind_a]
+	// update w->currentIndex
+	if(!a || !b) return; // invalid pane
+	if(a == b) return; // nothing to do
+	
+	int len_a = VEC_LEN(&a->tabs);
+	int len_b = VEC_LEN(&b->tabs);
+	if(ind_a < 0 || ind_b < 0) return; // invalid index
+	if(ind_a > (len_a - 1)) return; // invalid ind_a
+	if(ind_b > len_b) return; // invalid ind_b
+	
+	MainControlTab* tab = VEC_ITEM(&a->tabs, ind_a);
+	
+	// if tab->client? in b->tabs, close tab and goto the version in b
+//	int ind_client = MainControlPane_FindTabIndexByClient(b, tab->client
+	if(tab->type == MCTAB_Buffer) {
+		GUIBufferEditor* gbe = (GUIBufferEditor*)tab->client;
+		int ind_buf = MainControlPane_FindTabIndexByBufferPath(b, gbe->b->sourceFile);
+		if(ind_buf > -1) {
+			MainControlPane_CloseTab(a, ind_a);
+			MainControlPane_GoToTab(b, ind_buf);
+			
+			return;
+		}
+	}
+	
+	// easy way to log a pane's (x,y) ?
+	for(int y = 0; y < a->mc->yDivisions; y++)
+	for(int x = 0; x < a->mc->xDivisions; x++) {
+		MainControlPane* p = a->mc->paneSet[x + y * a->mc->xDivisions];
+		if(p == a) printf("a is (%d, %d)\n", x, y);
+		if(p == b) printf("b is (%d, %d)\n", x, y);
+	}
+	printf("Moving tab <%s> from a:%d to b:%d\n", tab->title, ind_a, ind_b);
+	
+	VEC_RM_SAFE(&a->tabs, ind_a);
+	MainControlPane_afterTabClose(a);
+	VEC_INSERT_AT(&b->tabs, tab, ind_b);
+	MainControlPane_GoToTab(b, ind_b);
+	
+	MainControl_OnTabChange(b->mc);
 }
 
 

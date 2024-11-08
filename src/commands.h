@@ -193,6 +193,8 @@
 	X(Main, MoveTabR) \
 	X(Main, MoveTabL) \
 	X(Main, SortTabs) \
+	X(Main, RepaneTabH) \
+	X(Main, RepaneTabV) \
 	X(Main, GoToTab) \
 	X(Main, SplitPane) \
 	X(Main, MainMenu) \

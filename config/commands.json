@@ -33,16 +33,22 @@
 			{mode: 10, elem: "Main", cmd: "ExpandPanesY",   mods: "S",  key: "y", amt: -1},
 			
 			
-			{elem: "Main", cmd: "NextTab",  mods: "A",  key: "XK_Right", amt: 1},
-			{elem: "Main", cmd: "PrevTab",  mods: "A",  key: "XK_Left", amt: 1},
-			{elem: "Main", cmd: "MoveTabR", mods: "AS", key: "XK_Right", amt: 1},
-			{elem: "Main", cmd: "MoveTabL", mods: "AS", key: "XK_Left", amt: 1},
-			{elem: "Main", cmd: "SortTabs", mods: "AS", key: "s", amt: 1},
+			{elem: "Main", cmd: "NextTab",    mods: "A",   key: "XK_Right", amt: 1},
+			{elem: "Main", cmd: "PrevTab",    mods: "A",   key: "XK_Left",  amt: 1},
+			{elem: "Main", cmd: "MoveTabR",   mods: "AS",  key: "XK_Right", amt: 1},
+			{elem: "Main", cmd: "MoveTabL",   mods: "AS",  key: "XK_Left",  amt: 1},
+			{elem: "Main", cmd: "SortTabs",   mods: "AS",  key: "s",        amt: 1},
+			{elem: "Main", cmd: "RepaneTabH", mods: "CAS", key: "XK_Right", amt: 1},
+			{elem: "Main", cmd: "RepaneTabH", mods: "CAS", key: "XK_Left",  amt: -1},
+			{elem: "Main", cmd: "RepaneTabV", mods: "CAS", key: "XK_Up",    amt: 1},
+			{elem: "Main", cmd: "RepaneTabV", mods: "CAS", key: "XK_Down",  amt: -1},
+			
 			
 			{elem: "Main", cmd: "FocusPaneRelX", mods: "AT", key: "XK_Right", amt: 1},
 			{elem: "Main", cmd: "FocusPaneRelX", mods: "AT", key: "XK_Left", amt: -1},
 			{elem: "Main", cmd: "FocusPaneRelY", mods: "AT", key: "XK_Up", amt: -1},
 			{elem: "Main", cmd: "FocusPaneRelY", mods: "AT", key: "XK_Down", amt: 1},
+			
 			
 			{elem: "Main", cmd: "GoToTab", mods: "A", key: "1", amt: 0},
 			{elem: "Main", cmd: "GoToTab", mods: "A", key: "2", amt: 1},
