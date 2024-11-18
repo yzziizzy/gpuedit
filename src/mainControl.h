@@ -144,7 +144,7 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p);
 void MainControl_FocusPane(MainControl* w, int x, int y);
 MainControlPane* MainControl_GetPane(MainControl* w, int x, int y);
 MainControlTab* MainControl_AddGenericTab(MainControl* w, void* client, char* title);
-void MainControlPane_afterTabClose(MainControlPane* w)
+void MainControlPane_afterTabClose(MainControlPane* w);
 void MainControl_CloseTab(MainControl* w, int index);
 MainControlTab* MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts, int16_t paneTargeter);
 MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab* tab, char** exts);
