@@ -213,8 +213,13 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 	
 	json_file_t* jsf = NULL;
-	if(!new_session) jsf = json_load_path("./.gpuedit.session");
-	if(jsf) {
+	char* session_file_path = "./.gpuedit.session";
+	if(!new_session) jsf = json_load_path(session_file_path);
+	if(jsf && jsf->error) {
+		L_ERROR("error while loading config file: '%s'\n", session_file_path);
+		L_ERROR("json error: %s %ld:%ld\n", jsf->error_str, jsf->error_line_num, jsf->error_char_num);
+		L_ERROR("session file exists, but continuing without session\n");
+	} else if(jsf) {
 		
 		json_value_t* paneLayout = json_obj_get_val(jsf->root, "paneLayout");
 		int xdivs = json_obj_get_int(paneLayout, "x", 1);

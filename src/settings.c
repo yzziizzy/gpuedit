@@ -505,6 +505,10 @@ int Settings_LoadFile(Settings* s, char* path, unsigned long mask) {
 	if(!jsf) {
 		L4("Failed to open config file '%s'\n", path);
 		return 1;
+	} else if(jsf->error) {
+		L_ERROR("Error loading config file: '%s'\n", path);
+		L_ERROR("json error: %s %ld:%ld\n", jsf->error_str, jsf->error_line_num, jsf->error_char_num);
+		return 1;
 	}
 	
 	L5("Reading config file '%s'\n", path);
@@ -529,7 +533,7 @@ int GlobalSettings_LoadFromFile(GlobalSettings* s, char* path) {
 	json_value_t* obj;
 	
 	jsf = json_load_path(path);
-	if(!jsf) return 1;
+	if(!jsf) return 1; // BUG: missing jsf->error check
 	obj = jsf->root;
 	
 	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, obj, #name);

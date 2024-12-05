@@ -21,6 +21,9 @@ void LOG(int verbosity, char* fmt, ...);
 #define L4(fmt, ...) LOG(4, fmt, ##__VA_ARGS__)
 #define L5(fmt, ...) LOG(5, fmt, ##__VA_ARGS__)
 
+#define L_ERROR(fmt, ...) fprintf(stderr, "ERROR: " fmt __VA_OPT__(,) __VA_ARGS__);
+#define L_FATAL(fmt, ...) fprintf(stderr, "FATAL: " fmt __VA_OPT__(,) __VA_ARGS__);
+
 #ifdef DEBUG
 	#define dbg(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __FILE__, __LINE__ __VA_OPT__(,) __VA_ARGS__);
 #else

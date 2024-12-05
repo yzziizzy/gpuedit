@@ -1696,7 +1696,9 @@ void Buffer_ReloadGCCErrorFile(Buffer* b) {
 	json_file_t* jsf = json_load_path(b->gccErrorJSONPath);
 	if(!jsf) return;
 	
-	if(jsf->error_str) printf("json error: %s %ld:%ld\n", jsf->error_str, jsf->error_line_num, jsf->error_char_num);
+	if(jsf->error) {
+		L_ERROR("json error: %s %ld:%ld\n", jsf->error_str, jsf->error_line_num, jsf->error_char_num);
+	}
 	
 	if(jsf->root->type != JSON_TYPE_ARRAY) goto CLEANUP;
 	

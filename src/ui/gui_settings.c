@@ -242,8 +242,15 @@ void GUISettings_LoadFromFile(GUIManager* gm, GUISettings* s, char* path) {
 	json_value_t* obj;
 	
 	jsf = json_load_path(path);
-	if(!jsf) return;
-
+	if(!jsf) {
+		L_ERROR("Failed to open config file '%s'\n", path);
+		return;
+	}
+	else if(jsf->error) {
+		L_ERROR("Error loading config file: '%s'\n", path);
+		L_ERROR("json error: %s %ld:%ld\n", jsf->error_str, jsf->error_line_num, jsf->error_char_num);
+		return;
+	}
 	GUISettings_LoadJSON(gm, s, jsf->root);
 	
 	
