@@ -160,7 +160,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 	as->gs = Settings_GetSection(as->globalSettings, SETTINGS_General);
 	
-	printf("err path: %s\n", as->gs->gccErrorJSONPath);
+//	printf("err path: %s\n", as->gs->gccErrorJSONPath);
 	
 	if(no_sessions) as->gs->enableSessions = 0;
 	

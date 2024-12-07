@@ -419,9 +419,9 @@ int16_t Commands_GetPaneTargeter(GUIManager* gm, char* defStr) {
 	
 	int index = -1;
 	VEC_EACH(&gm->paneTargeters, i, pt) {
-		printf("p.self: %d, pt.self: %d\n", p.self, pt.self);
+//		printf("p.self: %d, pt.self: %d\n", p.self, pt.self);
 		if(p.self == pt.self) {
-			printf("matched targeter %ld\n", i);
+//			printf("matched targeter %ld\n", i);
 			index = i;
 			break;
 		}
@@ -955,7 +955,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 	if(!json_obj_get_key(entry, "pane", &v)) {
 		if(v->type == JSON_TYPE_STRING) {
 			cmd->paneTargeter = Commands_GetPaneTargeter(gm, v->s);
-			printf("setting paneTargeter [%d] for command\n", cmd->paneTargeter);
+//			printf("setting paneTargeter [%d] for command\n", cmd->paneTargeter);
 		}
 	}
 	else {

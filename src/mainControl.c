@@ -1147,7 +1147,7 @@ MainControlTab* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type,
 
 MainControlTab* MainControl_OpenConjugate(MainControl* w, MainControlTab* tab, char** exts, int16_t paneTargeter) {
 	MainControlPane* pane = NULL;
-	printf("open conjugate with pane targeter: %d\n", paneTargeter);
+//	printf("open conjugate with pane targeter: %d\n", paneTargeter);
 	pane = MainControl_ChoosePane(w, paneTargeter);
 	return MainControlPane_OpenConjugate(pane, tab, exts);
 }
@@ -1200,7 +1200,7 @@ MainControlTab* MainControlPane_OpenConjugate(MainControlPane* w, MainControlTab
 
 MainControlTab* MainControl_OpenSelf(MainControl* w, MainControlTab* tab, int16_t paneTargeter) {
 	MainControlPane* pane = NULL;
-	printf("open self with pane targeter: %d\n", paneTargeter);
+//	printf("open self with pane targeter: %d\n", paneTargeter);
 	pane = MainControl_ChoosePane(w, paneTargeter);
 	
 	if(pane == w->focusedPane) return NULL;
