@@ -42,8 +42,10 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 	gm->curZ += 10;
 	
 	DEFAULTS(GUIEditOpts, eopts);
-	eopts.selectAll = 1;
-	if(GUI_Edit_(gm, &w->searchTerm, tl, sz.x, &w->searchTerm, &eopts)) {
+	for(int i = 0; i < 3; i++) {
+		eopts[i].selectAll = 1;
+	}
+	if(GUI_Edit_(gm, &w->searchTerm, tl, sz.x, &w->searchTerm, eopts)) {
 		GUIFuzzyMatchControl_Refresh(w);
 	}
 	gm->curZ -= 10;
@@ -109,8 +111,8 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 	
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 		
-		Vector2 btl_proj = {tl.x + gutter, tl.y + 20 + (lh * linesDrawn)};
-		Vector2 btl_file = {btl_proj.x + w->proj_gutter + gutter, tl.y + 20 + (lh * linesDrawn)};
+		Vector2 btl_proj = {tl.x + gutter, tl.y + 35 + (lh * linesDrawn)};
+		Vector2 btl_file = {btl_proj.x + w->proj_gutter + gutter, tl.y + 35 + (lh * linesDrawn)};
 		Vector2 bsz = {sz.x - gutter, (lh)};
 		
 		if(w->cursorIndex == i) { // backgrounds for selected items
@@ -119,10 +121,12 @@ void GUIFuzzyMatchControl_Render(GUIFuzzyMatchControl* w, GUIManager* gm, Vector
 		}
 
 		gm->curZ++;
+		
 		// the project name
-		GUI_TextLine(w->matches[i].projname, strlen(w->matches[i].projname), btl_proj, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
+		GUI_TextLineAdv(btl_proj, bsz, w->matches[i].projname, strlen(w->matches[i].projname), GUI_TEXT_ALIGN_VCENTER, w->font, w->fontsize, &gm->defaults.selectedItemTextColor);
 		// the file name
-		GUI_TextLine(w->matches[i].filepath, strlen(w->matches[i].filepath), btl_file, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
+		GUI_TextLineAdv(btl_file, bsz, w->matches[i].filepath, strlen(w->matches[i].filepath), GUI_TEXT_ALIGN_VCENTER, w->font, w->fontsize, &gm->defaults.selectedItemTextColor);
+		
 		gm->curZ--;
 		
 		linesDrawn++;
@@ -200,7 +204,7 @@ GUIFuzzyMatchControl* GUIFuzzyMatchControl_New(GUIManager* gm, Settings* s, Mess
 	
 	w->fontsize = 16;
 	#define MAGIC_UI_FONTNAME "Arial"
-	GUIFont* font = GUI_FindFont(gm, MAGIC_UI_FONTNAME, w->fontsize);
+	GUIFont* font = GUI_FindFont(gm, MAGIC_UI_FONTNAME);
 	if(!font) font = gm->defaults.font;
 	w->font = font;
 	

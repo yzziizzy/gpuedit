@@ -122,10 +122,12 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		GUI_Rect(V(0, 0), V(sz.x, 40), &gm->defaults.trayBgColor);
 		
 		DEFAULTS(GUIEditOpts, eo);
-		eo.selectAll = 1;
+		for(int i = 0; i < 3; i++) {
+			eo[i].selectAll = 1;
+		}
 		
 		ACTIVE(&w->gotoLineNum);
-		if(GUI_IntEdit_(gm, &w->gotoLineNum, V(10,10), sz.x - 20, &w->gotoLineNum, &eo)) {
+		if(GUI_IntEdit_(gm, &w->gotoLineNum, V(10,10), sz.x - 20, &w->gotoLineNum, eo)) {
 			BufferLine* bl = Buffer_raw_GetLineByNum(w->ec->b, w->gotoLineNum);
 				
 			if(bl) {
@@ -147,11 +149,13 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		GUI_Rect(V(0, sz.y - sbh - 60), V(sz.x, 60), &gm->defaults.trayBgColor);
 		
 		DEFAULTS(GUIEditOpts, eopts);
-		eopts.selectAll = 1;
-		if(GUI_Edit_(gm, &w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery, &eopts)) {
+		for(int i = 0; i < 3; i++) {
+			eopts[i].selectAll = 1;
+		}
+		if(GUI_Edit_(gm, &w->findQuery, V(10, sz.y - sbh - 55), sz.x - 10 - 200, &w->findQuery, eopts)) {
 			update = 1;
 		}
-		if(GUI_Edit_(gm, &w->replaceText, V(10, sz.y - sbh - 25), sz.x - 10 - 200, &w->replaceText, &eopts)) {
+		if(GUI_Edit_(gm, &w->replaceText, V(10, sz.y - sbh - 25), sz.x - 10 - 200, &w->replaceText, eopts)) {
 			
 		}
 		
@@ -181,17 +185,19 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 
 		
-		DEFAULTS(GUIButtonOpts, bo)
-		bo.size = V(90, 20);
-		bo.fontSize = 12;
+		DEFAULTS(GUIButtonOpts, bo);
+		for(int i = 0; i < 3; i++) {
+			bo[i].size = V(90, 20);
+			bo[i].fontSize = 12;
+		}
 		
-		if(GUI_Button_(gm, ID(&w->findQuery)+1, V(sz.x - 200 + 10, sz.y - sbh - 55), "Find Next", &bo)) {
+		if(GUI_Button_(gm, ID(&w->findQuery)+1, V(sz.x - 200 + 10, sz.y - sbh - 55), "Find Next", bo)) {
 			update = 2;
 		}
-		if(GUI_Button_(gm, ID(&w->replaceText)+1, V(sz.x - 200 + 10, sz.y - sbh - 25), "Replace", &bo)) {
+		if(GUI_Button_(gm, ID(&w->replaceText)+1, V(sz.x - 200 + 10, sz.y - sbh - 25), "Replace", bo)) {
 			update = 3;
 		}
-		if(GUI_Button_(gm, ID(&w->replaceText)+2, V(sz.x - 200 + 10 + 95, sz.y - sbh - 25), "Replace All", &bo)) {
+		if(GUI_Button_(gm, ID(&w->replaceText)+2, V(sz.x - 200 + 10 + 95, sz.y - sbh - 25), "Replace All", bo)) {
 			update = 4;
 		}
 

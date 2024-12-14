@@ -282,7 +282,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	
 	AABB2 oClip = gm->curClip;
 	
-	GUIFont* titleFont = GUI_FindFont(gm, "Arial",  mc->tabHeight - 5);
+	GUIFont* titleFont = GUI_FindFont(gm, "Arial");
 	
 	// tab titles
 	VEC_EACH(&w->tabs, i, tab) {
@@ -312,10 +312,13 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 			c = C4H(ff0000ff);
 		}
 		
-		GUI_TextLine(
-			tab->title, strlen(tab->title), 
-			V(box.min.x - xoff, box.min.y), /*V(tabw - 2, mc->tabHeight - 2),*/ 
-			"Arial", mc->tabHeight - 5, 
+		GUI_TextLineAdv(
+			V(box.min.x - xoff, box.min.y), 
+			V(tabw - 2, mc->tabHeight - 2), 
+			tab->title, strlen(tab->title),
+			0,
+			titleFont,
+			mc->tabHeight - 5, 
 			&c
 		);
 		
@@ -1752,7 +1755,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	GUIBufferEditor* gbe = GUIBufferEditor_New(w->gm, &w->rx);
 	GUIBufferEditor_UpdateSettings(gbe, ls);
 
-	gbe->ec->font = GUI_FindFont(w->gm, bs->font, bs->fontSize);
+	gbe->ec->font = GUI_FindFont(w->gm, bs->font);
 	gbe->ec->scrollLines = 0;
 	gbe->hm = &w->hm;
 	gbe->sourceFile = opt->path ? strdup(opt->path) : NULL;

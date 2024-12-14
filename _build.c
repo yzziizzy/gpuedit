@@ -47,11 +47,18 @@ char* sources[] = { "main.c",
 	"sti/sti.c",
 	"texture.c",
 	"textureAtlas.c",
+	"ui/buttons.c",
 	"ui/commands.c",
+	"ui/edits.c",
 	"ui/gui.c",
 	"ui/gui_settings.c",
 	"ui/guiManager.c",
 	"ui/imgui.c",
+	"ui/opts_structs.c",
+//	"ui/scrollbars.c",
+//	"ui/selects.c",
+//	"ui/sliders.c",
+	"ui/text.c",
 	"units.c",
 	"utilities.c",
 	"window.c", 
@@ -122,7 +129,7 @@ char* cflags[] = {
 	"-fno-rounding-math", 
 	"-fno-signaling-nans", 
 	"-include signal.h", 
-	//"-include ./config.h",
+	"-include ./src/global.h",
 	"-pthread", 
 	"-Wall", 
 	"-Werror", 
@@ -154,6 +161,27 @@ char* cflags[] = {
 	NULL,
 };
 
+
+void gen_optsstructs() {
+	time_t exe_mtime;
+	time_t cfg_mtime;
+	time_t gen1_mtime;
+	time_t gen2_mtime;
+	char* exefile = "tools/settings/gen_opts_structs";
+	char* cfgfile = "src/ui/opts_structs.sex";
+	char* genfile1 = "src/ui/opts_structs.h";
+	char* genfile2 = "src/ui/opts_structs.c";
+	resolve_path(exefile, &exe_mtime);
+	resolve_path(cfgfile, &cfg_mtime);
+	resolve_path(genfile1, &gen1_mtime);
+	resolve_path(genfile2, &gen2_mtime);
+	if(cfg_mtime > gen1_mtime || cfg_mtime > gen2_mtime || !exe_mtime) {
+		printf("Regenerating src/ui/opts_structs.[ch]\n");
+		
+		system("tools/settings/build.sh");
+		system("tools/settings/gen_opts_structs src/ui/opts_structs.sex src/ui/opts_structs.h src/ui/opts_structs.c");
+	}
+}
 
 
 int compile_source(char* src_path, char* obj_path) {
@@ -226,6 +254,8 @@ int main(int argc, char* argv[]) {
 	g_options.debug = 2;
 	char* exe_path = "gpuedit";
 	char* base_build_dir = "build";
+	
+	gen_optsstructs();
 	
 	char* tmp;
 	int mode = 0;

@@ -69,10 +69,12 @@ void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, Pass
 		offset.x = item->offset;
 //		printf("widget '%s', size: %ld [%.2f,%.2f] at (%.2f, %.2f)\n", item->line, item->size, size.x, size.y, offset.x, offset.y);
 		
-		GUI_TextLine(
+		GUI_TextLineAdv(
+			offset, size,
 			item->line, strlen(item->line),
-			offset,
-			gm->defaults.fontName_fw, fontSize,
+			0,
+			gm->defaults.font_fw,
+			fontSize,
 			&gm->defaults.statusBarTextColor
 		);
 	}	

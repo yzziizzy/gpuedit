@@ -199,6 +199,8 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	
 	float z = gm->curZ;
 	
+	GUI_PushFontName("Arial", 16, &gm->defaults.selectedItemTextColor);
+	
 	// draw column header
 	float xoff = tl.x + w->leftMargin;
 	
@@ -208,11 +210,13 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		
 		
 		if(col_type_labels[ci.type]) {
-			
-			GUI_TextLineCentered_(gm,
-				col_type_labels[ci.type], strlen(col_type_labels[ci.type]),
+			GUI_TextLineAdv(
 				V(xoff, tl.y), V(ci.width, w->headerHeight), 
-				"Arial", 16, &gm->defaults.fileBrowserHeaderTextColor
+				col_type_labels[ci.type], -1,
+				GUI_TEXT_ALIGN_VCENTER,
+				gm->curFont,
+				gm->curFontSize,
+				&gm->defaults.fileBrowserHeaderTextColor
 			);
 		}
 		
@@ -249,7 +253,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 					break;
 				
 				case GUIFB_CT_name:
-					GUI_TextLine("..", strlen(".."), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
+					GUI_TextLine(V(box.min.x, box.min.y), "..", strlen(".."));// , "Arial", 16, &gm->defaults.selectedItemTextColor);
 					break;
 			}
 			
@@ -281,6 +285,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		
 		
 		
+		
 		gm->curZ = z + 3;
 		xoff = tl.x + w->leftMargin;
 		VEC_EACH(&w->columnInfo, i, ci) {
@@ -289,6 +294,12 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 			box.min.y = tl.y + (lh * linesDrawn) + w->headerHeight;
 			box.max.x = xoff + col_type_widths[ci.type];
 			box.max.y = tl.y + (lh * (linesDrawn + 1)) + w->headerHeight;
+			
+			
+			
+			// TODO: defaults change
+			
+			
 			
 			
 			switch(ci.type) {
@@ -303,36 +314,36 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 				}
 				
 				case GUIFB_CT_name:
-					GUI_TextLine(e->name, strlen(e->name), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
+					GUI_TextLine(box.min, e->name, -1);
 					break;
 					
 				case GUIFB_CT_size:
 					if(e->type != 2 && e->humanSize) {
+						GUI_TextLine(box.min, e->humanSize, -1);
 						// TODO: align right
-						GUI_TextLine(e->humanSize, strlen(e->humanSize), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
 					}
 					break;
 					
 				case GUIFB_CT_sizeOnDisk:
 					if(e->type != 2 && e->humanSizeOnDisk) {
 						// TODO: align right
-						GUI_TextLine(e->humanSizeOnDisk, strlen(e->humanSizeOnDisk), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
+						GUI_TextLine(box.min, e->humanSizeOnDisk, -1);
 					}
 					break;
 				
 				case GUIFB_CT_atime:
 					if(e->atimeStr)
-						GUI_TextLine(e->atimeStr, strlen(e->atimeStr), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
+						GUI_TextLine(box.min, e->atimeStr, -1);
 					break;
 					
 				case GUIFB_CT_mtime:
 					if(e->mtimeStr)
-						GUI_TextLine(e->mtimeStr, strlen(e->mtimeStr), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
+						GUI_TextLine(box.min, e->mtimeStr, -1);
 					break;
 					
 				case GUIFB_CT_ctime:
 					if(e->ctimeStr)
-						GUI_TextLine(e->ctimeStr, strlen(e->ctimeStr), V(box.min.x, box.min.y), "Arial", 16, &gm->defaults.selectedItemTextColor);
+						GUI_TextLine(box.min, e->ctimeStr, -1);
 					break;
 				
 			}
@@ -343,7 +354,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		linesDrawn++;
 	}
 	
-	
+	GUI_PopFont();
 
 	
 	gm->curZ = z;

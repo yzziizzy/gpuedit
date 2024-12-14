@@ -52,6 +52,18 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	BufferSettings* bs = gbe->bs;
 	float fsize = bs->fontSize; 
 	GUIFont* f = gbe->font;
+	
+	int isBitmap = 0;
+	if(fsize >= 4 && fsize + .4999f <= 36) {
+		int b = floor(fsize + .4999f) - 4;
+		if(f->bitmapFonts[b]) {
+			f = f->bitmapFonts[b];
+			isBitmap = 1;
+			fsize = floor(fsize + .4999f);
+		}
+	}
+	
+	
 	float ascender = f->ascender * fsize;
 	int line = 1;
 	int linesRendered = 0;
@@ -245,7 +257,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 					
 					if(adv >= gbe->scrollCols * bs->charWidth && adv < (gbe->scrollCols * bs->charWidth) + sz.x) {
 						gm->curZ = z + 4;
-						GUI_CharFont_NoGuard('0', V(tl.x + hsoff + adv, yoff), f, fsize, &pulseColor);
+						GUI_BitmapChar_NoGuard('0', V(tl.x + hsoff + adv, yoff), f, fsize, &pulseColor);
 						gm->curZ = z + 2;
 						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth), bs->lineHeight), &pulseColorBg);
 					}
@@ -264,7 +276,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 					// normal, non-tab text		
 					if(adv >= gbe->scrollCols * bs->charWidth && adv < (gbe->scrollCols * bs->charWidth) + sz.x) {
 						gm->curZ = z + 4;
-						GUI_CharFont_NoGuard(c, V(tl.x + hsoff + adv, yoff), f, fsize, fg);
+						GUI_BitmapChar_NoGuard(c, V(tl.x + hsoff + adv, yoff), f, fsize, fg);
 						gm->curZ = z + 2;
 						if(inSelection) GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(MAX(5, (float)bs->charWidth), bs->lineHeight), bg);
 					}
@@ -454,6 +466,7 @@ void drawTextLine(GUIManager* gm, BufferSettings* bs, GUIFont* f, struct Color4*
 	float adv = 0;
 	
 	
+	int isBitmap = 1;
 	
 	float spaceadv = f->regular[' '].advance;
 	
@@ -468,7 +481,46 @@ void drawTextLine(GUIManager* gm, BufferSettings* bs, GUIFont* f, struct Color4*
 		}
 		else if(c != ' ') {
 
-			GUI_CharFont_NoGuard(c, V(tl.x + adv, tl.y + hoff), f, size, textColor);
+//			GUI_Char_NoGuard(c, V(tl.x + adv, tl.y + hoff), f, size, textColor);
+			
+			GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+			
+			Vector2 off = V(tl.x + adv, tl.y + hoff);
+			
+			float offx = ci->texNormOffset.x;
+			float offy = ci->texNormOffset.y;
+			float widx = ci->texNormSize.x;
+			float widy = ci->texNormSize.y;
+			
+			v->pos.t = off.y + hoff + ci->topLeftOffset.y * size;
+			v->pos.l = off.x + ci->topLeftOffset.x * size;
+			v->pos.b = off.y + hoff + ci->bottomRightOffset.y * size;
+			v->pos.r = off.x + ci->bottomRightOffset.x * size;
+			
+			if(isBitmap) { // align the quads to pixel boundaries for bitmap fonts, else there is terrible blurring
+				float t = round(v->pos.t);
+				float l = round(v->pos.l);
+				v->pos.b -= v->pos.t - t;
+				v->pos.r -= v->pos.l - l;
+				v->pos.t = t;
+				v->pos.l = l;
+			}
+			
+			v->guiType = isBitmap ? 100 : 1; // text
+			
+			v->texOffset1.x = offx * 65535.0;
+			v->texOffset1.y = offy * 65535.0;
+			v->texSize1.x = widx * 65535.0;
+			v->texSize1.y = widy * 65535.0;
+			v->texIndex1 = ci->texIndex;
+			
+			v->clip = GUI_AABB2_TO_SHADER(gm->curClip);
+			v->fg = GUI_COLOR4_TO_SHADER(*textColor);
+			v->bg = GUI_COLOR4_TO_SHADER(*textColor);
+			v->z = gm->curZ;
+			
+//			adv += ci->advance * size;
+			
 			
 			adv += bs->charWidth; // ci->advance * size; // BUG: needs sdfDataSize added in?
 			

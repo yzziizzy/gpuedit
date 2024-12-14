@@ -2,9 +2,10 @@
 #define __gputk_gui_settings_h__
 
 
-
 #include "opts_structs.h"
 
+typedef GUIEditOpts GUIIntEditOpts;
+typedef GUIButtonOpts GUIToggleButtonOpts;
 
 #define GUI_SETTING_LIST \
 	SETTING(int,   maxInstances,                  8192, 64, 9999999999999) \
@@ -69,9 +70,11 @@ typedef struct GUIFont GUIFont;
 typedef struct GUISettings {
 	GUI_SETTING_LIST
 	
-	#define V(a, ...) a a;
-		GUI_CONTROL_OPS_STRUCT_LIST
-	#undef V
+	struct {
+	#define X(a, b, ...) a a[3];
+		GUI_CONTROL_OPTS_STRUCT_LIST
+	#undef X
+	} opts, raw;
 } GUISettings;
 
 #undef SETTING

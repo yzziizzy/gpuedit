@@ -2,6 +2,8 @@
 #define __EACSMB_gui_internal_h__
 
 #include <stdarg.h>
+#include "opts_structs.h"
+#include "controls.h"
 
 // this file is for gui element implementations, not for general outside usage
 
@@ -47,64 +49,99 @@ static inline void GUIString_Init(GUIString* s) {
 }
 
 
-#define GUI_TEXT_ALIGN_LEFT 0x00
-#define GUI_TEXT_ALIGN_RIGHT 0x01
-#define GUI_TEXT_ALIGN_CENTER 0x02
+#define GUI_TEXT_ALIGN_LEFT     0x00
+#define GUI_TEXT_ALIGN_RIGHT    0x01
+#define GUI_TEXT_ALIGN_CENTER   0x02
+#define GUI_TEXT_ALIGN_TOP     (0x00 << 2)
+#define GUI_TEXT_ALIGN_VCENTER (0x01 << 2)
+#define GUI_TEXT_ALIGN_BOTTOM  (0x02 << 2)
 
 
 
 void GUI_Image_(GUIManager* gm, Vector2 tl, Vector2 sz, char* name);
 #define GUI_Image(a,b,c) GUI_Image_(gm, a,b,c)
 
+
+
 // draws a single character from its font origin point
-void GUI_Char_(GUIManager* gm, int c, Vector2 origin, char* fontName, float size, Color4* color);
-#define GUI_Char(a,b,c,d,e) GUI_Char_(gm, a,b,c,d,e) 
-void GUI_CharFont_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color);
-#define GUI_CharFont(a,b,c,d,e) GUI_CharFont_(gm, a,b,c,d,e) 
+void GUI_Char_(GUIManager* gm, int c, vec2 origin, GUIFont* font, float size, Color4* color);
+#define GUI_Char(...) GUI_Char_(gm, __VA_ARGS__) 
+
+// draws a single character from its font origin point
 // lacks a drawMode guard
-void GUI_CharFont_NoGuard_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color);
-#define GUI_CharFont_NoGuard(a,b,c,d,e) GUI_CharFont_NoGuard_(gm, a,b,c,d,e) 
+void GUI_Char_NoGuard_(GUIManager* gm, int c, vec2 origin, GUIFont* font, float size, Color4* color);
+#define GUI_Char_NoGuard(...) GUI_Char_NoGuard_(gm, __VA_ARGS__) 
 
-// no wrapping
-void GUI_TextLine_(
-	GUIManager* gm, 
-	char* text, 
-	size_t textLen, 
-	Vector2 tl, 
-	char* fontName, 
-	float size, 
-	Color4* color
+// draws a single pixel-aligned bitmap character from its font origin point
+// lacks a drawMode guard
+void GUI_BitmapChar_NoGuard_(GUIManager* gm, int c, vec2 origin, GUIFont* font, float size, Color4* color);
+#define GUI_BitmapChar_NoGuard(...) GUI_BitmapChar_NoGuard_(gm, __VA_ARGS__) 
+
+
+// stops on linebreak
+#define  GUI_TextLine(...) GUI_TextLine_(gm, __VA_ARGS__)
+float GUI_TextLine_(GUIManager* gm, vec2 tl, char* txt, ssize_t charCount);
+
+
+#define  GUI_TextLineAdv(...) GUI_TextLineAdv_(gm, __VA_ARGS__)
+float GUI_TextLineAdv_(
+	GUIManager* gm,
+	vec2 tl,   
+	vec2 sz, // used for alignment options   
+	char* txt, 
+	ssize_t charCount,
+	int align,
+	GUIFont* font,
+	float fontSize,
+	struct Color4* color
 );
-#define GUI_TextLine(a,b, c,d, f,g) GUI_TextLine_(gm, a,b, c,d, f,g)
 
+// V and H centering
 // no wrapping
-void GUI_TextLineCentered_(
-	GUIManager* gm, 
-	char* text, 
-	size_t textLen, 
-	Vector2 tl, 
-	Vector2 sz, 
-	char* fontName, 
-	float size, 
-	Color4* color
-);
-
 #define GUI_TextLineCentered(...) GUI_TextLineCentered_(gm, __VA_ARGS__)
+float GUI_TextLineCentered_(
+	GUIManager* gm, 
+	vec2 tl, 
+	vec2 sz,
+	char* text, 
+	ssize_t textLen 
+);
+
+// V and H centering
+// no wrapping
+#define GUI_TextLineCenteredAdv(...) GUI_TextLineCenteredAdv_(gm, __VA_ARGS__)
+float GUI_TextLineCenteredAdv_(
+	GUIManager* gm, 
+	vec2 tl, 
+	vec2 sz,
+	char* text, 
+	ssize_t textLen,
+	GUIFont* font,
+	float fontSize,
+	struct Color4* color
+);
 
 
 // no wrapping
-void GUI_Printf_(
+float GUI_Printf_(
 	GUIManager* gm,  
 	Vector2 tl, 
-	char* fontName, 
-	float size, 
-	Color4* color,
 	char* fmt,
 	...
 );
 #define GUI_Printf(...) GUI_Printf_(gm, __VA_ARGS__)
 
 
+#define  GUI_GetTextWidth(a,b) GUI_GetTextWidthAdv_(gm, a,b, gm->curFont, gm->curFontSize)
+
+#define  GUI_GetTextWidthAdv(a,b,c,d) GUI_GetTextWidthAdv_(gm, a,b,c,d)
+float GUI_GetTextWidthAdv_(
+	GUIManager* gm,
+	char* txt, 
+	ssize_t charCount,
+	GUIFont* font,
+	float fontsize
+);
 
 #define  GUI_CharFromPixelF(a,b,c,d,e) GUI_CharFromPixelF_(gm, a,b,c,d,e)
 float GUI_CharFromPixelF_(
@@ -116,10 +153,9 @@ float GUI_CharFromPixelF_(
 	float pixelOffset
 );
 
-
-void GUI_Double_(GUIManager* gm, double d, int precision, Vector2 tl, char* fontName, float size, Color4* color);
+void GUI_Double_(GUIManager* gm, vec2 tl, double d, int precision);
 #define GUI_Double(...) GUI_Double_(gm, __VA_ARGS__)
-void GUI_Integer_(GUIManager* gm, int64_t i, Vector2 tl, char* fontName, float size, Color4* color);
+void GUI_Integer_(GUIManager* gm, vec2 tl, int64_t i);
 #define GUI_Integer(...) GUI_Integer_(gm, __VA_ARGS__)
 
 void gui_drawBox(
@@ -293,6 +329,21 @@ float GUI_GetScrollDist_(GUIManager* gm);
 #define GUI_GetScrollDist() GUI_GetScrollDist_(gm)
 
 
+// sets the current font parameters
+void GUI_SetFont_(GUIManager* gm, GUIFont* font, float size, Color4* color);
+#define GUI_SetFont(...) GUI_SetFont_(gm, __VA_ARGS__)
+void GUI_SetFontName_(GUIManager* gm, char* fontName, float size, Color4* color);
+#define GUI_SetFontName(...) GUI_SetFontName_(gm, __VA_ARGS__)
+
+void GUI_PushFontName_(GUIManager* gm, char* fontName, float size, Color4* color);
+#define GUI_PushFontName(...) GUI_PushFontName_(gm, __VA_ARGS__)
+void GUI_PushFont_(GUIManager* gm, GUIFont* font, float size, Color4* color);
+#define GUI_PushFont(...) GUI_PushFont_(gm, __VA_ARGS__)
+
+void GUI_PopFont_(GUIManager* gm);
+#define GUI_PopFont() GUI_PopFont_(gm)
+
+
 // sets the current clipping region, respecting the current window
 void GUI_PushClip_(GUIManager* gm, Vector2 tl, Vector2 sz);
 #define GUI_PushClip(a, b) GUI_PushClip_(gm, a, b)
@@ -315,8 +366,8 @@ void GUI_EndWindow_(GUIManager* gm);
 
 
 // returns true if clicked
-int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o);
-#define GUI_Button(a,b,c) GUI_Button_(gm, a,b,c, &gm->defaults.GUIButtonOpts)
+//int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o);
+//#define GUI_Button(a,b,c) GUI_Button_(gm, a,b,c, &gm->defaults.GUIButtonOpts)
 
 int GUI_RectButton_(
 	GUIManager* gm, 
@@ -332,48 +383,48 @@ int GUI_RectButton_(
 #define GUI_RectButton(...) GUI_RectButton_(gm, __VA_ARGS__)
 
 // returns true if toggled on
-int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o);
-#define GUI_ToggleButton(a,b,c,d) GUI_ToggleButton_(gm, a,b,c,d, &gm->defaults.GUIToggleButtonOpts)
+//int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o);
+//#define GUI_ToggleButton(a,b,c,d) GUI_ToggleButton_(gm, a,b,c,d, &gm->defaults.GUIToggleButtonOpts)
 
 // returns true if checked
-int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o);
-#define GUI_Checkbox(a,b,c,d) GUI_Checkbox_(gm, a,b,c,d, &gm->defaults.GUICheckboxOpts)
+//int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o);
+//#define GUI_Checkbox(a,b,c,d) GUI_Checkbox_(gm, a,b,c,d, &gm->defaults.GUICheckboxOpts)
 
 // returns true if *this* radio button is active
-int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o);
-#define GUI_RadioBox(a, b, c, d, e) GUI_RadioBox_(gm, a,b,c,d,e, &gm->defaults.GUIRadioBoxOpts)
+//int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o);
+//#define GUI_RadioBox(a, b, c, d, e) GUI_RadioBox_(gm, a,b,c,d,e, &gm->defaults.GUIRadioBoxOpts)
 
 // returns 1 on change
-int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float min, float max, float incr, float* value, GUIFloatSliderOpts* o);
-#define GUI_FloatSlider(a,b,c,d,e,f) GUI_FloatSlider_(gm, a,b,c,d,e,f, &gm->defaults.GUIFloatSliderOpts)
+//int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float min, float max, float incr, float* value, GUIFloatSliderOpts* o);
+//#define GUI_FloatSlider(a,b,c,d,e,f) GUI_FloatSlider_(gm, a,b,c,d,e,f, &gm->defaults.GUIFloatSliderOpts)
 
 // returns 1 on change
-int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, long min, long max, long* value, GUIIntSliderOpts* o);
-#define GUI_IntSlider(a,b,c,d,e) GUI_IntSlider_(gm, a,b,c,d,e, &gm->defaults.GUIIntSliderOpts)
+//int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, long min, long max, long* value, GUIIntSliderOpts* o);
+//#define GUI_IntSlider(a,b,c,d,e) GUI_IntSlider_(gm, a,b,c,d,e, &gm->defaults.GUIIntSliderOpts)
 
 // returns 1 when the value changes _due to this control_
-int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, char** options, int* selectedOption, GUIOptionSliderOpts* o);
-#define GUI_OptionSlider(a,b,c,d) GUI_OptionSlider_(gm, a,b,c,d, &gm->defaults.GUIOptionSliderOpts)
+//int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, char** options, int* selectedOption, GUIOptionSliderOpts* o);
+//#define GUI_OptionSlider(a,b,c,d) GUI_OptionSlider_(gm, a,b,c,d, &gm->defaults.GUIOptionSliderOpts)
 
 // filter all input before accepting it
-void GUI_Edit_SetFilter_(GUIManager* gm, void* id, GUIEditFilterFn fn, void* data);
-#define GUI_Edit_SetFilter(a, b, c) GUI_Edit_SetFilter_(gm, a, b, c)
+//void GUI_Edit_SetFilter_(GUIManager* gm, void* id, GUIEditFilterFn fn, void* data);
+//#define GUI_Edit_SetFilter(a, b, c) GUI_Edit_SetFilter_(gm, a, b, c)
 
 // synthesizes an input event for the given edit control
 int GUI_Edit_Trigger_(GUIManager* gm, void* id, GUIString* str, int c);
 #define GUI_Edit_Trigger(a, b, c) GUI_Edit_Trigger_(gm, a, b, c)
 
 // returns true on a change
-int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* s, GUIEditOpts* o);
-#define GUI_Edit(a,b,c,d) GUI_Edit_(gm, a,b,c,d, &gm->defaults.GUIEditOpts)
+//int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* s, GUIEditOpts* o);
+//#define GUI_Edit(a,b,c,d) GUI_Edit_(gm, a,b,c,d, &gm->defaults.GUIEditOpts)
 
 // returns true on a change
-int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o);
-#define GUI_IntEdit(a,b,c) GUI_IntEdit_(gm, a,b,c, &gm->defaults.GUIIntEditOpts)
+//int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o);
+//#define GUI_IntEdit(a,b,c) GUI_IntEdit_(gm, a,b,c, &gm->defaults.GUIIntEditOpts)
 
 // returns true on a change
-int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, float width, char** options, int* selectedOption, GUISelectBoxOpts* o);
-#define GUI_SelectBox(a,b,c,d,e) GUI_SelectBox_(gm, a,b,c,d,e, &gm->defaults.GUISelectBoxOpts)
+//int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, float width, char** options, int* selectedOption, GUISelectBoxOpts* o);
+//#define GUI_SelectBox(a,b,c,d,e) GUI_SelectBox_(gm, a,b,c,d,e, &gm->defaults.GUISelectBoxOpts)
 
 // outline of a box with transparent center
 void GUI_Box_(GUIManager* gm, Vector2 tl, Vector2 sz, float width, Color4* borderColor);
@@ -404,6 +455,7 @@ void GUI_CircleFilled_(
 
 #define GUI_CircleFilled(a,b,c,d,e) GUI_CircleFilled_(gm, a,b,c,d,e);
 
+/*
 // no wrapping
 void GUI_TextLine_(
 	GUIManager* gm, 
@@ -414,6 +466,7 @@ void GUI_TextLine_(
 	float size, 
 	Color4* color
 );
+*/
 
 // repects the current window and clipping region
 int GUI_PointInBoxV_(GUIManager* gm, Vector2 tl, Vector2 size, Vector2 testPos);
@@ -425,7 +478,18 @@ int GUI_PointInBox_(GUIManager* gm, AABB2 box, Vector2 testPos);
 int GUI_PointInBoxVABS(Vector2 tl, Vector2 size, Vector2 testPos);
 
 
-
+// used to be a macro, and is still variadic with macros
+static inline bool CLICK_HOT_TO_ACTIVE_1(GUIManager* gm, void* id) {
+	if(gm->hotID == id) {
+		if(GUI_MouseWentDown(1)) {
+			GUI_SetActive_(gm, id, NULL, NULL);
+			GUI_CancelInput();
+			return 1;
+		}
+	}
+	
+	return 0;
+}
 
 
 

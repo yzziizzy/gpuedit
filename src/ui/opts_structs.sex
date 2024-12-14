@@ -1,0 +1,114 @@
+
+(Button 
+	(Color4 bg 111111ff 333333ff ddddddff) 
+	(Color4 border ddddddff ddddddff 111111ff) 
+	(Color4 text ddddddff ddddddff 111111ff) 
+	<vec2 size {150 20}> 
+	<float borderWidth 2> 
+	<float cornerRadius 0>
+	<float fontSize 14> 
+	(char* fontName "Arial") 
+)
+
+(Checkbox 
+	(Color4 bg ff00ffff ff00ffff ff00ffff) 
+	(Color4 border ff00ffff ff00ffff ff00ffff) 
+	(Color4 text ff00ffff ff00ffff ff00ffff) 
+	<vec2 labelSize {150 20}>
+	<float boxSize 20>
+	<float borderWidth 2> 
+	<float fontSize 14>
+	(char* fontName "Arial") 
+)
+
+(RadioBox 
+	(Color4 bg 333333ff 888888ff ddddddff) 
+	(Color4 border ffffffff ffffffff ffffffff) 
+	(Color4 text ddddddff ddddddff ddddddff) 
+	<vec2 labelSize {150 20}> 
+	<float boxSize 20> 
+	<float borderWidth 2> 
+	<float fontSize 14>
+	(char* fontName "Arial") 
+)
+
+(FloatSlider 
+	(Color4 bg 000000ff 880000ff ff0000ff) 
+	(Color4 bar 888888ff 88ff88ff 8888ffff) 
+	(Color4 text ffffffff ffffffff ffffffff) 
+	<int precision 4> 
+	<float fontSize 14>
+	(char* fontName "Arial") 
+)
+
+(IntSlider 
+	(Color4 bg 000000ff 000000ff 000000ff) 
+	(Color4 bar 888888ff 888888ff 888888ff) 
+	(Color4 text ffffffff ffffffff ffffffff) 
+	<vec2 size {150 20}> 
+	<float fontSize 14>
+	(char* fontName "Arial") 
+)
+
+(OptionSlider 
+	(Color4 bg 000000ff 000000ff 000000ff) 
+	(Color4 bar 888888ff 888888ff 888888ff) 
+	(Color4 text ffffffff ffffffff ffffffff) 
+	<vec2 size {150 20}> 
+	<float fontSize 14>
+	(char* fontName "Arial") 
+)
+
+(DropdownBox 
+	(Color4 bg 000000ff 000000ff 000000ff) 
+	(Color4 border ddddddff ddddddff ddddddff) 
+	(Color4 ddBg 000000ff 000000ff 000000ff) 
+	(Color4 ddBorder ddddddff ddddddff ddddddff) 
+	(Color4 selectedText ffffffff ffffffff ffffffff) 
+	(Color4 optionText ffffffff ffffffff ffffffff) 
+	<vec2 labelSize {150 20}> 
+	<vec2 size {150 20}>
+	<float borderWidth 2>
+	<float fontSize 14> 
+	(char* fontName "Arial") 
+)
+
+(Edit 
+	(Color4 bg 111111ff 222222ff 222222ff) 
+	(Color4 border ddddddff ddddddff ddddddff) 
+	(Color4 text ddddddff ddddddff ddddddff) 
+	(Color4 cursorColor ffffffff) 
+	(Color4 selectionBgColor 00ccccff) 
+	<vec2 size {150 24}> 
+	<vec2 padding {4 2}> 
+	<float borderWidth 1> 
+	<float fontSize 14> 
+	(char* fontName "Arial") 
+	(bool selectAll 0) 
+)
+
+(FloatEdit 
+	(Color4 bg 111111ff 444444ff 444444ff) 
+	(Color4 border c8c8c8ff c8c8c8ff c8c8c8ff) 
+	(Color4 text c8c8c8ff c8c8c8ff c8c8c8ff) 
+	(Color4 cursorColor ffffffff) 
+	(Color4 selectionBgColor 00ccccff) 
+	<vec2 size {150 24}> 
+	<vec2 padding {4 2}> 
+	<float borderWidth 1> 
+	<float fontSize 14> 
+	(char* fontName "Arial") 
+	(bool selectAll 0) 
+)
+
+(Scrollbar 
+	(Color4 bg 111111ff 222222ff 222222ff) 
+	(Color4 border 888888ff 888888ff 888888ff) 
+	(Color4 handleBg ddddddff eeeeeeff ffffffff) 
+	(Color4 handleBorder ddddddff ddddddff ddddddff) 
+	<float borderWidth 1>
+	<float handleBorderWidth 1>
+	<float handleMinSize 50> 
+)
+
+

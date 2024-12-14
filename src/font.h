@@ -13,6 +13,7 @@
 // here until factored better:
 #include "ui/gui_settings.h"
 
+#define popcount(x) __builtin_popcount(x)
 
 
 #include <ft2build.h>
@@ -56,9 +57,10 @@ typedef struct GUIFont {
 	double height;
 	// TODO: kerning info
 	
-	uint64_t bitmapSizes; // Bit field representing available bitmap sizes
+	uint32_t bitmapSizes; // Bit field representing available bitmap sizes
 	                      //  The first bit represents size 4px
-	VEC(struct GUIFont*) bitmapFonts;
+	struct GUIFont* bitmapFonts[32];
+	
 	
 	int sdfGenSize;
 	VEC(struct {int min; int max;}) codeRanges;
@@ -169,6 +171,7 @@ void FontManager_AssertDefaultCodeRange(FontManager* fm, int minCode, int maxCod
 FontManager* FontManager_alloc();
 void FontManager_init(FontManager* fm, GUISettings* gs);
 
+void GUIFont_Destroy(GUIFont* f);
 
 void gen_sdf_test_samples(char* fontName, int code);
 

@@ -4,7 +4,10 @@
 #undef C
 #undef C4
 #undef V
-#undef Z
+#undef S
+#undef S_N
+#undef S_1
+#undef S_2
 
 #undef DEFAULTS
 #undef ID

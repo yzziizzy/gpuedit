@@ -1,0 +1,24 @@
+
+(Button 
+	(Color4 bg 0202e1ff c8c802ff ffffffff)
+	(Color4 border c802e1ff 02c8e1ff ffffffff) 
+	(Color4 text c8c8e1ff c80202ff ffffffff)
+	(vec2  size {150 20}) 
+	(float borderWidth 2) 
+	<float fontSize 14>
+	(char* fontName "Arial") 
+)
+
+
+(Toggle 
+	(Color4 bg 0202e1ff c8c802ff ffffffff)
+	(Color4 border c802e1ff 02c8e1ff ffffffff) 
+	(Color4 text c8c8e1ff c80202ff ffffffff)
+	<vec2  size {150 20}> 
+	<float borderWidth 2> 
+	(float fontSize 14) 
+	(char* fontName "Arial") 
+)
+
+
+

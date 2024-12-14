@@ -506,8 +506,11 @@ void GUIManager_appendWindowVerts(GUIManager* gm, GUIWindow* w) {
 
 void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) {
 
+
+
+
 	// clean up the windows from last frame
-	gm->windowHeap.cnt = 0;
+	gm->windowHeap.cnt = 1;
 	gm->rootWin = GUIWindow_new(gm, 0);
 	VEC_TRUNC(&gm->windowStack);
 	VEC_PUSH(&gm->windowStack, gm->rootWin);
@@ -518,11 +521,16 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 	VEC_TRUNC(&gm->clipStack);
 	gm->curClip = gm->rootWin->clip;
 	
-	gm->time = pfp->appTime;
+	gm->time = pfp->wallTime;
 	gm->timeElapsed = pfp->timeElapsed;
 	
 	gm->curZ = 1.0;
-	gm->fontSize = 20.0f;
+	
+
+	VEC_TRUNC(&gm->clipStack);
+	gm->curFontColor = gm->defaults.textColor;
+	gm->curFontSize = gm->defaults.fontSize;
+	gm->curFont = gm->defaults.font;
 	
 	if(isDraw) {
 		gm->drawMode = isDraw;
@@ -536,22 +544,23 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 	
 	gm->renderRootFn(gm->renderRootData, gm, (Vector2){0,0}, gm->screenSizef, pfp);
 	gm->drawMode = 0;
+	gm->mouseWinID = 0;
 	
-	if(!isDraw) {
-		// walk last pass' gui info to set window ids
-		float highestZ = -99999999.9;
-		GUIWindow* highestW = gm->windowHeap.buf; // incidentally the root window
-		GUIWindow* w = gm->windowHeap.buf;
-		for(int i = 0; i < gm->windowHeap.cnt; i++, w++) {
-			if(w->z >= highestZ && boxContainsPoint2p(&w->absClip, &gm->lastMousePos)) {
-				highestZ = w->z;
-				highestW = w;
-			}
+	// walk last pass' gui info to set window ids
+	float highestZ = -99999999.9;
+	GUIWindow* highestW = gm->windowHeap.buf; // incidentally the root window
+	GUIWindow* w = gm->windowHeap.buf;
+	
+	for(int i = 0; i < gm->windowHeap.cnt; i++, w++) {
+		if(w->z > highestZ && boxContainsPoint2p(&w->absClip, &gm->lastMousePos)) {
+			highestZ = w->z;
+			highestW = w;
 		}
-		
-		gm->mouseWinID = highestW->id;
 	}
 	
+	gm->mouseWinID = highestW->id;
+
+
 	// blur and focus notifications
 	if(gm->activeID != gm->lastActiveID) {
 		void* cachedActiveID = gm->activeID;

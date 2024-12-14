@@ -257,15 +257,15 @@ float GUI_CharFromPixelF_(
 	if(!fontsize) fontsize = gm->defaults.fontSize; // HACK
 	if(maxChars < 0) maxChars = strlen(txt);
 	
-//	int isBitmap = 0;
-//	if(fontsize >= 4 && fontsize + .4999f <= 36) {
-//		int b = floor(fontsize + .4999f) - 4;
-//		if(font->bitmapFonts[b]) {
-//			font = font->bitmapFonts[b];
-//			isBitmap = 1;
-//			fontsize = floor(fontsize + .4999f);
-//		}
-//	}
+	int isBitmap = 0;
+	if(fontsize >= 4 && fontsize + .4999f <= 36) {
+		int b = floor(fontsize + .4999f) - 4;
+		if(font->bitmapFonts[b]) {
+			font = font->bitmapFonts[b];
+			isBitmap = 1;
+			fontsize = floor(fontsize + .4999f);
+		}
+	}
 	
 	float adv = 0;
 	
@@ -288,7 +288,7 @@ float GUI_CharFromPixelF_(
 			adv += spaceadv;
 		}
 		
-//		if(isBitmap) adv = ceil(adv); // align to pixel boundaries
+		if(isBitmap) adv = ceil(adv); // align to pixel boundaries
 		
 		if(adv >= pixelOffset) {
 			f32 delta = adv - oldAdv;
@@ -356,7 +356,7 @@ void gui_drawTextLine(
 	gui_drawTextLineAdv(gm, tl, sz, clip, color, NULL, 0, GUI_TEXT_ALIGN_LEFT, z, txt, charCount);
 }
 
-
+#if 0
 // stops on linebreak
 void gui_drawTextLineAdv(
 	GUIManager* gm,
@@ -455,7 +455,7 @@ void gui_drawTextLineAdv(
 	}
 
 }
-
+#endif
 
 float gui_getDefaultUITextWidth(
 	GUIManager* gm,
@@ -518,36 +518,41 @@ void gui_drawVCenteredTextLine(
 
 
 
+//
+//GUIFont* GUI_FindFont(GUIManager* gm, char* name, float size) {
+//	// the master font for this face
+//	GUIFont* mf = FontManager_findFont(gm->fm, name);
+//	
+//	// check to see if a bitmap font is available
+//	int isz = floor(size + 0.5); 
+//	if(isz < 0 || isz > 63) return mf;
+//	
+////	printf("checking size %f, %d\n", size, isz);
+//	
+//	uint64_t mask = 1ul << (isz - 4);
+//	// check the bitfield
+//	if(!(mf->bitmapSizes & mask)) {
+////		printf("  ---missing from bitfield: %s/%d/%f\n", name, isz, size);
+//		return mf;
+//	}
+//	
+////	printf("found bmp font %s/%d\n", name, isz);
+//	
+//	// find and return the correct bitmap font object
+//	VEC_EACH(&mf->bitmapFonts, i, bf) {
+//		if(bf->bitmapSize == isz) return bf;
+//	}
+//	
+//	// just in case the bitmap font wasn't found for some reason.
+//	return mf;
+//}
+//
 
-GUIFont* GUI_FindFont(GUIManager* gm, char* name, float size) {
-	// the master font for this face
-	GUIFont* mf = FontManager_findFont(gm->fm, name);
-	
-	// check to see if a bitmap font is available
-	int isz = floor(size + 0.5); 
-	if(isz < 0 || isz > 63) return mf;
-	
-//	printf("checking size %f, %d\n", size, isz);
-	
-	uint64_t mask = 1ul << (isz - 4);
-	// check the bitfield
-	if(!(mf->bitmapSizes & mask)) {
-//		printf("  ---missing from bitfield: %s/%d/%f\n", name, isz, size);
-		return mf;
-	}
-	
-//	printf("found bmp font %s/%d\n", name, isz);
-	
-	// find and return the correct bitmap font object
-	VEC_EACH(&mf->bitmapFonts, i, bf) {
-		if(bf->bitmapSize == isz) return bf;
-	}
-	
-	// just in case the bitmap font wasn't found for some reason.
-	return mf;
+
+GUIFont* GUI_FindFont(GUIManager* gm, char* name) {
+	GUIFont* font = FontManager_findFont(gm->fm, name);
+	return font;
 }
-
-
 
 
 

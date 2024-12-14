@@ -319,6 +319,15 @@ void main(void) {
 // 		out_Color = vec4(.9,.9,.9, a); 
 		return;
 	}
+	else if(gs_guiType == 100) { // bitmap text
+			
+		float d = texture(fontTex, vec3(gs_tex.x, gs_tex.y, gs_tex.z)).r;
+	
+		if(d < .01) discard;
+		out_Color = vec4(gs_fg_color.rgb, d); 
+			
+		return;
+	}
 	else if(gs_guiType == 2) { // simple image
 		out_Color = texture(atlasTex, gs_tex);
 		return;

@@ -34,46 +34,98 @@ void GUIString_Setn(GUIString* gs, char* s, ssize_t n) {
 #include "macros_on.h"
 
 
+
+void GUI_SetFontName_(GUIManager* gm, char* fontName, float size, Color4* color) {
+	GUIFont* font = GUI_FindFont(gm, fontName);
+	GUI_SetFont_(gm, font, size, color);
+}
+
+void GUI_SetFont_(GUIManager* gm, GUIFont* font, float size, Color4* color) {
+	gm->curFont = font;
+	gm->curFontSize = size;
+	gm->curFontColor = *color;
+}
+
+
+void GUI_PushFontName_(GUIManager* gm, char* fontName, float size, Color4* color) {
+	GUIFont* font = GUI_FindFont(gm, fontName);
+	GUI_PushFont_(gm, font, size, color);
+}
+
+void GUI_PushFont_(GUIManager* gm, GUIFont* font, float size, Color4* color) {
+	
+	struct gui_font_params* fp = VEC_INC(&gm->fontStack);
+	
+	fp->font = gm->curFont;
+	fp->size = gm->curFontSize;
+	fp->color = gm->curFontColor;
+	
+	gm->curFont = font;
+	gm->curFontSize = size;
+	gm->curFontColor = *color;
+}
+
+void GUI_PopFont_(GUIManager* gm) {
+	if(!VEC_LEN(&gm->fontStack)) {
+		// set to defaults
+		gm->curFontColor = gm->defaults.textColor;
+		gm->curFontSize = gm->defaults.fontSize;
+		gm->curFont = gm->defaults.font;
+		
+		return;
+	}
+
+	struct gui_font_params* fp = &VEC_TAIL(&gm->fontStack);
+	gm->curFont = fp->font;
+	gm->curFontSize = fp->size;
+	gm->curFontColor = fp->color;
+	
+	VEC_POP1(&gm->fontStack);
+}
+
+
+
+
 #define CLAMP(min, val, max) val = MIN(MAX(min, val), max)
 
 
 // returns true if clicked
 
-#define DEFAULTS(type, var) type var = gm->defaults.type;
+//#define DEFAULTS(type, var) type var = gm->defaults.type;
 
-
-// returns 1 if clicked
-int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o) {
-	int result = 0;
-	Vector2 sz = o->size;
-	
-	
-	HOVER_HOT(id)
-	
-	if(gm->activeID == id) {
-		if(GUI_MouseWentUp(1)) {
-			if(gm->hotID == id) result = 1;
-			ACTIVE(NULL);
-			GUI_CancelInput();
-		}
-	}
-	else CLICK_HOT_TO_ACTIVE(id)
-
-	// bail early if not drawing
-	if(!gm->drawMode) return result;
-	
-	int st = CUR_STATE(id);
-	
-	GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
-
-	
-	gm->curZ += 0.01;
-	GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
-	gm->curZ -= 0.01;
-	
-	return result;
-}
-
+//
+//// returns 1 if clicked
+//int GUI_Button_(GUIManager* gm, void* id, Vector2 tl, char* text, GUIButtonOpts* o) {
+//	int result = 0;
+//	Vector2 sz = o->size;
+//	
+//	
+//	HOVER_HOT(id)
+//	
+//	if(gm->activeID == id) {
+//		if(GUI_MouseWentUp(1)) {
+//			if(gm->hotID == id) result = 1;
+//			ACTIVE(NULL);
+//			GUI_CancelInput();
+//		}
+//	}
+//	else CLICK_HOT_TO_ACTIVE(id)
+//
+//	// bail early if not drawing
+//	if(!gm->drawMode) return result;
+//	
+//	int st = CUR_STATE(id);
+//	
+//	GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+//
+//	
+//	gm->curZ += 0.01;
+//	GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
+//	gm->curZ -= 0.01;
+//	
+//	return result;
+//}
+//
 // returns 1 if clicked
 int GUI_RectButton_(
 	GUIManager* gm, 
@@ -97,7 +149,7 @@ int GUI_RectButton_(
 			GUI_CancelInput();
 		}
 	}
-	else CLICK_HOT_TO_ACTIVE(id)
+	else CLICK_HOT_TO_ACTIVE(id);
 
 	// bail early if not drawing
 	if(!gm->drawMode) return result;
@@ -108,310 +160,310 @@ int GUI_RectButton_(
 
 	
 	gm->curZ += 0.01;
-	GUI_TextLineCentered(text, strlen(text), tl, sz, fontName, fontSize, fontColor);
+//	GUI_TextLineCentered(text, strlen(text), tl, sz, fontName, fontSize, fontColor);
 	gm->curZ -= 0.01;
 	
 	return result;
 }
 
+//
+//// returns true if toggled on 
+//int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o) {
+//	Vector2 sz = o->size;
+//	
+//	HOVER_HOT(id)
+//	
+//	if(gm->activeID == id) {
+//		if(GUI_MouseWentUp(1)) {
+//			if(gm->hotID == id) {
+//				*state = !*state;
+//			}
+//			ACTIVE(NULL);
+//			GUI_CancelInput();
+//		}
+//	}
+//	else CLICK_HOT_TO_ACTIVE(id)
+//
+//	// bail early if not drawing
+//	if(!gm->drawMode) return *state;
+//	
+//	int st = CUR_STATE(id);
+//	
+//	GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+//	
+//	gm->curZ += 0.01;
+//	GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
+//	gm->curZ -= 0.01;
+//	
+//	return *state;
+//}
+//
+//
+//// returns true if checked
+//int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o) {
+//	
+//	float bs = o->boxSize;
+//	Vector2 boxSz = {bs, bs};
+//	
+//	if(GUI_MouseInside(tl, boxSz)) {
+//		HOT(id);
+//	}
+//	
+//	if(gm->activeID == id) {
+//		if(GUI_MouseWentUp(1)) {
+//			if(gm->hotID == id) {
+//				*state = !*state;
+//			}
+//			ACTIVE(NULL);
+//			GUI_CancelInput();
+//		}
+//	}
+//	else CLICK_HOT_TO_ACTIVE(id)
+//
+//	// bail early if not drawing
+//	if(!gm->drawMode) return *state;
+//	
+//		
+//	int st = CUR_STATE(id);
+//	if(*state) st = STATE_ACTIVE;
+//	
+//	GUI_BoxFilled_(gm, tl, boxSz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+//	
+//	
+//	float fontSz = o->fontSize;
+////	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
+//	
+//	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, o->fontName, fontSz, &o->colors[st].text);
+//	
+//	return *state;
+//}
+//
+//// returns true if *this* radio button is active
+//int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o) {
+//	
+//	float bs = o->boxSize;
+//	Vector2 boxSz = {bs, bs};
+//	
+//	if(*state == NULL && isDefault) {
+//		*state = id;
+//	}
+//	
+//	if(GUI_MouseInside(tl, boxSz)) {
+//		HOT(id);
+//	}
+//	
+//	if(gm->activeID == id) {
+//		if(GUI_MouseWentUp(1)) {
+//			if(gm->hotID == id) {
+//				*state = id;
+//			}
+//			ACTIVE(NULL);
+//			GUI_CancelInput();
+//		}
+//	}
+//	else CLICK_HOT_TO_ACTIVE(id)
+//
+//	// bail early if not drawing
+//	if(!gm->drawMode) return *state == id;
+//		
+//	int st = CUR_STATE(id);
+//	if(*state) st = STATE_ACTIVE;
+//	
+//	GUI_BoxFilled_(gm, tl, boxSz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
+//	
+//	
+//	float fontSz = o->fontSize;
+////	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
+//	
+//	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, o->fontName, fontSz, &o->colors[st].text);
+//	
+//	return *state == id;
+//}
 
-// returns true if toggled on 
-int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* state, GUIToggleButtonOpts* o) {
-	Vector2 sz = o->size;
-	
-	HOVER_HOT(id)
-	
-	if(gm->activeID == id) {
-		if(GUI_MouseWentUp(1)) {
-			if(gm->hotID == id) {
-				*state = !*state;
-			}
-			ACTIVE(NULL);
-			GUI_CancelInput();
-		}
-	}
-	else CLICK_HOT_TO_ACTIVE(id)
-
-	// bail early if not drawing
-	if(!gm->drawMode) return *state;
-	
-	int st = CUR_STATE(id);
-	
-	GUI_BoxFilled_(gm, tl, sz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
-	
-	gm->curZ += 0.01;
-	GUI_TextLineCentered_(gm, text, strlen(text), tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
-	gm->curZ -= 0.01;
-	
-	return *state;
-}
-
-
-// returns true if checked
-int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o) {
-	
-	float bs = o->boxSize;
-	Vector2 boxSz = {bs, bs};
-	
-	if(GUI_MouseInside(tl, boxSz)) {
-		HOT(id);
-	}
-	
-	if(gm->activeID == id) {
-		if(GUI_MouseWentUp(1)) {
-			if(gm->hotID == id) {
-				*state = !*state;
-			}
-			ACTIVE(NULL);
-			GUI_CancelInput();
-		}
-	}
-	else CLICK_HOT_TO_ACTIVE(id)
-
-	// bail early if not drawing
-	if(!gm->drawMode) return *state;
-	
-		
-	int st = CUR_STATE(id);
-	if(*state) st = STATE_ACTIVE;
-	
-	GUI_BoxFilled_(gm, tl, boxSz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
-	
-	
-	float fontSz = o->fontSize;
-//	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
-	
-	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, o->fontName, fontSz, &o->colors[st].text);
-	
-	return *state;
-}
-
-// returns true if *this* radio button is active
-int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o) {
-	
-	float bs = o->boxSize;
-	Vector2 boxSz = {bs, bs};
-	
-	if(*state == NULL && isDefault) {
-		*state = id;
-	}
-	
-	if(GUI_MouseInside(tl, boxSz)) {
-		HOT(id);
-	}
-	
-	if(gm->activeID == id) {
-		if(GUI_MouseWentUp(1)) {
-			if(gm->hotID == id) {
-				*state = id;
-			}
-			ACTIVE(NULL);
-			GUI_CancelInput();
-		}
-	}
-	else CLICK_HOT_TO_ACTIVE(id)
-
-	// bail early if not drawing
-	if(!gm->drawMode) return *state == id;
-		
-	int st = CUR_STATE(id);
-	if(*state) st = STATE_ACTIVE;
-	
-	GUI_BoxFilled_(gm, tl, boxSz, o->borderWidth, &o->colors[st].border, &o->colors[st].bg);
-	
-	
-	float fontSz = o->fontSize;
-//	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
-	
-	GUI_TextLine_(gm, label, strlen(label), (Vector2){tl.x + bs + 4, tl.y + fontSz*.75}, o->fontName, fontSz, &o->colors[st].text);
-	
-	return *state == id;
-}
-
-
-struct floatslider_data {
-	char buf[64];
-	size_t len;
-	float last_value;
-};
-
-// returns 1 on change
-int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float min, float max, float incr, float* value, GUIFloatSliderOpts* o) {
-	struct floatslider_data* d;
-	int first_run = 0;
-	
-	if(!(d = GUI_GetData_(gm, id))) {
-		d = calloc(1, sizeof(*d));
-		d->buf[0] = 0;
-		first_run = 1;
-		GUI_SetData_(gm, id, d, free);
-	}
-	
-	Vector2 sz = o->size;
-	float h = sz.y;
-	float oldV = *value;
-	
-	HOVER_HOT(id);
-	
-	if(gm->activeID == id) {
-		Vector2 mp = GUI_MousePos();
-		
-		float v = mp.x - tl.x;
-		v = (v / sz.x);
-		v = v < 0 ? 0 : (v > 1.0 ? 1.0 : v);
-		v *= max - min;
-		v += min;
-		
-		*value = v; 
-
-		if(GUI_MouseWentUp(1)) {
-			ACTIVE(NULL);
-			GUI_CancelInput();
-		}
-	}
-	if(gm->hotID == id) {
-		MOUSE_DOWN_ACTIVE(id)
-		*value += GUI_GetScrollDist() * incr;
-	}
-	
-	*value = *value > max ? max : (*value < min ? min : *value);
-	float bw = (*value / (max - min)) * sz.x;
-	
-	if(first_run || *value != d->last_value) {
-		d->len = snprintf(d->buf, 64, "%.*f", o->precision, *value);
-		d->last_value = *value;
-	}
-	
-	// bail early if not drawing
-	if(!gm->drawMode) return *value != oldV;
-			
-	int st = CUR_STATE(id);
-		
-	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
-	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
-	
-	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
-
-	return *value != oldV;
-}
-
-struct intslider_data {
-	char buf[64];
-	size_t len;
-	long last_value;
-};
-
-// returns 1 on change
-int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, long min, long max, long* value, GUIIntSliderOpts* o) {
-	struct intslider_data* d;
-	int first_run = 0;
-	
-	if(!(d = GUI_GetData_(gm, id))) {
-		d = calloc(1, sizeof(*d));
-		d->buf[0] = 0;
-		first_run = 1;
-		GUI_SetData_(gm, id, d, free);
-	}
-	
-	
-	Vector2 sz = o->size;
-	float h = sz.y;
-	float width = sz.x;
-	long oldV = *value;
-	
-	HOVER_HOT(id)
-		
-	if(gm->activeID == id) {
-		Vector2 mp = GUI_MousePos();
-		
-		float v = mp.x - tl.x;
-		v = (v / width);
-		v = v < 0.0 ? 0.0 : (v > 1.0 ? 1.0 : v);
-		v *= max - min;
-		v += min;
-		*value = floor(v); 
-
-		if(GUI_MouseWentUp(1)) {
-			ACTIVE(NULL);
-			GUI_CancelInput();
-		}
-	}
-	if(gm->hotID == id) {
-		MOUSE_DOWN_ACTIVE(id)
-		*value += GUI_GetScrollDist();
-	}
-
-	*value = *value > max ? max : (*value < min ? min : *value);
-	float bw = ((float)*value / (float)(max - min)) * width;
-	
-	
-	if(first_run || *value != d->last_value) {
-		d->len = snprintf(d->buf, 64, "%ld", *value);
-		d->last_value = *value;		
-	}
-	
-	if(!gm->drawMode) return *value != oldV;
-				
-	int st = CUR_STATE(id);
-		
-	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
-	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
-
-	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
-
-	return *value != oldV;
-}
-
-
-// returns 1 when the value changes _due to this control_
-int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, char** options, int* selectedOption, GUIOptionSliderOpts* o) {
-	int ret = 0;
-	Vector2 sz = o->size;
-	float h = sz.y;
-	float width = sz.x;
-	int old_opt = *selectedOption; 
-	
-	int cnt = 0;
-	for(char** p = options; *p; p++) cnt++;
-	
-	HOVER_HOT(id)
-	
-	if(gm->activeID == id) {
-		Vector2 mp = GUI_MousePos();
-		
-		float v = mp.x - tl.x;
-		v = (v / width);
-		v = v < 0 ? 0 : (v > 1.0 ? 1.0 : v);
-		*selectedOption = cnt * v;
-
-		if(GUI_MouseWentUp(1)) {
-			ACTIVE(NULL);
-			GUI_CancelInput();
-		}
-	}
-	
-	if(gm->hotID == id) {
-		MOUSE_DOWN_ACTIVE(id)
-		*selectedOption += GUI_GetScrollDist();
-	}
-	
-	CLAMP(0, *selectedOption, cnt - 1);
-	
-	// bail early if not drawing
-	if(!gm->drawMode) return old_opt != *selectedOption;
-	
-	float bw = ((float)(*selectedOption + 1) / (float)cnt) * width;
-					
-	int st = CUR_STATE(id);
-		
-	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
-	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
-
-	GUI_TextLineCentered_(gm, options[*selectedOption], -1, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
-
-	return old_opt != *selectedOption;
-}
-
+//
+//struct floatslider_data {
+//	char buf[64];
+//	size_t len;
+//	float last_value;
+//};
+//
+//// returns 1 on change
+//int GUI_FloatSlider_(GUIManager* gm, void* id, Vector2 tl, float min, float max, float incr, float* value, GUIFloatSliderOpts* o) {
+//	struct floatslider_data* d;
+//	int first_run = 0;
+//	
+//	if(!(d = GUI_GetData_(gm, id))) {
+//		d = calloc(1, sizeof(*d));
+//		d->buf[0] = 0;
+//		first_run = 1;
+//		GUI_SetData_(gm, id, d, free);
+//	}
+//	
+//	Vector2 sz = o->size;
+//	float h = sz.y;
+//	float oldV = *value;
+//	
+//	HOVER_HOT(id);
+//	
+//	if(gm->activeID == id) {
+//		Vector2 mp = GUI_MousePos();
+//		
+//		float v = mp.x - tl.x;
+//		v = (v / sz.x);
+//		v = v < 0 ? 0 : (v > 1.0 ? 1.0 : v);
+//		v *= max - min;
+//		v += min;
+//		
+//		*value = v; 
+//
+//		if(GUI_MouseWentUp(1)) {
+//			ACTIVE(NULL);
+//			GUI_CancelInput();
+//		}
+//	}
+//	if(gm->hotID == id) {
+//		MOUSE_DOWN_ACTIVE(id)
+//		*value += GUI_GetScrollDist() * incr;
+//	}
+//	
+//	*value = *value > max ? max : (*value < min ? min : *value);
+//	float bw = (*value / (max - min)) * sz.x;
+//	
+//	if(first_run || *value != d->last_value) {
+//		d->len = snprintf(d->buf, 64, "%.*f", o->precision, *value);
+//		d->last_value = *value;
+//	}
+//	
+//	// bail early if not drawing
+//	if(!gm->drawMode) return *value != oldV;
+//			
+//	int st = CUR_STATE(id);
+//		
+//	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
+//	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
+//	
+//	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
+//
+//	return *value != oldV;
+//}
+//
+//struct intslider_data {
+//	char buf[64];
+//	size_t len;
+//	long last_value;
+//};
+//
+//// returns 1 on change
+//int GUI_IntSlider_(GUIManager* gm, void* id, Vector2 tl, long min, long max, long* value, GUIIntSliderOpts* o) {
+//	struct intslider_data* d;
+//	int first_run = 0;
+//	
+//	if(!(d = GUI_GetData_(gm, id))) {
+//		d = calloc(1, sizeof(*d));
+//		d->buf[0] = 0;
+//		first_run = 1;
+//		GUI_SetData_(gm, id, d, free);
+//	}
+//	
+//	
+//	Vector2 sz = o->size;
+//	float h = sz.y;
+//	float width = sz.x;
+//	long oldV = *value;
+//	
+//	HOVER_HOT(id)
+//		
+//	if(gm->activeID == id) {
+//		Vector2 mp = GUI_MousePos();
+//		
+//		float v = mp.x - tl.x;
+//		v = (v / width);
+//		v = v < 0.0 ? 0.0 : (v > 1.0 ? 1.0 : v);
+//		v *= max - min;
+//		v += min;
+//		*value = floor(v); 
+//
+//		if(GUI_MouseWentUp(1)) {
+//			ACTIVE(NULL);
+//			GUI_CancelInput();
+//		}
+//	}
+//	if(gm->hotID == id) {
+//		MOUSE_DOWN_ACTIVE(id)
+//		*value += GUI_GetScrollDist();
+//	}
+//
+//	*value = *value > max ? max : (*value < min ? min : *value);
+//	float bw = ((float)*value / (float)(max - min)) * width;
+//	
+//	
+//	if(first_run || *value != d->last_value) {
+//		d->len = snprintf(d->buf, 64, "%ld", *value);
+//		d->last_value = *value;		
+//	}
+//	
+//	if(!gm->drawMode) return *value != oldV;
+//				
+//	int st = CUR_STATE(id);
+//		
+//	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
+//	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
+//
+//	GUI_TextLineCentered_(gm, d->buf, d->len, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
+//
+//	return *value != oldV;
+//}
+//
+//
+//// returns 1 when the value changes _due to this control_
+//int GUI_OptionSlider_(GUIManager* gm, void* id, Vector2 tl, char** options, int* selectedOption, GUIOptionSliderOpts* o) {
+//	int ret = 0;
+//	Vector2 sz = o->size;
+//	float h = sz.y;
+//	float width = sz.x;
+//	int old_opt = *selectedOption; 
+//	
+//	int cnt = 0;
+//	for(char** p = options; *p; p++) cnt++;
+//	
+//	HOVER_HOT(id)
+//	
+//	if(gm->activeID == id) {
+//		Vector2 mp = GUI_MousePos();
+//		
+//		float v = mp.x - tl.x;
+//		v = (v / width);
+//		v = v < 0 ? 0 : (v > 1.0 ? 1.0 : v);
+//		*selectedOption = cnt * v;
+//
+//		if(GUI_MouseWentUp(1)) {
+//			ACTIVE(NULL);
+//			GUI_CancelInput();
+//		}
+//	}
+//	
+//	if(gm->hotID == id) {
+//		MOUSE_DOWN_ACTIVE(id)
+//		*selectedOption += GUI_GetScrollDist();
+//	}
+//	
+//	CLAMP(0, *selectedOption, cnt - 1);
+//	
+//	// bail early if not drawing
+//	if(!gm->drawMode) return old_opt != *selectedOption;
+//	
+//	float bw = ((float)(*selectedOption + 1) / (float)cnt) * width;
+//					
+//	int st = CUR_STATE(id);
+//		
+//	GUI_BoxFilled_(gm, V(tl.x, tl.y), V(bw, h), 0, &o->colors[st].bg, &o->colors[st].bg);
+//	GUI_BoxFilled_(gm, V(tl.x + bw, tl.y), V(sz.x - bw, h), 0, &o->colors[st].bar, &o->colors[st].bar);
+//
+//	GUI_TextLineCentered_(gm, options[*selectedOption], -1, tl, sz, o->fontName, o->fontSize, &o->colors[st].text);
+//
+//	return old_opt != *selectedOption;
+//}
+#if 0
 
 // returns 1 when the value changes
 int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, float width, char** options, int* selectedOption, GUISelectBoxOpts* o) {
@@ -498,8 +550,9 @@ int GUI_SelectBox_(GUIManager* gm, void* id, Vector2 tl, float width, char** opt
 	
 	return ret;
 } 
+#endif
 
-
+#if 0
 
 struct edit_data {
 	GUICursorData cursor;
@@ -739,8 +792,9 @@ int GUI_HandleTextInput_(GUIManager* gm, GUICursorData* cd, GUIString* str, GUIE
 	
 	return ret;
 }
+#endif
 
-
+#if 0
 // filter all input before accepting it
 void GUI_Edit_SetFilter_(GUIManager* gm, void* id, GUIEditFilterFn fn, void* data) {
 	struct edit_data* d;
@@ -809,7 +863,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	float fontSz = o->fontSize;
 	vec2 pad = o[0].padding;
 	
-	GUIFont* font = GUI_FindFont(gm, o->fontName, fontSz);	
+	GUIFont* font = GUI_FindFont(gm, o->fontName);	
 	
 	HOVER_HOT(id)
 	
@@ -946,131 +1000,335 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	
 	return ret;
 }
+#endif
+
+
+//
+//
+//struct intedit_data {
+//	struct edit_data ed;
+//	int cursorPos;
+//	float blinkTimer;
+//	
+//	long lastValue;
+//	GUIString str;
+//};
+//
+//static void intedit_free(struct intedit_data* d) {
+//	free(d->str.data);
+//	free(d);
+//}
+//
+//// returns true on a change
+//int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o) {
+//	int ret = 0;
+//	int firstRun = 0;
+//	struct intedit_data* d;
+//	
+//	if(!(d = GUI_GetData_(gm, id))) {
+//		d = calloc(1, sizeof(*d));
+//		GUI_SetData_(gm, id, d, (void*)intedit_free);
+//		
+//		d->str.alloc = 64;
+//		d->str.data = calloc(1, d->str.alloc * sizeof(*d->str.data));
+//		firstRun = 1;
+//	}
+//	
+//	GUIFont* font = GUI_FindFont(gm, o[0].fontName);
+//	
+//	Vector2 sz = o[0].size;
+//	if(width > 0) sz.x = width;
+//	vec2 pad = o[0].padding;
+//	
+//	HOVER_HOT(id)
+//
+//	if(gm->hotID == id) {
+//		MOUSE_DOWN_ACTIVE(id)
+//		
+//		if(GUI_MouseWentUp(1)) {
+//			// position the cursor
+//			Vector2 mp = GUI_MousePos();
+//			d->ed.cursor.cursorPos = gui_charFromPixel(gm, font, o[0].fontSize, d->str.data, mp.x - tl.x + pad.x);
+//		}
+//	}
+//	
+//	// handle input
+//	if(gm->activeID == id) {
+//		if(gm->curEvent.type == GUIEVENT_KeyDown) {
+//			if(!isprint(gm->curEvent.character) || ('0' <= gm->curEvent.character && gm->curEvent.character <= '9')) {
+//				ret |= GUI_HandleTextInput_(gm, &d->ed.cursor, &d->str, &gm->curEvent);
+//			}
+//		}
+//	}
+//	
+//	if(ret) {
+//		*num = strtol(d->str.data, NULL, 10);
+//	}
+//
+//	// refresh the buffer, maybe
+//	if(*num != d->lastValue || firstRun) {
+//		d->str.len = snprintf(d->str.data, 64, "%ld", *num);
+//		d->lastValue = *num;
+//	}
+//	
+//	// bail early if not drawing
+//	if(!gm->drawMode) return ret;
+//	int st = CUR_STATE(id);
+//	
+//	// draw the border
+//	GUI_BoxFilled_(gm, tl, sz, o[st].borderWidth, &o[st].border, &o[st].bg);
+//		
+//	float fontSz = o[st].fontSize;
+//	
+//	float cursorOff = GUI_GetTextWidthAdv(d->str.data, d->ed.cursor.cursorPos, font, fontSz);
+//	
+//	// calculate scroll offsets
+//	if(cursorOff + d->ed.scrollX > sz.x - pad.x * 2) {
+//		d->ed.scrollX = sz.x - cursorOff;	
+//	}
+//	else if(cursorOff + d->ed.scrollX < pad.x) {
+//		d->ed.scrollX = -cursorOff;
+//	}
+//	
+//	GUI_PushClip(tl, sz);
+//	
+//	// draw cursor and selection background
+//	if(gm->activeID == id) {
+//		gm->curZ += 0.001;
+//		if(d->ed.cursor.blinkTimer < 0.5) { 
+//			gm->curZ += 0.001;
+//			
+//			// TODO: dpi scaling here
+//			GUI_Rect(V(tl.x + cursorOff + d->ed.scrollX + pad.x, tl.y + o[st].borderWidth + 1), V(2,sz.y - o[st].borderWidth * 2 - 2), &o[st].cursorColor);
+//			gm->curZ -= 0.001;
+//		}
+//		
+//		d->ed.cursor.blinkTimer += gm->timeElapsed;
+//		d->ed.cursor.blinkTimer = fmod(d->ed.cursor.blinkTimer, 1.0);
+//		
+//		if(d->ed.cursor.selectPivot > -1) {
+//			float pivotOff = GUI_GetTextWidthAdv(d->str.data, d->ed.cursor.selectPivot, font, fontSz);
+//			
+//			int min = MIN(cursorOff, pivotOff);
+//			int max = MAX(cursorOff, pivotOff);
+//			
+//			GUI_Rect(V(tl.x + min + d->ed.scrollX, tl.y), V(max - min,sz.y), &o[st].selectionBgColor);
+//			
+//		}
+//		gm->curZ -= 0.001;
+//	}
+//	
+//
+//	
+//	gm->curZ += 10.01;
+//	
+//	if(d->str.len) {
+//		GUI_TextLineAdv_(gm, V(tl.x + d->ed.scrollX + pad.x, tl.y), sz, d->str.data, d->str.len, GUI_TEXT_ALIGN_VCENTER, font, fontSz, &o[st].text);
+//	}
+//	GUI_PopClip();
+//	gm->curZ -= 10.01;
+//	
+//	return ret;
+//}
+//
 
 
 
-
-struct intedit_data {
-	struct edit_data ed;
-	
-	long lastValue;
-	GUIString str;
-};
-
-static void intedit_free(struct intedit_data* d) {
-	free(d->str.data);
-	free(d);
-}
-
-// returns true on a change
-int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o) {
-	int ret = 0;
-	int firstRun = 0;
-	struct intedit_data* d;
-	
-	if(!(d = GUI_GetData_(gm, id))) {
-		d = calloc(1, sizeof(*d));
-		GUI_SetData_(gm, id, d, (void*)intedit_free);
-		
-		d->str.alloc = 64;
-		d->str.data = calloc(1, d->str.alloc * sizeof(*d->str.data));
-		
-		firstRun = 1;
-	}
-		
-		
-	float fontSz = o->fontSize;
-	GUIFont* font = GUI_FindFont(gm, o->fontName, fontSz);
-	
-	Vector2 sz = o->size;
-	if(width > 0) sz.x = width;
-	
-	HOVER_HOT(id)
-
-	if(gm->hotID == id) {
-		MOUSE_DOWN_ACTIVE(id)
-		
-		if(GUI_MouseWentUp(1)) {
-			// position the cursor
-			Vector2 mp = GUI_MousePos();
-			d->ed.cursor.cursorPos = gui_charFromPixel(gm, font, o->fontSize, d->str.data, mp.x - tl.x);
-		}
-	}
-	
-	// handle input
-	if(gm->activeID == id) {
-		if(gm->curEvent.type == GUIEVENT_KeyDown) {
-			if(!isprint(gm->curEvent.character) || ('0' <= gm->curEvent.character && gm->curEvent.character <= '9')) {
-				ret |= GUI_HandleTextInput_(gm, &d->ed.cursor, &d->str, &gm->curEvent);
-			}
-		}
-	}
-	
-	if(ret) {
-		*num = strtol(d->str.data, NULL, 10);
-	}
-
-	
-	// bail early if not drawing
-	if(!gm->drawMode) return ret;
-	int st = CUR_STATE(id);
-	
-	if(gm->activeID == id) {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.8,.6,.3), C(.7,.4,.2));
-	}
-	else {
-		GUI_BoxFilled_(gm, tl, sz, 2, C(.5,.6,.6), C(.4,.4,.4));
-	}
-
-	// refresh the buffer, maybe
-	if(*num != d->lastValue || firstRun) {
-		d->str.len = snprintf(d->str.data, 64, "%ld", *num);
-		d->lastValue = *num;
-		
-		if(firstRun && o->selectAll) {
-		printf("selecting all\n");
-			d->ed.cursor.selectPivot = 0;
-			d->ed.cursor.cursorPos = d->str.len;
-		}
-	}
-
-	
-	// draw cursor and selection background
-	if(gm->activeID == id) {
-		gm->curZ += 0.001;
-		
-		float cursorOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->ed.cursor.cursorPos);
-		
-		if(d->ed.cursor.blinkTimer < 0.5) { 
-			gm->curZ += 0.001;
-			
-			GUI_Rect(V(tl.x + cursorOff, tl.y), V(2,sz.y), &o->cursorColor);
-			gm->curZ -= 0.001;
-		}
-		
-		d->ed.cursor.blinkTimer += gm->timeElapsed;
-		d->ed.cursor.blinkTimer = fmod(d->ed.cursor.blinkTimer, 1.0);
-		
-		if(d->ed.cursor.selectPivot > -1) {
-			float pivotOff = gui_getTextLineWidth(gm, font, fontSz, d->str.data, d->ed.cursor.selectPivot);
-			
-			int min = MIN(cursorOff, pivotOff);
-			int max = MAX(cursorOff, pivotOff);
-			
-			GUI_Rect(V(tl.x + min, tl.y), V(max - min,sz.y), &o->selectionBgColor);
-			
-		}
-		gm->curZ -= 0.001;
-	}
-	
-	
-	gm->curZ += 0.01;
-	GUI_TextLine_(gm, d->str.data, d->str.len, V(tl.x, tl.y ), o->fontName, fontSz, &o->colors[st].text);
-	gm->curZ -= 0.01;
-	
-	return ret;
-}
-
+//
+//struct floatedit_data {
+//	struct edit_data ed;
+//	int cursorPos;
+//	float scrollX; // x offset to add to all text rendering code 
+//	float blinkTimer;
+//	
+//	float lastValue;
+//	GUIString str;
+//};
+//
+//static void floatedit_free(struct floatedit_data* d) {
+//	free(d->str.data);
+//	free(d);
+//}
+//
+//// returns true on a change
+//int GUI_FloatEdit_(GUIManager* gm, void* id, Vector2 tl, float width, float* num, GUIFloatEditOpts* o) {
+//	int ret = 0;
+//	int firstRun = 0;
+//	struct floatedit_data* d = NULL;
+//	
+//	if(!(d = GUI_GetData_(gm, id))) {
+//		d = calloc(1, sizeof(*d));
+//		GUI_SetData_(gm, id, d, (void*)floatedit_free);
+//		
+//		d->str.alloc = 64;
+//		d->str.data = calloc(1, d->str.alloc * sizeof(*d->str.data));
+//		firstRun = 1;
+//	}
+//	
+//	GUIFont* font = GUI_FindFont(gm, o[0].fontName);
+//	
+//	Vector2 sz = o[0].size;
+//	if(width > 0) sz.x = width;
+//	vec2 pad = o[0].padding;
+//	
+//	HOVER_HOT(id)
+//
+//	if(gm->hotID == id) {
+//		bool wasActive = gm->activeID == id;
+//	
+//		MOUSE_DOWN_ACTIVE(id)
+//		
+//		// select all if first click on inactive
+//		if(!wasActive && gm->activeID == id) {
+//			// select all
+//			select_all(&d->ed.cursor, &d->str);
+//		}
+//		
+//		if(GUI_MouseWentDown(1)) {
+//			// kill selection, position the cursor
+//			Vector2 mp = GUI_MousePos();
+//			d->ed.cursor.selectPivot = -1;
+//			d->ed.cursor.cursorPos = floor(GUI_CharFromPixelF(font, o[0].fontSize, d->str.data, d->str.len, mp.x - (tl.x + pad.x + d->ed.scrollX)));
+//		}
+//		if(GUI_MouseWentUp(1)) {
+//			if(gm->curEvent.multiClick == 2) {
+//				// select all
+//				select_all(&d->ed.cursor, &d->str);
+//			}
+//		}
+//	}
+//	
+//	// mouse selection dragging
+//	if(GUI_InputAvailable()) {
+//		
+//		if(gm->curEvent.type == GUIEVENT_DragStart && GUI_PointInBoxV(tl, sz, gm->lastMousePos)) {
+//			d->ed.cursor.isMouseDragging = 1;
+//			// set pivot 
+//			d->ed.cursor.selectPivot = d->ed.cursor.cursorPos;
+//		}
+//		else if(d->ed.cursor.isMouseDragging && gm->curEvent.type == GUIEVENT_DragMove) {
+//		
+//			// set cursorPos
+//			vec2 mp = GUI_MousePos();
+//			d->ed.cursor.cursorPos = floor(GUI_CharFromPixelF(font, o[0].fontSize, d->str.data, d->str.len, mp.x - (tl.x + pad.x + d->ed.scrollX)));
+//		}
+//		else if(d->ed.cursor.isMouseDragging && gm->curEvent.type == GUIEVENT_DragStop) {
+//			d->ed.cursor.isMouseDragging = 0;
+//		}
+//	}
+//	
+//	
+//	// handle input
+//	if(gm->activeID == id) {
+//		if(gm->curEvent.type == GUIEVENT_KeyDown) {
+//			if(
+//				!isprint(gm->curEvent.character) // control events (arrow keys)
+//				|| strchr("0123456789.-", gm->curEvent.character) // numbers 
+//			) {
+//				ret |= GUI_HandleTextInput_(gm, &d->ed.cursor, &d->str, &gm->curEvent);
+//			}
+//		}
+//		
+//		if(GUI_MouseWentDownAnywhere(1) && !GUI_MouseInside(tl, sz)) {
+//			ACTIVE(NULL);
+//		}
+//	}
+//	
+//	if(gm->activeID != id) {
+//		select_none(&d->ed.cursor);
+//	}
+//	
+//	if(ret) {
+//		*num = strtof(d->str.data, NULL);
+//		d->lastValue = *num;
+//	}
+//	
+//
+//	if(*num != d->lastValue || firstRun) {
+//		switch(fpclassify(*num)) {
+//			default:
+//			case FP_NORMAL:
+//			case FP_SUBNORMAL:
+//			case FP_ZERO:
+//				d->str.len = snprintf(d->str.data, 64, "%f", *num);
+//				d->lastValue = *num;
+//				break;
+//			case FP_NAN: 
+//				strcpy(d->str.data, "NaN");
+//				d->str.len = 3;
+//				break;
+//			case FP_INFINITE:
+//				strcpy(d->str.data, "Infinity");
+//				d->str.len = strlen("Infinity");
+//				break;
+//		}
+//	}
+//	
+//
+//	
+//	// bail early if not drawing
+//	if(!gm->drawMode) return ret;
+//	int st = CUR_STATE(id);
+//	
+//	// draw the border
+//	GUI_BoxFilled_(gm, tl, sz, o[st].borderWidth, &o[st].border, &o[st].bg);
+//	
+//	// refresh the buffer, maybe
+//		
+//	float fontSz = o[st].fontSize;
+//	
+//	float cursorOff = GUI_GetTextWidthAdv(d->str.data, d->ed.cursor.cursorPos, font, fontSz);
+//	
+//	// calculate scroll offsets
+//	if(cursorOff + d->ed.scrollX > sz.x - pad.x * 2) {
+//		d->ed.scrollX = sz.x - cursorOff;	
+//	}
+//	else if(cursorOff + d->ed.scrollX < pad.x) {
+//		d->ed.scrollX = -cursorOff;
+//	}
+//	
+//	GUI_PushClip(tl, sz);
+//	
+//	// draw cursor and selection background
+//	if(gm->activeID == id) {
+//		gm->curZ += 0.001;
+//		if(d->ed.cursor.blinkTimer < 0.5) { 
+//			gm->curZ += 0.001;
+//			
+//			// TODO: dpi scaling here
+//			GUI_Rect(V(tl.x + cursorOff + d->ed.scrollX + pad.x, tl.y + o[st].borderWidth + 1), V(2,sz.y - o[st].borderWidth * 2 - 2), &o[st].cursorColor);
+//			gm->curZ -= 0.001;
+//		}
+//		
+//		d->ed.cursor.blinkTimer += gm->timeElapsed;
+//		d->ed.cursor.blinkTimer = fmod(d->ed.cursor.blinkTimer, 1.0);
+//		
+//		if(d->ed.cursor.selectPivot > -1) {
+//			float pivotOff = GUI_GetTextWidthAdv(d->str.data, d->ed.cursor.selectPivot, font, fontSz);
+//			
+//			int min = MIN(cursorOff, pivotOff);
+//			int max = MAX(cursorOff, pivotOff);
+//			
+//			GUI_Rect(V(tl.x + min + d->ed.scrollX + pad.x, tl.y + pad.y), V(max - min,sz.y - pad.y*2), &o[st].selectionBgColor);
+//			
+//		}
+//		gm->curZ -= 0.001;
+//	}
+//	
+//
+//	
+//	gm->curZ += 10.01;
+//	
+//	if(d->str.len) {
+//		GUI_TextLineAdv_(gm, V(tl.x + d->ed.scrollX + pad.x, tl.y), V(9999999,sz.y), d->str.data, d->str.len, GUI_TEXT_ALIGN_VCENTER, font, fontSz, &o[st].text);
+//	}
+//	GUI_PopClip();
+//	gm->curZ -= 10.01;
+//	
+//	return ret;
+//}
+//
+//
 
 // sets the current clipping region, respecting the current window
 void GUI_PushClip_(GUIManager* gm, Vector2 tl, Vector2 sz) {
@@ -1204,150 +1462,150 @@ void GUI_CircleFilled_(
 		.rot = 0,
 	};
 }
-
-// draws a single character from its font origin point
-void GUI_Char_(GUIManager* gm, int c, Vector2 origin, char* fontName, float size, Color4* color) {
-	if(!gm->drawMode) return; // this function is only for drawing mode
-	
-	GUIFont* font = GUI_FindFont(gm, fontName, size);
-	if(!font) font = gm->defaults.font;
-	
-	GUI_CharFont_NoGuard_(gm, c, origin, font, size, color);
-}
-
-// draws a single character from its font origin point
-void GUI_CharFont_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color) {
-	if(!gm->drawMode) return; // this function is only for drawing mode
-	
-	GUI_CharFont_NoGuard_(gm, c, origin, font, size, color);
-}
-
-// draws a single character from its font origin point
-void GUI_CharFont_NoGuard_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color) {
-	
-	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
-	struct charInfo* ci = &font->regular[c];
-
-	v->pos.t = origin.y + ci->topLeftOffset.y * size;
-	v->pos.l = origin.x + ci->topLeftOffset.x * size;
-	v->pos.b = origin.y + ci->bottomRightOffset.y * size;
-	v->pos.r = origin.x + ci->bottomRightOffset.x * size;
-			
-	v->guiType = font->bitmapSize > 0 ? 20 : 1; // 1 = sdf, 20 = bitmap
-				
-	v->texOffset1.x = ci->texNormOffset.x * 65535.0;
-	v->texOffset1.y = ci->texNormOffset.y * 65535.0;
-	v->texSize1.x =  ci->texNormSize.x *  65535.0;
-	v->texSize1.y =  ci->texNormSize.y * 65535.0;
-	v->texIndex1 = ci->texIndex;
-			
-	v->clip = GUI_AABB2_TO_SHADER(gm->curClip);
-	v->bg = GUI_COLOR4_TO_SHADER(*color);
-	v->fg = GUI_COLOR4_TO_SHADER(*color);
-	v->z = gm->curZ;
-	v->rot = 0;
-}
-
-
-// no wrapping
-void GUI_TextLine_(
-	GUIManager* gm, 
-	char* text, 
-	size_t textLen, 
-	Vector2 tl, 
-	char* fontName, 
-	float size, 
-	Color4* color
-) {
-	if(!gm->drawMode) return; // this function is only for drawing mode
-	
-	GUIFont* font = GUI_FindFont(gm, fontName, size);
-	if(!font) font = gm->defaults.font;
-	
-	if(textLen == 0) textLen = strlen(text);
-	
-	gui_drawTextLineAdv(gm, 
-		tl, (Vector2){99999999,99999999},
-		&gm->curClip,
-		color,
-		font, size,
-		GUI_TEXT_ALIGN_LEFT,
-		gm->curZ,
-		text, textLen
-	);
-}
-
+//
+//// draws a single character from its font origin point
+//void GUI_Char_(GUIManager* gm, int c, Vector2 origin, char* fontName, float size, Color4* color) {
+//	if(!gm->drawMode) return; // this function is only for drawing mode
+//	
+//	GUIFont* font = GUI_FindFont(gm, fontName);
+//	if(!font) font = gm->defaults.font;
+//	
+//	GUI_CharFont_NoGuard_(gm, c, origin, font, size, color);
+//}
+//
+//// draws a single character from its font origin point
+//void GUI_CharFont_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color) {
+//	if(!gm->drawMode) return; // this function is only for drawing mode
+//	
+//	GUI_CharFont_NoGuard_(gm, c, origin, font, size, color);
+//}
+//
+//// draws a single character from its font origin point
+//void GUI_CharFont_NoGuard_(GUIManager* gm, int c, Vector2 origin, GUIFont* font, float size, Color4* color) {
+//	
+//	GUIUnifiedVertex* v = GUIManager_reserveElements(gm, 1);
+//	struct charInfo* ci = &font->regular[c];
+//
+//	v->pos.t = origin.y + ci->topLeftOffset.y * size;
+//	v->pos.l = origin.x + ci->topLeftOffset.x * size;
+//	v->pos.b = origin.y + ci->bottomRightOffset.y * size;
+//	v->pos.r = origin.x + ci->bottomRightOffset.x * size;
+//			
+//	v->guiType = font->bitmapSize > 0 ? 20 : 1; // 1 = sdf, 20 = bitmap
+//				
+//	v->texOffset1.x = ci->texNormOffset.x * 65535.0;
+//	v->texOffset1.y = ci->texNormOffset.y * 65535.0;
+//	v->texSize1.x =  ci->texNormSize.x *  65535.0;
+//	v->texSize1.y =  ci->texNormSize.y * 65535.0;
+//	v->texIndex1 = ci->texIndex;
+//			
+//	v->clip = GUI_AABB2_TO_SHADER(gm->curClip);
+//	v->bg = GUI_COLOR4_TO_SHADER(*color);
+//	v->fg = GUI_COLOR4_TO_SHADER(*color);
+//	v->z = gm->curZ;
+//	v->rot = 0;
+//}
 
 
 // no wrapping
-void GUI_Printf_(
-	GUIManager* gm,  
-	Vector2 tl, 
-	char* fontName, 
-	float size, 
-	Color4* color,
-	char* fmt,
-	...
-) {
-	va_list ap;
-	
-	if(!gm->drawMode) return; // this function is only for drawing mode
-	
-	GUIFont* font = GUI_FindFont(gm, fontName, size);
-	if(!font) font = gm->defaults.font;
-	
-	va_start(ap, fmt);
-	int sz = vsnprintf(NULL, 0, fmt, ap) + 1;
-	va_end(ap);
-	
-	char* tmp = malloc(sz);
-	va_start(ap, fmt);
-	vsnprintf(tmp, sz, fmt, ap);
-	va_end(ap);
-	
-	GUI_TextLine_(gm, tmp, sz, tl, fontName, size, color);
-	
-	free(tmp);
-}
-
-// no wrapping
-void GUI_TextLineCentered_(
-	GUIManager* gm, 
-	char* text, 
-	size_t textLen, 
-	Vector2 tl, 
-	Vector2 sz, 
-	char* fontName, 
-	float size, 
-	Color4* color
-) {
-	if(!gm->drawMode) return; // this function is only for drawing mode
-	
-	GUIFont* font = GUI_FindFont(gm, fontName, size);
-	if(!font) font = gm->defaults.font;
-	
-	if(textLen == 0) textLen = strlen(text);
-	
-	float b = (sz.y - (font->ascender * size)) / 2;
-	
-	gui_drawTextLineAdv(gm, (Vector2){tl.x, tl.y + b}, sz, &gm->curClip, color, font, size, GUI_TEXT_ALIGN_CENTER, gm->curZ, text, textLen);
-}
+//void GUI_TextLine_(
+//	GUIManager* gm, 
+//	char* text, 
+//	size_t textLen, 
+//	Vector2 tl, 
+//	char* fontName, 
+//	float size, 
+//	Color4* color
+//) {
+//	if(!gm->drawMode) return; // this function is only for drawing mode
+//	
+//	GUIFont* font = GUI_FindFont(gm, fontName);
+//	if(!font) font = gm->defaults.font;
+//	
+//	if(textLen == 0) textLen = strlen(text);
+//	
+//	gui_drawTextLineAdv(gm, 
+//		tl, (Vector2){99999999,99999999},
+//		&gm->curClip,
+//		color,
+//		font, size,
+//		GUI_TEXT_ALIGN_LEFT,
+//		gm->curZ,
+//		text, textLen
+//	);
+//}
 
 
+//
+//// no wrapping
+//void GUI_Printf_(
+//	GUIManager* gm,  
+//	Vector2 tl, 
+//	char* fontName, 
+//	float size, 
+//	Color4* color,
+//	char* fmt,
+//	...
+//) {
+//	va_list ap;
+//	
+//	if(!gm->drawMode) return; // this function is only for drawing mode
+//	
+//	GUIFont* font = GUI_FindFont(gm, fontName);
+//	if(!font) font = gm->defaults.font;
+//	
+//	va_start(ap, fmt);
+//	int sz = vsnprintf(NULL, 0, fmt, ap) + 1;
+//	va_end(ap);
+//	
+//	char* tmp = malloc(sz);
+//	va_start(ap, fmt);
+//	vsnprintf(tmp, sz, fmt, ap);
+//	va_end(ap);
+//	
+//	GUI_TextLine_(gm, tmp, sz, tl, fontName, size, color);
+//	
+//	free(tmp);
+//}
+//
+//// no wrapping
+//void GUI_TextLineCentered_(
+//	GUIManager* gm, 
+//	char* text, 
+//	size_t textLen, 
+//	Vector2 tl, 
+//	Vector2 sz, 
+//	char* fontName, 
+//	float size, 
+//	Color4* color
+//) {
+//	if(!gm->drawMode) return; // this function is only for drawing mode
+//	
+//	GUIFont* font = GUI_FindFont(gm, fontName);
+//	if(!font) font = gm->defaults.font;
+//	
+//	if(textLen == 0) textLen = strlen(text);
+//	
+//	float b = (sz.y - (font->ascender * size)) / 2;
+//	
+//	gui_drawTextLineAdv(gm, (Vector2){tl.x, tl.y + b}, sz, &gm->curClip, color, font, size, GUI_TEXT_ALIGN_CENTER, gm->curZ, text, textLen);
+//}
+//
+//
 
-void GUI_Double_(GUIManager* gm, double d, int precision, Vector2 tl, char* fontName, float size, Color4* color) {
-	char buf[64];
-	int n = snprintf(buf, 64, "%.*f", precision, d);
-	GUI_TextLine(buf, n, tl, fontName, size, color);
-}
-
-void GUI_Integer_(GUIManager* gm, int64_t i, Vector2 tl, char* fontName, float size, Color4* color) {
-	char buf[64];
-	int n = snprintf(buf, 64, "%ld", i);
-	GUI_TextLine(buf, n, tl, fontName, size, color);
-}
-
-
+//void GUI_Double_(GUIManager* gm, double d, int precision, Vector2 tl, char* fontName, float size, Color4* color) {
+//	char buf[64];
+//	int n = snprintf(buf, 64, "%.*f", precision, d);
+//	GUI_TextLine(buf, n, tl, fontName, size, color);
+//}
+//
+//void GUI_Integer_(GUIManager* gm, int64_t i, Vector2 tl, char* fontName, float size, Color4* color) {
+//	char buf[64];
+//	int n = snprintf(buf, 64, "%ld", i);
+//	GUI_TextLine(buf, n, tl, fontName, size, color);
+//}
+//
+//
 Vector2 GUI_MousePos_(GUIManager* gm) {
 	return V(gm->lastMousePos.x - gm->curWin->absClip.min.x, gm->lastMousePos.y - gm->curWin->absClip.min.y);
 }

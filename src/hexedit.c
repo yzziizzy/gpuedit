@@ -24,8 +24,8 @@ static void drawHexByte(Hexedit* w, GUIManager* gm, int c, Vector2 pos, Color4* 
 	int lc_char = lc < 10 ? '0' + lc : 'a' + (lc - 10);
 	int hc_char = hc < 10 ? '0' + hc : 'a' + (hc - 10);
 	
-	GUI_CharFont_NoGuard(hc_char, pos, w->font, w->bs->fontSize, color);
-	GUI_CharFont_NoGuard(lc_char, V(pos.x + w->bs->charWidth, pos.y), w->font, w->bs->fontSize, color);
+	GUI_Char_NoGuard(hc_char, pos, w->font, w->bs->fontSize, color);
+	GUI_Char_NoGuard(lc_char, V(pos.x + w->bs->charWidth, pos.y), w->font, w->bs->fontSize, color);
 } 
 
 static void drawHex(Hexedit* w, GUIManager* gm, void* d, int bytes, Vector2 pos, Color4* color) {
@@ -44,7 +44,7 @@ static void drawHex(Hexedit* w, GUIManager* gm, void* d, int bytes, Vector2 pos,
 		int a = b & 15;
 		int a_char = a < 10 ? '0' + a : 'a' + (a - 10);
 		
-		GUI_CharFont_NoGuard(a_char, V(pos.x + i * w->bs->charWidth, pos.y), w->font, w->bs->fontSize, color);
+		GUI_Char_NoGuard(a_char, V(pos.x + i * w->bs->charWidth, pos.y), w->font, w->bs->fontSize, color);
 		
 		b >>= 4;
 	}
@@ -129,7 +129,7 @@ void Hexedit_Render(Hexedit* w, GUIManager* gm, Vector2 tl, Vector2 sz, PassFram
 			int ac = c;
 			if(!isprint(c)) ac = '.';
 			
-			GUI_CharFont_NoGuard(ac, V(tl.x + nw + off + b * w->bs->charWidth, tl.y + (l + 1) * w->bs->lineHeight), w->font, w->bs->fontSize, &C4H(ffffffff));
+			GUI_Char_NoGuard(ac, V(tl.x + nw + off + b * w->bs->charWidth, tl.y + (l + 1) * w->bs->lineHeight), w->font, w->bs->fontSize, &C4H(ffffffff));
 		
 			if(++total >= w->len) goto DONE;
 		} 
@@ -213,7 +213,7 @@ Hexedit* Hexedit_New(GUIManager* gm, Settings* s, char* path) {
 	w->gs = Settings_GetSection(s, SETTINGS_General);
 	w->bs = Settings_GetSection(s, SETTINGS_Buffer);
 	
-	w->font = GUI_FindFont(gm, w->bs->font, w->bs->fontSize);
+	w->font = GUI_FindFont(gm, w->bs->font);
 	
 	if(path) {
 		Hexedit_LoadFile(w, path); 

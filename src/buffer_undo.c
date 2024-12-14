@@ -63,26 +63,26 @@ void BufferUndo_DebugRender(GUIManager* gm, Buffer* w, Vector2 tl, Vector2 sz, P
 void BufferUndo_DebugRenderItem(GUIManager* gm, BufferUndo* u, Vector2 tl, Vector2 sz, PassFrameParams* pfp) {
 	char buf[256];
 
-	GUI_TextLine(undo_actions_names[u->action], 0, tl, "Arial", 12, &C4H(ffffffff));
+	GUI_TextLine(tl, undo_actions_names[u->action], -1);//, tl, "Arial", 12, &C4H(ffffffff));
 	
 	switch(u->action) {
 		case UndoAction_InsertChar:
 			buf[0] = u->character;
-			GUI_TextLine(buf, 1, V(tl.x + 40, tl.y), "Arial", 12, &C4H(88ff88ff));
+			GUI_TextLine(V(tl.x + 40, tl.y), buf, 1);//, "Arial", 12, &C4H(88ff88ff));
 			break;
 			
 		case UndoAction_InsertText:
 			sprintf(buf, "%ld:%ld", (uint64_t)u->lineNum, (uint64_t)u->colNum);
-			GUI_TextLine(buf, 0, V(tl.x + 70, tl.y), "Arial", 12, &C4H(88ff88ff));
+			GUI_TextLine(V(tl.x + 70, tl.y), buf, -1);//, "Arial", 12, &C4H(88ff88ff));
 			
-			GUI_TextLine(u->text, u->length, V(tl.x + 100, tl.y), "Arial", 12, &C4H(ff8888ff));
+			GUI_TextLine(V(tl.x + 100, tl.y), u->text, u->length);//, "Arial", 12, &C4H(ff8888ff));
 			break;
 
 		case UndoAction_DeleteText:
 			sprintf(buf, "%ld:%ld", (uint64_t)u->lineNum, (uint64_t)u->colNum);
-			GUI_TextLine(buf, 0, V(tl.x + 70, tl.y), "Arial", 12, &C4H(88ff88ff));
+			GUI_TextLine(V(tl.x + 70, tl.y), buf, -1);//, "Arial", 12, &C4H(88ff88ff));
 			
-			GUI_TextLine(u->text, u->length, V(tl.x + 100, tl.y), "Arial", 12, &C4H(ff8888ff));
+			GUI_TextLine(V(tl.x + 100, tl.y), u->text, u->length);//, "Arial", 12, &C4H(ff8888ff));
 			break;
 
 	}

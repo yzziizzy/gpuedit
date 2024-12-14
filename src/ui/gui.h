@@ -18,6 +18,7 @@ typedef struct GUIManager GUIManager;
 
 
 
+
 struct ShaderColor4 {
 	uint8_t r,g,b,a;
 } __attribute__ ((packed));
@@ -256,6 +257,12 @@ typedef struct GUI_PaneTargeter {
 } GUI_PaneTargeter;
 
 
+struct gui_font_params {
+	GUIFont* font;
+	float size;
+	Color4 color;
+};
+
 /*
 
 */
@@ -298,7 +305,11 @@ typedef struct GUIManager {
 	VEC(AABB2) clipStack;
 	AABB2 curClip;
 	float curZ;
-	float fontSize;
+	
+	VEC(struct gui_font_params) fontStack;
+	float curFontSize;
+	Color4 curFontColor;
+	GUIFont* curFont;
 
 	GUIEvent curEvent;
 	float scrollDist;
@@ -407,7 +418,7 @@ void GUI_Notify_(GUIManager* gm, int type, void* id, uint64_t elem);
 
 
 
-GUIFont* GUI_FindFont(GUIManager* gm, char* name, float size);
+GUIFont* GUI_FindFont(GUIManager* gm, char* name);
 
 
 

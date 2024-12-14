@@ -34,8 +34,10 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 	gm->curZ += 10;
 		
 	DEFAULTS(GUIEditOpts, eopts);
-	eopts.selectAll = 1;
-	if(GUI_Edit_(gm, &w->searchTerm, tl, sz.x, &w->searchTerm, &eopts)) {
+	for(int i = 0; i < 3; i++) {
+		eopts[i].selectAll = 1;
+	}
+	if(GUI_Edit_(gm, &w->searchTerm, tl, sz.x, &w->searchTerm, eopts)) {
 		GrepOpenControl_Refresh(w);
 	}
 	
@@ -124,13 +126,20 @@ void GrepOpenControl_Render(GrepOpenControl* w, GUIManager* gm, Vector2 tl, Vect
 		}
 
 		gm->curZ++;
+		GUI_PushFont(w->font, w->fontsize, &gm->defaults.selectedItemTextColor);
+		
 		// the project name
-		GUI_TextLine(w->matches[i].projname, strlen(w->matches[i].projname), btl_proj, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
+		GUI_TextLine(btl_proj, w->matches[i].projname, strlen(w->matches[i].projname));
 		// the file name
-		GUI_TextLine(w->matches[i].render_line, strlen(w->matches[i].render_line), btl_file, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
+		GUI_TextLine(btl_file, w->matches[i].render_line, strlen(w->matches[i].render_line));
+		
 		// the matching line
-		GUI_TextLine(w->matches[i].line, strlen(w->matches[i].line), btl_line, w->font->name, w->fontsize, &gm->defaults.selectedItemTextColor);
-//		gm->curZ--;
+		gm->curFontColor = gm->defaults.selectedItemTextColor;
+		GUI_TextLine(btl_line, w->matches[i].line, strlen(w->matches[i].line));
+		
+		GUI_PopFont();
+		gm->curZ--;
+		
 		
 		linesDrawn++;
 	}
@@ -248,7 +257,7 @@ GrepOpenControl* GrepOpenControl_New(GUIManager* gm, Settings* s, MessagePipe* m
 
 
 	w->fontsize = 16;
-	GUIFont* font = GUI_FindFont(gm, "Arial", w->fontsize);
+	GUIFont* font = GUI_FindFont(gm, "Arial");
 	if(!font) font = gm->defaults.font;
 	w->font = font;
 	
