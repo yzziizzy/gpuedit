@@ -1,7 +1,7 @@
 {
 
 general: {
-
+	windowAlpha: false,
 	AppState_frameRate: 30,
 	
 	"GUIManager_maxInstances": 16384,

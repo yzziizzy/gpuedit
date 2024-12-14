@@ -93,6 +93,7 @@ typedef struct WidgetSpec {
 //          type   name                default value | min | max    
 #define GENERAL_SETTING_LIST \
 	SETTING(int,   frameRate,          30,    15,   INT_MAX) \
+	SETTING(bool,  windowAlpha,        true,  NULL, NULL) \
 	SETTING(charp, imagesPath,         "/usr/local/share/gpuedit/images", NULL, NULL) \
 	SETTING(charp, commandsPath,       "/usr/local/share/gpuedit/commands.json", NULL, NULL) \
 	SETTING(charp, highlightersPath,   "/usr/local/lib/gpuedit/highlighters/", NULL, NULL) \

@@ -181,7 +181,7 @@ int initXWindow(XStuff* xs) {
 		XRenderPictFormat *pf = XRenderFindVisualFormat(xs->display, vi->visual);
 		if(!pf) continue;
 
-		if(pf->direct.alphaMask <= 0) continue;
+		if(gs->windowAlpha && pf->direct.alphaMask <= 0) continue;
 		
 		glXGetFBConfigAttrib(xs->display, fbconfigs[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 		glXGetFBConfigAttrib(xs->display, fbconfigs[i], GLX_SAMPLES, &samples);

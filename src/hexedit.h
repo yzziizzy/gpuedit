@@ -2,14 +2,13 @@
 #define __gpuedit__hexedit_h__
 
 
-
 #include "ui/gui.h"
 #include "buffer.h"
 
-// name sz sign i/f/c
+// name   sz sign i/f/c
 #define HEXEDIT_TYPE_LIST(X) \
-	X(u8, 1, 0, i) \
-	X(s8, 1, 1, i) \
+	X(u8,  1, 0, i) \
+	X(s8,  1, 1, i) \
 	X(u16, 2, 0, i) \
 	X(s16, 2, 1, i) \
 	X(u24, 3, 0, i) \
@@ -30,6 +29,31 @@ enum HexType {
 #undef X
 	HEXEDIT_TYPE_MAX_VALUE
 };
+
+
+
+
+/*
+TODO: fix tab title
+
+Ideas:
+Colored character classes for ascii mode, on both sides
+cursor width and type hotkeys and gui (status bar?)
+mouse click support, mouse scroll support
+
+search, base converter calculator
+
+ability to unpack bit-packed data
+
+LE/BE support on a per-field basis
+remember settings for the file
+ability to configure offsets based on data in the file
+ability to set up structure definitions
+
+view a section of text in wide format with normal wrapping
+
+*/
+
 
 typedef struct HexRange {
 	ssize_t pos, len;
