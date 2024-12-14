@@ -106,6 +106,17 @@ void GUI_Printf_(
 
 
 
+#define  GUI_CharFromPixelF(a,b,c,d,e) GUI_CharFromPixelF_(gm, a,b,c,d,e)
+float GUI_CharFromPixelF_(
+	GUIManager* gm,
+	GUIFont* font,
+	float fontsize,
+	char* txt,
+	ssize_t maxChars,
+	float pixelOffset
+);
+
+
 void GUI_Double_(GUIManager* gm, double d, int precision, Vector2 tl, char* fontName, float size, Color4* color);
 #define GUI_Double(...) GUI_Double_(gm, __VA_ARGS__)
 void GUI_Integer_(GUIManager* gm, int64_t i, Vector2 tl, char* fontName, float size, Color4* color);

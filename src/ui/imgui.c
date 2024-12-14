@@ -535,6 +535,16 @@ static void delete_selection(GUICursorData* cd, GUIString* str) {
 	cd->selectPivot = -1;
 }
 
+static void select_all(GUICursorData* cd, GUIString* str) {
+	cd->cursorPos = str->len;
+	cd->selectPivot = 0;
+}
+
+static void select_none(GUICursorData* cd) {
+	cd->cursorPos = 0;
+	cd->selectPivot = -1;
+}
+
 static void set_clipboard(int which, GUICursorData* cd, GUIString* str) {
 	char* tmp;
 	int selLen;
@@ -797,19 +807,36 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	Vector2 sz = o->size;
 	if(width > 0) sz.x = width;
 	float fontSz = o->fontSize;
+	vec2 pad = o[0].padding;
 	
 	GUIFont* font = GUI_FindFont(gm, o->fontName, fontSz);	
 	
 	HOVER_HOT(id)
 	
 	if(gm->hotID == id) {
+		bool wasActive = gm->activeID == id;
+		
 		MOUSE_DOWN_ACTIVE(id)
 		
-		if(GUI_MouseWentUp(1)) {
+		// select all if first click on inactive
+		if(!wasActive && gm->activeID == id) {
+			// select all
+			select_all(&d->cursor, str);
+		}
+		
+		if(GUI_MouseWentDown(1)) {
 			// position the cursor
 			Vector2 mp = GUI_MousePos();
-			d->cursor.cursorPos = gui_charFromPixel(gm, font, fontSz, str->data, mp.x - tl.x);
-			d->cursor.cursorPos = MIN(d->cursor.cursorPos, str->len);
+//			d->cursor.cursorPos = gui_charFromPixel(gm, font, fontSz, str->data, mp.x - tl.x);
+//			d->cursor.cursorPos = MIN(d->cursor.cursorPos, str->len);
+			d->cursor.selectPivot = -1;
+			d->cursor.cursorPos = floor(GUI_CharFromPixelF(font, o[0].fontSize, str->data, str->len, mp.x - (tl.x + pad.x + d->scrollX)));
+		}
+		else if(GUI_MouseWentUp(1)) {
+			if(gm->curEvent.multiClick == 2) {
+				// select all
+				select_all(&d->cursor, str);
+			}
 		}
 		else if(GUI_MouseWentUp(2)) {
 			char* pasteData;
@@ -831,6 +858,25 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 				GUI_CancelInput();
 				ret |= 1;
 			}
+		}
+	}
+	
+		// mouse selection dragging
+	if(GUI_InputAvailable()) {
+		
+		if(gm->curEvent.type == GUIEVENT_DragStart && GUI_PointInBoxV(tl, sz, gm->lastMousePos)) {
+			d->cursor.isMouseDragging = 1;
+			// set pivot 
+			d->cursor.selectPivot = d->cursor.cursorPos;
+		}
+		else if(d->cursor.isMouseDragging && gm->curEvent.type == GUIEVENT_DragMove) {
+		
+			// set cursorPos
+			vec2 mp = GUI_MousePos();
+			d->cursor.cursorPos = floor(GUI_CharFromPixelF(font, o[0].fontSize, str->data, str->len, mp.x - (tl.x + pad.x + d->scrollX)));
+		}
+		else if(d->cursor.isMouseDragging && gm->curEvent.type == GUIEVENT_DragStop) {
+			d->cursor.isMouseDragging = 0;
 		}
 	}
 	

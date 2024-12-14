@@ -216,6 +216,7 @@ typedef struct GUICursorData {
 	int cursorPos;
 	int selectPivot;
 	float blinkTimer;
+	bool isMouseDragging;
 } GUICursorData;
 
 

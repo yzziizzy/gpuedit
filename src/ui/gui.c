@@ -242,6 +242,64 @@ int gui_charFromPixel (
 
 
 
+
+float GUI_CharFromPixelF_(
+	GUIManager* gm,
+	GUIFont* font,
+	float fontsize,
+	char* txt,
+	ssize_t maxChars,
+	float pixelOffset
+) {
+	if(maxChars == 0 || txt == NULL || pixelOffset <= 0) return 0;
+	
+	if(!font) font = gm->defaults.font; // HACK
+	if(!fontsize) fontsize = gm->defaults.fontSize; // HACK
+	if(maxChars < 0) maxChars = strlen(txt);
+	
+//	int isBitmap = 0;
+//	if(fontsize >= 4 && fontsize + .4999f <= 36) {
+//		int b = floor(fontsize + .4999f) - 4;
+//		if(font->bitmapFonts[b]) {
+//			font = font->bitmapFonts[b];
+//			isBitmap = 1;
+//			fontsize = floor(fontsize + .4999f);
+//		}
+//	}
+	
+	float adv = 0;
+	
+	float spaceadv = font->regular[' '].advance * fontsize;
+	
+	size_t n;
+	for(n = 0; txt[n] != 0 && n < maxChars; n++) {
+		char c = txt[n];
+		f32 oldAdv = adv;
+		
+		struct charInfo* ci = &font->regular[(int)c];
+		
+		if(c == '\t') {
+			adv += spaceadv * 4; // hardcoded to annoy you
+		}
+		else if(c != ' ') {			
+			adv += ci->advance * fontsize;
+		}
+		else {
+			adv += spaceadv;
+		}
+		
+//		if(isBitmap) adv = ceil(adv); // align to pixel boundaries
+		
+		if(adv >= pixelOffset) {
+			f32 delta = adv - oldAdv;
+			return (f32)n + ((pixelOffset - oldAdv) / delta);
+		}
+	}
+	
+	return n;
+}
+
+
 void gui_drawCharacter(
 	GUIManager* gm,
 	Vector2 tl,

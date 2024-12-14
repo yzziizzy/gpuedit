@@ -561,7 +561,7 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 		VEC_EACHP(&gm->focusNotifiers, i, not) {
 			if(not->id != lastActiveID) continue;
 			
-			printf("blur element (%d) %p\n", GUIEVENT_Blur, not->id);
+//			printf("blur element (%d) %p\n", GUIEVENT_Blur, not->id);
 			gm->curEvent = (GUIEvent){0};
 			gm->curEvent = (GUIEvent){
 				.type = GUIEVENT_Blur,
@@ -573,7 +573,7 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 		VEC_EACHP(&gm->focusNotifiers, i, not) {
 			if(not->id != cachedActiveID) continue;
 			
-			printf("focus element (%d) %p\n", GUIEVENT_Focus, not->id);
+//			printf("focus element (%d) %p\n", GUIEVENT_Focus, not->id);
 			gm->curEvent = (GUIEvent){0};
 			gm->curEvent = (GUIEvent){
 				.type = GUIEVENT_Focus,
