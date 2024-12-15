@@ -9,6 +9,7 @@
 
 typedef struct FileBrowserEntry {
 	char* name;
+	char* ext; // a pointer into above
 	char* fullPath;
 // 	int type;
 	mode_t perms;
@@ -47,12 +48,30 @@ typedef struct FileBrowserEntry {
 } FileBrowserEntry;
 
 
-
-
 typedef struct FileBrowserColumnInfo {
 	int type;
 	float width;
 } FileBrowserColumnInfo;
+
+
+typedef struct FileBrowserEntryList {
+	VEC(FileBrowserEntry) files;
+	VEC(FileBrowserColumnInfo) columnInfo;
+	
+	float lineHeight;
+	float leftMargin;
+	float headerHeight;
+	
+	intptr_t cursorIndex;
+	intptr_t numSelected;
+	intptr_t scrollOffset;
+	float scrollPos;
+	
+	int linesOnScreen;
+	
+} FileBrowserEntryList;
+
+
 
 // the full-functioning dialog contents
 typedef struct FileBrowser {
@@ -68,22 +87,15 @@ typedef struct FileBrowser {
 	float headerHeight;
 	// iconsize, font params, etc
 	
-	int linesOnScreen;
-	
-	VEC(FileBrowserColumnInfo) columnInfo;
 	
 	GUIWindow* scrollbar;
 	float sbMinHeight;
-	intptr_t scrollOffset;
-	
-	intptr_t cursorIndex;
-	intptr_t numSelected;
 	
 	int linesPerScrollWheel;
 
 	char* curDir;
 	
-	VEC(FileBrowserEntry) entries;
+	FileBrowserEntryList entries;
 	
 	unsigned int isRootDir       : 1;
 	unsigned int treeView        : 1;
