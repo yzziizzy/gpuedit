@@ -123,13 +123,29 @@ float GUI_GetTextWidthAdv_(
 	char* txt, 
 	ssize_t charCount,
 	GUIFont* font,
-	float fontsize
+	float fontSize
 ) {
+
+// 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return 0;
+	if(charCount < 0) charCount = strlen(txt);
 	
-	float adv = 0;
+	assert(font != NULL);
+	assert(fontSize > 0);
 	
-	float spaceadv = font->regular[' '].advance * fontsize;
+	int isBitmap = 0;
+	if(fontSize >= 4 && fontSize + .4999f <= 36) {
+		int b = floor(fontSize + .4999f) - 4;
+		if(font->bitmapFonts[b]) {
+			font = font->bitmapFonts[b];
+			isBitmap = 1;
+			fontSize = floor(fontSize + .4999f);
+		}
+	}
+	
+	float adv = 0;	
+	float spaceadv = font->regular[' '].advance * fontSize;
+	
 	
 	for(size_t n = 0; txt[n] != 0 && n < charCount; n++) {
 		char c = txt[n];
@@ -139,16 +155,19 @@ float GUI_GetTextWidthAdv_(
 		if(c == '\t') {
 			adv += spaceadv * 4; // hardcoded to annoy you
 		}
-		else if(c != ' ') {
-			adv += ci->advance * fontsize;
+		else if(c != ' ') {	
+			adv += ci->advance * fontSize;
 		}
 		else {
 			adv += spaceadv;
 		}
+		
+		if(isBitmap) adv = ceil(adv); // align to pixel boundaries		
 	}
 	
 	return adv;	
 }
+
 
 // stops on linebreak
 float GUI_TextLineAdv_(
@@ -162,6 +181,10 @@ float GUI_TextLineAdv_(
 	float fontSize,
 	struct Color4* color
 ) {
+
+	if(!gm->drawMode) {
+		return GUI_GetTextWidthAdv(txt, charCount, font, fontSize);
+	}
 	
 // 		printf("'%s'\n", bl->buf);
 	if(txt == NULL || charCount == 0) return 0;

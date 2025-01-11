@@ -5,8 +5,6 @@
 #include "units.h"
 
 
-// TEMP
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 
 char* unit_name_list[UNIT_MAX_VALUE] = {
