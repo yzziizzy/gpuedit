@@ -12,8 +12,8 @@ typedef GUIButtonOpts GUIToggleButtonOpts;
 	SETTING(charp, shaderPath,                    "/usr/local/lib/gpuedit/shaders/guiUnified.glsl", NULL, NULL) \
 	SETTING(charp, name,                          "default dark", NULL, NULL) \
 	\
-	SETTING(charp, fontAtlasFile,                 "~/.gpuedit/fonts.atlas", NULL, NULL) \
-	SETTING(charpp,fontList,             ((char*[]){"Arial","Courier New", NULL}), NULL, NULL) \
+	SETTING(charp, atlasPath,                     "/tmp/gpuedit_fonts.atlas", NULL, NULL) \
+	SETTING(charpp,fontList,                      ((char*[]){"Arial","Courier New", NULL}), NULL, NULL) \
 	\
 	SETTING(int,   linesPerScrollWheel,           5, 1, 999) \
 	SETTING(bool,  hideScrollbar,                 false,       NULL, NULL) \
