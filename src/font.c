@@ -63,10 +63,9 @@ FontManager* FontManager_alloc() {
 void FontManager_init(FontManager* fm, GUISettings* gs) {
 	int i = 0;
 	int atlas_dirty = 0;
-	char* atlas_path = "./fonts.atlas";
 	GUIFont* font;
 	
-	atlas_dirty = FontManager_loadAtlas(fm, atlas_path);
+	atlas_dirty = FontManager_loadAtlas(fm, gs->atlasPath);
 	
 	if(!atlas_dirty) {
 		while(gs->fontList[i] != NULL) {
@@ -97,7 +96,7 @@ void FontManager_init(FontManager* fm, GUISettings* gs) {
 		FontManager_finalize(fm);
 
 		FontManager_createAtlas(fm);
-		FontManager_saveAtlas(fm, atlas_path);
+		FontManager_saveAtlas(fm, gs->atlasPath);
 	}
 
 	HT_get(&fm->fonts, "Arial", &fm->helv);
