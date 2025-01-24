@@ -225,6 +225,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 				break;
 		}
 		
+		// BUG: hardcoded tab keys
 		if(!gm->drawMode && 
 			gm->curEvent.type == GUIEVENT_KeyDown && gm->curEvent.modifiers == 0 && 
 			(gm->curEvent.keycode == XK_ISO_Left_Tab || gm->curEvent.keycode == XK_Tab)
@@ -280,7 +281,12 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		Commands_UpdateModes(gm, &w->inputState, cmd, numCmds);
 		
 		w->gotoLineTrayOpen = !!(w->inputState.curFlags & GUICMD_MODE_FLAG_showGoToLineBar);
+		
+		bool trayWasOpen = w->trayOpen;
 		w->trayOpen = !!(w->inputState.curFlags & GUICMD_MODE_FLAG_showFindBar);
+		if(!w->trayOpen && trayWasOpen) {
+			ACTIVE(w);
+		}
 	}
 	
 	// --------- drawing code ---------
