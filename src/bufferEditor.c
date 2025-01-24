@@ -126,7 +126,6 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 			eo[i].selectAll = 1;
 		}
 		
-		ACTIVE(&w->gotoLineNum);
 		if(GUI_IntEdit_(gm, &w->gotoLineNum, V(10,10), sz.x - 20, &w->gotoLineNum, eo)) {
 			BufferLine* bl = Buffer_raw_GetLineByNum(w->ec->b, w->gotoLineNum);
 				
