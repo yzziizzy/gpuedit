@@ -1366,6 +1366,8 @@ void GUI_BeginWindow_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, float z,
 //	Vector2 off = {0};
 //	if(d) off = d->scroll;
 	
+	w->preservedZ = gm->curZ;
+	
 	w->id = id;
 	w->z = z;
 	w->flags = flags;
@@ -1373,8 +1375,8 @@ void GUI_BeginWindow_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, float z,
 	// TODO: calculate the proper visual clipping region
 	w->absClip.min.x = p->absClip.min.x + tl.x;
 	w->absClip.min.y = p->absClip.min.y + tl.y;
-	w->absClip.max.x = w->absClip.max.x + sz.x;
-	w->absClip.max.y = w->absClip.max.y + sz.y;
+	w->absClip.max.x = w->absClip.min.x + sz.x;
+	w->absClip.max.y = w->absClip.min.y + sz.y;
 	
 	VEC_PUSH(&gm->clipStack, gm->curClip);
 	gm->curClip = w->absClip;
@@ -1393,6 +1395,8 @@ void GUI_EndWindow_(GUIManager* gm) {
 		fprintf(stderr, "Tried to pop root window\n");
 		return;
 	}	
+	
+	gm->curZ = gm->curWin->preservedZ;
 	
 	VEC_POP1(&gm->windowStack);
 	gm->curWin = VEC_TAIL(&gm->windowStack);
