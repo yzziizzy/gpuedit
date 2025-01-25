@@ -280,7 +280,11 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		
 		Commands_UpdateModes(gm, &w->inputState, cmd, numCmds);
 		
+		bool gotoWasOpen = w->gotoLineTrayOpen;
 		w->gotoLineTrayOpen = !!(w->inputState.curFlags & GUICMD_MODE_FLAG_showGoToLineBar);
+		if(!w->gotoLineTrayOpen && gotoWasOpen) {
+			ACTIVE(w);
+		}
 		
 		bool trayWasOpen = w->trayOpen;
 		w->trayOpen = !!(w->inputState.curFlags & GUICMD_MODE_FLAG_showFindBar);

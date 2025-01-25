@@ -227,6 +227,8 @@ static void click(GUIBufferEditControl* w, GUIManager* gm) {
 
 		if(!shift) GBEC_ClearAllSelections(w);
 		
+		
+		
 		// TODO: reverse calculate cursor position
 		if(mp.x < tl.x + w->textAreaOffsetX || mp.x > tl.x + sz.x) return;
 		if(mp.y < tl.y || mp.y > tl.y + sz.y) return;
