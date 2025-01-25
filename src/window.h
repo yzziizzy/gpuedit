@@ -46,13 +46,19 @@ typedef struct XStuff {
 	int XFixes_eventBase;
 	int XFixes_errorBase;
 	
+	Atom atomID;
 	Atom clipboardID;
 	Atom primaryID;
 	Atom secondaryID;
 	Atom selDataID;
 	Atom utf8ID;
 	Atom textID;
+	Atom stringID;
 	Atom targetsID;
+	Atom multipleID;
+	Atom insertSelectionID;
+	Atom insertPropertyID;
+	Atom compoundTextID;
 	
 	Atom wmProtocolsID;
 	Atom wmDeleteWindowID;
