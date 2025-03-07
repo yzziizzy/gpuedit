@@ -130,7 +130,7 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 
 		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];
 		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
-
+		
 		// set this pane to be focused if any mouse button went up in it,
 		//   regardless of if a deeper element traps the event
 		// Don't refocus on wheel scrolling
@@ -148,7 +148,12 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	for(int x = 0; x < w->xDivisions; x++) {
 		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];
 		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
-		MainControlPane_Render(pane, gm, ptl, psz, pfp);
+		
+		GUI_BeginWindow(pane, ptl, psz, gm->curZ, 0);
+		
+		MainControlPane_Render(pane, gm, V(0,0), psz, pfp);
+	
+		GUI_EndWindow();
 	}}
 	
 	// handle input
@@ -296,7 +301,12 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		box.min.y = tl.y + 1;
 		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + mc->tabHeight - 1;
-		gm->curClip = box;
+		
+		AABB2 cbox = {
+			{box.min.x + oClip.min.x, box.min.y + oClip.min.y},
+			{box.max.x + oClip.max.x, box.max.y + oClip.max.y}
+		};
+		gm->curClip = cbox;
 		
 			
 		if(textw > tabw - 2) {

@@ -484,10 +484,20 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	
 	if(!(d = GUI_GetData_(gm, id))) {
 		d = calloc(1, sizeof(*d));
+
+		
 		GUI_SetData_(gm, id, d, (void*)intedit_free);
 		
 		d->str.alloc = 64;
 		d->str.data = calloc(1, d->str.alloc * sizeof(*d->str.data));
+		
+		d->str.len = snprintf(d->str.data, 64, "%ld", *num);
+		d->lastValue = *num;
+		
+		if(o[0].selectAll) {
+			d->ed.cursor.selectPivot = 0;
+			d->ed.cursor.cursorPos = d->str.len;
+		}
 		firstRun = 1;
 	}
 	
@@ -500,13 +510,61 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 	HOVER_HOT(id)
 
 	if(gm->hotID == id) {
+		bool wasActive = gm->activeID == id;
+	
 		MOUSE_DOWN_ACTIVE(id)
 		
-		if(GUI_MouseWentUp(1)) {
+		// select all if first click on inactive
+		if(!wasActive && gm->activeID == id) {
+			// select all
+			select_all(&d->ed.cursor, &d->str);
+		}
+		
+		
+		if(GUI_MouseWentDown(1)) {
 			// position the cursor
 			Vector2 mp = GUI_MousePos();
-			d->ed.cursor.cursorPos = gui_charFromPixel(gm, font, o[0].fontSize, d->str.data, mp.x - tl.x + pad.x);
+//			d->cursor.cursorPos = gui_charFromPixel(gm, font, fontSz, str->data, mp.x - tl.x);
+//			d->cursor.cursorPos = MIN(d->cursor.cursorPos, str->len);
+			d->ed.cursor.selectPivot = -1;
+			d->ed.cursor.cursorPos = floor(GUI_CharFromPixelF(font, o[0].fontSize, d->str.data, d->str.len, mp.x - (tl.x + pad.x + d->ed.scrollX)));
 		}
+		else if(GUI_MouseWentUp(1)) {
+			if(gm->curEvent.multiClick == 2) {
+				// select all
+				select_all(&d->ed.cursor, &d->str);
+			}
+		}
+		else if(GUI_MouseWentUp(2)) {
+			char* pasteData;
+			size_t pasteLen;
+			Clipboard_PeekRawText(CLIP_SELECTION, &pasteData, &pasteLen);
+			GUICursorData* cd = &d->ed.cursor;
+				
+//			printf("paste data: %s, len %ld)\n", pasteData, pasteLen);
+				
+			if(pasteLen > 0) {
+				if(cd->selectPivot > -1) delete_selection(cd, &d->str);
+				check_string(&d->str, pasteLen);
+				memmove(d->str.data + cd->cursorPos + pasteLen, d->str.data + cd->cursorPos, d->str.len - cd->cursorPos + 1);
+				memcpy(d->str.data + cd->cursorPos, pasteData, pasteLen);
+				d->str.len += pasteLen;
+				cd->cursorPos += pasteLen;
+				cd->blinkTimer = 0;
+				
+				GUI_CancelInput();
+				ret |= 1;
+			}
+		}
+//		if(GUI_MouseWentUp(1)) {
+//			if(gm->curEvent.multiClick == 2) {
+//				// select all
+//				select_all(&d->ed.cursor, str);
+//			}
+//			// position the cursor
+//			Vector2 mp = GUI_MousePos();
+//			d->ed.cursor.cursorPos = gui_charFromPixel(gm, font, o[0].fontSize, d->str.data, mp.x - tl.x + pad.x);
+//		}
 	}
 	
 	// handle input
@@ -569,8 +627,7 @@ int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, G
 			int min = MIN(cursorOff, pivotOff);
 			int max = MAX(cursorOff, pivotOff);
 			
-			GUI_Rect(V(tl.x + min + d->ed.scrollX, tl.y), V(max - min,sz.y), &o[st].selectionBgColor);
-			
+			GUI_Rect(V(tl.x + pad.x + min + d->ed.scrollX, tl.y), V(max - min,sz.y), &o[st].selectionBgColor);
 		}
 		gm->curZ -= 0.001;
 	}

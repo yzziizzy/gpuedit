@@ -155,6 +155,7 @@ char* cflags[] = {
 	"-Wno-comment",
 	"-Wno-strict-aliasing",
 	"-Wno-endif-labels",
+	"-Wno-calloc-transposed-args", // just stupid
 	"-Werror=implicit-function-declaration",
 	"-Werror=uninitialized",
 	"-Werror=return-type",

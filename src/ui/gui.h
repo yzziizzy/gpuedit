@@ -246,6 +246,7 @@ typedef struct GUIWindow {
 	int vertAlloc;
 	GUIUnifiedVertex* vertBuffer;
 	
+	float preservedZ; // from before the window was started
 } GUIWindow;
 
 

@@ -236,13 +236,19 @@ int initXWindow(XStuff* xs) {
 	XSetWMProtocols(xs->display, xs->clientWin, &xs->wmDeleteWindowID, 1);
 	
 	// clipboard handling
+	xs->atomID = XInternAtom(xs->display, "ATOM", False);
 	xs->clipboardID = XInternAtom(xs->display, "CLIPBOARD", False);
 	xs->primaryID = XInternAtom(xs->display, "PRIMARY", False);
 	xs->secondaryID = XInternAtom(xs->display, "SECONDARY", False);
 	xs->selDataID = XInternAtom(xs->display, "XSEL_DATA", False);
 	xs->utf8ID = XInternAtom(xs->display, "UTF8_STRING", False);
 	xs->textID = XInternAtom(xs->display, "TEXT", False);
+	xs->stringID = XInternAtom(xs->display, "STRING", False);
+	xs->multipleID = XInternAtom(xs->display, "MULTIPLE", False);
 	xs->targetsID = XInternAtom(xs->display, "TARGETS", False);
+	xs->insertSelectionID = XInternAtom(xs->display, "INSERT_SELECTION", False);
+	xs->insertSelectionID = XInternAtom(xs->display, "INSERT_SELECTION", False);
+	xs->compoundTextID = XInternAtom(xs->display, "COMPOUND_TEXT", False);
 	
 	Clipboard_RegisterOnChange((void*)clipNotify, xs);
 	
@@ -536,7 +542,10 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			if(xev.xselectionrequest.selection == xs->clipboardID) which = CLIP_PRIMARY;
 			else if(xev.xselectionrequest.selection == xs->secondaryID) which = CLIP_SECONDARY;
 			else if(xev.xselectionrequest.selection == xs->primaryID) which = CLIP_SELECTION;
-			else continue;
+			else {
+				printf("unhandled clipboard type\n");
+				continue;
+			}
 			
 			char* txt;
 			size_t len;
@@ -544,22 +553,36 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 // 			printf("sel req 2 '%.*s'\n", len, txt);
 			
 			
-			if(xev.xselectionrequest.target == xs->targetsID) {
+
+		
+			
+			if(xev.xselectionrequest.target == xs->multipleID) {
+//				printf("multiple selection request --------------- \n");
+			}
+			else if(xev.xselectionrequest.target == xs->targetsID) {
 // 				printf("sending target list\n");
-				Atom alist[3];
-				alist[0] = xs->targetsID;
-				alist[1] = xs->textID;
-				alist[2] = xs->utf8ID;
+				Atom alist[] = {
+					xs->targetsID,
+					xs->textID,
+					xs->utf8ID,
+//					xs->multipleID,
+//					xs->stringID,
+//					xs->insertSelectionID,
+//					xs->insertPropertyID,
+//					xs->compoundTextID,
+				};
+				
 				XChangeProperty(
 					xs->display, 
 					xev.xselectionrequest.requestor,
 					xev.xselectionrequest.property, 
-					xev.xselectionrequest.target,
+					xs->atomID, // type
 					32, 
 					PropModeReplace,
 					(unsigned char*)alist, 
-					3
+					sizeof(alist) / sizeof(alist[0])
 				);
+				
 			}
 			else {
 // 				printf("sending regular data\n");
@@ -567,8 +590,8 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 					xs->display,
 					xev.xselectionrequest.requestor, 
 					xev.xselectionrequest.property,
-	// 				xev.xselectionrequest.target,
-					xs->utf8ID,
+					xev.xselectionrequest.target, // type, usually "text/plain;charset=utf-8"
+//					xs->utf8ID,
 					8,
 					PropModeReplace,
 					txt,
@@ -580,6 +603,7 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 // 			printf("prop name: %s\n", XGetAtomName(xs->display, xev.xselectionrequest.property));
 // 			printf("target name: %s\n", XGetAtomName(xs->display, xev.xselectionrequest.target));
 // 			printf("selectoin name: %s\n", XGetAtomName(xs->display, xev.xselectionrequest.selection));
+
 			XSelectionEvent selevt = {
 				.type = SelectionNotify,
 				.display = xs->display,
@@ -589,8 +613,11 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 				.target = xev.xselectionrequest.target,
 				.property = xev.xselectionrequest.property,
 			};
-			
 			XSendEvent(xs->display, selevt.requestor, True, NoEventMask, (XEvent*)&selevt);
+		
+
+			
+//			printf("\n\n");
 			
 			continue;
 		}
@@ -716,6 +743,9 @@ int processEvents(XStuff* xs, InputState* st, InputEvent* iev, int max_events) {
 			
 			return 1;
 		}
+		
+		
+//		printf("unhandled event type\n");
 		
 	}
 	

@@ -381,7 +381,7 @@ static BitmapRGBA8* resample(BitmapRGBA8* in, Vector2i outSz) {
 	float scaleFactor = in->width / outSz.x;
 	BitmapRGBA8* out;
 	
-	out = calloc(1, sizeof(out));
+	out = calloc(1, sizeof(*out));
 	out->width = outSz.x;
 	out->height = outSz.y;
 	out->data = malloc(out->width * out->height * sizeof(*out->data));
@@ -426,7 +426,7 @@ static BitmapRGBA8* nearestRescale(BitmapRGBA8* in, Vector2i outSz) {
 	float scaleFactor = (float)outSz.x / (float)in->width;
 	BitmapRGBA8* out;
 	
-	out = calloc(1, sizeof(out));
+	out = calloc(1, sizeof(*out));
 	out->width = outSz.x;
 	out->height = outSz.y;
 	out->data = malloc(out->width * out->height * sizeof(*out->data));
@@ -507,7 +507,7 @@ static BitmapRGBA8* linearDownscale(BitmapRGBA8* in, Vector2i outSz) {
 	int scaleFactor = (float)in->width / (float)outSz.x;
 	BitmapRGBA8* out;
 	
-	out = calloc(1, sizeof(out));
+	out = calloc(1, sizeof(*out));
 	out->width = outSz.x;
 	out->height = outSz.y;
 	out->data = malloc(out->width * out->height * sizeof(*out->data));
@@ -547,8 +547,8 @@ TexArray* loadTexArray(char** files) {
 	
 	len = ptrlen(files);
 	
-	bmps = malloc(sizeof(BitmapRGBA8*) * len);
-	ta = calloc(sizeof(TexArray), 1);
+	bmps = malloc(sizeof(*bmps) * len);
+	ta = calloc(sizeof(*ta), 1);
 	
 	w = 0;
 	h = 0;

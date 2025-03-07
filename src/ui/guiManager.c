@@ -203,6 +203,8 @@ GUIWindow* GUIWindow_new(GUIManager* gm, GUIWindow* parent) {
 
 
 
+
+
 void GUIManager_SetMainWindowTitle(GUIManager* gm, char* title) {
 	if(gm->windowTitleSetFn) gm->windowTitleSetFn(gm->windowTitleSetData, title);
 }
