@@ -1550,6 +1550,7 @@ static void setBreakpoint(char* file, intptr_t line, MainControl* w) {
 
 
 void MainControl_OnTabChange(MainControl* w) {
+
 	
 	// update access indices
 	// and reap excess tabs per w->gs->paneTabLimit
@@ -1561,6 +1562,11 @@ void MainControl_OnTabChange(MainControl* w) {
 		if(p->tabs.len) {
 			MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
 			tab->accessIndex = ++p->lastTabAccessIndex;
+			
+			if(w->focusedPane == p) {
+				tab->isActive = 1;
+				GUI_SetActive_(w->gm, tab->client, NULL, NULL);
+			}
 		}
 		
 		while(tabLimit > 0 && VEC_LEN(&p->tabs) > tabLimit) {
@@ -1799,8 +1805,8 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	
 	// prolly leaks
 	char* shortname = opt->path ? basename(strdup(opt->path)) : strdup("<New File>"); 
-	
 	MainControlTab* tab = MainControlPane_AddGenericTab(p, gbe, shortname);
+	
 	tab->type = MCTAB_Buffer;
 	tab->beforeClose = gbeBeforeClose;
 	tab->afterClose = gbeAfterClose;

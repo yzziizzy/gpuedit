@@ -72,7 +72,7 @@ if [[ -z $F || ! -f $F ]] ; then
 	exit 1
 fi
 
-
+# apt install libxrender-dev libpcre2-dev libfreetype-dev libfreetype6 libfreetype6-dev
 
 ./debug.sh
 
