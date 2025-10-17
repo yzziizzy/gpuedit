@@ -93,6 +93,7 @@ testfile.h
 
 parser_generated.h
 
+.gpuedit.json
 .gpuedit.session
 
 # profiling temp files
