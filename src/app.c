@@ -710,21 +710,12 @@ struct child_process_info* AppState_ExecProcessPipe(char* execPath, char* args[]
 }
 
 
-void execProcessPipe_buffer(char** args, char** buffer_out, size_t* size_out/*,int* code_out*/) {
-	char** argsv[] = {args, NULL};
-
-	execProcessPipe_bufferv(argsv, buffer_out, size_out);
-}
 
 
-char* execProcessPipe_charpp(char** args, char*** charpp_out, size_t* n_out/*,int* code_out*/) {
-	char** argsv[] = {args, NULL};
 
-	return execProcessPipe_charppv(argsv, charpp_out, n_out);
-}
-
-
-void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*,int** code_out*/) {
+int execProcessPipe_strlist(char* args[], char*** charpp_out, size_t* n_out) {
+	int res = 0;
+	
 	struct child_process_info* cc;
 	int bufferLength = 1024;
 
@@ -736,51 +727,47 @@ void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*
 	char** filepaths;
 	size_t n_filepaths = 0;
 
-	int i = 0;
-	while(args[i]) {
-		// printf("using search arg: %s\n", args[2]);
-		cc = AppState_ExecProcessPipe(
-			args[i][0],
-			args[i]
-		);
-
-		while(!feof(cc->f_stdout)) {
-			size_t n_read = fread(buffer, 1, bufferLength, cc->f_stdout);
-			if(n_read && (offset + n_read) >= max_contents) {
-				max_contents *= 2;
-				contents = realloc(contents, max_contents);
-			}
-
-			// printf("copy at [%ld]: [[%s]]\n", offset, buffer);
-			memcpy((char*)((size_t)contents+offset), buffer, n_read);
-			offset += n_read;
+	cc = AppState_ExecProcessPipe(args[0], args);
+	
+	if(!cc) {
+		res = 1;
+		return res;
+	}
+	
+	if(!cc->f_stdout) {
+		res = 2;
+		return res;
+	}
+	
+	while(!feof(cc->f_stdout)) {
+		size_t n_read = fread(buffer, 1, bufferLength, cc->f_stdout);
+		if(n_read && (offset + n_read) >= max_contents) {
+			max_contents *= 2;
+			contents = realloc(contents, max_contents);
 		}
 
-		fclose(cc->f_stdin);
-		fclose(cc->f_stdout);
-		fclose(cc->f_stderr);
-		
-		// clean up the zombie process
-		int status;
-		waitpid(cc->pid, &status, 0); 
-		
-		i++;
+		// printf("copy at [%ld]: [[%s]]\n", offset, buffer);
+		memcpy((char*)((size_t)contents+offset), buffer, n_read);
+		offset += n_read;
 	}
 	contents[offset] = '\0';
-	*buffer_out = contents;
-}
 
-
-char* execProcessPipe_charppv(char*** args, char*** charpp_out, size_t* n_out/*,int** code_out*/) {
-	char* contents;
-
-	execProcessPipe_bufferv(args, &contents,  n_out);
-
-	*charpp_out = strsplit_inplace(contents, '\n', n_out);
+	fclose(cc->f_stdin);
+	fclose(cc->f_stdout);
+	fclose(cc->f_stderr);
 	
-	return contents;
-}
+	// clean up the zombie process
+	int status;
+	waitpid(cc->pid, &status, 0); 
+	
+	
 
+	size_t split_out = 0;
+	if(charpp_out) *charpp_out = strsplit_inplace(contents, '\n', &split_out);
+	if(n_out) *n_out = split_out;
+	
+	return res;
+}
 
 
 
