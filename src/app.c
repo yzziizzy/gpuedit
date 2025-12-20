@@ -67,6 +67,22 @@ void resize_callback(XStuff* xs, void* gm_) {
 
 static struct child_process_info* cc;
 
+static int_vlist* bookmark_lines_from_json(json_value_t* lines) {
+	if(!lines) return NULL;
+	if(lines->type != JSON_TYPE_ARRAY) return NULL;
+	
+	int_vlist* out = pcalloc(out);
+	VEC_init(out);
+	
+	json_link_t* link = lines->arr.head;
+	json_value_t* l = NULL;
+	for(;link; link = link->next) {
+		VEC_push(out, json_as_int(link->v));
+	}
+	
+	return out;
+}
+
 // nothing in here can use opengl at all.
 void AppState_Init(AppState* as, int argc, char* argv[]) {
 	srand((unsigned int)time(NULL));
@@ -316,7 +332,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 			JSON_OBJ_EACH(jhistory, key, val) {
 				int line = json_obj_get_int(val, "line", 1);
 				int col = json_obj_get_int(val, "col", 0);
-				BufferCache_SetPathHistory(as->mc->bufferCache, key, line, col);
+				
+				int_vlist* bookmark_lines = bookmark_lines_from_json(json_obj_get_val(val, "bookmarks"));
+				
+				BufferCache_SetPathHistory(as->mc->bufferCache, key, line, col, bookmark_lines);
 			}
 		}
 		

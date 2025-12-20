@@ -530,7 +530,7 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 
 
 
-GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
+GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm, MessagePipe* tx) {
 	
 	GUIBufferEditControl* w = pcalloc(w);
 	
@@ -543,6 +543,8 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm) {
 	w->wantedScrollCol = -1;
 	
 	RING_INIT(&w->macros, 12);
+	
+	w->tx = tx;
 	
 	return w;
 }
@@ -1502,9 +1504,18 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			GBEC_CancelAutocomplete(w);
 			break;
 		
-		case GUICMD_Buffer_SetBookmark:       Buffer_SetBookmarkAt(b, CURSOR_LINE(w->sel));    break; 
-		case GUICMD_Buffer_RemoveBookmark:    Buffer_RemoveBookmarkAt(b, CURSOR_LINE(w->sel)); break; 
-		case GUICMD_Buffer_ToggleBookmark:    Buffer_ToggleBookmarkAt(b, CURSOR_LINE(w->sel)); break; 
+		case GUICMD_Buffer_SetBookmark:
+			Buffer_SetBookmarkAt(b, CURSOR_LINE(w->sel));
+			MessagePipe_Send(w->tx, MSG_BookmarkChanged, NULL, NULL);
+			break;
+		case GUICMD_Buffer_RemoveBookmark:
+			Buffer_RemoveBookmarkAt(b, CURSOR_LINE(w->sel));
+			MessagePipe_Send(w->tx, MSG_BookmarkChanged, NULL, NULL);
+			break;
+		case GUICMD_Buffer_ToggleBookmark:
+			Buffer_ToggleBookmarkAt(b, CURSOR_LINE(w->sel));
+			MessagePipe_Send(w->tx, MSG_BookmarkChanged, NULL, NULL);
+			break;
 		
 		case GUICMD_Buffer_GoToNextBookmark:  
 			GBEC_ClearAllSelections(w);

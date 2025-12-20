@@ -425,7 +425,7 @@ GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm, MessagePipe* tx) {
 	GUIString_Init(&w->findQuery);
 	GUIString_Init(&w->replaceText);
 	
-	w->ec = GUIBufferEditControl_New(gm);
+	w->ec = GUIBufferEditControl_New(gm, tx);
 	
 	w->statusBar = StatusBar_New(gm, w);
 	w->showStatusBar = !gm->gs->hideStatusBar;
@@ -476,20 +476,16 @@ void GUIBufferEditor_SaveSessionState(GUIBufferEditor* w, json_value_t* out) {
 	json_obj_set_key(out, "line", json_new_int(CURSOR_LINE(w->ec->sel)->lineNum));
 	json_obj_set_key(out, "col", json_new_int(CURSOR_COL(w->ec->sel)));
 	
-	json_value_t* bookmarks = json_new_array();
-	int n_bookmarks = 0;
-	BufferLine* bl = w->b->first;
-	while(bl) {
-		if(bl->flags & BL_BOOKMARK_FLAG) {
-			json_array_push_tail(bookmarks, json_new_int(bl->lineNum));
-			n_bookmarks++;
+	int_vlist* bmlines = Buffer_ListBookmarks(w->b);
+	if(VEC_len(bmlines)) {
+		json_value_t* bookmarks = json_new_array();
+		VEC_EACH(bmlines, i, lineNum) {
+			json_array_push_tail(bookmarks, json_new_int(lineNum));
 		}
 		
-		bl = bl->next;
-	}
-	if(n_bookmarks) {
 		json_obj_set_key(out, "bookmarks", bookmarks);
 	}
+	
 }
 
 

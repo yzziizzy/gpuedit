@@ -56,6 +56,8 @@ Buffer* Buffer_New(BufferSettings* bs) {
 		BufferSettings_Free(NULL, tmp);
 	}
 	
+	VEC_init(&b->changeListeners);
+	
 	return b;
 }
 
@@ -326,6 +328,7 @@ BufferOpenHistory* BufferOpenHistory_New() {
 
 void BufferOpenHistory_Delete(BufferOpenHistory* boh) {
 	free(boh->realPath);
+	if(boh->bookmark_lines) VEC_free(boh->bookmark_lines);
 	free(boh);
 }
 
@@ -339,12 +342,35 @@ void BufferCache_RemovePathHistory(BufferCache* bc, char* realPath) {
 	HT_delete(&bc->openHistory, realPath);
 }
 
-void BufferCache_SetPathHistory(BufferCache* bc, char* realPath, int line, int col) {
+int_vlist* Buffer_ListBookmarks(Buffer* b) {
+	int_vlist* out = NULL;
+	
+	if(!b) return out;
+	
+	out = pcalloc(out);
+	VEC_init(out);
+	
+	int n_bookmarks = 0;
+	BufferLine* bl = b->first;
+	while(bl) {
+		if(bl->flags & BL_BOOKMARK_FLAG) {
+			VEC_push(out, bl->lineNum);
+		}
+		
+		bl = bl->next;
+	}
+	
+	return out;
+}
+
+void BufferCache_SetPathHistory(BufferCache* bc, char* realPath, int line, int col, int_vlist* bookmark_lines) {
 	if(!realPath) return;
+	
 	BufferOpenHistory* boh = BufferOpenHistory_New();
 	boh->realPath = strdup(realPath);
 	boh->line = line;
 	boh->col = col;
+	boh->bookmark_lines = bookmark_lines;
 	
 	HT_set(&bc->openHistory, boh->realPath, boh);
 }
@@ -1078,6 +1104,7 @@ void Buffer_DeleteSelectionContents(Buffer* b, BufferRange* sel) {
 
 void Buffer_SetBookmarkAt(Buffer* b, BufferLine* bl) {
 	bl->flags |= BL_BOOKMARK_FLAG;
+	
 }
 
 void Buffer_RemoveBookmarkAt(Buffer* b, BufferLine* bl) {

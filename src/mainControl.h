@@ -130,6 +130,7 @@ void MainControlPane_CloseTab(MainControlPane* w, int index);
 int MainControlPane_FindTabIndexByClient(MainControlPane* w, void* client);
 int MainControlPane_FindTabIndexByBufferPath(MainControlPane* w, char* path);
 
+void MainControl_SaveSession(MainControl* w);
 void MainControl_OnTabChange(MainControl* w);
 
 MainControl* MainControl_New(GUIManager* gm, Settings* s);
