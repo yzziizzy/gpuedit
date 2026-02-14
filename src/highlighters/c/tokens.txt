@@ -13,6 +13,7 @@
 # single-character transitions can't be inverted yet, but csets can 
 [slash \\
 [star *
+[tee t
 
 
 
@@ -221,10 +222,14 @@
 &LST_hexnum :cat=Number
 &LST_identifier :cat=Identifier
 &LST_float_exp :cat=Number
+&LST_ident__t :cat=DataType
 
 # all other identifiers
 # + is transition on a character set
+:LST_ident_maybe__t @t>LST_ident__t
+:LST_ident_maybe__t !+tee>LST_identifier
 :LST_identifier +identifier_chars>LST_identifier
+:LST_identifier @_>LST_ident_maybe__t
 :LST_NULL +identifier_schars>LST_identifier
 
 # ignore whitespace
