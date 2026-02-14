@@ -273,11 +273,12 @@ typedef struct Buffer {
 } Buffer;
 
 
-
+typedef VEC(int) int_vlist;
 typedef struct BufferOpenHistory {
 	char* realPath;
 	int line;
 	int col;
+	int_vlist* bookmark_lines;
 } BufferOpenHistory;
 
 
@@ -306,7 +307,8 @@ BufferOpenHistory* BufferOpenHistory_New();
 void BufferOpenHistory_Delete(BufferOpenHistory* boh);
 BufferOpenHistory* BufferCache_GetPathHistory(BufferCache* bc, char* realPath);
 void BufferCache_RemovePathHistory(BufferCache* bc, char* realPath);
-void BufferCache_SetPathHistory(BufferCache* bc, char* realPath, int line, int col);
+int_vlist* Buffer_ListBookmarks(Buffer* b);
+void BufferCache_SetPathHistory(BufferCache* bc, char* realPath, int line, int col, int_vlist* bookmark_lines);
 
 
 
@@ -345,6 +347,8 @@ typedef struct GUIBufferEditControl {
 
 	Buffer* b;
 	Highlighter* h;
+	
+	MessagePipe* tx;
 	
 	
 	float cursorBlinkTimer;
@@ -398,6 +402,7 @@ typedef struct GUIBufferEditControl {
 	
 	VEC(uint64_t) lineOffsets; // how far IN PIXELS a line is from the top of the BUFFER.
 	                           //   this includes ALL annotations and other visual offsets.
+	
 	
 	
 	// cached during event processing
@@ -877,7 +882,7 @@ void GUIBufferEditor_UpdateSettings(GUIBufferEditor* w, Settings* s);
 
 void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector2 tl, Vector2 sz, linenum_t lineFrom, linenum_t lineTo, colnum_t colFrom, colnum_t colTo, PassFrameParams* pfp);
 GUIBufferEditor* GUIBufferEditor_New(GUIManager* gm, MessagePipe* tx);
-GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm);
+GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm, MessagePipe* tx);
 void GUIBufferEditor_Destroy(GUIBufferEditor* w);
 
 void GUIBufferEditor_SetBuffer(GUIBufferEditor* w, Buffer* b);

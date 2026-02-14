@@ -132,10 +132,7 @@ struct child_process_info* AppState_ExecProcessPipe(char* execPath, char* args[]
 struct child_pty_info* AppState_ExecProcessPTY(AppState* as, char* execPath, char* args[]);
 
 
-void execProcessPipe_buffer(char** args, char** buffer_out, size_t* size_out/*,int* code_out*/);
-char* execProcessPipe_charpp(char** args, char*** charpp_out, size_t* n_out/*,int* code_out*/);
-void execProcessPipe_bufferv(char*** args, char** buffer_out, size_t* size_out/*,int** code_out*/);
-char* execProcessPipe_charppv(char*** args, char*** charpp_out, size_t* n_out/*,int** code_out*/);
+int execProcessPipe_strlist(char* args[], char*** charpp_out, size_t* n_out);
 
 
 void AppState_Init(AppState* as, int argc, char* argv[]);

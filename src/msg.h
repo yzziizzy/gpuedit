@@ -12,6 +12,7 @@
 	X(CloseMe) \
 	X(GrepOpener) \
 	X(CmdFwd) \
+	X(BookmarkChanged) \
 	X(BufferRefDec) \
 
 

@@ -255,7 +255,6 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	size_t n_candidates = 0;
 
 	size_t n_filepaths = 0;
-	char** contents = NULL;
 	char*** stringBuffers = NULL;
 	
 	w->cursorIndex = 0;
@@ -280,13 +279,21 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 	if(n_paths == 0) return;
 
 	candidates = pcallocn(candidates, max_candidates);
-	contents = pcallocn(contents, n_paths + 1);
 	stringBuffers = pcallocn(stringBuffers, n_paths + 1);
 	
 	i = 0;
+	int res;
+	char* path;
 	while(w->gs->MainControl_searchPaths[i]) {
-		args[2] = w->gs->MainControl_searchPaths[i];
-		contents[i] = execProcessPipe_charpp(args, &stringBuffers[i], &n_filepaths);
+		path = w->gs->MainControl_searchPaths[i];
+		args[2] = path;
+		res = execProcessPipe_strlist(args, &stringBuffers[i], &n_filepaths);
+		
+		if(res) {
+			DBG("failed to get exec results for path <%s> (code %d)\n", path, res);
+			continue;
+		}
+		
 		DBG("result: %ld filepaths\n", n_filepaths);
 
 		if(n_candidates+n_filepaths >= max_candidates) {
@@ -318,7 +325,6 @@ void GUIFuzzyMatchControl_Refresh(GUIFuzzyMatchControl* w) {
 		n_candidates += n_filepaths;
 	}
 	
-	contents[i] = NULL;
 	stringBuffers[i] = NULL;
 
 CLEANUP:
@@ -331,16 +337,6 @@ CLEANUP:
 		free(w->stringBuffers);
 	}
 	w->stringBuffers = stringBuffers;
-
-	if(w->contents) {
-		i = 0;
-		while(w->contents[i]) {
-			free(w->contents[i]);
-			i++;
-		}
-		free(w->contents);
-	}
-	w->contents = contents;
 
 	if(w->candidates) {
 		free(w->candidates);
@@ -401,15 +397,6 @@ void GUIFuzzyMatchControl_Destroy(GUIFuzzyMatchControl* w) {
 			i++;
 		}
 		free(w->stringBuffers);
-	}
-
-	if(w->contents) {
-		i = 0;
-		while(w->contents[i]) {
-			free(w->contents[i]);
-			i++;
-		}
-		free(w->contents);
 	}
 
 	if(w->matches) {
