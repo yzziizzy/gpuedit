@@ -93,6 +93,8 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 		return NULL;
 	}
 	
+//	printf("Loaded highlighter %s\n", path);
+	
 	Allocator al = {
 		.malloc = a_malloc,
 		.calloc = a_calloc,

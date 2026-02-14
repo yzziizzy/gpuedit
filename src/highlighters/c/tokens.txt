@@ -228,6 +228,7 @@
 # + is transition on a character set
 :LST_ident_maybe__t @t>LST_ident__t
 :LST_ident_maybe__t !+tee>LST_identifier
+:LST_ident__t +identifier_chars>LST_identifier
 :LST_identifier +identifier_chars>LST_identifier
 :LST_identifier @_>LST_ident_maybe__t
 :LST_NULL +identifier_schars>LST_identifier
