@@ -132,7 +132,7 @@ void BufferLine_Delete(Buffer* b, BufferLine* l) {
 	if(l->flagBuf) {
 		free(l->flagBuf);
 	}
-	VEC_FREE(&l->style);
+	VEC_free(&l->style);
 	
 	free(l);
 }
@@ -154,7 +154,7 @@ BufferLine* BufferLine_Copy(Buffer* b, BufferLine* orig) {
 	
 	memcpy(l->buf, orig->buf, sizeof(*l->buf) * l->length);
 	memcpy(l->flagBuf, orig->flagBuf, sizeof(*l->flagBuf) * l->length); // better than nothing
-	VEC_COPY(&l->style, &orig->style);
+	VEC_copy(&l->style, &orig->style);
 	
 	return l;
 }

@@ -36,8 +36,8 @@ void InputFocusStack_PushTarget2(InputFocusStack* stack, void* data, InputEventH
 	InputFocusTarget t;
 	InputFocusTarget* t2;
 	
-	if(VEC_LEN(&stack->stack)) {
-		t2 = &VEC_TAIL(&stack->stack);
+	if(VEC_len(&stack->stack)) {
+		t2 = &VEC_tail(&stack->stack);
 		(*t2->vt)->stack = stack;
 		if((*t2->vt)->loseFocus) {
 			(*t2->vt)->loseFocus(NULL, t2->data);
@@ -46,7 +46,7 @@ void InputFocusStack_PushTarget2(InputFocusStack* stack, void* data, InputEventH
 	
 	t.data = data;
 	t.vt = ptr;
-	VEC_PUSH(&stack->stack, t);
+	VEC_push(&stack->stack, t);
 	
 	if(*t.vt) {
 		(*t.vt)->stack = stack;
@@ -61,15 +61,15 @@ void InputFocusStack_PushTarget2(InputFocusStack* stack, void* data, InputEventH
 void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 	
 	// notify of losing focus
-	InputFocusTarget* t = &VEC_TAIL(&stack->stack);
+	InputFocusTarget* t = &VEC_tail(&stack->stack);
 	if((*t->vt)->loseFocus) {
 		(*t->vt)->loseFocus(NULL, t->data);
 	}
 	
-	VEC_POP1(&stack->stack);
+	VEC_pop(&stack->stack);
 	
 	// notify of gaining focus
-	t = &VEC_TAIL(&stack->stack);
+	t = &VEC_tail(&stack->stack);
 	if((*t->vt)->gainFocus) {
 		(*t->vt)->gainFocus(NULL, t->data);
 	}
@@ -78,15 +78,15 @@ void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 
 int InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 	int ret = 99;
-	if(VEC_LEN(&stack->stack) == 0) return NULL;
+	if(VEC_len(&stack->stack) == 0) return NULL;
 	
 	if(ev->keysym == XK_ISO_Left_Tab) {  // patch some kind of weird bullshit in X
 		ev->keysym = XK_Tab;
 		ev->kbmods |= IS_SHIFT;
 	}
 		
-	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
-		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
+	for(int i = VEC_len(&stack->stack) - 1; i >= 0; i--) {
+		InputFocusTarget* h = &VEC_item(&stack->stack, i);
 	
 		ret = InputFocusTarget_Dispatch(h, ev);
 		if(ret == 0) return 0; 
@@ -130,10 +130,10 @@ int InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev) {
 
 int InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan) {
 	int ret = 99;
-	if(VEC_LEN(&stack->stack) == 0) return NULL;
+	if(VEC_len(&stack->stack) == 0) return NULL;
 	
-	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
-		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
+	for(int i = VEC_len(&stack->stack) - 1; i >= 0; i--) {
+		InputFocusTarget* h = &VEC_item(&stack->stack, i);
 	
 		if(*h->vt && (*h->vt)->perFrame) {
 			ret = ((*h->vt)->perFrame)(is, frameSpan, h->data); 

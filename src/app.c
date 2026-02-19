@@ -92,9 +92,9 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	char* curdir = getenv("PWD");
 	
 	VEC(char*) autoload;
-	VEC_INIT(&autoload);
+	VEC_init(&autoload);
 	VEC(char*) autoload_hex;
-	VEC_INIT(&autoload_hex);
+	VEC_init(&autoload_hex);
 	
 	as->gui = GUIManager_alloc();
 
@@ -130,12 +130,12 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 		if(a[0] == '-') {
 			if(a[1] == 'f' && a[2] == 0) {
 				i++;
-				if(i < argc) VEC_PUSH(&autoload, argv[i]);
+				if(i < argc) VEC_push(&autoload, argv[i]);
 			}
 			
 			else if(a[1] == 'h' && a[2] == 0) {
 				i++;
-				if(i < argc) VEC_PUSH(&autoload_hex, argv[i]);
+				if(i < argc) VEC_push(&autoload_hex, argv[i]);
 			}
 				
 			else if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {
@@ -162,7 +162,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 			continue;
 		}
 		
-		VEC_PUSH(&autoload, argv[i]);
+		VEC_push(&autoload, argv[i]);
 	}
 	
 	
@@ -215,14 +215,14 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 		MainControl_LoadFile(as->mc, file);
 	}
 	
-	VEC_FREE(&autoload);
+	VEC_free(&autoload);
 	
 	
 	VEC_EACH(&autoload_hex, i, file) {
 		MainControl_Hexedit(as->mc, file);
 	}
 	
-	VEC_FREE(&autoload_hex);
+	VEC_free(&autoload_hex);
 	
 //	MainControl_LoadFile(as->mc, "testfile.h");
 //	MainControl_LoadFile(as->mc, "testfile.c");

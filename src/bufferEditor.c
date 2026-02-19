@@ -221,7 +221,7 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 				GUIBufferEditor_ReplaceAll(w, w->findState->findSet, rtext);
 			
 				// HACK
-				VEC_TRUNC(&w->findState->findSet->ranges);
+				VEC_trunc(&w->findState->findSet->ranges);
 				break;
 		}
 		
@@ -332,15 +332,15 @@ void GUIBufferEditor_Render(GUIBufferEditor* w, GUIManager* gm, Vector2 tl, Vect
 		else {
 			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "Find State:");
 			top -= 20;
-			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  # matches: %ld", VEC_LEN(&w->findState->findSet->ranges));
+			GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  # matches: %ld", VEC_len(&w->findState->findSet->ranges));
 			top -= 20;
 			
 			if(w->findState->searchSpace) {		
 				GUI_Printf(V(tl.x + sz.x - 150, tl.y + sz.y - top), "Arial", 14, C4(1,0,0,1), "  SearchS: %ld:%d -> %ld:%d",
-					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->line[0]->lineNum,
-					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->col[0],
-					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->line[1]->lineNum,
-					VEC_ITEM(&w->findState->searchSpace->ranges, 0)->col[1]
+					VEC_item(&w->findState->searchSpace->ranges, 0)->line[0]->lineNum,
+					VEC_item(&w->findState->searchSpace->ranges, 0)->col[0],
+					VEC_item(&w->findState->searchSpace->ranges, 0)->line[1]->lineNum,
+					VEC_item(&w->findState->searchSpace->ranges, 0)->col[1]
 				);
 				top -= 20;
 			}
@@ -462,7 +462,7 @@ do { \
 	// TODO more regex cleanup
 	GUIBufferEditor_StopFind(w);
 	
-//	VEC_FREE(&w->findRanges);
+//	VEC_free(&w->findRanges);
 	
 	
 	free(w);
@@ -551,7 +551,7 @@ BufferFindState* BufferFindState_Create(Buffer* b, char* pattern, GUIFindOpt* op
 	
 	pcalloc(st->searchSpace);
 	if(searchSpace) {
-		VEC_PUSH(&st->searchSpace->ranges, BufferRange_Copy(searchSpace));
+		VEC_push(&st->searchSpace->ranges, BufferRange_Copy(searchSpace));
 	}
 	else {
 		// search the whole file
@@ -560,7 +560,7 @@ BufferFindState* BufferFindState_Create(Buffer* b, char* pattern, GUIFindOpt* op
 		r->col[0] = 0;
 		r->line[1] = b->last;
 		r->col[1] = b->last->length;
-		VEC_PUSH(&st->searchSpace->ranges, r);	
+		VEC_push(&st->searchSpace->ranges, r);	
 	}
 	
 	return st;
@@ -761,7 +761,7 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		return 1;
 	}
 	
-	if(!VEC_LEN(&st->findSet->ranges)) {
+	if(!VEC_len(&st->findSet->ranges)) {
 //		GUIText_setString(w->findResultsText, "No results");
 //		printf("find set empty\n");
 		return 2;
@@ -809,16 +809,16 @@ int GUIBufferEditor_RelativeFindMatch(GUIBufferEditor* w, int offset, int contin
 		}
 	}
 	
-	if(!r && VEC_LEN(&st->findSet->ranges)) {
-		st->findIndex = (st->findIndex + offset + VEC_LEN(&st->findSet->ranges)) % VEC_LEN(&st->findSet->ranges);
+	if(!r && VEC_len(&st->findSet->ranges)) {
+		st->findIndex = (st->findIndex + offset + VEC_len(&st->findSet->ranges)) % VEC_len(&st->findSet->ranges);
 		
-		r = VEC_ITEM(&st->findSet->ranges, st->findIndex);
+		r = VEC_item(&st->findSet->ranges, st->findIndex);
 	}
 	else if(!r) {
 		return 3;
 	}
 //	char fmt_buffer[420];
-//	snprintf(fmt_buffer, 420, "%ld of %ld", st->findIndex + 1, VEC_LEN(&st->findSet->ranges));
+//	snprintf(fmt_buffer, 420, "%ld of %ld", st->findIndex + 1, VEC_len(&st->findSet->ranges));
 //	GUIText_setString(w->findResultsText, fmt_buffer);
 	
 	GBEC_MoveCursorTo(w->ec, r->line[0], r->col[0]);
@@ -928,7 +928,7 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 	}
 	else {
 		// TODO: free ranges internally
-		VEC_TRUNC(&st->findSet->ranges);
+		VEC_trunc(&st->findSet->ranges);
 	}
 	
 
@@ -981,7 +981,7 @@ int BufferFindState_FindAll_PCRE(BufferFindState* st) {
 				r->line[1] = bl;
 				r->col[1] = (int)ovec[1] + nextFindChar;
 				
-				VEC_PUSH(&st->findSet->ranges, r);
+				VEC_push(&st->findSet->ranges, r);
 				
 				nextFindChar += (int)ovec[1];  
 				
@@ -1025,9 +1025,9 @@ int GUIBufferEditor_ReplaceNext(GUIBufferEditor* w) {
 		Buffer* b = w->ec->b;
 		GUIBufferEditControl* ec = w->ec;
 		
-		if(!w->findState->findSet || w->findState->findSet && !VEC_LEN(&w->findState->findSet->ranges)) return 1;
+		if(!w->findState->findSet || w->findState->findSet && !VEC_len(&w->findState->findSet->ranges)) return 1;
 		
-		BufferRange* r = VEC_ITEM(&w->findState->findSet->ranges, w->findState->findIndex);
+		BufferRange* r = VEC_item(&w->findState->findSet->ranges, w->findState->findIndex);
 		
 		if(r) {
 			Buffer_DeleteSelectionContents(b, r);
@@ -1047,7 +1047,7 @@ int GUIBufferEditor_ReplaceNext(GUIBufferEditor* w) {
 
 
 int GUIBufferEditor_ReplaceAll(GUIBufferEditor* w, BufferRangeSet* rset, char* text) {
-	if(!VEC_LEN(&rset->ranges)) return 1;
+	if(!VEC_len(&rset->ranges)) return 1;
 	
 	Buffer* b = w->ec->b;
 	GUIBufferEditControl* ec = w->ec;
@@ -1082,7 +1082,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 //	// keep this command around if a macro is being recorded
 //	if(w->isRecording && cmd->cmd != GUICMD_Buffer_MacroToggleRecording) {
 //		BufferEditorMacro* m = &RING_HEAD(&w->macros);
-//		VEC_PUSH(&m->cmds, *cmd);
+//		VEC_push(&m->cmds, *cmd);
 //		printf("command pushed\n");
 //	}
 	
@@ -1092,13 +1092,13 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			break;
 			
 		case GUICMD_Buffer_PushMode:
-//			VEC_PUSH(&w->inputModeStack, w->inputMode);
+//			VEC_push(&w->inputModeStack, w->inputMode);
 //			w->inputMode = cmd->amt;
 			break;
 			
 		case GUICMD_Buffer_PopMode:
-//			if(VEC_LEN(&w->inputModeStack)) {
-//				VEC_POP(&w->inputModeStack, w->inputMode);
+//			if(VEC_len(&w->inputModeStack)) {
+//				VEC_pop(&w->inputModeStack, w->inputMode);
 //			}
 //			else
 //				w->inputMode = 0;
@@ -1110,7 +1110,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			if(w->isRecording) {
 				RING_PUSH(&w->macros, (BufferEditorMacro){});
 				BufferEditorMacro* m = &RING_HEAD(&w->macros);
-				VEC_TRUNC(&m->cmds);
+				VEC_trunc(&m->cmds);
 			}
 			break;
 			
@@ -1189,7 +1189,7 @@ int GUIBufferEditor_ProcessCommand(GUIBufferEditor* w, GUI_Cmd* cmd, int* needRe
 			GUIBufferEditor_ReplaceAll(w, w->findState->findSet, rtext);
 		
 			// HACK
-			VEC_TRUNC(&w->findState->findSet->ranges);
+			VEC_trunc(&w->findState->findSet->ranges);
 			 
 			break;
 		}

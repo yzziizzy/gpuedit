@@ -178,7 +178,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	MainControl* mc = w->mc;
 	
 	Vector2 tab_sz = {sz.x, sz.y - mc->tabHeight - 1};
-	float tabw = (sz.x - (1 + VEC_LEN(&w->tabs))) / (VEC_LEN(&w->tabs));
+	float tabw = (sz.x - (1 + VEC_len(&w->tabs))) / (VEC_len(&w->tabs));
 	
 	// layout mode traps all input
 	if(!gm->drawMode && mc->inputMode == 10) {
@@ -239,7 +239,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 	
 	// only render the active tab
 	if(w->currentIndex > -1) {
-		MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+		MainControlTab* a = VEC_item(&w->tabs, w->currentIndex);
 		
 		if(gm->drawMode || w == w->mc->focusedPane) {
 			if(a && a->render) a->render(a->client, gm, V(tl.x, tl.y + mc->tabHeight + 1), tab_sz, pfp);
@@ -391,11 +391,11 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 	}
 
 	case GUICMD_Main_OpenConjugate:
-		MainControl_OpenConjugate(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->amt, cmd->paneTargeter);
+		MainControl_OpenConjugate(w, VEC_item(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->amt, cmd->paneTargeter);
 		break;
 
 	case GUICMD_Main_OpenSelf:
-		MainControl_OpenSelf(w, VEC_ITEM(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->paneTargeter);
+		MainControl_OpenSelf(w, VEC_item(&w->focusedPane->tabs, w->focusedPane->currentIndex), cmd->paneTargeter);
 		break;
 		
 	case GUICMD_Main_Calculator:
@@ -452,7 +452,7 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		MainControlPane* a = w->focusedPane;
 		MainControlPane* b = MainControl_GetPane(w, w->focusedPos.x + cmd->amt, w->focusedPos.y);
 		int ind_a = a->currentIndex;
-		int ind_b = VEC_LEN(&b->tabs);
+		int ind_b = VEC_len(&b->tabs);
 		MainControl_RepaneTab(a, b, ind_a, ind_b);
 		break;
 	}
@@ -460,7 +460,7 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		MainControlPane* a = w->focusedPane;
 		MainControlPane* b = MainControl_GetPane(w, w->focusedPos.x, w->focusedPos.y + cmd->amt);
 		int ind_a = a->currentIndex;
-		int ind_b = VEC_LEN(&b->tabs);
+		int ind_b = VEC_len(&b->tabs);
 		MainControl_RepaneTab(a, b, ind_a, ind_b);
 		break;
 	}
@@ -564,7 +564,7 @@ MainControlPane* MainControl_ChoosePane(MainControl* w, int16_t paneTargeter) {
 	// get targeter
 	// loop over panes -> sort
 	// return the best match
-	GUI_PaneTargeter t = VEC_ITEM(&gm->paneTargeters, paneTargeter);
+	GUI_PaneTargeter t = VEC_item(&gm->paneTargeters, paneTargeter);
 	
 	MainControlPane *fp, *p, *out;
 	fp = w->focusedPane;
@@ -611,7 +611,7 @@ void MainControlPane_Free(MainControlPane* w, int freeTabContent) {
 		}
 	}
 	
-	VEC_FREE(&w->tabs);
+	VEC_free(&w->tabs);
 	free(w);
 }
 
@@ -671,7 +671,7 @@ void MainControl_SetFocusedPane(MainControl* w, MainControlPane* p) {
 			w->focusedPos.x = x; 
 			w->focusedPos.y = y;
 			
-			MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
+			MainControlTab* tab = VEC_item(&p->tabs, p->currentIndex);
 			
 			if(!tab->isActive) {
 				tab->isActive = 1;
@@ -717,21 +717,21 @@ void MainControl_ExpandPanes(MainControl* w, int newX, int newY) {
 	// 2: squash old pane tabs into the highest new pane, on new existing rows
 	for(int y = 0; y < smallerY; y++) { 
 	for(int x = newX; x < w->xDivisions; x++) { 
-		VEC_CAT(&newPanes[newX - 1 + newX * y]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
+		VEC_cat(&newPanes[newX - 1 + newX * y]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
 		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
 	}}
 	
 	// 2: squash old pane tabs into the highest new pane, on new existing columns
 	for(int x = 0; x < smallerX; x++) { 
 	for(int y = newY; y < w->yDivisions; y++) {
-		VEC_CAT(&newPanes[x + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
+		VEC_cat(&newPanes[x + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
 		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
 	}}
 	
 	// 2: squash old pane tabs into the highest new pane, in the clipped-off corner
 	for(int x = newX; x < w->xDivisions; x++) {
 	for(int y = newY; y < w->yDivisions; y++) {
-		VEC_CAT(&newPanes[newX - 1 + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
+		VEC_cat(&newPanes[newX - 1 + newX * (newY - 1)]->tabs, &w->paneSet[x + w->xDivisions * y]->tabs);
 		MainControlPane_Free(w->paneSet[x + w->xDivisions * y], 0);
 	}}
 	
@@ -774,7 +774,7 @@ void MainControl_FocusPane(MainControl* w, int x, int y) {
 		w->focusedPos.x = x;
 		w->focusedPos.y = y;
 		
-		w->gm->activeID = (void*)VEC_ITEM(&p->tabs, p->currentIndex)->client;
+		w->gm->activeID = (void*)VEC_item(&p->tabs, p->currentIndex)->client;
 		
 		MainControl_OnTabChange(w);
 	}
@@ -808,7 +808,7 @@ MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, 
 	t->lingerStart = gs->MainControl_tabNameScrollStartLinger;
 	t->lingerEnd = gs->MainControl_tabNameScrollEndLinger;
 	
-	VEC_PUSH(&w->tabs, t);
+	VEC_push(&w->tabs, t);
 	
 	if(w->currentIndex == -1) {
 		w->currentIndex = 0;
@@ -816,8 +816,8 @@ MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, 
 //		GUIManager_SetMainWindowTitle(w->header.gm, title);
 	}
 	
-	MainControlTab* t0 = VEC_ITEM(&w->tabs, 0);
-	if(t0->type == MCTAB_Empty && VEC_LEN(&w->tabs) > 1) {
+	MainControlTab* t0 = VEC_item(&w->tabs, 0);
+	if(t0->type == MCTAB_Empty && VEC_len(&w->tabs) > 1) {
 		MainControlPane_CloseTab(w, 0);
 	}
 	
@@ -831,7 +831,7 @@ MainControlTab* MainControlPane_AddGenericTab(MainControlPane* w, void* client, 
 
 void MainControlPane_afterTabClose(MainControlPane* w) {
 	// update the current tab index
-	size_t n_tabs = VEC_LEN(&w->tabs);
+	size_t n_tabs = VEC_len(&w->tabs);
 	if(!n_tabs) {
 		// closing the last real tab will no longer destroy a pane or exit
 		MainControlPane_EmptyTab(w);\
@@ -849,7 +849,7 @@ void MainControlPane_afterTabClose(MainControlPane* w) {
 	w->currentIndex %= n_tabs;
 	
 	
-	MainControlTab* t = VEC_ITEM(&w->tabs, w->currentIndex);
+	MainControlTab* t = VEC_item(&w->tabs, w->currentIndex);
 	t->isActive = 1;
 }
 
@@ -858,11 +858,11 @@ void MainControl_CloseTab(MainControl* w, int index) {
 }
 
 void MainControlPane_CloseTab(MainControlPane* w, int index) {
-	MainControlTab* t = VEC_ITEM(&w->tabs, index);
+	MainControlTab* t = VEC_item(&w->tabs, index);
 	
 	if(t->beforeClose) t->beforeClose(t);
 	
-	VEC_RM_SAFE(&w->tabs, index);
+	VEC_rm_ordered(&w->tabs, index);
 	
 	if(t->afterClose) t->afterClose(t);
 	t->client = NULL; // not functioning inside _Destroy handlers?
@@ -955,15 +955,15 @@ static int tab_sort_fn(void* _a, void* _b) {
 
 
 void MainControlPane_MoveTab(MainControlPane* w, int ind_old, int ind_new) {
-	int len = VEC_LEN(&w->tabs);
+	int len = VEC_len(&w->tabs);
 	if(len < 2) return; // can't move without two tabs
 	if(ind_old > (len - 1)) return; // invalid old index
 	if(ind_new > (len - 1)) return; // invalid new index
 	if(ind_old == ind_new) return; // nothing to do
 	
-	MainControlTab* tab = VEC_ITEM(&w->tabs, ind_old);
-	VEC_RM_SAFE(&w->tabs, ind_old);
-	VEC_INSERT_AT(&w->tabs, tab, ind_new);
+	MainControlTab* tab = VEC_item(&w->tabs, ind_old);
+	VEC_rm_ordered(&w->tabs, ind_old);
+	VEC_insert_at(&w->tabs, tab, ind_new);
 	
 	int min = MIN(ind_old, ind_new);
 	int max = MAX(ind_old, ind_new);
@@ -980,16 +980,16 @@ void MainControlPane_MoveTab(MainControlPane* w, int ind_old, int ind_new) {
 
 
 void MainControlPane_SortTabs(MainControlPane* w) {
-	int len = VEC_LEN(&w->tabs);
+	int len = VEC_len(&w->tabs);
 	if(len < 2) return; // already sorted
 	
 	// cache the value of the current index since the indices will change
-	MainControlTab* cur = VEC_ITEM(&w->tabs, w->currentIndex);
+	MainControlTab* cur = VEC_item(&w->tabs, w->currentIndex);
 
-	VEC_SORT(&w->tabs, tab_sort_fn);
+	VEC_sort(&w->tabs, tab_sort_fn);
 	
 	// fix currentIndex
-	w->currentIndex = VEC_FIND(&w->tabs, &cur);
+	w->currentIndex = VEC_find(&w->tabs, &cur);
 	
 	MainControl_OnTabChange(w->mc);
 }
@@ -1004,13 +1004,13 @@ void MainControl_RepaneTab(MainControlPane* a, MainControlPane* b, int ind_a, in
 	if(!a || !b) return; // invalid pane
 	if(a == b) return; // nothing to do
 	
-	int len_a = VEC_LEN(&a->tabs);
-	int len_b = VEC_LEN(&b->tabs);
+	int len_a = VEC_len(&a->tabs);
+	int len_b = VEC_len(&b->tabs);
 	if(ind_a < 0 || ind_b < 0) return; // invalid index
 	if(ind_a > (len_a - 1)) return; // invalid ind_a
 	if(ind_b > len_b) return; // invalid ind_b
 	
-	MainControlTab* tab = VEC_ITEM(&a->tabs, ind_a);
+	MainControlTab* tab = VEC_item(&a->tabs, ind_a);
 	
 	// if tab->client? in b->tabs, close tab and goto the version in b
 //	int ind_client = MainControlPane_FindTabIndexByClient(b, tab->client
@@ -1034,9 +1034,9 @@ void MainControl_RepaneTab(MainControlPane* a, MainControlPane* b, int ind_a, in
 	}
 	printf("Moving tab <%s> from a:%d to b:%d\n", tab->title, ind_a, ind_b);
 	
-	VEC_RM_SAFE(&a->tabs, ind_a);
+	VEC_rm_ordered(&a->tabs, ind_a);
 	MainControlPane_afterTabClose(a);
-	VEC_INSERT_AT(&b->tabs, tab, ind_b);
+	VEC_insert_at(&b->tabs, tab, ind_b);
 	MainControlPane_GoToTab(b, ind_b);
 	
 	MainControl_OnTabChange(b->mc);
@@ -1044,7 +1044,7 @@ void MainControl_RepaneTab(MainControlPane* a, MainControlPane* b, int ind_a, in
 
 
 void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b) {
-	int len = VEC_LEN(&w->tabs);
+	int len = VEC_len(&w->tabs);
 	if(len < 2) return; // not enough tabs to swap
 
 	// normalize indices
@@ -1052,9 +1052,9 @@ void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b) {
 	ind_b = (ind_b + len) % len;
 	
 	// swap pointers
-	MainControlTab* a = VEC_ITEM(&w->tabs, ind_a);
-	VEC_ITEM(&w->tabs, ind_a) = VEC_ITEM(&w->tabs, ind_b);
-	VEC_ITEM(&w->tabs, ind_b) = a;
+	MainControlTab* a = VEC_item(&w->tabs, ind_a);
+	VEC_item(&w->tabs, ind_a) = VEC_item(&w->tabs, ind_b);
+	VEC_item(&w->tabs, ind_b) = a;
 	
 	// check and fix currentIndex
 	if(w->currentIndex == ind_a) w->currentIndex = ind_b;
@@ -1065,8 +1065,8 @@ void MainControlPane_SwapTabs(MainControlPane* w, int ind_a, int ind_b) {
 
 
 void* MainControlPane_NextTab(MainControlPane* w, char cyclic) {
-	int len = VEC_LEN(&w->tabs);
-	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	int len = VEC_len(&w->tabs);
+	MainControlTab* a = VEC_item(&w->tabs, w->currentIndex);
 	a->isActive = 0;
 	
 	if(cyclic) {
@@ -1076,7 +1076,7 @@ void* MainControlPane_NextTab(MainControlPane* w, char cyclic) {
 		w->currentIndex = MIN(w->currentIndex + 1, len - 1);
 	}
 	
-	a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a = VEC_item(&w->tabs, w->currentIndex);
 	if(!a->isActive) {
 		a->isActive = 1;
 		GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
@@ -1089,8 +1089,8 @@ void* MainControlPane_NextTab(MainControlPane* w, char cyclic) {
 
 
 void* MainControlPane_PrevTab(MainControlPane* w, char cyclic) {
-	int len = VEC_LEN(&w->tabs);
-	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	int len = VEC_len(&w->tabs);
+	MainControlTab* a = VEC_item(&w->tabs, w->currentIndex);
 	a->isActive = 0;
 	
 	if(cyclic) {
@@ -1100,7 +1100,7 @@ void* MainControlPane_PrevTab(MainControlPane* w, char cyclic) {
 		w->currentIndex = MAX(w->currentIndex - 1, 0);
 	}
 	
-	a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a = VEC_item(&w->tabs, w->currentIndex);
 	if(!a->isActive) {
 		a->isActive = 1;
 		GUI_SetActive_(w->mc->gm, a->client, NULL, NULL);
@@ -1115,13 +1115,13 @@ void* MainControlPane_PrevTab(MainControlPane* w, char cyclic) {
 void* MainControlPane_GoToTab(MainControlPane* w, int i) {
 	MainControl_SetFocusedPane(w->mc, w);
 	
-	int len = VEC_LEN(&w->tabs);
-	MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+	int len = VEC_len(&w->tabs);
+	MainControlTab* a = VEC_item(&w->tabs, w->currentIndex);
 	a->isActive = 0;
 	
 	w->currentIndex = MAX(0, MIN(len - 1, i));
 	
-	a = VEC_ITEM(&w->tabs, w->currentIndex);
+	a = VEC_item(&w->tabs, w->currentIndex);
 	
 	if(!a->isActive) {
 		a->isActive = 1;
@@ -1142,7 +1142,7 @@ MainControlTab* MainControlPane_nthTabOfType(MainControlPane* w, TabType_t type,
 		}
 		if(n_match == n) {
 			if(w->currentIndex > -1) { // deactivate old tab
-				MainControlTab* a = VEC_ITEM(&w->tabs, w->currentIndex);
+				MainControlTab* a = VEC_item(&w->tabs, w->currentIndex);
 				if(a) {
 					a->isActive = 0;
 				}
@@ -1658,7 +1658,7 @@ void MainControl_OnTabChange(MainControl* w) {
 	for(int x = 0; x < w->xDivisions; x++) {
 		MainControlPane* p = w->paneSet[x + y * w->xDivisions];
 		if(p->tabs.len) {
-			MainControlTab* tab = VEC_ITEM(&p->tabs, p->currentIndex);
+			MainControlTab* tab = VEC_item(&p->tabs, p->currentIndex);
 //			printf("tab should have focus (%d, %d)[%d]<%s>\n", x, y, p->currentIndex, tab->title);
 			tab->accessIndex = ++p->lastTabAccessIndex;
 			
@@ -1668,7 +1668,7 @@ void MainControl_OnTabChange(MainControl* w) {
 			}
 		}
 		
-		while(tabLimit > 0 && VEC_LEN(&p->tabs) > tabLimit) {
+		while(tabLimit > 0 && VEC_len(&p->tabs) > tabLimit) {
 			MainControlTab* oldest = NULL;
 			int oldestIndex = INT_MAX;
 			int index = -1;
@@ -1752,7 +1752,7 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	//			GUIBufferEditControl_SetScroll(gbe->ec, opt->line_num - 11, 0);
 			}
 			gbe->ec->inputState.modeInfo = Commands_GetModeInfo(w->gm, gbe->ec->inputState.mode);
-			MainControlTab* tab = VEC_ITEM(&p->tabs, index);
+			MainControlTab* tab = VEC_item(&p->tabs, index);
 			return tab;
 		}
 	}
@@ -1801,8 +1801,8 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 	
 	// highlighter
 	
-	if(VEC_LEN(&w->hm.plugins)) {
-		gbe->h = VEC_ITEM(&w->hm.plugins, 0);
+	if(VEC_len(&w->hm.plugins)) {
+		gbe->h = VEC_item(&w->hm.plugins, 0);
 		gbe->ec->h = gbe->h;
 	}
 	else {
@@ -1820,8 +1820,8 @@ MainControlTab* MainControlPane_LoadFileOpt(MainControlPane* p, MessageFileOpt* 
 //	GUIBufferEditControl_RefreshHighlight(gbe->ec);
 	if(opt->path) GUIBufferEditor_ProbeHighlighter(gbe);
 	
-	VEC_PUSH(&w->editors, gbe);
-	VEC_PUSH(&w->buffers, buf);
+	VEC_push(&w->editors, gbe);
+	VEC_push(&w->buffers, buf);
 	
 	// prolly leaks
 	char* shortname = opt->path ? basename(strdup(opt->path)) : strdup("<New File>"); 

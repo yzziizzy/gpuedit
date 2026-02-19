@@ -177,7 +177,7 @@ int GUI_FileBrowserEntryList_(GUIManager* gm, FileBrowserEntryList* el, vec2 tl,
 	
 	int linesDrawn = 0;
 	
-	if(GUI_VScrollbar(&el->scrollPos, V(tl.x + sz.x - 10, tl.y), V(10, sz.y), VEC_LEN(&el->files) - 1, &el->scrollPos)) {
+	if(GUI_VScrollbar(&el->scrollPos, V(tl.x + sz.x - 10, tl.y), V(10, sz.y), VEC_len(&el->files) - 1, &el->scrollPos)) {
 		el->scrollOffset = el->scrollPos;
 	}
 	
@@ -210,10 +210,10 @@ int GUI_FileBrowserEntryList_(GUIManager* gm, FileBrowserEntryList* el, vec2 tl,
 	
 	
 	// draw file line items
-	for(intptr_t i = el->scrollOffset; i < (intptr_t)VEC_LEN(&el->files); i++) {
+	for(intptr_t i = el->scrollOffset; i < (intptr_t)VEC_len(&el->files); i++) {
 		if(lh * linesDrawn > sz.y) break; // stop at the bottom of the window
 			
-		FileBrowserEntry* e = &VEC_ITEM(&el->files, i);
+		FileBrowserEntry* e = &VEC_item(&el->files, i);
 		
 		Vector2 line_tl = V(tl.x + el->leftMargin, tl.y + (lh * linesDrawn) + el->headerHeight);
 		Vector2 line_sz = V(sz.x, lh - 1);
@@ -339,7 +339,7 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 	
 	
 	// calculate scrollbar offset
-	float max_scroll = VEC_LEN(&w->entries.files) - w->entries.linesOnScreen;
+	float max_scroll = VEC_len(&w->entries.files) - w->entries.linesOnScreen;
 	float scroll_pct = w->entries.scrollOffset / max_scroll;
 	float sboff = scroll_pct * (sz.y - sbh);
 	
@@ -369,8 +369,8 @@ void FileBrowser_Render(FileBrowser* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 				FileBrowser_Refresh(w);
 				GUI_CancelInput();
 			}
-			else if(cline >= 0 && cline <= VEC_LEN(&w->entries.files) - 1) {
-				FileBrowserEntry* e = &VEC_ITEM(&w->entries.files, cline);
+			else if(cline >= 0 && cline <= VEC_len(&w->entries.files) - 1) {
+				FileBrowserEntry* e = &VEC_item(&w->entries.files, cline);
 				
 				if(e->type == 2) { // enter the directory
 					char* p = path_join(w->curDir, e->name);
@@ -444,7 +444,7 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 	
 	switch(cmd->cmd) {
 		case GUICMD_FileBrowser_MoveCursorV:
-			w->entries.cursorIndex = (w->entries.cursorIndex + cmd->amt + VEC_LEN(&w->entries.files)) % (intptr_t)VEC_LEN(&w->entries.files);
+			w->entries.cursorIndex = (w->entries.cursorIndex + cmd->amt + VEC_len(&w->entries.files)) % (intptr_t)VEC_len(&w->entries.files);
 			
 				
 	
@@ -460,7 +460,7 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 			
 		case GUICMD_FileBrowser_CursorMoveNoWrap:
 			w->entries.cursorIndex += cmd->amt;
-			w->entries.cursorIndex = w->entries.cursorIndex >= (intptr_t)VEC_LEN(&w->entries.files) - 1 ? (intptr_t)VEC_LEN(&w->entries.files) - 1: w->entries.cursorIndex;
+			w->entries.cursorIndex = w->entries.cursorIndex >= (intptr_t)VEC_len(&w->entries.files) - 1 ? (intptr_t)VEC_len(&w->entries.files) - 1: w->entries.cursorIndex;
 			w->entries.cursorIndex = w->entries.cursorIndex < 0 ? 0 : w->entries.cursorIndex;
 			
 				
@@ -484,14 +484,14 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 			break;
 		}
 		case GUICMD_FileBrowser_ToggleSelect: {
-			FileBrowserEntry* e = &VEC_ITEM(&w->entries.files, w->entries.cursorIndex);
+			FileBrowserEntry* e = &VEC_item(&w->entries.files, w->entries.cursorIndex);
 			e->isSelected = !e->isSelected;
 			w->entries.numSelected += e->isSelected ? 1 : -1;
 			break;
 		}
 		
 		case GUICMD_FileBrowser_SmartOpen: {
-			FileBrowserEntry* e = &VEC_ITEM(&w->entries.files, w->entries.cursorIndex);
+			FileBrowserEntry* e = &VEC_item(&w->entries.files, w->entries.cursorIndex);
 			
 			if(e->type == 2) { // enter the directory
 				char* p = path_join(w->curDir, e->name);
@@ -503,12 +503,12 @@ void FileBrowser_ProcessCommand(FileBrowser* w, GUI_Cmd* cmd) {
 				FileBrowser_Refresh(w);
 			}
 			else if(w->entries.numSelected == 0) {
-				FileBrowserEntry* e = &VEC_ITEM(&w->entries.files, w->entries.cursorIndex);
+				FileBrowserEntry* e = &VEC_item(&w->entries.files, w->entries.cursorIndex);
 				send_open_message(w, e->fullPath);
 			}
 			else { // open selected files
-				for(size_t i = 0; i < VEC_LEN(&w->entries.files); i++) {
-					FileBrowserEntry* e = &VEC_ITEM(&w->entries.files, i);
+				for(size_t i = 0; i < VEC_len(&w->entries.files); i++) {
+					FileBrowserEntry* e = &VEC_item(&w->entries.files, i);
 		
 					if(!e->isSelected) {
 						send_open_message(w, e->fullPath);
@@ -542,8 +542,8 @@ void FileBrowserControl_FreeEntryList(FileBrowserEntryList* el, intptr_t sz) {
 		safe_free(humanSizeOnDisk);
 	}
 	
-	VEC_FREE(&el->files);
-	VEC_FREE(&el->columnInfo);
+	VEC_free(&el->files);
+	VEC_free(&el->columnInfo);
 }
 
 
@@ -554,8 +554,8 @@ FileBrowserEntry* FileBrowserEntryList_CollectSelected(FileBrowser* w, intptr_t*
 //	intptr_t n = 0;
 //	FileBrowserEntry* files = malloc(sizeof(*files) * (w->numSelected + 1));
 //	
-//	for(size_t i = 0; i < VEC_LEN(&w->entries); i++) {
-//		FileBrowserEntry* e = &VEC_ITEM(&w->entries, i);
+//	for(size_t i = 0; i < VEC_len(&w->entries); i++) {
+//		FileBrowserEntry* e = &VEC_item(&w->entries, i);
 //		
 //		if(!e->isSelected) continue;
 //		
@@ -605,7 +605,7 @@ FileBrowser* FileBrowser_New(GUIManager* gm, Settings* s, MessagePipe* mp, char*
 		
 		for(int id = 0; col_type_names[id]; id++) {
 			if(0 == strcasecmp(col_type_names[id], name)) {
-				VEC_PUSH(&w->entries.columnInfo, ((FileBrowserColumnInfo){
+				VEC_push(&w->entries.columnInfo, ((FileBrowserColumnInfo){
 					.type = id,
 					.width = col_type_widths[id],
 				}));
@@ -636,7 +636,7 @@ void FileBrowser_Destroy(FileBrowser* w) {
 int read_dir_cb(char* fullpath, char* filename, void* _w) {
 	FileBrowser* w = (FileBrowser*)_w;
 	
-	FileBrowserEntry* e = VEC_INC(&w->entries.files);
+	FileBrowserEntry* e = VEC_inc(&w->entries.files);
 	*e = (FileBrowserEntry){0};
 	
 	e->name = strdup(filename);
@@ -669,8 +669,8 @@ void FileBrowser_Refresh(FileBrowser* w) {
 	w->entries.numSelected = 0;
 	w->entries.scrollOffset = 0;
 	
-	for(size_t i = 0; i < VEC_LEN(&w->entries.files); i++) {
-		FileBrowserEntry* e = &VEC_ITEM(&w->entries.files, i);
+	for(size_t i = 0; i < VEC_len(&w->entries.files); i++) {
+		FileBrowserEntry* e = &VEC_item(&w->entries.files, i);
 		
 		if(e->name) {
 			free(e->name);
@@ -678,7 +678,7 @@ void FileBrowser_Refresh(FileBrowser* w) {
 		}
 	}
 	
-	VEC_TRUNC(&w->entries.files);
+	VEC_trunc(&w->entries.files);
 	
 // 	recurseDirs(w->curDir, read_dir_cb, w, 0, 0);
 
@@ -707,7 +707,7 @@ void FileBrowser_Refresh(FileBrowser* w) {
 		
 		char* tmp = path_join(w->curDir, result->d_name);
 		
-		FileBrowserEntry* e = VEC_INC(&w->entries.files);
+		FileBrowserEntry* e = VEC_inc(&w->entries.files);
 		*e = (FileBrowserEntry){};
 		
 		e->type = type;
@@ -755,7 +755,7 @@ void FileBrowser_Refresh(FileBrowser* w) {
 	
 	closedir(derp);
 	
-	VEC_SORT(&w->entries.files, entry_cmp_fn);
+	VEC_sort(&w->entries.files, entry_cmp_fn);
 	
 }
 

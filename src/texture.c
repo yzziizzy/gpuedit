@@ -667,7 +667,7 @@ TextureManager* TextureManager_alloc() {
 
 void TextureManager_init(TextureManager* tm) {
 	HT_init(&tm->texLookup, 4);
-	VEC_INIT(&tm->texEntries);
+	VEC_init(&tm->texEntries);
 	tm->mipLevels = 1; // no mipmap by default
 }
 
@@ -681,7 +681,7 @@ int TextureManager_reservePath(TextureManager* tm, char* path) {
 	
 	if(!HT_get(&tm->texLookup, path, &index)) {
 		// path already reserved, increase refs
-		TexEntry* tep = &VEC_ITEM(&tm->texEntries, index);
+		TexEntry* tep = &VEC_item(&tm->texEntries, index);
 		
 		tep->refs++;
 		return index;
@@ -697,8 +697,8 @@ int TextureManager_reservePath(TextureManager* tm, char* path) {
 		.path = pathc,
 	};
 	
-	index = VEC_LEN(&tm->texEntries);
-	VEC_PUSH(&tm->texEntries, te);
+	index = VEC_len(&tm->texEntries);
+	VEC_push(&tm->texEntries, te);
 	
 	HT_set(&tm->texLookup, pathc, index);
 	
@@ -717,7 +717,7 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 	}
 	
 	tm->targetRes = targetRes;
-	depth = VEC_LEN(&tm->texEntries);
+	depth = VEC_len(&tm->texEntries);
 	
 	if(depth <= 0) {
 		fprintf(stderr, "TextureManager: depth is zero (no textures reserved)\n");
@@ -754,8 +754,8 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 	glexit("failed to create texture array 4");
 	
 	
-	for(i = 0; i < VEC_LEN(&tm->texEntries); i++) {
-		TexEntry* te = &VEC_ITEM(&tm->texEntries, i);
+	for(i = 0; i < VEC_len(&tm->texEntries); i++) {
+		TexEntry* te = &VEC_item(&tm->texEntries, i);
 		BitmapRGBA8* bmp;
 		
 

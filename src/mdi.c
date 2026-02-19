@@ -34,7 +34,7 @@ void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int ma
 	mdi->primMode = GL_TRIANGLES;
 	mdi->isIndexed = 0;
 	
-	VEC_INIT(&mdi->meshes);
+	VEC_init(&mdi->meshes);
 	mdi->maxInstances = maxInstances;
 	mdi->vaoConfig = vaoConfig;
 	
@@ -104,8 +104,8 @@ void MultiDrawIndirect_updateGeometry(MultiDrawIndirect* mdi) {
 	glexit("");
 	
 	offset = 0;
-	for(i = 0; i < VEC_LEN(&mdi->meshes); i++) {
-		MDIDrawInfo* di = VEC_ITEM(&mdi->meshes, i);
+	for(i = 0; i < VEC_len(&mdi->meshes); i++) {
+		MDIDrawInfo* di = VEC_item(&mdi->meshes, i);
 		
 		memcpy(buf + offset, di->vertices, di->vertexCount * stride);
 		offset += di->vertexCount * stride;
@@ -130,8 +130,8 @@ void MultiDrawIndirect_updateGeometry(MultiDrawIndirect* mdi) {
 		uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 		
 		offset = 0;
-		for(i = 0; i < VEC_LEN(&mdi->meshes); i++) {
-			MDIDrawInfo* di = VEC_ITEM(&mdi->meshes, i);
+		for(i = 0; i < VEC_len(&mdi->meshes); i++) {
+			MDIDrawInfo* di = VEC_item(&mdi->meshes, i);
 			memcpy(ib + offset, di->indices, di->indexCount * mdi->indexSize);
 			offset += di->indexCount;
 		}
@@ -150,10 +150,10 @@ void MultiDrawIndirect_updateGeometry(MultiDrawIndirect* mdi) {
 int MultiDrawIndirect_addMesh(MultiDrawIndirect* mdi, MDIDrawInfo* di) {
 	int index;
 	
-	VEC_PUSH(&mdi->meshes, di);
+	VEC_push(&mdi->meshes, di);
 	mdi->totalVertices += di->vertexCount;
 	mdi->totalIndices += di->indexCount;
-	index = VEC_LEN(&mdi->meshes);
+	index = VEC_len(&mdi->meshes);
 	
 	return index - 1;
 }
@@ -182,7 +182,7 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 
 	// BUG: bounds checking on pcbuffer inside instanceSetup()
 	if(mdi->instanceSetup) {
-		(*mdi->instanceSetup)(mdi->data, vmem, VEC_DATA(&mdi->meshes), VEC_LEN(&mdi->meshes), pfp);
+		(*mdi->instanceSetup)(mdi->data, vmem, VEC_data(&mdi->meshes), VEC_len(&mdi->meshes), pfp);
 	}
 	
 	// BUG: bounds checking on pcbuffer
@@ -192,8 +192,8 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 		
 		DrawElementsIndirectCommand* cmdsi = PCBuffer_beginWrite(&mdi->indirectCmds);
 		
-		for(mesh_index = 0; mesh_index < VEC_LEN(&mdi->meshes); mesh_index++) {
-			MDIDrawInfo* di = VEC_ITEM(&mdi->meshes, mesh_index);
+		for(mesh_index = 0; mesh_index < VEC_len(&mdi->meshes); mesh_index++) {
+			MDIDrawInfo* di = VEC_item(&mdi->meshes, mesh_index);
 				
 			cmdsi[mesh_index].firstIndex = index_offset; // offset of this mesh into the instances
 			cmdsi[mesh_index].count = di->indexCount; // number of polys
@@ -214,8 +214,8 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 		
 		DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mdi->indirectCmds);
 		
-		for(mesh_index = 0; mesh_index < VEC_LEN(&mdi->meshes); mesh_index++) {
-			MDIDrawInfo* di = VEC_ITEM(&mdi->meshes, mesh_index);
+		for(mesh_index = 0; mesh_index < VEC_len(&mdi->meshes); mesh_index++) {
+			MDIDrawInfo* di = VEC_item(&mdi->meshes, mesh_index);
 				
 			cmds[mesh_index].first = vertex_offset; // offset of this mesh into the instances
 			cmds[mesh_index].count = di->vertexCount; // number of polys
@@ -263,10 +263,10 @@ static void core_draw(MultiDrawIndirect* mdi) {
 	cmdOffset = PCBuffer_getOffset(&mdi->indirectCmds);
 	
 	if(mdi->isIndexed) {
-		glMultiDrawElementsIndirect(mdi->primMode, GL_UNSIGNED_SHORT, (void*)cmdOffset, VEC_LEN(&mdi->meshes), 0);
+		glMultiDrawElementsIndirect(mdi->primMode, GL_UNSIGNED_SHORT, (void*)cmdOffset, VEC_len(&mdi->meshes), 0);
 	}
 	else {
-		glMultiDrawArraysIndirect(mdi->primMode, (void*)cmdOffset, VEC_LEN(&mdi->meshes), 0);
+		glMultiDrawArraysIndirect(mdi->primMode, (void*)cmdOffset, VEC_len(&mdi->meshes), 0);
 	}
 	glexit("multidrawarraysindirect");
 }

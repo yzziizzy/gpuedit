@@ -302,7 +302,7 @@ static void updatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp) 
 	
 	if(n_read > 0) {
 		for(int i = 0; i < n_read; i++) {
-			GUITerminalLine* line = VEC_TAIL(&w->lines);
+			GUITerminalLine* line = VEC_tail(&w->lines);
 			
 			if(line->textLen >= line->textAlloc) {
 				line->textAlloc *= 2;
@@ -316,7 +316,7 @@ static void updatePos(GUIHeader* h, GUIRenderParams* grp, PassFrameParams* pfp) 
 				line->textAlloc = 128;
 				line->text = malloc(line->textAlloc * sizeof(*line->text));
 				
-				VEC_PUSH(&w->lines, line);
+				VEC_push(&w->lines, line);
 			}
 		}
 		
@@ -391,7 +391,7 @@ GUITerminal* GUITerminal_New(GUIManager* gm) {
 	GUITerminalLine* line = pcalloc(line);
 	line->textAlloc = 128;
 	line->text = malloc(line->textAlloc * sizeof(*line->text));	
-	VEC_PUSH(&w->lines, line);
+	VEC_push(&w->lines, line);
 
 	char* args[] = {
 		"/bin/bash",

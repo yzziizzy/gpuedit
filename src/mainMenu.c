@@ -28,12 +28,12 @@ static void render(GUIMainMenu* w, PassFrameParams* pfp) {
 	
 	int linesDrawn = 0;
 	/*
-	for(intptr_t i = w->scrollOffset; i < VEC_LEN(&w->items); i++) {
+	for(intptr_t i = w->scrollOffset; i < VEC_len(&w->items); i++) {
 		if(lh * linesDrawn > w->header.size.y) break; // stop at the bottom of the window
 		
 		// TODO stop drawing at end of window properly
 		
-		GUIMainMenuItem* e = &VEC_ITEM(&w->items, i);
+		GUIMainMenuItem* e = &VEC_item(&w->items, i);
 		
 		AABB2 box;
 		box.min.x = tl.x + gutter;
@@ -172,11 +172,11 @@ static void keyUp(GUIHeader* w_, GUIEvent* gev) {
 	GUIMainMenu* w = (GUIMainMenu*)w_;
 	
 	if(gev->keycode == XK_Down) {
-		w->cursorIndex = (w->cursorIndex + 1) % VEC_LEN(&w->items);
+		w->cursorIndex = (w->cursorIndex + 1) % VEC_len(&w->items);
 		autoscroll(w);
 	}
 	else if(gev->keycode == XK_Up) {
-		w->cursorIndex = (w->cursorIndex - 1 + VEC_LEN(&w->items)) % (intptr_t)VEC_LEN(&w->items);
+		w->cursorIndex = (w->cursorIndex - 1 + VEC_len(&w->items)) % (intptr_t)VEC_len(&w->items);
 		autoscroll(w);
 	}
 
@@ -276,7 +276,7 @@ GUIMainMenuItem* GUIMainMenu_AddBaseItem(GUIMainMenu* w, char* name) {
 	GUI_RegisterObject(it->base, it->gLabel);
 // 	GUI_RegisterObject(it->base, it->gControl);
 	
-	VEC_PUSH(&w->items, it);
+	VEC_push(&w->items, it);
 	
 	return it;
 }
@@ -388,7 +388,7 @@ int GUIMainMenu_SaveItem(GUIMainMenu* w, GUIMainMenuItem* item) {
 void GUIMainMenu_Destroy(GUIMainMenu* w) {
 	
 	
-	VEC_FREE(&w->items);
+	VEC_free(&w->items);
 	
 	// TODO:free stuff inside entries
 	

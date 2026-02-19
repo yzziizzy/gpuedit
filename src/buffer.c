@@ -103,7 +103,7 @@ void Buffer_Delete(Buffer* b) {
 		
 	}
 	
-	VEC_FREE(&b->changeListeners);
+	VEC_free(&b->changeListeners);
 	
 	ac_free_tree(b->dictRoot);
 	
@@ -513,8 +513,8 @@ void Buffer_UndoInsertText(
 	
 	if(len == 0) return;
 	
-// 	VEC_INC(&b->undoStack);
-// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_inc(&b->undoStack);
+// 	BufferUndo* u = &VEC_tail(&b->undoStack);
 	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_InsertText;
@@ -532,8 +532,8 @@ void Buffer_UndoDeleteText(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t 
 	
 	if(len == 0) return;
 	
-// 	VEC_INC(&b->undoStack);
-// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_inc(&b->undoStack);
+// 	BufferUndo* u = &VEC_tail(&b->undoStack);
 	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_DeleteText;
@@ -569,8 +569,8 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved,
 		}
 	}
 	
-// 	VEC_INC(&b->undoStack);
-// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_inc(&b->undoStack);
+// 	BufferUndo* u = &VEC_tail(&b->undoStack);
 	BufferUndo* u = undo_inc(b, 0);
 	
 	//printf("saving seq break: %ld:%ld -> %ld->%ld\n",
@@ -587,8 +587,8 @@ void Buffer_UndoSequenceBreak(Buffer* b, int saved,
 }
 
 void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
-// 	VEC_INC(&b->undoStack);
-// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_inc(&b->undoStack);
+// 	BufferUndo* u = &VEC_tail(&b->undoStack);
 	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_InsertLineAt;
@@ -599,8 +599,8 @@ void Buffer_UndoInsertLineAfter(Buffer* b, BufferLine* before) {
 }
 
 void Buffer_UndoInsertLineBefore(Buffer* b, BufferLine* after) {
-// 	VEC_INC(&b->undoStack);
-// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_inc(&b->undoStack);
+// 	BufferUndo* u = &VEC_tail(&b->undoStack);
 	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_InsertLineAt;
@@ -612,8 +612,8 @@ void Buffer_UndoInsertLineBefore(Buffer* b, BufferLine* after) {
 
 
 void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
-// 	VEC_INC(&b->undoStack);
-// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	VEC_inc(&b->undoStack);
+// 	BufferUndo* u = &VEC_tail(&b->undoStack);
 	BufferUndo* u = undo_inc(b, 1);
 	
 	u->action = UndoAction_DeleteLine;
@@ -626,7 +626,7 @@ void Buffer_UndoDeleteLine(Buffer* b, BufferLine* bl) {
 
 // clears the entire undo buffer
 void Buffer_UndoTruncateStack(Buffer* b) {
-// 	VEC_TRUNC(&b->undoStack);
+// 	VEC_trunc(&b->undoStack);
 	
 	// clean up any text
 	for(intptr_t i = 0; i < b->undoFill; i++) {
@@ -671,7 +671,7 @@ void Buffer_RedoReplayToSeqBreak(Buffer* b) {
 	
 	// pop off the sequence break
 // 	undo_dec(b);
-// 	if(VEC_LEN(&b->undoStack) >= 0) VEC_POP1(&b->undoStack);
+// 	if(VEC_len(&b->undoStack) >= 0) VEC_pop1(&b->undoStack);
 }
 
 
@@ -683,7 +683,7 @@ int Buffer_UndoReplayTop(Buffer* b) {
 	
 //	printf("undo top\n");
 	if(b->undoUndoLen == 0) return 0;
-// 	BufferUndo* u = &VEC_TAIL(&b->undoStack);
+// 	BufferUndo* u = &VEC_tail(&b->undoStack);
 	BufferUndo* u = undo_dec(b);
 	if(u == NULL) return 0;
 	
@@ -771,7 +771,7 @@ int Buffer_UndoReplayTop(Buffer* b) {
 // 	if(u->text) free(u->text);
 // 	u->text = NULL;
 	
-// 	VEC_POP1(&b->undoStack);
+// 	VEC_pop1(&b->undoStack);
 	
 	return 1;
 }
@@ -835,7 +835,7 @@ int Buffer_RedoReplay(Buffer* b, BufferUndo* u) {
 // 	if(u->text) free(u->text);
 // 	u->text = NULL;
 	
-// 	VEC_POP1(&b->undoStack);
+// 	VEC_pop1(&b->undoStack);
 	
 	return 1;
 }
@@ -1785,7 +1785,7 @@ void Buffer_ReloadGCCErrorFile(Buffer* b) {
 	}
 	
 	if(HT_fill(&b->gccErrors)) {
-//		VEC_SORT(&b->gccErrors, gcc_error_sort_fn);
+//		VEC_sort(&b->gccErrors, gcc_error_sort_fn);
 		
 		Buffer_NotifyAnnotationChange(b);
 	}
@@ -2640,9 +2640,9 @@ void Buffer_NotifyChanges(BufferChangeNotification* note) {
 }
 
 void Buffer_RegisterChangeListener(Buffer* b, bufferChangeNotifyFn fn, void* data) {
-	VEC_INC(&b->changeListeners);
-	VEC_TAIL(&b->changeListeners).fn = fn;
-	VEC_TAIL(&b->changeListeners).data = data;
+	VEC_inc(&b->changeListeners);
+	VEC_tail(&b->changeListeners).fn = fn;
+	VEC_tail(&b->changeListeners).data = data;
 }
 
 

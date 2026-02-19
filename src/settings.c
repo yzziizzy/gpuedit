@@ -396,8 +396,8 @@ static SettingsSection* assert_section(Settings* s, unsigned long bit) {
 	SettingsSection* sec = find_section(s, bit);
 	
 	if(!sec) {
-		VEC_PUSH(&s->sections, ((SettingsSection){0}));
-		sec = &VEC_TAIL(&s->sections);
+		VEC_push(&s->sections, ((SettingsSection){0}));
+		sec = &VEC_tail(&s->sections);
 		sec->bit = bit;
 	}
 	
@@ -433,7 +433,7 @@ void Settings_RegisterSection(
 Settings* Settings_Copy(Settings* s, unsigned long mask) {
 	Settings* new = calloc(1, sizeof(*new));
 	new->parent = s;
-	VEC_COPY(&new->sections, &s->sections);
+	VEC_copy(&new->sections, &s->sections);
 	
 	VEC_EACHP(&new->sections, i, sec) {
 		if(mask && mask & sec->bit == 0) {
@@ -457,7 +457,7 @@ void Settings_Free(Settings* s) {
 		}
 	}
 
-	VEC_FREE(&s->sections);
+	VEC_free(&s->sections);
 }
 
 void Settings_LoadDefaults(Settings* s, unsigned long mask) {

@@ -17,9 +17,9 @@ BufferRangeSet* BufferRangeSet_Copy(BufferRangeSet* rs) {
 	BufferRangeSet* cs = pcalloc(cs);
 	*cs = *rs;
 	
-	VEC_INIT(&cs->ranges);
+	VEC_init(&cs->ranges);
 	VEC_EACH(&rs->ranges, ri, rra) {
-		VEC_PUSH(&cs->ranges, BufferRange_Copy(rra));
+		VEC_push(&cs->ranges, BufferRange_Copy(rra));
 	}
 	
 	return cs;
@@ -139,8 +139,8 @@ void BufferRangeSet_FreeAll(BufferRangeSet* s) {
 	VEC_EACH(&s->ranges, i, r) {
 		if(r) free(r);
 	}
-	VEC_FREE(&s->ranges);
-	VEC_LEN(&s->ranges) = 0;
+	VEC_free(&s->ranges);
+	VEC_len(&s->ranges) = 0;
 }
 
 
@@ -150,7 +150,7 @@ long BufferRange_FindNextRangeSet(BufferRangeSet* rs, BufferLine* line, colnum_t
 	
 	if(!rs) return -1;
 	
-	if(!VEC_LEN(&rs->ranges)) return -1;
+	if(!VEC_len(&rs->ranges)) return -1;
 	
 	VEC_EACH(&rs->ranges, i, r) {
 		if(r->line[1]->lineNum > bl->lineNum) continue;

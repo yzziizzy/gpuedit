@@ -121,7 +121,7 @@ void GUIManager_InitCommands(GUIManager* gm) {
 	
 	HT_init(&gm->cmdElementLookup, 2048);
 	
-	VEC_INIT(&gm->paneTargeters);
+	VEC_init(&gm->paneTargeters);
 	
 	for(int i = 0; elemList[i].n; i++) {
 		GUIManager_AddCommandElement(gm, elemList[i].n, elemList[i].id);
@@ -322,7 +322,7 @@ int GUIManager_AddCommand(GUIManager* gm, char* elemname, char* name, uint32_t i
 		L1("Unknown command element name: '%s' trying to add '%s'\n", elemname, name);
 		return 1;
 	}
-	inf = &VEC_ITEM(&gm->cmdElements, infIndex);
+	inf = &VEC_item(&gm->cmdElements, infIndex);
 	
 	HT_set(&inf->nameLookup, name, id);
 //	printf("adding %s to %s elements as %d\n", name, inf->name, id);
@@ -346,9 +346,9 @@ int GUIManager_AddCommandElement(GUIManager* gm, char* name, uint16_t id) {
 	inf.name = name;
 	HT_init(&inf.nameLookup, 16);
 	
-	infIndex = VEC_LEN(&gm->cmdElements);
+	infIndex = VEC_len(&gm->cmdElements);
 	HT_set(&gm->cmdElementLookup, name, infIndex);
-	VEC_PUSH(&gm->cmdElements, inf);
+	VEC_push(&gm->cmdElements, inf);
 	
 	return 0; 
 }
@@ -427,8 +427,8 @@ int16_t Commands_GetPaneTargeter(GUIManager* gm, char* defStr) {
 		}
 	}
 	if(index == -1) {
-		VEC_PUSH(&gm->paneTargeters, p);
-		index = VEC_LEN(&gm->paneTargeters) - 1;
+		VEC_push(&gm->paneTargeters, p);
+		index = VEC_len(&gm->paneTargeters) - 1;
 	}
 	
 	return index;
@@ -498,7 +498,7 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 				L1("Unknown element name: '%s'\n", ename);
 				continue;
 			}
-			inf = &VEC_ITEM(&gm->cmdElements, infIndex); // TODO IMGUI
+			inf = &VEC_item(&gm->cmdElements, infIndex); // TODO IMGUI
 			
 		}
 	}
@@ -517,8 +517,8 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 			
 			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, id);
 			if(!cmi) {
-				VEC_PUSH(&gm->commandModes, (GUI_CmdModeInfo){0});
-				cmi = &VEC_TAIL(&gm->commandModes);
+				VEC_push(&gm->commandModes, (GUI_CmdModeInfo){0});
+				cmi = &VEC_tail(&gm->commandModes);
 				cmi->id = id;
 				cmi->overlayBitIndex = -1;
 				cmi->cascade = -1;
@@ -585,8 +585,8 @@ void CommandList_loadJSON(GUIManager* gm, json_value_t* root) {
 			
 			GUI_CmdModeInfo* cmi = Commands_GetModeInfo(gm, id);
 			if(!cmi) {
-				VEC_PUSH(&gm->commandModes, (GUI_CmdModeInfo){0});
-				cmi = &VEC_TAIL(&gm->commandModes);
+				VEC_push(&gm->commandModes, (GUI_CmdModeInfo){0});
+				cmi = &VEC_tail(&gm->commandModes);
 				cmi->id = id;
 				cmi->cascade = -1;
 				cmi->overlayBitIndex = nextOverlayBitIndex++;
@@ -675,7 +675,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 			L1("Unknown element name: '%s'\n", s);
 			return 1;
 		}
-		inf = &VEC_ITEM(&gm->cmdElements, infIndex);  // TODO IMGUI
+		inf = &VEC_item(&gm->cmdElements, infIndex);  // TODO IMGUI
 		cmd->element = inf->id;
 	}
 	
@@ -688,7 +688,7 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 			L1("Unknown sub-element name: '%s'\n", s);
 			return 1;
 		}
-		inf2 = &VEC_ITEM(&gm->cmdElements, infIndex2); // TODO IMGUI
+		inf2 = &VEC_item(&gm->cmdElements, infIndex2); // TODO IMGUI
 		cmd->sub_elem = inf2->id;
 	}
 	
@@ -702,16 +702,16 @@ static int read_command_entry(GUIManager* gm, json_value_t* entry, GUI_Cmd* cmd,
 		
 		int i = 0;
 		VEC(GUI_Cmd) metaList;
-		VEC_INIT(&metaList);
+		VEC_init(&metaList);
 		GUI_Cmd cmd2 = {0};
 		
 		json_link_t* link = v->arr.head;
 		for(;link; link = link->next) {
 			if(read_command_entry(gm, link->v, &cmd2, 0)) continue;
-			VEC_PUSH(&metaList, cmd2);
+			VEC_push(&metaList, cmd2);
 		}
 		cmd2.src_type = GUI_CMD_SRC_NONE;
-		VEC_PUSH(&metaList, cmd2);
+		VEC_push(&metaList, cmd2);
 		
 		cmd->metaCmds = metaList.data;
 	}
@@ -977,10 +977,10 @@ static void read_command_list_defaults(GUIManager* gm, json_value_t* list, GUI_C
 		// TODO: add the command into the hash table 
 		//printf("pushing cmd: %s %s %s %d %x\n", s1, s2, s3, cmd.mode, cmd.mods);
 		if(cmd.sub_elem == 0) {
-			VEC_PUSH(&gm->cmdList, cmd);
+			VEC_push(&gm->cmdList, cmd);
 		}
 		else {
-//			VEC_PUSH(&gm->cmdListSubElems, cmd);
+//			VEC_push(&gm->cmdListSubElems, cmd);
 		}
 	
 	}
@@ -1014,10 +1014,10 @@ void CommandList_loadKeyConfigJSON(GUIManager* gm, json_value_t* root) {
 			// TODO: add the command into the hash table 
 			//printf("pushing cmd: %s %s %s %d %x\n", s1, s2, s3, cmd.mode, cmd.mods);
 			if(cmd.sub_elem == 0) {
-				VEC_PUSH(&gm->cmdList, cmd);
+				VEC_push(&gm->cmdList, cmd);
 			}
 			else {
-	//			VEC_PUSH(&gm->cmdListSubElems, cmd);
+	//			VEC_push(&gm->cmdListSubElems, cmd);
 			}
 		}
 	}

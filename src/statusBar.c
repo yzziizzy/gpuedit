@@ -34,9 +34,9 @@ void StatusBar_Render(StatusBar* w, GUIManager* gm, Vector2 tl, Vector2 sz, Pass
 	
 	
 	// update sizes
-	VEC_SORT(&w->left, sort_items_fn);
-	VEC_SORT(&w->center, sort_items_fn);
-	VEC_SORT(&w->right, sort_items_fn);
+	VEC_sort(&w->left, sort_items_fn);
+	VEC_sort(&w->center, sort_items_fn);
+	VEC_sort(&w->right, sort_items_fn);
 	
 	float off = 0;
 	VEC_EACH(&w->left, i, item) {
@@ -237,7 +237,7 @@ static size_t strffindstate(char* s, size_t max, const char* format, GUIBufferEd
 		return copied;
 	}
 	
-	int range_len = VEC_LEN(&st->findSet->ranges);
+	int range_len = VEC_len(&st->findSet->ranges);
 	if(!range_len) {
 		char* msg = "no ranges";
 		len = strlen(msg);
@@ -355,19 +355,19 @@ StatusBarItem* StatusBar_AddItem(StatusBar* w, WidgetSpec* spec, int order) {
 	
 	it->offset = 0;
 	
-	VEC_PUSH(&w->items, it);
+	VEC_push(&w->items, it);
 	
 	if(it->align == 'l') {
-		VEC_PUSH(&w->left, it);
-		VEC_SORT(&w->left, sort_items_fn);
+		VEC_push(&w->left, it);
+		VEC_sort(&w->left, sort_items_fn);
 	}
 	else if(it->align == 'c') {
-		VEC_PUSH(&w->center, it);
-		VEC_SORT(&w->center, sort_items_fn);
+		VEC_push(&w->center, it);
+		VEC_sort(&w->center, sort_items_fn);
 	}
 	else if(it->align == 'r') {
-		VEC_PUSH(&w->right, it);
-		VEC_SORT(&w->right, sort_items_fn);
+		VEC_push(&w->right, it);
+		VEC_sort(&w->right, sort_items_fn);
 	}
 	
 	return it;

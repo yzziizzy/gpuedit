@@ -468,7 +468,7 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 			BufferRange_DeleteLineNotify(r, &note->sel);		
 		}
 		
-		if(w->findSet && VEC_LEN(&w->findSet->ranges)) {
+		if(w->findSet && VEC_len(&w->findSet->ranges)) {
 			VEC_EACH(&w->findSet->ranges, i, r) {
 				BufferRange_DeleteLineNotify(r, &note->sel);		
 			}
@@ -494,7 +494,7 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		Buffer* b = w->b;
 		
 		// save the cursor position in screen lines
-		int curScreenLine = VEC_ITEM(&w->lineOffsets, CURSOR_LINE(w->sel)->lineNum);
+		int curScreenLine = VEC_item(&w->lineOffsets, CURSOR_LINE(w->sel)->lineNum);
 		
 		GBEC_RecalcLineOffsets(w);
 		
@@ -537,7 +537,7 @@ GUIBufferEditControl* GUIBufferEditControl_New(GUIManager* gm, MessagePipe* tx) 
 	pcalloc(w->selSet);
 	w->sel = BufferRange_New(w);
 	
-	VEC_PUSH(&w->selSet->ranges, w->sel);
+	VEC_push(&w->selSet->ranges, w->sel);
 	
 	w->wantedScrollLine = -1;
 	w->wantedScrollCol = -1;
@@ -643,14 +643,14 @@ void GBEC_RecalcLineOffsets(GUIBufferEditControl* w) {
 	Buffer* b = w->b;
 	
 	// recalculate all the line offsets
-	VEC_CREALLOC(&w->lineOffsets, b->numLines);
+	VEC_crealloc(&w->lineOffsets, b->numLines);
 	
 	int ani = 0;
 	int64_t acc = 0;
 	linenum_t lnum = 0;
 	BufferLine* bl = b->first;
 	while(bl) {
-		VEC_ITEM(&w->lineOffsets, lnum) = acc;
+		VEC_item(&w->lineOffsets, lnum) = acc;
 		acc += w->bs->lineHeight;
 		
 		BufferAnnotation* ann = NULL;
@@ -698,9 +698,9 @@ void writeSection(HLContextInternal* hl, unsigned char style, intptr_t len) {
 		
 //	printf(" maxl: %d\n", maxl, len);
 				
-		VEC_INC(&hl->color.writeLine->style);
-		VEC_TAIL(&hl->color.writeLine->style).length = maxl;
-		VEC_TAIL(&hl->color.writeLine->style).styleIndex = style;
+		VEC_inc(&hl->color.writeLine->style);
+		VEC_tail(&hl->color.writeLine->style).length = maxl;
+		VEC_tail(&hl->color.writeLine->style).styleIndex = style;
 	
 		hl->color.writeCol += maxl;
 		len -= maxl;
@@ -720,9 +720,9 @@ void writeSection(HLContextInternal* hl, unsigned char style, intptr_t len) {
 void writeFlags(HLContextInternal* hl, unsigned char style, intptr_t len) {
 	if(len == 0) return;
 	
-	VEC_INC(&hl->flags.writeLine->style);
-	VEC_TAIL(&hl->flags.writeLine->style).length = len;
-	VEC_TAIL(&hl->flags.writeLine->style).styleIndex = style;
+	VEC_inc(&hl->flags.writeLine->style);
+	VEC_tail(&hl->flags.writeLine->style).length = len;
+	VEC_tail(&hl->flags.writeLine->style).styleIndex = style;
 	
 	hl->flags.writeCol += len;
 	
@@ -791,7 +791,7 @@ void GUIBufferEditControl_RefreshHighlight(GUIBufferEditControl* w) {
 	// clear existing styles
 	BufferLine* bl = b->first;
 	for(int i = 0; i < b->numLines && bl; i++) {
-		VEC_TRUNC(&bl->style);
+		VEC_trunc(&bl->style);
 		
 		bl = bl->next;
 	}
@@ -856,7 +856,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 	// keep this command around if a macro is being recorded
 	if(w->isRecording && cmd->cmd != GUICMD_Buffer_MacroToggleRecording) {
 		BufferEditorMacro* m = &RING_HEAD(&w->macros);
-		VEC_PUSH(&m->cmds, *cmd);
+		VEC_push(&m->cmds, *cmd);
 	}
 	
 	
@@ -873,7 +873,7 @@ int GBEC_ProcessCommand(GUIBufferEditControl* w, GUI_Cmd* cmd, int* needRehighli
 			if(w->isRecording) {
 				RING_PUSH(&w->macros, (BufferEditorMacro){});
 				BufferEditorMacro* m = &RING_HEAD(&w->macros);
-				VEC_TRUNC(&m->cmds);
+				VEC_trunc(&m->cmds);
 			}
 			break;
 			
@@ -1652,7 +1652,7 @@ void calculate_align_line(BufferLine* bl, char sep, struct align_line* al) {
 			seg.len = seg.b - seg.a;
 			al->n_segs++;
 			al->total_len += seg.len;
-			VEC_PUSH(&al->segs, seg);
+			VEC_push(&al->segs, seg);
 			
 			seeking = 1;
 			seg.a = 0;
@@ -1674,19 +1674,19 @@ void calculate_align_line(BufferLine* bl, char sep, struct align_line* al) {
 	seg.len = seg.b - seg.a;
 	al->n_segs++;
 	al->total_len += seg.len;
-	VEC_PUSH(&al->segs, seg);
+	VEC_push(&al->segs, seg);
 	
 	if(!seg.len) al->last_empty = 1;
 }
 
 
 void align_line_init(struct align_line* al) {
-	VEC_INIT(&al->segs);
+	VEC_init(&al->segs);
 }
 
 
 void align_line_free(struct align_line* al) {
-	VEC_FREE(&al->segs);
+	VEC_free(&al->segs);
 	free(al);
 }
 
@@ -1717,8 +1717,8 @@ void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator) {
 	if(!al_ref) return;
 	
 	VEC(struct align_line*) align_list;
-	VEC_INIT(&align_list);
-	VEC_PUSH(&align_list, al_ref);
+	VEC_init(&align_list);
+	VEC_push(&align_list, al_ref);
 	BufferLine* next = line_ref->next;
 	BufferLine* prev = line_ref->prev;
 	int skip_next = 0,
@@ -1735,7 +1735,7 @@ void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator) {
 			calculate_align_line(next, sep, al_next);
 			
 			if(al_next->n_segs == al_ref->n_segs) {
-				VEC_PUSH(&align_list, al_next);
+				VEC_push(&align_list, al_next);
 				skip_next = 0;
 				next = al_next->bl->next;
 			}
@@ -1759,7 +1759,7 @@ void GBEC_SmartAlign(GUIBufferEditControl* w, char* separator) {
 			calculate_align_line(prev, sep, al_prev);
 			
 			if(al_prev->n_segs == al_ref->n_segs) {
-				VEC_PUSH(&align_list, al_prev);
+				VEC_push(&align_list, al_prev);
 				skip_prev = 0;
 				prev = al_prev->bl->prev;
 			}
@@ -2431,7 +2431,7 @@ void GBEC_PushCursor(GUIBufferEditControl* w, BufferLine* bl, colnum_t col) {
 	
 	r->frozen = 1;
 	
-	VEC_PUSH(&w->selSet->ranges, r);
+	VEC_push(&w->selSet->ranges, r);
 }
 
 

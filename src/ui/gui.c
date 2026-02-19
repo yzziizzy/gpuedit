@@ -60,8 +60,8 @@ void GUI_SetData_(GUIManager* gm, void* id, void* data, void (*freeFn)(void*)) {
 		printf("douplicate data setting\n");
 	}
 	
-	VEC_INC(&gm->elementData);
-	GUIElementData* d = &VEC_TAIL(&gm->elementData);
+	VEC_inc(&gm->elementData);
+	GUIElementData* d = &VEC_tail(&gm->elementData);
 	d->id = id;
 	d->data = data;
 	d->freeFn = freeFn;

@@ -233,26 +233,26 @@ static void rescalefn_string(char* raw, char* prop, char* scale, char* out, int 
 OptsStruct* parse_optstruct(sexp* xos) {
 	OptsStruct* os = calloc(1, sizeof(*os));
 	
-	os->name = VEC_ITEM(&xos->args, 0)->str;
+	os->name = VEC_item(&xos->args, 0)->str;
 	
 	os->max_values = 0;
 	
-	for(int oi = 1; oi < VEC_LEN(&xos->args); oi++) {
-		sexp* xo = VEC_ITEM(&xos->args, oi);
+	for(int oi = 1; oi < VEC_len(&xos->args); oi++) {
+		sexp* xo = VEC_item(&xos->args, oi);
 		
 		Option* o = calloc(1, sizeof(*o));
-		VEC_PUSH(&os->members, o);
+		VEC_push(&os->members, o);
 		
 		o->type = extract_type(xo);
 		o->name = extract_name(xo);
 		o->rescale = xo->brace == '<';
 		
-		o->value_cnt = VEC_LEN(&xo->args) - 2;
+		o->value_cnt = VEC_len(&xo->args) - 2;
 		os->max_values = MAX(os->max_values, o->value_cnt);
 		
 		o->values = calloc(1, OT_size_list[o->type] * o->value_cnt);
 		for(int a = 0; a < o->value_cnt; a++) {
-			sexp* xa = VEC_ITEM(&xo->args, a + 2);
+			sexp* xa = VEC_item(&xo->args, a + 2);
 			
 			switch(o->type) {
 				#define X(n, t, sz, ...) case OT_##n: copy_##n(xa, o->values + a * sz); break;
@@ -281,10 +281,10 @@ int main(int argc, char* argv[]) {
 //	sexp_print(1, root);
 	
 	VEC(OptsStruct*) structs;
-	VEC_INIT(&structs);
+	VEC_init(&structs);
 	
 	VEC_EACH(&root->args, i, a) {
-		VEC_PUSH(&structs, parse_optstruct(a));
+		VEC_push(&structs, parse_optstruct(a));
 	}
 	
 	

@@ -30,14 +30,14 @@ int MessagePipe_Send(MessagePipe* pipe, enum MessageType type, void* data, FreeF
 
 
 void MessagePipe_Listen(MessagePipe* pipe, MessageHandlerFn fn, void* data) {
-	VEC_PUSH(&pipe->handlers, ((MessageHandler){.fn = fn, .data = data}));
+	VEC_push(&pipe->handlers, ((MessageHandler){.fn = fn, .data = data}));
 }
 
 
 void MessagePipe_Unlisten(MessagePipe* pipe, MessageHandlerFn fn, void* data) {
 	VEC_EACHP(&pipe->handlers, i, h) {
 		if(h->fn = fn && h->data == data) {
-			VEC_RM(&pipe->handlers, i);
+			VEC_rm(&pipe->handlers, i);
 			return;
 		}
 	}

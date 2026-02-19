@@ -142,7 +142,7 @@ Buffer* Clipboard_PopBuffer(int which) {
 	
 	
 	
-// 	VEC_POP1(&clipboard->stack);
+// 	VEC_pop1(&clipboard->stack);
 	
 // 	free(cc->flatText);
 // 	free(cc);
@@ -190,7 +190,7 @@ void Clipboard_GetFromOS(unsigned int which, char** text, size_t* len, int* enco
 }
 
 void Clipboard_RegisterOnChange(void (*fn)(int,void*), void* data) {
-	VEC_PUSH(&clipboard->onChange, ((struct ClipCallback){(void*)fn, data}));
+	VEC_push(&clipboard->onChange, ((struct ClipCallback){(void*)fn, data}));
 }
 
 

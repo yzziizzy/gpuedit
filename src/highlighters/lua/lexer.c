@@ -295,8 +295,8 @@ void hlfn(HLContext* hl) {
 		
 		if(ls.tokenFinished) { 
 			// token is ready
-			VEC_INC(&ts->tokens);
-			LexerToken* t = &VEC_TAIL(&ts->tokens);
+			VEC_inc(&ts->tokens);
+			LexerToken* t = &VEC_tail(&ts->tokens);
 			
 			t->tokenState = ls.tokenState;
 			t->tokenText = strndup(ls.buffer, ls.blen);

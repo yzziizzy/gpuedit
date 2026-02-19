@@ -34,8 +34,8 @@ TextureAtlas* TextureAtlas_alloc(Settings* gs) {
 }
 
 void TextureAtlas_init(TextureAtlas* ta, Settings* gs) {
-	VEC_INIT(&ta->sources);
-	VEC_INIT(&ta->atlas);
+	VEC_init(&ta->sources);
+	VEC_init(&ta->atlas);
 	HT_init(&ta->items, 4);
 }
 
@@ -66,7 +66,7 @@ void TextureAtlas_addPNG(TextureAtlas* ta, char* name, char* path) {
 	src->aspectRatio = src->size.x / src->size.y;
 	src->data = (uint8_t*)bmp.data;
 	
-	VEC_PUSH(&ta->sources, src);
+	VEC_push(&ta->sources, src);
 }
 
 
@@ -152,12 +152,12 @@ static int source_sort_comp(const void* aa, const void * bb) {
 void TextureAtlas_finalize(TextureAtlas* ta) {
 	char buf[32]; // for debugging
 	
-	if(VEC_LEN(&ta->sources) == 0) {
+	if(VEC_len(&ta->sources) == 0) {
 		printf("Texture atlas finalized without any sources\n");
 		return;
 	}
 	
-	VEC_SORT(&ta->sources, source_sort_comp);
+	VEC_sort(&ta->sources, source_sort_comp);
 	
 	int width = ta->width;
 	int width2 = width * width;
@@ -169,7 +169,7 @@ void TextureAtlas_finalize(TextureAtlas* ta) {
 	
 	int row = 0;
 	int hext = 0;
-	int prevhext = VEC_ITEM(&ta->sources, 0)->size.y;
+	int prevhext = VEC_item(&ta->sources, 0)->size.y;
 	int rowWidth = 0;
 	VEC_EACH(&ta->sources, ind, src) {
 		
@@ -181,9 +181,9 @@ void TextureAtlas_finalize(TextureAtlas* ta) {
 			
 			// next texture
 			if(hext + prevhext > width) { // the texture is square; width == height
-				VEC_PUSH(&ta->atlas, texData);
+				VEC_push(&ta->atlas, texData);
 				
-// 				sprintf(buf, "texatlas-%d.png", VEC_LEN(&ta->atlas));
+// 				sprintf(buf, "texatlas-%d.png", VEC_len(&ta->atlas));
 // 				writePNG(buf, 4, texData, width, width);
 // 				
 				texData = malloc(sizeof(*texData) * width2);
@@ -211,7 +211,7 @@ void TextureAtlas_finalize(TextureAtlas* ta) {
 			.sizePx = src->size,
 			.sizeNorm = {src->size.x / fwidth, src->size.y / fwidth},
 				
-			.index = VEC_LEN(&ta->atlas)
+			.index = VEC_len(&ta->atlas)
 		};
 		
 // 		printf("added icon '%s'\n", src->name);
@@ -232,9 +232,9 @@ void TextureAtlas_finalize(TextureAtlas* ta) {
 	}
 	
 // 	printf("last push %p\n", texData);
-	VEC_PUSH(&ta->atlas, texData);
+	VEC_push(&ta->atlas, texData);
 	
-// 	sprintf(buf, "texatlas-%d.png", VEC_LEN(&ta->atlas));
+// 	sprintf(buf, "texatlas-%d.png", VEC_len(&ta->atlas));
 // 	writePNG(buf, 4, texData, width, width);
 }
 

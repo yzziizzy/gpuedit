@@ -66,7 +66,7 @@ static void add_dim(UnitValue* uv, int u, int power) {
 		}
 	}
 	
-	VEC_PUSH(&uv->dims, ((DimComp){.type = u, .power = power}));
+	VEC_push(&uv->dims, ((DimComp){.type = u, .power = power}));
 }
 
 
@@ -106,7 +106,7 @@ UnitValue* UV_ParseString(char* s) {
 
 // returns 1 if both args have exactly equal powers of exactly identical units
 int UV_DimEqualExact(UnitValue* a, UnitValue* b) {
-	if(VEC_LEN(&a->dims) != VEC_LEN(&b->dims)) return 0;
+	if(VEC_len(&a->dims) != VEC_len(&b->dims)) return 0;
 	
 	VEC_EACHP(&a->dims, ia, da) {
 		

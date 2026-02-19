@@ -104,7 +104,7 @@ void FontManager_init(FontManager* fm, GUISettings* gs) {
 
 
 void FontManager_Destroy(FontManager* fm) {
-	VEC_FREE(&fm->codeRanges);
+	VEC_free(&fm->codeRanges);
 	
 	HT_EACH(&fm->fonts, key, GUIFont*, f) {
 		GUIFont_Destroy(f);
@@ -114,7 +114,7 @@ void FontManager_Destroy(FontManager* fm) {
 	
 	
 	VEC_EACH(&fm->atlas, i, a) free(a);
-	VEC_FREE(&fm->atlas);
+	VEC_free(&fm->atlas);
 
 }
 
@@ -149,7 +149,7 @@ void GUIFont_Destroy(GUIFont* f) {
 		free(f->bitmapFonts[i]);
 	};
 	
-	VEC_FREE(&f->codeRanges);
+	VEC_free(&f->codeRanges);
 }
 
 
@@ -204,18 +204,18 @@ GUIFont* FontManager_AssertBitmapSize(FontManager* fm, char* name, int size) {
 
 
 void FontManager_AssertDefaultCodeRange(FontManager* fm, int minCode, int maxCode) {
-	VEC_INC(&fm->codeRanges);
-	VEC_TAIL(&fm->codeRanges).min = minCode;
-	VEC_TAIL(&fm->codeRanges).max = maxCode;
+	VEC_inc(&fm->codeRanges);
+	VEC_tail(&fm->codeRanges).min = minCode;
+	VEC_tail(&fm->codeRanges).max = maxCode;
 }
 
 void FontManager_AssertCodeRange(FontManager* fm, char* name, int minCode, int maxCode) {
 	
 	GUIFont* f = FontManager_AssertFont(fm, name);
 	
-	VEC_INC(&f->codeRanges);
-	VEC_TAIL(&f->codeRanges).min = minCode;
-	VEC_TAIL(&f->codeRanges).max = maxCode;
+	VEC_inc(&f->codeRanges);
+	VEC_tail(&f->codeRanges).min = minCode;
+	VEC_tail(&f->codeRanges).max = maxCode;
 }
 
 
@@ -339,7 +339,7 @@ static FontGen* addBmpChar(FT_Face* ff, int code, int fontSize, char bold, char 
 	fg->sdfDataSize = fg->sdfGlyphSize;
 
 	/*
-	c->texIndex = VEC_LEN(&fm->atlas);
+	c->texIndex = VEC_len(&fm->atlas);
 	c->texelOffset.x = rowWidth;
 	c->texelOffset.y = hext;
 	c->texelSize = gen->sdfDataSize;
@@ -447,9 +447,9 @@ void* sdf_thread(void* _fm) {
 	while(1) {
 		i = atomic_fetch_add(&fm->genCounter, 1);
 		
-		if(i >= VEC_LEN(&fm->gen)) break;
+		if(i >= VEC_len(&fm->gen)) break;
 		
-		FontGen* fg = VEC_ITEM(&fm->gen, i);
+		FontGen* fg = VEC_item(&fm->gen, i);
 		
 		if(fg->bitmap) {
 		
@@ -506,7 +506,7 @@ void FontManager_finalize(FontManager* fm) {
 				fm->maxRawSize.x = MAX(fm->maxRawSize.x, fg->rawGlyphSize.x);
 				fm->maxRawSize.y = MAX(fm->maxRawSize.y, fg->rawGlyphSize.y);
 				
-				VEC_PUSH(&fm->gen, fg);
+				VEC_push(&fm->gen, fg);
 			}
 		}
 		
@@ -519,7 +519,7 @@ void FontManager_finalize(FontManager* fm) {
 				fm->maxRawSize.x = MAX(fm->maxRawSize.x, fg->rawGlyphSize.x);
 				fm->maxRawSize.y = MAX(fm->maxRawSize.y, fg->rawGlyphSize.y);
 				
-				VEC_PUSH(&fm->gen, fg);
+				VEC_push(&fm->gen, fg);
 			}
 		}
 		
@@ -540,7 +540,7 @@ void FontManager_finalize(FontManager* fm) {
 	
 	// render the bitmap fonts in the meantime (FreeType is not MT-safe.)
 	VEC(FontGen*) bmps;
-	VEC_INIT(&bmps);
+	VEC_init(&bmps);
 	
 	HT_EACH(&fm->fonts, name, GUIFont*, f) {
 			
@@ -582,7 +582,7 @@ void FontManager_finalize(FontManager* fm) {
 	//				fm->maxRawSize.x = MAX(fm->maxRawSize.x, fg->rawGlyphSize.x);
 	//				fm->maxRawSize.y = MAX(fm->maxRawSize.y, fg->rawGlyphSize.y);
 					
-					VEC_PUSH(&bmps, fg);
+					VEC_push(&bmps, fg);
 				}
 			}
 			
@@ -595,7 +595,7 @@ void FontManager_finalize(FontManager* fm) {
 	//				fm->maxRawSize.x = MAX(fm->maxRawSize.x, fg->rawGlyphSize.x);
 	//				fm->maxRawSize.y = MAX(fm->maxRawSize.y, fg->rawGlyphSize.y);
 					
-					VEC_PUSH(&bmps, fg);
+					VEC_push(&bmps, fg);
 				}
 			}
 		}
@@ -609,8 +609,8 @@ void FontManager_finalize(FontManager* fm) {
 		pthread_join(threads[i], NULL);
 	}
 	
-	VEC_CAT(&fm->gen, &bmps);
-	VEC_FREE(&bmps);
+	VEC_cat(&fm->gen, &bmps);
+	VEC_free(&bmps);
 
 }
 
@@ -684,7 +684,7 @@ void FontManager_AddFontRange(FontManager* fm, char* name, char bold, char itali
 		fm->maxRawSize.x = MAX(fm->maxRawSize.x, fg->rawGlyphSize.x);
 		fm->maxRawSize.y = MAX(fm->maxRawSize.y, fg->rawGlyphSize.y);
 		
-		VEC_PUSH(&fm->gen, fg);
+		VEC_push(&fm->gen, fg);
 	}
 	*/
 	_FT_Done_Face(fontFace);
@@ -702,7 +702,7 @@ void FontManager_createAtlas(FontManager* fm) {
 	char buf[32];
 	
 	// order the characters by height then width, tallest and widest first.
-	VEC_SORT(&fm->gen, gen_comp);
+	VEC_sort(&fm->gen, gen_comp);
 	
 	int totalWidth = 0;
 	VEC_EACH(&fm->gen, ind, gen) {
@@ -715,10 +715,10 @@ void FontManager_createAtlas(FontManager* fm) {
 		free(d);
 	}
 	
-	VEC_TRUNC(&fm->atlas);
+	VEC_trunc(&fm->atlas);
 	
 	
-	int maxHeight = VEC_ITEM(&fm->gen, 0)->sdfDataSize.y;
+	int maxHeight = VEC_item(&fm->gen, 0)->sdfDataSize.y;
 	int naiveSize = ceil(sqrt(maxHeight * totalWidth));
 	int pot = nextPOT(naiveSize);
 	int pot2 = naiveSize / 2;
@@ -756,11 +756,11 @@ void FontManager_createAtlas(FontManager* fm) {
 			
 			// next texture
 			if(hext + prevhext > pot) { 
-				VEC_PUSH(&fm->atlas, texData);
+				VEC_push(&fm->atlas, texData);
 				
 				// disabled for debug
 				/*
-				sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
+				sprintf(buf, "sdf-comp-%ld.png", VEC_len(&fm->atlas));
 				Bitmap png = {0};
 				png.pixelFormat = BITMAP_PF_u8;
 				png.channels = 1;
@@ -809,7 +809,7 @@ void FontManager_createAtlas(FontManager* fm) {
 		else if(gen->italic) c = &gen->font->italic[gen->code];
 		else c = &gen->font->regular[gen->code];
 		
-		c->texIndex = VEC_LEN(&fm->atlas);
+		c->texIndex = VEC_len(&fm->atlas);
 		c->texelOffset.x = rowWidth + padding;
 		c->texelOffset.y = hext + padding;
 		c->texelSize = gen->sdfDataSize;
@@ -842,11 +842,11 @@ void FontManager_createAtlas(FontManager* fm) {
 	}
 	
 	
-	VEC_PUSH(&fm->atlas, texData);
+	VEC_push(&fm->atlas, texData);
 	
 	// disabled for debugging
 	/*
-	sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
+	sprintf(buf, "sdf-comp-%ld.png", VEC_len(&fm->atlas));
 	Bitmap png = {0};
 	png.pixelFormat = BITMAP_PF_u8;
 	png.channels = 1;
@@ -856,7 +856,7 @@ void FontManager_createAtlas(FontManager* fm) {
 	writePNGFileSync(buf, &png);
 	//*/
 	
-	VEC_FREE(&fm->gen);
+	VEC_free(&fm->gen);
 }
 
 
@@ -951,7 +951,7 @@ void FontManager_saveAtlas(FontManager* fm, char* path) {
 	fwrite(&fm->maxAtlasSize, 1, 4, f);
 	
 	// number of atlas layers
-	u16 = VEC_LEN(&fm->atlas);
+	u16 = VEC_len(&fm->atlas);
 	fwrite(&u16, 1, 2, f);
 	
 	// atlas dimension (always square)
@@ -1125,7 +1125,7 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 				
 				at = malloc(pu32 * pu32 * sizeof(*at));
 				fread(at, 1, pu32 * pu32 * 1, f);
-				VEC_PUSH(&fm->atlas, at);
+				VEC_push(&fm->atlas, at);
 			}
 			
 			break;

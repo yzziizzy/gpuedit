@@ -97,7 +97,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	// TODO: cache a pointer
 	long scrollPixels = gbe->scrollLines * gbe->bs->lineHeight;
 	linenum_t sl = 0;
-	for(; VEC_ITEM(&gbe->lineOffsets, sl) < scrollPixels; sl++); 
+	for(; VEC_item(&gbe->lineOffsets, sl) < scrollPixels; sl++); 
 	for(intptr_t i = 0; i < sl && bl->next; i++) bl = bl->next; 
 	
 	
@@ -172,8 +172,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 			size_t styleIndex = 0;
 			size_t styleCols = 0;
 			TextStyleAtom* atom = NULL;
-			if(VEC_LEN(&bl->style)) {
-				atom = &VEC_HEAD(&bl->style);
+			if(VEC_len(&bl->style)) {
+				atom = &VEC_head(&bl->style);
 				styleCols = atom->length;
 			}
 			
@@ -290,8 +290,8 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 				
 				if(atom && styleCols <= 0) {
 					styleIndex++;
-					if(styleIndex < VEC_LEN(&bl->style)) {
-						atom = &VEC_ITEM(&bl->style, styleIndex);
+					if(styleIndex < VEC_len(&bl->style)) {
+						atom = &VEC_item(&bl->style, styleIndex);
 						styleCols = atom->length;
 					}
 					else atom = NULL;
@@ -438,7 +438,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		}
 		
 		gm->curZ -= 22;
-//		size_t popupLines = MIN(VEC_LEN(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
+//		size_t popupLines = MIN(VEC_len(&gbe->autocompleteOptions), gbe->maxAutocompleteLines);
 		
 //		float cursory = (gbe->sel->startLine->lineNum - 1 - gbe->scrollLines) * bs->lineHeight;
 		//	.pos = {tl.x + cursorOff + 2, tl.y + cursory + bs->lineHeight},

@@ -131,7 +131,7 @@ void GUIManager_InitGL(GUIManager* gm) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
 	glerr("param font tex");
 	
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, gm->fm->atlasSize, gm->fm->atlasSize, VEC_LEN(&gm->fm->atlas));
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, gm->fm->atlasSize, gm->fm->atlasSize, VEC_len(&gm->fm->atlas));
 	
 	VEC_EACH(&gm->fm->atlas, ind, at) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 
@@ -158,7 +158,7 @@ void GUIManager_InitGL(GUIManager* gm) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
 	glerr("param font tex");
 	
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, gm->ta->width, gm->ta->width, VEC_LEN(&gm->ta->atlas));
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, gm->ta->width, gm->ta->width, VEC_len(&gm->ta->atlas));
 	
 	char buf [50];
 	
@@ -196,7 +196,7 @@ GUIWindow* GUIWindow_new(GUIManager* gm, GUIWindow* parent) {
 		w->vertBuffer = calloc(1, w->vertAlloc * sizeof(*w->vertBuffer));
 	}
 	
-	VEC_TRUNC(&w->children);
+	VEC_trunc(&w->children);
 		
 	return w;
 }
@@ -457,7 +457,7 @@ void GUIManager_appendWindowVerts(GUIManager* gm, GUIWindow* w) {
 	qsort(w->vertBuffer, w->vertCount, sizeof(*w->vertBuffer), (void*)gui_vert_sort_fn);
 //	printf("qsort time: %fus\n", timeSince(sort) * 1000000.0);
 	
-	if(0&&VEC_LEN(&w->children) == 0) {
+	if(0&&VEC_len(&w->children) == 0) {
 		// simple memcpy
 		memcpy(gm->vertBuffer + gm->vertCount, w->vertBuffer, w->vertCount * sizeof(*gm->vertBuffer));
 		gm->vertCount += w->vertCount;
@@ -467,10 +467,10 @@ void GUIManager_appendWindowVerts(GUIManager* gm, GUIWindow* w) {
 	
 	// zipper the elements and windows together based on z
 	
-	VEC_SORT(&w->children, gui_win_sort_fn);
+	VEC_sort(&w->children, gui_win_sort_fn);
 	
 	int ci = 0;
-	GUIWindow** cw = VEC_DATA(&w->children);
+	GUIWindow** cw = VEC_data(&w->children);
 	
 	int vi = 0;
 	GUIUnifiedVertex* v = w->vertBuffer;
@@ -478,7 +478,7 @@ void GUIManager_appendWindowVerts(GUIManager* gm, GUIWindow* w) {
 	GUIUnifiedVertex* tv = gm->vertBuffer + gm->vertCount;
 	while(1) {
 		
-		if(ci < VEC_LEN(&w->children) && ((*cw)->z < v->z || vi >= w->vertCount)) {
+		if(ci < VEC_len(&w->children) && ((*cw)->z < v->z || vi >= w->vertCount)) {
 			// append the window first
 			GUIManager_appendWindowVerts(gm, *cw);
 			ci++;
@@ -514,13 +514,13 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 	// clean up the windows from last frame
 	gm->windowHeap.cnt = 1;
 	gm->rootWin = GUIWindow_new(gm, 0);
-	VEC_TRUNC(&gm->windowStack);
-	VEC_PUSH(&gm->windowStack, gm->rootWin);
+	VEC_trunc(&gm->windowStack);
+	VEC_push(&gm->windowStack, gm->rootWin);
 	gm->curWin = gm->rootWin;
 	
 	gm->rootWin->absClip = (AABB2){min: {0,0}, max: {pfp->dp->targetSize.x, pfp->dp->targetSize.y}};
 	gm->rootWin->clip = gm->rootWin->absClip;
-	VEC_TRUNC(&gm->clipStack);
+	VEC_trunc(&gm->clipStack);
 	gm->curClip = gm->rootWin->clip;
 	
 	gm->time = pfp->wallTime;
@@ -529,7 +529,7 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 	gm->curZ = 1.0;
 	
 
-	VEC_TRUNC(&gm->clipStack);
+	VEC_trunc(&gm->clipStack);
 	gm->curFontColor = gm->defaults.textColor;
 	gm->curFontSize = gm->defaults.fontSize;
 	gm->curFont = gm->defaults.font;
@@ -594,7 +594,7 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 			GUIManager_RunRenderPass(gm, pfp, 0);
 		}
 		
-		VEC_TRUNC(&gm->focusNotifiers);
+		VEC_trunc(&gm->focusNotifiers);
 	}
 	
 	
@@ -608,9 +608,9 @@ void GUI_Notify_(GUIManager* gm, int type, void* id, uint64_t elem) {
 		}
 	}
 	
-	VEC_INC(&gm->focusNotifiers);
-	VEC_TAIL(&gm->focusNotifiers).id = id;
-	VEC_TAIL(&gm->focusNotifiers).elem = elem;
+	VEC_inc(&gm->focusNotifiers);
+	VEC_tail(&gm->focusNotifiers).id = id;
+	VEC_tail(&gm->focusNotifiers).elem = elem;
 }
 
 
@@ -758,7 +758,7 @@ static void postFrame(void* gm_) {
 	PCBuffer_afterDraw(&gm->instVB);
 	
 	// reset the inter-frame event accumulators
-//	VEC_TRUNC(&gm->keysReleased);
+//	VEC_trunc(&gm->keysReleased);
 //	for(int i = 0; i < 16; i++) {
 //		gm->mouseWentUp[i] = 0;
 //		gm->mouseWentDown[i] = 0;
@@ -768,10 +768,10 @@ static void postFrame(void* gm_) {
 	
 	
 	// gc the element data
-	for(int i = 0; i < VEC_LEN(&gm->elementData); i++) {
+	for(int i = 0; i < VEC_len(&gm->elementData); i++) {
 		GUIElementData* d;
 	RESTART:
-		d = &VEC_ITEM(&gm->elementData, i);
+		d = &VEC_item(&gm->elementData, i);
 		
 		if(d->age < 10) {
 			d->age++;
@@ -785,13 +785,13 @@ static void postFrame(void* gm_) {
 			d->freeFn = 0;
 		}
 		
-		if(i < VEC_LEN(&gm->elementData) - 1)  {
-			*d = VEC_TAIL(&gm->elementData);
-			VEC_LEN(&gm->elementData)--;
+		if(i < VEC_len(&gm->elementData) - 1)  {
+			*d = VEC_tail(&gm->elementData);
+			VEC_len(&gm->elementData)--;
 			goto RESTART;
 		}
 		else {
-			VEC_LEN(&gm->elementData)--;
+			VEC_len(&gm->elementData)--;
 			break;
 		}
 	}

@@ -142,7 +142,7 @@ void internal_strsplit(char* source, stringlist* out) {
 	
 	while(*s) {
 		if(*s == '\n') {
-			VEC_PUSH(out, strndup(lstart, s - lstart + 1));
+			VEC_push(out, strndup(lstart, s - lstart + 1));
 			lstart = s + 1;
 		}
 		s++;
@@ -150,7 +150,7 @@ void internal_strsplit(char* source, stringlist* out) {
 	
 	// handle the last line
 	if(s > lstart) {
-		VEC_PUSH(out, strndup(lstart, s - lstart));
+		VEC_push(out, strndup(lstart, s - lstart));
 	}
 }
 
@@ -160,8 +160,8 @@ ShaderSource* makeShaderSource() {
 	n = calloc(1, sizeof(*n));
 	CHECK_OOM(n);
 	
-	VEC_INIT(&n->lines);
-	VEC_INIT(&n->strings);
+	VEC_init(&n->lines);
+	VEC_init(&n->strings);
 	
 	return n;
 }
@@ -180,23 +180,23 @@ ShaderSource* loadShaderSource(char* path) {
 		return NULL;
 	}
 	
-	VEC_INIT(&l);
+	VEC_init(&l);
 	ss = makeShaderSource();
 	
 	ss->path = path;
 	internal_strsplit(source, &l);
 	
-	for(i = 0; i < VEC_LEN(&l); i++) {
+	for(i = 0; i < VEC_len(&l); i++) {
 		LineInfo* li;
-		VEC_INC(&ss->lines);
+		VEC_inc(&ss->lines);
 		
-		li = &VEC_ITEM(&ss->lines, i);
-		li->src = VEC_ITEM(&l, i);
+		li = &VEC_item(&ss->lines, i);
+		li->src = VEC_item(&l, i);
 		li->file_path = path;
 		li->file_line = i + 1;
 	}
 	
-	VEC_FREE(&l);
+	VEC_free(&l);
 	
 	return ss;
 }
@@ -243,9 +243,9 @@ void processIncludes(ShaderProgram* sp, ShaderSource* ss) {
 	int i;
 	char* s, *includeFileName, *includeFilePath;
 	
-	for(i = 0; i < VEC_LEN(&ss->lines); i++) {
+	for(i = 0; i < VEC_len(&ss->lines); i++) {
 		ShaderSource* iss;
-		LineInfo* li = &VEC_ITEM(&ss->lines, i);
+		LineInfo* li = &VEC_item(&ss->lines, i);
 		
 		
 		if(0 == strncmp("#include", li->src, strlen("#include"))) {
@@ -260,7 +260,7 @@ void processIncludes(ShaderProgram* sp, ShaderSource* ss) {
 			//HT_set(&sp->sources, includeFilePath, iss);
 			
 			// insert the included lines into this file's lines
-			VEC_SPLICE(&ss->lines, &iss->lines, i+1);
+			VEC_splice(&ss->lines, &iss->lines, i+1);
 			
 			// comment out this line
 			li->src[0] = '/';
@@ -287,10 +287,10 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 	common = makeShaderSource();
 	*/
 	
-	for(i = 0; i < VEC_LEN(&raw->lines); i++) {
+	for(i = 0; i < VEC_len(&raw->lines); i++) {
 		int cnt, index;
 		int version;
-		LineInfo* li = &VEC_ITEM(&raw->lines, i);
+		LineInfo* li = &VEC_item(&raw->lines, i);
 		
 		
 		// extract the GLSL version to be prepended to the shader
@@ -327,8 +327,8 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 			if(commonVersion) curShader->version = commonVersion;
 			
 			// make room for the version directive, added later
-			VEC_INC(&curShader->lines);
-			VEC_INC(&curShader->strings);
+			VEC_inc(&curShader->lines);
+			VEC_inc(&curShader->strings);
 			
 			// comment out this line
 			li->src[0] = '/';
@@ -337,8 +337,8 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 		else {
 			if(curShader) {
 				// copy line 
-				VEC_PUSH(&curShader->lines, *li);
-				VEC_PUSH(&curShader->strings, li->src);
+				VEC_push(&curShader->lines, *li);
+				VEC_push(&curShader->strings, li->src);
 			}
 		}
 		
@@ -354,10 +354,10 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 		
 		s = malloc(20);
 		sprintf(s, "#version %.3u", ss->version);
-		VEC_ITEM(&ss->strings, 0) = s;
-		VEC_ITEM(&ss->lines, 0).src = s;
-		VEC_ITEM(&ss->lines, 0).file_path = NULL;
-		VEC_ITEM(&ss->lines, 0).file_line = -1;
+		VEC_item(&ss->strings, 0) = s;
+		VEC_item(&ss->lines, 0).src = s;
+		VEC_item(&ss->lines, 0).file_path = NULL;
+		VEC_item(&ss->lines, 0).file_line = -1;
 	}
 }
 
@@ -380,7 +380,7 @@ void compileShader(ShaderSource* ss) {
 	ss->id = glCreateShader(ss->type);
 	glerr("shader create error");
 	
-	glShaderSource(ss->id, VEC_LEN(&ss->strings), (const GLchar**)VEC_DATA(&ss->strings), NULL);
+	glShaderSource(ss->id, VEC_len(&ss->strings), (const GLchar**)VEC_data(&ss->strings), NULL);
 	glerr("shader source error");
 	
 	//printf("compiling\n");
@@ -409,11 +409,11 @@ ShaderProgram* loadCombinedProgram(char* path) {
 		
 		if(!sss) continue;
 		
-// 		for(j = 0; j < VEC_LEN(&sss->lines); j++)
+// 		for(j = 0; j < VEC_len(&sss->lines); j++)
 // 		printf("%s:%d: '%s'\n", 
-// 			VEC_ITEM(&sp->shaders[i]->lines, j).file_path,
-// 			VEC_ITEM(&sp->shaders[i]->lines, j).file_line,
-// 			VEC_ITEM(&sp->shaders[i]->lines, j).src
+// 			VEC_item(&sp->shaders[i]->lines, j).file_path,
+// 			VEC_item(&sp->shaders[i]->lines, j).file_line,
+// 			VEC_item(&sp->shaders[i]->lines, j).src
 // 		);
 		
 		compileShader(sss);

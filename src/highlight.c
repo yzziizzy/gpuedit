@@ -13,8 +13,8 @@
 
 
 void HighlighterManager_Init(HighlighterManager* hm, Settings* s) {
-	VEC_INIT(&hm->modules);
-	VEC_INIT(&hm->plugins);
+	VEC_init(&hm->modules);
+	VEC_init(&hm->plugins);
 	
 	HT_init(&hm->extLookup, 16);
 	
@@ -43,12 +43,12 @@ void HighlighterManager_Init(HighlighterManager* hm, Settings* s) {
 		.bgSelColor = {.5,.5,.8, 1.0},
 	};
 	
-	VEC_PUSH(&hm->plugins, h);
+	VEC_push(&hm->plugins, h);
 }
 
 void HighlighterManager_Destroy(HighlighterManager* hm) {
-	VEC_FREE(&hm->modules);
-	VEC_FREE(&hm->plugins);
+	VEC_free(&hm->modules);
+	VEC_free(&hm->plugins);
 	
 	HT_destroy(&hm->extLookup);
 }
@@ -140,7 +140,7 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 		}
 		
 		
-		VEC_PUSH(&hm->plugins, h);
+		VEC_push(&hm->plugins, h);
 	}
 	
 	HighlighterModule* mod = pcalloc(mod);
@@ -149,7 +149,7 @@ HighlighterModule* Highlighter_LoadModule(HighlighterManager* hm, char* path) {
 	mod->path = strdup(path);
 	mod->libHandle = lib;
 	
-	VEC_PUSH(&hm->modules, mod);
+	VEC_push(&hm->modules, mod);
 	
 	return mod;
 }

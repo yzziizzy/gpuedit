@@ -54,7 +54,7 @@ void GUI_PushFontName_(GUIManager* gm, char* fontName, float size, Color4* color
 
 void GUI_PushFont_(GUIManager* gm, GUIFont* font, float size, Color4* color) {
 	
-	struct gui_font_params* fp = VEC_INC(&gm->fontStack);
+	struct gui_font_params* fp = VEC_inc(&gm->fontStack);
 	
 	fp->font = gm->curFont;
 	fp->size = gm->curFontSize;
@@ -66,7 +66,7 @@ void GUI_PushFont_(GUIManager* gm, GUIFont* font, float size, Color4* color) {
 }
 
 void GUI_PopFont_(GUIManager* gm) {
-	if(!VEC_LEN(&gm->fontStack)) {
+	if(!VEC_len(&gm->fontStack)) {
 		// set to defaults
 		gm->curFontColor = gm->defaults.textColor;
 		gm->curFontSize = gm->defaults.fontSize;
@@ -75,12 +75,12 @@ void GUI_PopFont_(GUIManager* gm) {
 		return;
 	}
 
-	struct gui_font_params* fp = &VEC_TAIL(&gm->fontStack);
+	struct gui_font_params* fp = &VEC_tail(&gm->fontStack);
 	gm->curFont = fp->font;
 	gm->curFontSize = fp->size;
 	gm->curFontColor = fp->color;
 	
-	VEC_POP1(&gm->fontStack);
+	VEC_pop(&gm->fontStack);
 }
 
 
@@ -1332,19 +1332,19 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 
 // sets the current clipping region, respecting the current window
 void GUI_PushClip_(GUIManager* gm, Vector2 tl, Vector2 sz) {
-	VEC_PUSH(&gm->clipStack, gm->curClip);
+	VEC_push(&gm->clipStack, gm->curClip);
 
 	Vector2 abstl = vAdd2(tl, gm->curWin->absClip.min);
 	gm->curClip = gui_clipTo(gm->curWin->absClip, (AABB2){min: abstl, max: vAdd2(abstl, sz)});
 }
 
 void GUI_PopClip_(GUIManager* gm) {
-	if(VEC_LEN(&gm->clipStack) <= 0) {
+	if(VEC_len(&gm->clipStack) <= 0) {
 		fprintf(stderr, "Tried to pop an empty clip stack\n");
 		return;
 	}
 	
-	VEC_POP(&gm->clipStack, gm->curClip);
+	VEC_pop(&gm->clipStack, gm->curClip);
 }
 
 //
@@ -1359,7 +1359,7 @@ void GUI_BeginWindow_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, float z,
 	struct window_data* d;
 	
 	
-	p = VEC_TAIL(&gm->windowStack);
+	p = VEC_tail(&gm->windowStack);
 	w = GUIWindow_new(gm, p);
 	
 //	d = GUI_GetData_(gm, id))) {
@@ -1378,12 +1378,12 @@ void GUI_BeginWindow_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, float z,
 	w->absClip.max.x = w->absClip.min.x + sz.x;
 	w->absClip.max.y = w->absClip.min.y + sz.y;
 	
-	VEC_PUSH(&gm->clipStack, gm->curClip);
+	VEC_push(&gm->clipStack, gm->curClip);
 	gm->curClip = w->absClip;
 	
-	VEC_PUSH(&p->children, w);
+	VEC_push(&p->children, w);
 	
-	VEC_PUSH(&gm->windowStack, w);
+	VEC_push(&gm->windowStack, w);
 	gm->curWin = w;
 }
 
@@ -1391,17 +1391,17 @@ void GUI_BeginWindow_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, float z,
 // pop the window stack and set the previous window to be current
 void GUI_EndWindow_(GUIManager* gm) {
 	
-	if(VEC_LEN(&gm->windowStack) <= 1) {
+	if(VEC_len(&gm->windowStack) <= 1) {
 		fprintf(stderr, "Tried to pop root window\n");
 		return;
 	}	
 	
 	gm->curZ = gm->curWin->preservedZ;
 	
-	VEC_POP1(&gm->windowStack);
-	gm->curWin = VEC_TAIL(&gm->windowStack);
+	VEC_pop(&gm->windowStack);
+	gm->curWin = VEC_tail(&gm->windowStack);
 	
-	VEC_POP(&gm->clipStack, gm->curClip);	
+	VEC_pop(&gm->clipStack, gm->curClip);	
 }
 
 

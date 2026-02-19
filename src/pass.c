@@ -110,10 +110,10 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 	d->prog = loadCombinedProgram(shaderName);
 	d->data = rpipe;
 	
-	VEC_PUSH(&pass->drawables, d);
+	VEC_push(&pass->drawables, d);
 	
 	
-	VEC_PUSH(&rpipe->passes, pass);
+	VEC_push(&rpipe->passes, pass);
 	
 	
 }
@@ -129,7 +129,7 @@ void RenderPipeline_setFBOConfig(RenderPipeline* rp, RenderPipelineFBOConfig* cf
 	RenderPipelineFBOConfig* c = calloc(1, (i + 1) * sizeof(*c));
 	memcpy(c, cfg, (i + 1) * sizeof(*c));
 	
-	VEC_PUSH(&rp->fboConfig, c);
+	VEC_push(&rp->fboConfig, c);
 }
 
 // save copies of the fbo configuration so locals can be fed in with ease.
@@ -171,7 +171,7 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 	
 	
 	rp->backingTextures = initFBOTextures(rp->viewSz.x, rp->viewSz.y, rp->fboTexConfig);
-	rp->fbos = calloc(1, sizeof(*rp->fbos) * VEC_LEN(&rp->fboConfig));
+	rp->fbos = calloc(1, sizeof(*rp->fbos) * VEC_len(&rp->fboConfig));
 	
 	
 	VEC_EACH(&rp->fboConfig, ind, cfg) {
@@ -235,8 +235,8 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 	}
 	
 	
-	for(int i = 0; i < VEC_LEN(&bp->passes); i++) {
-		RenderPass* pass = VEC_ITEM(&bp->passes, i);
+	for(int i = 0; i < VEC_len(&bp->passes); i++) {
+		RenderPass* pass = VEC_item(&bp->passes, i);
 		//ShaderProgram* prog = pass->prog;
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, bp->fbos[pass->fboIndex]->fb);
@@ -332,7 +332,7 @@ int RenderPass_addDrawable(RenderPass* rp, PassDrawable* d) {
 	d->depthUL = glGetUniformLocation(d->prog->id, "sDepth");
 	glerr("harmless");
 	
-	VEC_PUSH(&rp->drawables, d);
+	VEC_push(&rp->drawables, d);
 	
 	return 0;
 }
@@ -361,8 +361,8 @@ void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 	
 	int i;
 	
-	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
-		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
+	for(i = 0; i < VEC_len(&pass->drawables); i++) {
+		PassDrawable* d = VEC_item(&pass->drawables, i);
 		
 		DrawTimer_Start(&d->timer);
 		
@@ -378,8 +378,8 @@ void RenderPass_postFrameAll(RenderPass* pass) {
 	
 	int i;
 	
-	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
-		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
+	for(i = 0; i < VEC_len(&pass->drawables); i++) {
+		PassDrawable* d = VEC_item(&pass->drawables, i);
 		if(d->postFrame) d->postFrame(d->data);
 	}
 }
@@ -387,8 +387,8 @@ void RenderPass_preFrameAll(RenderPass* pass, PassFrameParams* pfp) {
 	
 	int i;
 	
-	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
-		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
+	for(i = 0; i < VEC_len(&pass->drawables); i++) {
+		PassDrawable* d = VEC_item(&pass->drawables, i);
 		if(d->preFrame) d->preFrame(pfp, d->data);
 	}
 }
@@ -396,7 +396,7 @@ void RenderPass_preFrameAll(RenderPass* pass, PassFrameParams* pfp) {
 
 void RenderPipeline_init(RenderPipeline* rp) {
 	
-	VEC_INIT(&rp->passes);
+	VEC_init(&rp->passes);
 	
 	rp->clearColor = (Vector4){0, 0, 0, 0};
 }
