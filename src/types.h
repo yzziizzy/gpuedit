@@ -118,57 +118,6 @@ typedef char** charpp;
 
 
 
-// typedef enum with static bounds checking of the base type's max value
-// the enum must follow the convention of ENUM_NAME_MAX_VALUE being the largest value
-// TODO: min value checking
-#define INTTYPE_MIN(x) _Generic(x, \
-	char: CHAR_MIN, \
-	signed char: SCHAR_MIN, \
-	unsigned char: UCHAR_MIN, \
-	short int: SHRT_MIN, \
-	unsigned short int: USHRT_MIN, \
-	int: INT_MIN, \
-	unsigned int: UINT_MIN, \
-	long int: LONG_MAX, \
-	unsigned long int: ULONG_MIN, \
-	long long int: LLONG_MIN, \
-	unsigned long long int: ULLONG_MIN, \
-	default: ULLONG_MIN )
-
-#define INTTYPE_MAX(x) _Generic(x, \
-	char: CHAR_MAX, \
-	signed char: SCHAR_MAX, \
-	unsigned char: UCHAR_MAX, \
-	short int: SHRT_MAX, \
-	unsigned short int: USHRT_MAX, \
-	int: INT_MAX, \
-	unsigned int: UINT_MAX, \
-	long int: LONG_MAX, \
-	unsigned long int: ULONG_MAX, \
-	long long int: LLONG_MAX, \
-	unsigned long long int: ULLONG_MAX, \
-	default: ULLONG_MAX )
- 
-#define INTTYPE_STR(x) _Generic((x), \
-	char: "CHAR", \
-	signed char: "SCHAR", \
-	unsigned char: "UCHAR", \
-	short int: "SHRT", \
-	unsigned short int: "USHRT", \
-	int: "INT", \
-	unsigned int: "UINT", \
-	long int: "LONG", \
-	unsigned long int: "ULONG", \
-	long long int: "LLONG", \
-	unsigned long long int: "ULLONG", \
-	default: "ULLONG" \
-	)
-
-#define TYPEDEF_ENUM(inttype, basename) \
-	typedef inttype basename##_t; \
-	_Static_assert(basename##_MAX_VALUE <= INTTYPE_MAX((inttype)0), "enum _MAX_VALUE exceeds typedef max" ); \
-
-
 
 
 

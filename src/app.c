@@ -86,7 +86,7 @@ static int_vlist* bookmark_lines_from_json(json_value_t* lines) {
 // nothing in here can use opengl at all.
 void AppState_Init(AppState* as, int argc, char* argv[]) {
 	srand((unsigned int)time(NULL));
-	
+
 	int suppress_config = 0;
 	char* homedir = getenv("HOME");
 	char* curdir = getenv("PWD");

@@ -38,6 +38,8 @@
 #include <stdatomic.h> 
 #include "types.h"
 
+#define STI_DEBUG_PATH_PREFIX "src/"
+#include "sti/debug.h"
 
 
 static inline void spin_lock(_Atomic u32* sl) {
@@ -148,105 +150,6 @@ static inline void spin_unlock(_Atomic u32* sl) {
 
 
 // debugging tools
-
-
-
-typedef s8*  s8p;
-typedef s16* s16p;
-typedef s32* s32p;
-typedef s64* s64p;
-typedef u8*  u8p;
-typedef u16* u16p;
-typedef u32* u32p;
-typedef u64* u64p;
-typedef f32* f32p;
-typedef f64* f64p;
-typedef mat3* mat3p;
-typedef mat4* mat4p;
-typedef const char* ccharp;
-typedef char** charpp;
-typedef const char** ccharpp;
-
-
-//   type        float  str   vlen
-//           signed  int   size  ptrlvl
-#define DEBUG_PANEL_TYPE_LIST(X) \
-	X(s8,       1, 0, 1, 0, 1, 1, 0) \
-	X(s16,      1, 0, 1, 0, 2, 1, 0) \
-	X(s32,      1, 0, 1, 0, 4, 1, 0) \
-	X(s64,      1, 0, 1, 0, 8, 1, 0) \
-	X(u8,       0, 0, 1, 0, 1, 1, 0) \
-	X(u16,      0, 0, 1, 0, 2, 1, 0) \
-	X(u32,      0, 0, 1, 0, 4, 1, 0) \
-	X(u64,      0, 0, 1, 0, 8, 1, 0) \
-	X(f32,      1, 1, 0, 0, 4, 1, 0) \
-	X(f64,      1, 1, 0, 0, 8, 1, 0) \
-	X(vec2i,    1, 0, 1, 0, 4, 2, 0) \
-	X(vec3i,    1, 0, 1, 0, 4, 3, 0) \
-	X(vec4i,    1, 0, 1, 0, 4, 4, 0) \
-	X(vec2l,    1, 0, 1, 0, 8, 2, 0) \
-	X(vec3l,    1, 0, 1, 0, 8, 3, 0) \
-	X(vec4l,    1, 0, 1, 0, 8, 4, 0) \
-	X(vec2,     1, 1, 0, 0, 4, 2, 0) \
-	X(vec3,     1, 1, 0, 0, 4, 3, 0) \
-	X(vec4,     1, 1, 0, 0, 4, 4, 0) \
-	X(vec2d,    1, 1, 0, 0, 8, 2, 0) \
-	X(vec3d,    1, 1, 0, 0, 8, 3, 0) \
-	X(vec4d,    1, 1, 0, 0, 8, 4, 0) \
-	X(mat4,     1, 1, 0, 0, 4,16, 0) \
-	X(mat3,     1, 1, 0, 0, 4, 9, 0) \
-	X(charp,    0, 0, 0, 1, 8, 1, 0) \
-	X(ccharp,   0, 0, 0, 1, 8, 1, 0) \
-	X(s8p,      1, 0, 1, 0, 1, 1, 1) \
-	X(s16p,     1, 0, 1, 0, 2, 1, 1) \
-	X(s32p,     1, 0, 1, 0, 4, 1, 1) \
-	X(s64p,     1, 0, 1, 0, 8, 1, 1) \
-	X(u8p,      0, 0, 1, 0, 1, 1, 1) \
-	X(u16p,     0, 0, 1, 0, 2, 1, 1) \
-	X(u32p,     0, 0, 1, 0, 4, 1, 1) \
-	X(u64p,     0, 0, 1, 0, 8, 1, 1) \
-	X(f32p,     1, 1, 0, 0, 4, 1, 1) \
-	X(f64p,     1, 1, 0, 0, 8, 1, 1) \
-	X(vec2ip,   1, 0, 1, 0, 4, 2, 1) \
-	X(vec3ip,   1, 0, 1, 0, 4, 3, 1) \
-	X(vec4ip,   1, 0, 1, 0, 4, 4, 1) \
-	X(vec2lp,   1, 0, 1, 0, 8, 2, 1) \
-	X(vec3lp,   1, 0, 1, 0, 8, 3, 1) \
-	X(vec4lp,   1, 0, 1, 0, 8, 4, 1) \
-	X(vec2p,    1, 1, 0, 0, 4, 2, 1) \
-	X(vec3p,    1, 1, 0, 0, 4, 3, 1) \
-	X(vec4p,    1, 1, 0, 0, 4, 4, 1) \
-	X(vec2dp,   1, 1, 0, 0, 8, 2, 1) \
-	X(vec3dp,   1, 1, 0, 0, 8, 3, 1) \
-	X(vec4dp,   1, 1, 0, 0, 8, 4, 1) \
-	X(mat4p,    1, 1, 0, 0, 4,16, 1) \
-	X(mat3p,    1, 1, 0, 0, 4, 9, 1) \
-	X(charpp,   0, 0, 0, 1, 8, 1, 1) \
-	X(ccharpp,  0, 0, 0, 1, 8, 1, 1) \
-
-
-#define X(a, ...) union DBG_TYPE_##a {};
-	DEBUG_PANEL_TYPE_LIST(X)
-#undef X
-//
-//enum {
-//	DBG_TYPE_NONE = 0,
-//#define X(a, ...) DBG_TYPE_##a,
-//	DEBUG_PANEL_TYPE_LIST(X)
-//#undef X
-//	DBG_TYPE_MAX_VALUE,
-//};
-//
-//
-
-
-// simple debug printf macros
-
-
-#define dbg(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", strstr(__FILE__, "src/") ? (strstr(__FILE__, "src/") + 4) : (strstr(__FILE__, "baced/") + 6), __LINE__ __VA_OPT__(,) __VA_ARGS__);
-
-#define dbgv(a) debug_print_var(__FILE__, __LINE__, __func__, #a, (void*)&a, WATCH_TYPE_TO_ENUM(a));
-void debug_print_var(char* filename, long linenum, const char* funcname, char* name, void* var, int type);
 
 
 
