@@ -154,11 +154,12 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 		
 		float adv = 0;
 		
+		
 		// highlight current line
-		if(bl == CURSOR_LINE(gbe->sel) && gbe->outlineCurLine && !gbe->sel->line[0]) {
+		if(bl == CURSOR_LINE(gbe->sel) && gbe->outlineCurLine && !HAS_SELECTION(gbe->sel)) {
 			gm->curZ = z + 10;
 			GUI_Box(
-				V(tl.x - 1, tl.y + bs->outlineCurrentLineYOffset), 
+				V(tl.x - 1, yoff + bs->outlineCurrentLineYOffset - ascender), 
 				V(sz.x - gbe->textAreaOffsetX, bs->lineHeight + bs->outlineCurrentLineYOffset + 2), // +1 to not cover underscores
 				1,
 				&ts->outlineCurrentLineBorderColor

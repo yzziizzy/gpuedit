@@ -87,14 +87,8 @@ static int_vlist* bookmark_lines_from_json(json_value_t* lines) {
 void AppState_Init(AppState* as, int argc, char* argv[]) {
 	srand((unsigned int)time(NULL));
 
-	int suppress_config = 0;
 	char* homedir = getenv("HOME");
 	char* curdir = getenv("PWD");
-	
-	VEC(char*) autoload;
-	VEC_init(&autoload);
-	VEC(char*) autoload_hex;
-	VEC_init(&autoload_hex);
 	
 	as->gui = GUIManager_alloc();
 
@@ -111,63 +105,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 			
 	Settings_LoadDefaults(as->globalSettings, SETTINGS_ALL);
 	
-	int new_session = 0;
-	int no_sessions = 0;
-	
-	// command line args
-	for(int i = 1; i < argc; i++) {
-		char* a = argv[i];
-		
-		// for debugging
-		if(0 == strcmp(a, "--disable-save")) {
-			printf("Buffer saving disabled.\n");
-			g_DisableSave = 1;
-		}
-		
-		
-		// look for files to load in arguments
-		// -f works too
-		if(a[0] == '-') {
-			if(a[1] == 'f' && a[2] == 0) {
-				i++;
-				if(i < argc) VEC_push(&autoload, argv[i]);
-			}
-			
-			else if(a[1] == 'h' && a[2] == 0) {
-				i++;
-				if(i < argc) VEC_push(&autoload_hex, argv[i]);
-			}
-				
-			else if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {
-				i++;
-				if(i <= argc) {
-					Settings_LoadFile(as->globalSettings, argv[i], SETTINGS_ALL);
-				}
-				
-				suppress_config = 1;
-			}
-			
-			else if(a[1] == 'v' && a[2] >= '0' && a[2] <= '9' && a[3] == 0) {
-				g_log_verbosity_level = a[2] - '0';
-			}
-			else if(a[1] == 'n') {
-				// do not load session file
-				new_session = 1;
-			}
-			else if(!strcmp(a, "--no-sessions")) {
-				// do not load session file
-				no_sessions = 1;
-			}
-			
-			continue;
-		}
-		
-		VEC_push(&autoload, argv[i]);
-	}
+	AppState_ParseArgs(as, argc, argv);
 	
 	
-	
-	if(!suppress_config) {
+	if(!as->suppress_config) {
 		Settings_ReadAllJSONAt(as->globalSettings, "/etc/gpuedit/", SETTINGS_ALL);
 		
 		Settings_ReadDefaultFilesAt(as->globalSettings, homedir, SETTINGS_ALL);
@@ -178,7 +119,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 //	printf("err path: %s\n", as->gs->gccErrorJSONPath);
 	
-	if(no_sessions) as->gs->enableSessions = 0;
+	if(as->no_sessions) as->gs->enableSessions = 0;
 	
 	ThemeSettings* theme = Settings_GetSection(as->globalSettings, SETTINGS_Theme);
 	char* tmp = path_join(homedir, "/.gpuedit/themes/", as->gs->Theme_path);
@@ -211,18 +152,14 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	as->gui->renderRootFn = (void*)MainControl_Render;
 	
 	
-	VEC_EACH(&autoload, i, file) {
+	VEC_EACH(&as->autoload, i, file) {
 		MainControl_LoadFile(as->mc, file);
 	}
 	
-	VEC_free(&autoload);
-	
-	
-	VEC_EACH(&autoload_hex, i, file) {
+	VEC_EACH(&as->autoload_hex, i, file) {
 		MainControl_Hexedit(as->mc, file);
 	}
 	
-	VEC_free(&autoload_hex);
 	
 //	MainControl_LoadFile(as->mc, "testfile.h");
 //	MainControl_LoadFile(as->mc, "testfile.c");
@@ -230,7 +167,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 	json_file_t* jsf = NULL;
 	char* session_file_path = "./.gpuedit.session";
-	if(!new_session) jsf = json_load_path(session_file_path);
+	if(!as->new_session) jsf = json_load_path(session_file_path);
 	if(jsf && jsf->error) {
 		L_ERROR("error while loading config file: '%s'\n", session_file_path);
 		L_ERROR("json error: %s %ld:%ld\n", jsf->error_str, jsf->error_line_num, jsf->error_char_num);

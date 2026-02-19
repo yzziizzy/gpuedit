@@ -8,6 +8,7 @@ char* build_dir;
 
 char* sources[] = { "main.c",
 	"app.c",
+	"app_args.c",
 	"buffer.c",
 	"buffer_drawing.c",
 	"buffer_range.c",

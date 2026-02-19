@@ -41,7 +41,7 @@ typedef struct PerFrameUniforms {
 
 
 
-
+extern int g_DisableSave;
 
 
 typedef struct AppState {
@@ -71,6 +71,12 @@ typedef struct AppState {
 	Vector2 mouseDownPos;
 	
 	int debugMode;
+	bool new_session;
+	bool no_sessions;
+	bool suppress_config;
+	
+	VEC(char*) autoload;
+	VEC(char*) autoload_hex;
 	
 	float zoom;
 	
@@ -137,7 +143,7 @@ int execProcessPipe_strlist(char* args[], char*** charpp_out, size_t* n_out);
 
 void AppState_Init(AppState* as, int argc, char* argv[]);
 void AppState_InitGL(XStuff* xs, AppState* as);
-
+void AppState_ParseArgs(AppState* as, int argc, char* argv[]);
 
 void appLoop(XStuff* xs, AppState* gs, InputState* is);
 void SetUpPDP(AppState* as, PassDrawParams* pdp);
