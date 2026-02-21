@@ -143,7 +143,7 @@ int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* sta
 
 
 // returns true if checked
-int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o) {
+int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, int* state, GUICheckboxOpts* o) {
 	
 	float bs = o->boxSize;
 	Vector2 boxSz = {bs, bs};
@@ -168,19 +168,30 @@ int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state,
 	
 		
 	int st = CUR_STATE(id);
-	if(*state) st = STATE_ACTIVE;
+//	if(*state) st = STATE_ACTIVE;
 	
-	GUI_BoxFilled_(gm, tl, boxSz, o->borderWidth, &o[st].border, &o[st].bg);
+	vec2 plugtl = {tl.x + o->borderWidth + o->plugMargin, tl.y + o->borderWidth + o->plugMargin};
+	vec2 plugsz = {boxSz.x - (o->borderWidth + o->plugMargin) * 2.f, boxSz.y - (o->borderWidth + o->plugMargin) * 2.f};
 	
-	
-	float fontSz = o->fontSize;
-//	if(sz.y - (2*2) < fontSz) fontSz = sz.y - (2*2);
-	GUIFont* font = GUI_FindFont(gm, o->fontName);
-	GUI_TextLineAdv(V(tl.x + bs + 4, tl.y), V(0,0), label, -1, 0, font, fontSz, &o[st].text);
+	GUI_Box_(gm, tl, boxSz, o->borderWidth, &o[st].border);
+	gm->curZ += .1;
+	if(*state) {
+		GUI_Rect(plugtl, plugsz, &o[st].plugColorTrue);
+	}
+	else {
+		GUI_Rect(plugtl, plugsz, &o[st].plugColorFalse);
+	}
+	gm->curZ -= .1;
 	
 	return *state;
 }
 
+
+// returns true if checked
+int GUI_CheckboxVCentered_(GUIManager* gm, void* id, vec2 tl, vec2 sz, int* state, GUICheckboxOpts* o) {
+	f32 h = (sz.y - o->boxSize) * .5f;
+	return GUI_Checkbox_(gm, id, V2(tl.x, tl.y + h), state, o);
+}
 
 
 // returns true if *this* radio button is active

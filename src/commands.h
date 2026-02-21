@@ -16,6 +16,7 @@
 	X(FileBrowser) \
 	X(FuzzyMatcher) \
 	X(GrepOpen) \
+	X(OptionsEditor) \
 	X(Hexedit) \
 	X(Calc) \
 	X(Debug) \
@@ -164,6 +165,9 @@
 	X(GrepOpen, MoveCursorV) \
 	X(GrepOpen, OpenFile) \
 	\
+	X(OptionsEditor, MoveCursorH) \
+	X(OptionsEditor, MoveCursorV) \
+	\
 	X(Main, EnterLayoutMode) \
 	X(Main, ExitLayoutMode) \
 	X(Main, ExpandPanesX) \
@@ -174,6 +178,7 @@
 	X(Main, OpenFileBrowser) \
 	X(Main, FuzzyOpener) \
 	X(Main, GrepOpen) \
+	X(Main, OptionsEditor) \
 	X(Main, Calculator) \
 	X(Main, Terminal) \
 	X(Main, SaveActiveTab) \

@@ -12,6 +12,7 @@
 #include "highlight.h"
 #include "msg.h"
 #include "hexedit.h"
+#include "optionsEditor.h"
 
 
 
@@ -179,6 +180,9 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path);
 
 MainControlTab* MainControl_FuzzyOpener(MainControl* w, MessageFuzzyOpt* opt);
 MainControlTab* MainControlPane_FuzzyOpener(MainControlPane* w, char* searchTerm);
+
+MainControlTab* MainControl_OptionsEditor(MainControl* w);
+MainControlTab* MainControlPane_OptionsEditor(MainControlPane* w);
 
 void MainControl_Hexedit(MainControl* w, char* path);
 

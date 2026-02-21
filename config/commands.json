@@ -71,6 +71,7 @@
 			{elem: "Main", cmd: "NewEmptyBuffer", mods: "CS", key: "n", amt: 0},
 			{elem: "Main", cmd: "MainMenu", mods: "A", key: "m", amt: 0},
 			{elem: "Main", cmd: "Terminal", mods: "T", key: "t", amt: 0},
+			{elem: "Main", cmd: "OptionsEditor", mods: "", key: "XK_F1", amt: 0},
 			
 			{elem: "Main", cmd: "OpenConjugate", mods: "C", key: "h", amt: ["c", "h"]},
 //			{elem: "Main", cmd: "OpenSelf", mods: "CS", key: "o", pane: "o", amt: 0}, // open/jump to same file in other pane
@@ -103,6 +104,9 @@
 			{elem: "GrepOpen", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1},
 			{elem: "GrepOpen", cmd: "MoveCursorV", mods: "", key: "XK_Down", amt: 1},
 			{elem: "GrepOpen", cmd: "OpenFile", mods: "", key: "XK_Return", amt: 0},
+			
+			{elem: "OptionsEditor", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: -1},
+			{elem: "OptionsEditor", cmd: "MoveCursorV", mods: "", key: "XK_Up", amt: 11},
 			
 			
 			{elem: "FileBrowser", cmd: "CursorMoveNoWrap", mods: "", key: "XK_Up", amt: -1},

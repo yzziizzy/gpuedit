@@ -166,8 +166,10 @@ int GUI_ToggleButton_(GUIManager* gm, void* id, Vector2 tl, char* text, int* sta
 #define GUI_ToggleButton(a,b,c,d) GUI_ToggleButton_(gm, a,b,c,d, gm->defaults.opts.GUIButtonOpts)
 
 // returns true if checked
-int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, char* label, int* state, GUICheckboxOpts* o);
-#define GUI_Checkbox(a,b,c,d) GUI_Checkbox_(gm, a,b,c,d, gm->defaults.opts.GUICheckboxOpts)
+int GUI_Checkbox_(GUIManager* gm, void* id, Vector2 tl, int* state, GUICheckboxOpts* o);
+#define GUI_Checkbox(a,b,c,d) GUI_Checkbox_(gm, a,b,c, gm->defaults.opts.GUICheckboxOpts)
+int GUI_CheckboxVCentered_(GUIManager* gm, void* id, vec2 tl, vec2 sz, int* state, GUICheckboxOpts* o);
+#define GUI_CheckboxVCentered(a,b,c,d) GUI_CheckboxVCentered_(gm, a,b,c,d, gm->defaults.opts.GUICheckboxOpts)
 
 // returns true if *this* radio button is active
 int GUI_RadioBox_(GUIManager* gm, void* id, Vector2 tl, char* label, void** state, int isDefault, GUIRadioBoxOpts* o);

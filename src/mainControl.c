@@ -402,6 +402,10 @@ void MainControl_ProcessCommand(MainControl* w, GUI_Cmd* cmd) {
 		MainControlPane_Calculator(w->focusedPane);
 		break;
 		
+	case GUICMD_Main_OptionsEditor:
+		MainControlPane_OptionsEditor(w->focusedPane);
+		break;
+	
 	case GUICMD_Main_Terminal:
 //		MainControl_Terminal(w);
 		break;
@@ -1422,6 +1426,68 @@ MainControlTab* MainControlPane_GrepOpen(MainControlPane* w, char* searchTerm) {
 	
 	return tab;
 }
+
+
+
+static int oeBeforeClose(MainControlTab* t) {
+	
+	return 0;
+}
+
+static void oeAfterClose(MainControlTab* t) {
+	OptionsEditor* oe = (OptionsEditor*)t->client;
+	
+	OptionsEditor_Destroy(oe);
+	t->client = NULL;
+}
+
+
+MainControlTab* MainControl_OptionsEditor(MainControl* w) {
+	MainControlPane* pane = NULL;
+	char* searchTerm = NULL;
+	int16_t paneTargeter = -1;
+	
+//	if(opt) {
+//		paneTargeter = opt->paneTargeter;
+//		searchTerm = opt->searchTerm;
+//	}
+//	
+	pane = MainControl_ChoosePane(w, paneTargeter);
+	return MainControlPane_OptionsEditor(pane);
+}
+
+
+MainControlTab* MainControlPane_OptionsEditor(MainControlPane* w) {
+	MainControlTab* o = MainControlPane_nthTabOfType(w, MCTAB_OptionsEditor, 1);
+	if(o != NULL) {
+		return o;
+	}
+	
+	OptionsEditor* oe = pcalloc(oe);
+	OptionsEditor_Init(oe, w->mc->s, &w->mc->rx);
+	oe->gs = w->mc->gs;
+//	goc->commands = w->commands;
+	MainControlTab* tab = MainControlPane_AddGenericTab(w, oe, "Options");
+	tab->type = MCTAB_OptionsEditor;
+	tab->render = (void*)OptionsEditor_Render;
+//	tab->saveSessionState = (void*)GrepOpenControl_SaveSessionState;
+	tab->client = oe;
+	tab->beforeClose = oeBeforeClose;
+	tab->afterClose = oeAfterClose;
+	//tab->everyFrame = gbeEveryFrame;
+	
+	// goc->header.parent = (GUIHeader*)w;
+
+	MainControlPane_nthTabOfType(w, MCTAB_OptionsEditor, 1);
+	
+//	GrepOpenControl_Refresh(oe);
+	
+	// focus the new tab (and possibly different pane)?
+	MainControl_OnTabChange(w->mc);
+	
+	return tab;
+}
+
 
 
 void MainControl_Hexedit(MainControl* w, char* path) {

@@ -11,14 +11,13 @@
 )
 
 (Checkbox 
-	(Color4 bg ff00ffff ff00ffff ff00ffff) 
-	(Color4 border ff00ffff ff00ffff ff00ffff) 
-	(Color4 text ff00ffff ff00ffff ff00ffff) 
-	<vec2 labelSize {150 20}>
+	(Color4 bg 222222ff 222222ff bbbbbbff) 
+	(Color4 border ddddddff ddddddff ddddddff) 
+	(Color4 plugColorTrue 33dd44ff 33ff44ff 33ff44ff) 
+	(Color4 plugColorFalse dd4433ff ff4433ff ff4433ff) 
+	<float plugMargin 2>
 	<float boxSize 20>
 	<float borderWidth 2> 
-	<float fontSize 14>
-	(char* fontName "Arial") 
 )
 
 (RadioBox 

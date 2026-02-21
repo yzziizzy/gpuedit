@@ -34,6 +34,9 @@
 
 #define CUR_STATE(id) (gm->activeID == (id) ? STATE_ACTIVE : (gm->hotID == (id) ? STATE_HOT : STATE_NORMAL))
 
+#define IS_HOT(id) (gm->hotID == (id))
+#define IS_ACTIVE(id) (gm->activeID == (id))
+
 #define HOT(id) GUI_SetHot_(gm, id, NULL, NULL)
 #define ACTIVE(id) GUI_SetActive_(gm, id, NULL, NULL)
 

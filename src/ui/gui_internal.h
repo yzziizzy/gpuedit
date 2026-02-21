@@ -96,6 +96,13 @@ float GUI_TextLineAdv_(
 	struct Color4* color
 );
 
+
+// V centering
+// no wrapping
+#define  GUI_TextLineVCentered(tl, sz, txt, charCount) \
+	GUI_TextLineAdv_(gm, tl, sz, txt, charCount, GUI_TEXT_ALIGN_VCENTER | GUI_TEXT_ALIGN_LEFT, gm->curFont, gm->curFontSize, &gm->curFontColor)
+
+
 // V and H centering
 // no wrapping
 #define GUI_TextLineCentered(...) GUI_TextLineCentered_(gm, __VA_ARGS__)

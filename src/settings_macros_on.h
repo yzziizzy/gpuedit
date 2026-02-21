@@ -3,7 +3,7 @@
 
 #define charp char*
 #define charpp char**
-#define bool char
+#define bool bool
 #define Color4 Color4
 #define tabsp TabSpec*
 #define widsp WidgetSpec*

@@ -25,6 +25,7 @@ enum {
 	X(FileOpener) \
 	X(FuzzyOpener) \
 	X(GrepOpener) \
+	X(OptionsEditor) \
 	X(Hexedit) \
 	X(Calculator) \
 	X(Empty) \
