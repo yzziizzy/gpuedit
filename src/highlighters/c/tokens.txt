@@ -223,11 +223,12 @@
 &LST_identifier :cat=Identifier
 &LST_float_exp :cat=Number
 &LST_ident__t :cat=DataType
+&LST_ident_maybe__t :cat=Identifier
 
 # all other identifiers
 # + is transition on a character set
 :LST_ident_maybe__t @t>LST_ident__t
-:LST_ident_maybe__t !+tee>LST_identifier
+:LST_ident_maybe__t +identifier_chars>LST_identifier
 :LST_ident__t +identifier_chars>LST_identifier
 :LST_identifier +identifier_chars>LST_identifier
 :LST_identifier @_>LST_ident_maybe__t
