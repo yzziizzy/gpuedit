@@ -200,8 +200,8 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* s, G
 #define GUI_Edit(a,b,c,d) GUI_Edit_(gm, a,b,c,d, gm->defaults.opts.GUIEditOpts)
 
 // returns true on a change
-int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIIntEditOpts* o);
-#define GUI_IntEdit(a,b,c,d) GUI_IntEdit_(gm, a,b,c,d, gm->defaults.opts.GUIIntEditOpts)
+int GUI_IntEdit_(GUIManager* gm, void* id, Vector2 tl, float width, long* num, GUIEditOpts* o);
+#define GUI_IntEdit(a,b,c,d) GUI_IntEdit_(gm, a,b,c,d, gm->defaults.opts.GUIEditOpts)
 
 int GUI_FloatEdit_(GUIManager* gm, void* id, Vector2 tl, float width, float* num, GUIFloatEditOpts* o);
 #define GUI_FloatEdit(a,b,c,d) GUI_FloatEdit_(gm, a,b,c,d, gm->defaults.opts.GUIFloatEditOpts)

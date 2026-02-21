@@ -1628,8 +1628,8 @@ int GUI_PointInBoxVABS(Vector2 tl, Vector2 size, Vector2 testPos) {
 	
 	if(!(testPos.x >= tl.x && 
 		testPos.y >= tl.y &&
-		testPos.x <= (tl.x + size.x) && 
-		testPos.y <= (tl.y + size.y))) {
+		testPos.x < (tl.x + size.x) && 
+		testPos.y < (tl.y + size.y))) {
 		
 		return 0;
 	}
@@ -1643,8 +1643,8 @@ int GUI_PointInBoxV_(GUIManager* gm, Vector2 tl, Vector2 size, Vector2 testPos) 
 	
 	if(!(testPos.x >= tl.x && 
 		testPos.y >= tl.y &&
-		testPos.x <= (tl.x + size.x) && 
-		testPos.y <= (tl.y + size.y))) {
+		testPos.x < (tl.x + size.x) && 
+		testPos.y < (tl.y + size.y))) {
 		
 		return 0;
 	}

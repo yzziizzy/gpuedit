@@ -19,14 +19,16 @@ typedef struct OptionsEditor {
 	GUI_CmdModeState inputState;
 	
 	long editingIndex; // which item we're currently editing. -1 for none
-	long lastEditingIndex; // which item we were previously editing, for saving
+	float scrollPos;
 	
+	// temps for the editing process
 	int editBool;
 	bool* boolTarget;
 	float editFloat;
 	float* floatTarget;
 	double editDouble;
 	double* doubleTarget;
+	int* intTarget;	
 	long editLong;
 	long* longTarget;	
 	GUIString editString;

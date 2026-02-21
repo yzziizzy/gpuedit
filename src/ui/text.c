@@ -334,6 +334,46 @@ float GUI_Printf_(
 	return w;
 }
 
+
+// no wrapping
+float GUI_PrintfVCentered_(
+	GUIManager* gm,  
+	Vector2 tl, 
+	Vector2 sz, 
+	char* fmt,
+	...
+) {
+	va_list ap;
+	
+	// BUG: it also returns the width, which in theory could be used in event handlers
+	
+	va_start(ap, fmt);
+	int len = vsnprintf(NULL, 0, fmt, ap) + 1;
+	va_end(ap);
+	
+	char* tmp = malloc(len);
+	va_start(ap, fmt);
+	vsnprintf(tmp, len, fmt, ap);
+	va_end(ap);
+
+	float w;
+	if(gm->drawMode) {
+		w = GUI_TextLineAdv_(gm, tl, sz, tmp, len, GUI_TEXT_ALIGN_VCENTER, gm->curFont, gm->curFontSize, &gm->curFontColor);
+	}
+	else {
+		w = GUI_GetTextWidth(tmp, len);
+	}
+	
+	free(tmp);
+	
+	return w;
+
+
+
+
+
+}
+
 // V and H centering
 // no wrapping
 float GUI_TextLineCentered_(

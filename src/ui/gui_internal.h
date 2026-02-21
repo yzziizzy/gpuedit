@@ -138,6 +138,16 @@ float GUI_Printf_(
 );
 #define GUI_Printf(...) GUI_Printf_(gm, __VA_ARGS__)
 
+// no wrapping
+float GUI_PrintfVCentered_(
+	GUIManager* gm,  
+	Vector2 tl, 
+	Vector2 sz, 
+	char* fmt,
+	...
+);
+#define GUI_PrintfVCentered(...) GUI_PrintfVCentered_(gm, __VA_ARGS__)
+
 
 #define  GUI_GetTextWidth(a,b) GUI_GetTextWidthAdv_(gm, a,b, gm->curFont, gm->curFontSize)
 
