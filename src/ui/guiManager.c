@@ -550,11 +550,11 @@ void GUIManager_RunRenderPass(GUIManager* gm, PassFrameParams* pfp, int isDraw) 
 	
 	// walk last pass' gui info to set window ids
 	float highestZ = -99999999.9;
-	GUIWindow* highestW = gm->windowHeap.buf; // incidentally the root window
+	GUIWindow* highestW = gm->rootWin; // incidentally the root window
 	GUIWindow* w = gm->windowHeap.buf;
 	
 	for(int i = 0; i < gm->windowHeap.cnt; i++, w++) {
-		if(w->z > highestZ && boxContainsPoint2p(&w->absClip, &gm->lastMousePos)) {
+		if(w->z >= highestZ && boxContainsPoint2p(&w->absClip, &gm->lastMousePos)) {
 			highestZ = w->z;
 			highestW = w;
 		}

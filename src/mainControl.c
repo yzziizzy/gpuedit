@@ -149,7 +149,7 @@ void MainControl_Render(MainControl* w, GUIManager* gm, Vector2 tl, Vector2 sz, 
 		MainControlPane* pane = w->paneSet[x + y * w->xDivisions];
 		Vector2 ptl = V(tl.x + x * psz.x, tl.y + y * psz.y);
 		
-		GUI_BeginWindow(pane, ptl, psz, gm->curZ, 0);
+		GUI_BeginWindow(pane, ptl, psz, gm->curZ+100, 0);
 		
 		MainControlPane_Render(pane, gm, V(0,0), psz, pfp);
 	

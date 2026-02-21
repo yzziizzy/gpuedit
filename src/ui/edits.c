@@ -323,7 +323,6 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 	
 	HOVER_HOT(id)
 	
-
 	if(gm->hotID == id) {
 		bool wasActive = gm->activeID == id;
 		
@@ -440,7 +439,7 @@ int GUI_Edit_(GUIManager* gm, void* id, Vector2 tl, float width, GUIString* str,
 			int min = MIN(cursorOff, pivotOff);
 			int max = MAX(cursorOff, pivotOff);
 			
-			GUI_Rect(V(tl.x + pad.x + min + d->scrollX, tl.y), V(max - min,sz.y), &o[st].selectionBgColor);
+			GUI_Rect(V(tl.x + pad.x + min + d->scrollX, tl.y + o[st].borderWidth + 1), V(max - min,sz.y - o[st].borderWidth * 2 - 1), &o[st].selectionBgColor);
 			
 		}
 		gm->curZ -= 0.001;
