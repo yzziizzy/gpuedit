@@ -302,10 +302,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		box.max.x = tl.x + tabw * (i + 1) + i + 1;
 		box.max.y = tl.y + mc->tabHeight - 1;
 		
-		AABB2 cbox = {
-			{box.min.x + oClip.min.x, box.min.y + oClip.min.y},
-			{box.max.x + oClip.max.x, box.max.y + oClip.max.y}
-		};
+		AABB2 cbox = gui_clipTo(oClip, box);
 		gm->curClip = cbox;
 		
 			
@@ -324,7 +321,7 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		
 		GUI_TextLineAdv(
 			V(box.min.x - xoff, box.min.y), 
-			V(tabw - 2, mc->tabHeight - 2), 
+			V(999999, mc->tabHeight - 2), // width is wide to prevent clipping of names while scrolling
 			tab->title, strlen(tab->title),
 			0,
 			titleFont,

@@ -294,6 +294,23 @@
 				{elem: "Buffer", cmd: "OverwriteChar", mods: "", key: "VK_Print", amt: 0, flags: ["scrollToCursor", "resetCursorBlink", "rehighlight"]}, // normal, printable characters
 			]},
 			
+			{elem: "Edit", cmd: "MoveCursorH", mods: "", key: "XK_Right", amt: 1, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "MoveCursorH", mods: "", key: "XK_Left", amt: -1, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "GrowSelectionH", mods: "S", key: "XK_Right", amt: 1, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "GrowSelectionH", mods: "S", key: "XK_Left", amt: -1, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "GoToStart",      mods: "",  key: "XK_Home",      amt: 0,  flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "GoToEnd",        mods: "",  key: "XK_End",       amt: 0,  flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "GrowSelToStart", mods: "S", key: "XK_Home",      amt: 0,  flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "GrowSelToEnd",   mods: "S", key: "XK_End",       amt: 0,  flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Backspace",      mods: "",  key: "XK_BackSpace", amt: 1,  flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Clear",          mods: "C", key: "XK_BackSpace", amt: 0,  flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Delete", mods: "", key: "XK_Delete", amt: 1, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Paste", mods: "C", key: "v", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Copy", mods: "C", key: "c", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Cut", mods: "C", key: "x", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Undo", mods: "C", key: "z", amt: 0, flags: ['resetCursorBlink']},
+			{elem: "Edit", cmd: "Redo", mods: "CS", key: "z", amt: 0, flags: ['resetCursorBlink']},
+			
 			{elem: "Hexedit", cmd: "MoveCursorH",  mods: "",  key: "XK_Left",  amt: -1},
 			{elem: "Hexedit", cmd: "MoveCursorH",  mods: "",  key: "XK_Right", amt:  1},
 			{elem: "Hexedit", cmd: "MoveCursorV",  mods: "",  key: "XK_Up",    amt: -1},

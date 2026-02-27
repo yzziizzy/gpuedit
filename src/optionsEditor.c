@@ -327,18 +327,6 @@ void OptionsEditor_Render(OptionsEditor* w, GUIManager* gm, Vector2 tl, Vector2 
 #define X(t, ...) CAT(t, _height) +
 	f32 totalHeight = b.topMargin + OPTION_LIST - sz.y;
 #undef X
-
-
-
-	
-	if(GUI_InputAvailable()) {
-		if(GUI_MouseWentDown(1) && GUI_MouseInside(tl, sz)) {
-			save_edits(w, -1);
-			w->editingIndex = -1;
-			ACTIVE(NULL);
-		}
-	}
-	
 	
 	Z(-2)
 	GUI_PopFont();
