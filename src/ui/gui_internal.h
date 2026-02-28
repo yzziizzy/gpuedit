@@ -102,6 +102,11 @@ float GUI_TextLineAdv_(
 #define  GUI_TextLineVCentered(tl, sz, txt, charCount) \
 	GUI_TextLineAdv_(gm, tl, sz, txt, charCount, GUI_TEXT_ALIGN_VCENTER | GUI_TEXT_ALIGN_LEFT, gm->curFont, gm->curFontSize, &gm->curFontColor)
 
+// V centering
+// no wrapping
+#define  GUI_TextLineRAlign(tl, sz, txt, charCount) \
+	GUI_TextLineAdv_(gm, tl, sz, txt, charCount, GUI_TEXT_ALIGN_RIGHT, gm->curFont, gm->curFontSize, &gm->curFontColor)
+
 
 // V and H centering
 // no wrapping

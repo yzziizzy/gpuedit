@@ -83,6 +83,21 @@ void GUI_StandardSunkenBox_(GUIManager* gm, Vector2 tl, Vector2 sz);
 #define GUI_StandardSunkenBox(a,b) GUI_StandardSunkenBox_(gm, a,b)
 
 
+// pre-themed
+void GUI_DrawBasicSlider_(GUIManager* gm, 
+	vec2 tl, vec2 sz, 
+	f32 barThickness, 
+	vec2 handleSz, 
+	f32 handlePct,
+	Color4* barColor,
+	Color4* handleColor
+);
+#define GUI_DrawBasicSlider(a,b,c,d,e,f,g) GUI_DrawBasicSlider_(gm, a,b,c,d,e,f,g) 
+
+// just the input handling
+void GUI_FloatSliderArea_(GUIManager* gm, void* id, vec2 tl, vec2 sz, f32 xmargins, float* value, f32 incr, f32 min, f32 max);
+#define GUI_FloatSliderArea(a,b,c,d,e,f,g,h) GUI_FloatSliderArea_(gm, a,b,c,d,e,f,g,h)
+
 // Linear gradients
 void GUI_HGradient_(GUIManager* gm, Vector2 tl, Vector2 sz, Color4* color1, Color4* color2);
 #define GUI_HGradient(a, b, c, d) GUI_HGradient_(gm, a, b, c, d)

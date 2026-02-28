@@ -26,7 +26,10 @@ typedef struct FileBrowserEntry {
 	
 	// ext/mime
 	
-	// dup'd
+	// externally owned
+	char* humanSizeLetter;
+	char* humanSizeOnDiskLetter;
+	// duped
 	char* humanSize;
 	char* humanSizeOnDisk;
 	char* atimeStr;
@@ -51,6 +54,8 @@ typedef struct FileBrowserEntry {
 typedef struct FileBrowserColumnInfo {
 	int type;
 	float width;
+	f32 maxContentWidth;
+	f32 maxSecondaryWidth; // used for the size letters
 } FileBrowserColumnInfo;
 
 

@@ -160,6 +160,10 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 		MainControl_Hexedit(as->mc, file);
 	}
 	
+	VEC_EACH(&as->autoload_fileman, i, path) {
+		MainControl_OpenFileBrowser(as->mc, path);
+	}
+	
 	
 //	MainControl_LoadFile(as->mc, "testfile.h");
 //	MainControl_LoadFile(as->mc, "testfile.c");

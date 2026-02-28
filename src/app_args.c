@@ -16,6 +16,7 @@ static char const * const helpText =
 	"  --disable-save          Do not save files being edited (debugging).\n"
 	"  -f [PATH]               Open PATH in the text editor.\n"
 	"  -h [PATH]               Open PATH in the hex editor.\n"
+	"  -m {PATH}               Open PATH (optional) in the file manager.\n"
 	"  -n                      Start a new session.\n"
 	"  --no-sessions           Do not load or save sessions files.\n"
 	"  -v[0-9]                 Log verbosity level.\n"
@@ -50,6 +51,15 @@ void AppState_ParseArgs(AppState* as, int argc, char* argv[]) {
 			else if(a[1] == 'h' && a[2] == 0) {
 				i++;
 				if(i < argc) VEC_push(&as->autoload_hex, argv[i]);
+			}
+			else if(a[1] == 'm' && a[2] == 0) {
+				if(i + 1 < argc && argv[i + 1][0] != '-') {
+					i++;
+					VEC_push(&as->autoload_fileman, argv[i]);
+				}
+				else {
+					VEC_push(&as->autoload_fileman, "./");
+				}
 			}
 				
 			else if((a[1] == 'c' && a[2] == 0) || !strcmp(a, "--config")) {

@@ -1291,7 +1291,8 @@ void MainControl_OpenFileBrowser(MainControl* w, char* path) {
 //	if(o != NULL) {
 //		return;
 //	}
-
+	
+	
 	FileBrowser* fb = FileBrowser_New(w->gm, w->s, &w->rx, path);
 //	fb->gs = w->gs;
 

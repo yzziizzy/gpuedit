@@ -77,6 +77,7 @@ typedef struct AppState {
 	
 	VEC(char*) autoload;
 	VEC(char*) autoload_hex;
+	VEC(char*) autoload_fileman;
 	
 	float zoom;
 	
