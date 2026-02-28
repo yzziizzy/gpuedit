@@ -135,6 +135,7 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	int xx = 0;
 	// draw lines
 	while(bl) {
+		bool inLeadingWS = 1;
 		
 		// line numbers
 		if(bs->showLineNums) {
@@ -275,12 +276,34 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 				else if(c == '\t') {
 					if(inSelection) { // tabs inside selection
 						gm->curZ = z + 2;
-						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(adv + hsoff + (bs->charWidth * bs->tabWidth), bs->lineHeight), bg);
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(bs->charWidth * bs->tabWidth, bs->lineHeight), bg);
+					}
+					else {
+						GUI_Rect(
+							V(tl.x + adv + hsoff, yoff - ascender), V(bs->charWidth * bs->tabWidth, bs->lineHeight),
+							inLeadingWS ? &ts->leadingWSTabBGColor : &ts->tabBGColor
+						);
 					}
 					
 					adv += bs->charWidth * bs->tabWidth;
 				}
-				else { 
+				else if(c == ' ') {
+					if(inSelection) { // spaces inside selection
+						gm->curZ = z + 2;
+						GUI_Rect(V(tl.x + adv + hsoff, yoff - ascender), V(bs->charWidth, bs->lineHeight), bg);
+					}
+					else {
+						GUI_Rect(
+							V(tl.x + adv + hsoff, yoff - ascender), V(bs->charWidth, bs->lineHeight),
+							inLeadingWS ? &ts->leadingWSSpaceBGColor : &ts->spaceBGColor
+						);
+					}
+					
+					adv += bs->charWidth;
+				}
+				else {
+					inLeadingWS = 0;
+					
 					// normal, non-tab text		
 					if(adv >= gbe->scrollCols * bs->charWidth && adv < (gbe->scrollCols * bs->charWidth) + sz.x) {
 						gm->curZ = z + 4;

@@ -1513,7 +1513,7 @@ void Buffer_InsertBufferAt(Buffer* target, Buffer* graft, BufferLine* tline, col
 		outRange->col[1] = gbl->length;
 	}
 	
-	if(tmp)	free(tmp);
+	if(tmp) free(tmp);
 }
 
 

@@ -990,7 +990,7 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(charp, gccErrorJSONSuffix,   ".gcc.json", NULL, NULL) \
 
 
-
+// may be overlayed by a highlight style
 
 #define THEME_SETTING_LIST \
 	SETTING(charp,  name,                          "default dark",NULL, NULL) \
@@ -998,6 +998,10 @@ static inline uint64_t lineIDHash(uint64_t i) {
 	SETTING(Color4, cursorColor,                   C4H(ffffffff), NULL, NULL) \
 	SETTING(Color4, textColor,                     C4H(8f8f8fff), NULL, NULL) \
 	SETTING(Color4, bgColor,                       C4H(0f0f0fff), NULL, NULL) \
+	SETTING(Color4, tabBGColor,                    C4H(0f0f0fff), NULL, NULL) \
+	SETTING(Color4, spaceBGColor,                  C4H(0f0f0fff), NULL, NULL) \
+	SETTING(Color4, leadingWSTabBGColor,           C4H(0f0f0fff), NULL, NULL) \
+	SETTING(Color4, leadingWSSpaceBGColor,         C4H(4f1f1fff), NULL, NULL) \
 	SETTING(Color4, lineNumColor,                  C4H(ffffffff), NULL, NULL) \
 	SETTING(Color4, lineNumBgColor,                C4H(141414ff), NULL, NULL) \
 	SETTING(Color4, lineNumBookmarkColor,          C4H(32ff32ff), NULL, NULL) \

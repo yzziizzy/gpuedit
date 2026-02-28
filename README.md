@@ -8,7 +8,7 @@ An OpenGL 4.4+ text editor. Not done yet.
 * OpenGL 4.4+ capable hardware and drivers.
 	* Note that some integrated Intel devices are capable of running gpuedit despite claiming to
 	only support OpenGL 3.0, but with sub-optimal performance.
-
+	* Will support Vulkan eventually (the gui toolkit has a working Vulkan fork in another project), but not yet.
 
 # Installing
 ## Automatically
@@ -35,7 +35,7 @@ The automatic setup script is out of date and should not be used.
 
 1. Build gpuedit
 
-    1. `./debug.sh`
+    1. `./build.sh -cr`
 
 If you get build errors related to AVX or SSE4.1, try removing the appropriate compile flags in
 `_build.c` and commenting out `C3DLAS_USE_SIMD` in `src/c3dlas/c3dlas.h`. I'll remove all that old garbage eventually.
