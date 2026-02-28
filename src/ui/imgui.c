@@ -1375,11 +1375,15 @@ void GUI_BeginWindow_(GUIManager* gm, void* id, Vector2 tl, Vector2 sz, float z,
 	// TODO: calculate the proper visual clipping region
 	w->absClip.min.x = p->absClip.min.x + tl.x;
 	w->absClip.min.y = p->absClip.min.y + tl.y;
-	w->absClip.max.x = w->absClip.min.x + sz.x;
-	w->absClip.max.y = w->absClip.min.y + sz.y;
+//	w->absClip.min.x = fmax(p->absClip.min.x, p->absClip.min.x + tl.x); // this is correct, but the internal verts need to be offset by the window abs tl
+//	w->absClip.min.y = fmax(p->absClip.min.y, p->absClip.min.y + tl.y);
+	w->absClip.max.x = fmin(p->absClip.max.x, p->absClip.min.x + tl.x + sz.x);
+	w->absClip.max.y = fmin(p->absClip.max.y, p->absClip.min.y + tl.y + sz.y);
+//	w->absClip.max.y = w->absClip.min.y + sz.y;
 	
 	VEC_push(&gm->clipStack, gm->curClip);
 	gm->curClip = w->absClip;
+	
 	
 	VEC_push(&p->children, w);
 	

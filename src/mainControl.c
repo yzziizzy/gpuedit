@@ -299,10 +299,13 @@ void MainControlPane_Render(MainControlPane* w, GUIManager* gm, Vector2 tl, Vect
 		AABB2 box;
 		box.min.x = tl.x + tabw * i + i + 1;
 		box.min.y = tl.y + 1;
-		box.max.x = tl.x + tabw * (i + 1) + i + 1;
-		box.max.y = tl.y + mc->tabHeight - 1;
+		box.max.x = box.min.x + tabw - 1;
+		box.max.y = box.min.y + mc->tabHeight - 2;
 		
-		AABB2 cbox = gui_clipTo(oClip, box);
+		AABB2 cbox = {
+			{box.min.x + gm->curWin->absClip.min.x, box.min.y + gm->curWin->absClip.min.y, },
+			{box.max.x + gm->curWin->absClip.min.x, box.max.y + gm->curWin->absClip.min.y, },
+		};
 		gm->curClip = cbox;
 		
 			
