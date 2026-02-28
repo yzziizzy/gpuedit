@@ -96,7 +96,7 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	as->globalSettings = calloc(1, sizeof(*as->globalSettings));
 	
 	#define RS(name, key, data) \
-		Settings_RegisterSection(as->globalSettings, SETTINGS_##name, key, data, (void*)name##Settings_Alloc, (void*)name##Settings_Copy, (void*)name##Settings_Free, (void*)name##Settings_LoadDefaults, (void*)name##Settings_LoadJSON);
+		Settings_RegisterSection(as->globalSettings, SETTINGS_##name, key, data, (void*)name##Settings_Alloc, (void*)name##Settings_Copy, (void*)name##Settings_Free, (void*)name##Settings_LoadDefaults, (void*)name##Settings_LoadJSON, (void*)name##Settings_SaveJSON);
 	
 	RS(GUI, "gui", as->gui)
 	RS(Buffer, "buffer", NULL)

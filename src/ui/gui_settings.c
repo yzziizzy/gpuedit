@@ -249,4 +249,83 @@ void GUISettings_LoadJSON(GUIManager* gm, GUISettings* s, struct json_value* jsv
 
 
 
+static void store_Color4(GUIManager* gm, Color4* in, json_value_t* obj, char* prop) {
+	char* hexes = "0123456789abcdef";
+	char color[10] = {
+		'#',
+		hexes[(int)(in->r * 255) / 16],
+		hexes[(int)(in->r * 255) % 16],
+		hexes[(int)(in->g * 255) / 16],
+		hexes[(int)(in->g * 255) % 16],
+		hexes[(int)(in->b * 255) / 16],
+		hexes[(int)(in->b * 255) % 16],
+		hexes[(int)(in->a * 255) / 16],
+		hexes[(int)(in->a * 255) % 16],
+		0
+	};
+	
+	json_obj_set_key(obj, prop, json_new_str(color));
+}
+
+static void store_Font(GUIManager* gm, GUIFont** out, json_value_t* obj, char* prop) {
+	// does nothing on purpose
+}
+
+
+static void store_charp(GUIManager* gm, char** in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_str(*in));
+}
+
+
+static void store_charpp(GUIManager* gm, char*** in, json_value_t* obj, char* prop) {
+	json_value_t* arr = json_new_array();
+			
+	for(char** s = *in; *s; s++) { 
+		json_array_push_tail(arr, json_new_str(*s));
+	}
+	
+	json_obj_set_key(obj, prop, arr);
+}
+
+
+static void store_strvec(GUIManager* gm, strvec* in, json_value_t* obj, char* prop) {
+	json_value_t* arr = json_new_array();
+			
+	VEC_EACH(in, i, s) { 
+		json_array_push_tail(arr, json_new_str(s));
+	}
+	
+	json_obj_set_key(obj, prop, arr);
+}
+
+static void store_bool(GUIManager* gm, char* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, *in ? json_new_true() : json_new_false());
+}
+
+static void store_int(GUIManager* gm, int* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_int(*in));
+}
+
+static void store_float(GUIManager* gm, float* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_double(*in));
+}
+
+static void store_double(GUIManager* gm, double* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_double(*in));
+}
+
+
+
+
+
+void GUISettings_SaveJSON(GUIManager* gm, GUISettings* s, struct json_value* jsv) {
+	#define SETTING(type, name, val ,min,max) store_##type(gm, &s->name, jsv, #name);
+		GUI_SETTING_LIST
+	#undef SETTING
+	
+//	GUI_CONTROL_OPS_STRUCT_LIST
+
+}
+
+
 

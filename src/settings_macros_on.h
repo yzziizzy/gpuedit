@@ -9,6 +9,12 @@
 #define widsp WidgetSpec*
 #define scrollfn int
 
+// strvec is an accumulating type, so values found in later config files will be appended instead of overwriting prior values
+#ifndef STRVEC_TYTPEDEFFED
+	#define STRVEC_TYTPEDEFFED 1
+	typedef VEC(char*) strvec;
+#endif
+
 #define true 1
 #define false 0
 

@@ -140,6 +140,7 @@ void send_open_message(FileBrowser* w, char* path) {
 // TODO: more commands for all the operations 
 // TODO: search on type (command?) 
 // TODO: animated file icons
+// TODO: grep folder
 
 
 

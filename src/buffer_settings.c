@@ -48,7 +48,66 @@ static void grab_float(float* out, json_value_t* obj, char* prop) {
 }
 
 
+static void store_Color4(Color4* in, json_value_t* obj, char* prop) {
+	char* hexes = "0123456789abcdef";
+	char color[10] = {
+		'#',
+		hexes[(int)(in->r * 255) / 16],
+		hexes[(int)(in->r * 255) % 16],
+		hexes[(int)(in->g * 255) / 16],
+		hexes[(int)(in->g * 255) % 16],
+		hexes[(int)(in->b * 255) / 16],
+		hexes[(int)(in->b * 255) % 16],
+		hexes[(int)(in->a * 255) / 16],
+		hexes[(int)(in->a * 255) % 16],
+		0
+	};
+	
+	json_obj_set_key(obj, prop, json_new_str(color));
+}
 
+static void store_charp(char** in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_str(*in));
+}
+
+
+static void store_charpp(char*** in, json_value_t* obj, char* prop) {
+	json_value_t* arr = json_new_array();
+			
+	for(char** s = *in; *s; s++) { 
+		json_array_push_tail(arr, json_new_str(*s));
+	}
+	
+	json_obj_set_key(obj, prop, arr);
+}
+
+
+
+static void store_strvec(strvec* in, json_value_t* obj, char* prop) {
+	json_value_t* arr = json_new_array();
+			
+	VEC_EACH(in, i, s) { 
+		json_array_push_tail(arr, json_new_str(s));
+	}
+	
+	json_obj_set_key(obj, prop, arr);
+}
+
+static void store_bool(char* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, *in ? json_new_true() : json_new_false());
+}
+
+static void store_int(int* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_int(*in));
+}
+
+static void store_float(float* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_double(*in));
+}
+
+static void store_double(double* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_double(*in));
+}
 
 
 #include "settings_macros_on.h"
@@ -87,6 +146,12 @@ void ThemeSettings_LoadJSON(void* useless, ThemeSettings* s, struct json_value* 
 	#undef SETTING
 }
 
+void ThemeSettings_SaveJSON(void* useless, ThemeSettings* s, struct json_value* jsv) {
+	#define SETTING(type, name, val ,min,max) store_##type(&s->name, jsv, #name);
+		THEME_SETTING_LIST
+	#undef SETTING
+}
+
 
 
 
@@ -119,6 +184,12 @@ void BufferSettings_LoadDefaults(void* useless, BufferSettings* s) {
 
 void BufferSettings_LoadJSON(void* useless, BufferSettings* s, struct json_value* jsv) {
 	#define SETTING(type, name, val ,min,max) grab_##type(&s->name, jsv, #name);
+		BUFFER_SETTING_LIST
+	#undef SETTING
+}
+
+void BufferSettings_SaveJSON(void* useless, BufferSettings* s, struct json_value* jsv) {
+	#define SETTING(type, name, val ,min,max) store_##type(&s->name, jsv, #name);
 		BUFFER_SETTING_LIST
 	#undef SETTING
 }

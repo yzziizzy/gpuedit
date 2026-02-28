@@ -478,7 +478,7 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		
 		
 		// TODO: line offsets
-		GBEC_RecalcLineOffsets(w);
+//		GBEC_RecalcLineOffsets(w);
 		
 	
 		if(w->autocompleteOptions) {
@@ -487,8 +487,8 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 			w->autocompleteOptions = NULL;
 		}
 	}
-	else if(note->action == BCA_AddLines) {	
-		GBEC_RecalcLineOffsets(w);
+	else if(note->action == BCA_AddLines) {
+//		GBEC_RecalcLineOffsets(w);
 	}
 	else if(note->action == BCA_AnnotationsChanged) {
 		Buffer* b = w->b;
@@ -497,7 +497,6 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		int curScreenLine = VEC_item(&w->lineOffsets, CURSOR_LINE(w->sel)->lineNum);
 		
 		GBEC_RecalcLineOffsets(w);
-		
 		// update scroll positions so the screen doesn't move relative to the cursor
 		// TODO: 
 	}
@@ -506,6 +505,8 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		Buffer* new = note->b2;
 		Buffer* old = note->b;
 		
+		GBEC_RecalcLineOffsets(w);
+
 		// clear out anything that caches line pointers, but try to preserve it in spirit
 		GBEC_CancelAutocomplete(w);
 		
@@ -522,6 +523,7 @@ static void bufferChangeNotify(BufferChangeNotification* note, void* _w) {
 		GUIBufferEditControl_MarkRefreshHighlight(w);
 		
 		w->b = new;
+		GBEC_RecalcLineOffsets(w);
 	}
 	
 }
@@ -644,6 +646,8 @@ void GBEC_RecalcLineOffsets(GUIBufferEditControl* w) {
 	
 	// recalculate all the line offsets
 	VEC_crealloc(&w->lineOffsets, b->numLines);
+	VEC_len(&w->lineOffsets) = b->numLines;
+	
 	
 	int ani = 0;
 	int64_t acc = 0;
@@ -671,6 +675,8 @@ void GBEC_RecalcLineOffsets(GUIBufferEditControl* w) {
 		bl = bl->next;
 		lnum++;
 	}
+	
+	w->lastLineChangeCounter = b->lineChangeCounter;
 }
 
 

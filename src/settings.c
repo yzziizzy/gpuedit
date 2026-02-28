@@ -55,6 +55,30 @@ char** strlistdup(char** old) {
 	return new;
 }
 
+strvec strvecset(char** old) {
+	strvec new = {};
+	size_t i;
+
+	if(!old) return new;
+	
+	for(i = 0; old[i]; i++) {
+		VEC_push(&new, strdup(old[i]));
+	}
+
+	return new;
+}
+
+strvec strveccopy(strvec old) {
+	strvec new = {};
+	VEC_EACH(&old, i, s) VEC_push(&new, strdup(s));
+	return new;
+}
+
+static void freestrvec(strvec v) {
+	VEC_EACH(&v, i, s) free(s);
+	VEC_free(&v);
+}
+
 static void freeptrlist(void* _p) {
 	void** p = (void**)_p;
 	void** q = p;
@@ -146,6 +170,188 @@ void GeneralSettings_LoadDefaults(void* useless, GeneralSettings* s) {
 	#undef SETTING
 
 }
+
+
+
+
+
+static void store_charp(char** in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_str(*in));
+}
+
+
+static void store_charpp(char*** in, json_value_t* obj, char* prop) {
+	json_value_t* arr = json_new_array();
+			
+	for(char** s = *in; *s; s++) { 
+		json_array_push_tail(arr, json_new_str(*s));
+	}
+	
+	json_obj_set_key(obj, prop, arr);
+}
+
+
+static void store_strvec(strvec* in, json_value_t* obj, char* prop) {
+	json_value_t* arr = json_new_array();
+			
+	VEC_EACH(in, i, s) { 
+		json_array_push_tail(arr, json_new_str(s));
+	}
+	
+	json_obj_set_key(obj, prop, arr);
+}
+
+static void store_bool(char* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, *in ? json_new_true() : json_new_false());
+}
+
+static void store_int(int* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_int(*in));
+}
+
+static void store_float(float* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_double(*in));
+}
+
+static void store_double(double* in, json_value_t* obj, char* prop) {
+	json_obj_set_key(obj, prop, json_new_double(*in));
+}
+
+
+static void store_tabsp(TabSpec** in, json_value_t* obj, char* prop) {
+	size_t i;
+	
+	if(!in) return;
+	
+	/*
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		if(v->type == JSON_TYPE_ARRAY) {
+			if(*out) free(*out);
+			TabSpec* tmp = calloc(1, sizeof(*tmp) * (v->len + 1));
+
+			json_link_t* link = v->arr.head;
+			json_value_t* type_v;
+			json_value_t* path_v;
+			char* type_str;
+			for(long i = 0; link; i++) {
+				if(
+					!json_obj_get_key(link->v, "type", &type_v)
+					&& !json_obj_get_key(link->v, "path", &path_v)
+				) {
+					type_str = json_as_strdup(type_v);
+					
+					tmp[i].type = MCTAB_Buffer;
+					for(int tt = 0; tt < MCTAB_MAX_VALUE; tt++) {
+						if(!strcasecmp(type_str, mctab_type_names[tt])) {
+							tmp[i].type = tt;
+							break;
+						}
+					}
+					
+					tmp[i].path = json_as_strdup(path_v);
+					free(type_str);
+				}
+				link = link->next;
+			}
+
+			*out = tmp;
+		}
+	}
+	return new;
+	*/
+}
+
+static void store_widsp(WidgetSpec** in, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	
+	/*
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		if(v->type == JSON_TYPE_ARRAY) {
+			if(*out) free(*out);
+			WidgetSpec* tmp = calloc(1, sizeof(*tmp) * (v->len + 1));
+
+			json_link_t* link = v->arr.head;
+			json_value_t* type_v;
+			json_value_t* size_v;
+			json_value_t* align_v;
+			json_value_t* format_v;
+			char* type_str;
+			char* align_str;
+			char* format_str;
+			for(long i = 0; link; i++) {
+				if(
+					!json_obj_get_key(link->v, "type", &type_v)
+					&& !json_obj_get_key(link->v, "size", &size_v)
+					&& !json_obj_get_key(link->v, "align", &align_v)
+					&& !json_obj_get_key(link->v, "format", &format_v)
+				) {
+					type_str = json_as_strdup(type_v);
+					align_str = json_as_strdup(align_v);
+					format_str = json_as_strdup(format_v);
+					if(!strcasecmp(type_str, "hello_world")) {
+						tmp[i].type = MCWID_HELLO;
+					} else if(!strcasecmp(type_str, "ping")) {
+						tmp[i].type = MCWID_PING;
+					} else if(!strcasecmp(type_str, "clock")) {
+						tmp[i].type = MCWID_CLOCK;
+					} else if(!strcasecmp(type_str, "battery")) {
+						tmp[i].type = MCWID_BATTERY;
+					} else if(!strcasecmp(type_str, "bufmode")) {
+						tmp[i].type = MCWID_BUFMODE;
+					} else if(!strcasecmp(type_str, "bufpath")) {
+						tmp[i].type = MCWID_BUFPATH;
+					} else if(!strcasecmp(type_str, "linecol")) {
+						tmp[i].type = MCWID_LINECOL;
+					} else if(!strcasecmp(type_str, "findstate")) {
+						tmp[i].type = MCWID_FINDSTATE;
+					} else {
+						tmp[i].type = MCWID_NONE;
+					}
+					tmp[i].size = json_as_int(size_v);
+					tmp[i].align = align_str[0];
+					tmp[i].format = format_str;
+					free(type_str);
+					free(align_str);
+//					free(format_str);
+				}
+				link = link->next;
+			}
+
+			*out = tmp;
+		}
+	}
+	*/
+}
+
+
+static void store_scrollfn(int* in, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	
+	/*
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL && v->type == JSON_TYPE_STRING) {
+		
+		int len = sizeof(tab_scroll_fn_name_list) / sizeof(tab_scroll_fn_name_list[0]);
+		for(int i = 0; i < len; i++) {
+			
+			if(0 == strcasecmp(tab_scroll_fn_name_list[i], v->s)) {
+				*out = i;
+				return;
+			}
+		}
+		
+	}
+	*/
+}
+
+void GeneralSettings_SaveJSON(void* useless, GeneralSettings* s, struct json_value* jsv) {
+	#define SETTING(type, name, val ,min,max) store_##type(&s->name, jsv, #name);
+		GENERAL_SETTING_LIST
+	#undef SETTING
+
+}
+
+
+
 
 
 GeneralSettings* GeneralSettings_Alloc(void* useless) {
@@ -413,7 +619,8 @@ void Settings_RegisterSection(
 	SettingsCopyFn c, 
 	SettingsFreeFn f, 
 	SettingsDefaultsFn d, 
-	SettingsLoaderFn l
+	SettingsLoaderFn l,
+	SettingsSaveFn sv
 ) {
 	SettingsSection* sec = assert_section(s, bit);
 	*sec = (SettingsSection){
@@ -426,6 +633,7 @@ void Settings_RegisterSection(
 		.free = f,
 		.defaults = d,
 		.loader = l,
+		.save = sv,
 	};
 }
 
@@ -519,6 +727,52 @@ int Settings_LoadFile(Settings* s, char* path, unsigned long mask) {
 	
 	return 0;
 }
+
+
+void Settings_SaveJSON(Settings* s, struct json_value* v, unsigned long mask) {
+	
+	VEC_EACHP(&s->sections, i, sec) {
+		if(mask && ((mask & sec->bit) == 0)) continue;
+		
+		json_value_t* sec_j = json_new_object(16);
+		json_obj_set_key(v, sec->key, sec_j);
+		
+		if(sec->save) {
+			sec->save(sec->userData, sec->dataStore, sec_j);
+		}
+	}
+}
+
+
+int Settings_SaveFile(Settings* s, char* path, unsigned long mask) {
+	json_value_t* root_j = json_new_object(8);
+	
+	Settings_SaveJSON(s, root_j, mask);
+	
+	struct json_write_context ctx = { .fmt = {
+		.indentChar = '\t',
+		.indentAmt = 1,
+		.trailingComma = 0,
+		.objColonSpace = 1,
+		.noQuoteKeys = 1,
+		.useSingleQuotes = 0,
+		.minArraySzExpand = 3,
+		.minObjSzExpand = 2,
+		.maxLineLength = 100, // only wraps after the comma on array/obj elements
+	}};
+	ctx.sb = json_string_buffer_create(4096);
+	
+	json_stringify(&ctx, root_j);
+	
+	// write file
+	write_whole_file(path, ctx.sb->buf, ctx.sb->length);
+	
+	json_string_buffer_free(ctx.sb);
+	
+	json_free(root_j);
+	return 0;
+}
+
 
 void* Settings_GetSection(Settings* s, unsigned long bit) {
 	SettingsSection* sec = find_section(s, bit);

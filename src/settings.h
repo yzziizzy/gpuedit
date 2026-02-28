@@ -146,6 +146,7 @@ typedef void  (*SettingsFreeFn)(void* /*userData*/, void* /*dataStore*/);
 typedef void* (*SettingsCopyFn)(void* /*userData*/, void* /*dataStore*/);
 typedef void  (*SettingsDefaultsFn)(void* /*userData*/, void* /*dataStore*/);
 typedef void  (*SettingsLoaderFn)(void* /*userData*/, void* /*dataStore*/, struct json_value*);
+typedef void  (*SettingsSaveFn)(void* /*userData*/, void* /*dataStore*/, struct json_value*);
 
 typedef struct SettingsHandler {
 	char* key;
@@ -159,6 +160,7 @@ typedef struct SettingsSection {
 	void* dataStore;
 	void* userData;
 	SettingsLoaderFn loader;
+	SettingsSaveFn save;
 	SettingsDefaultsFn defaults;
 	SettingsAllocFn alloc;
 	SettingsCopyFn copy;
@@ -185,7 +187,8 @@ void Settings_RegisterSection(
 	SettingsCopyFn c, 
 	SettingsFreeFn f, 
 	SettingsDefaultsFn d, 
-	SettingsLoaderFn l
+	SettingsLoaderFn l,
+	SettingsSaveFn sv
 );
 
 
@@ -193,6 +196,7 @@ Settings* Settings_Copy(Settings* s, unsigned long mask);
 void Settings_Free(Settings* s);
 void Settings_LoadDefaults(Settings* s, unsigned long mask);
 void Settings_LoadJSON(Settings* s, struct json_value* v, unsigned long mask);
+
 
 // returns 0 if the file was read
 int  Settings_LoadFile(Settings* s, char* path, unsigned long mask);
@@ -211,7 +215,7 @@ GeneralSettings* GeneralSettings_Copy(void* useless, GeneralSettings* s);
 void GeneralSettings_Free(void* useless, GeneralSettings* s);
 void GeneralSettings_LoadDefaults(void* useless, GeneralSettings* s);
 void GeneralSettings_LoadJSON(void* useless, GeneralSettings* s, struct json_value* jsv);
-
+void GeneralSettings_SaveJSON(void* useless, GeneralSettings* s, struct json_value* jsv);
 
 
 #endif // __gpuedit_settings_h__

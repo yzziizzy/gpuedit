@@ -217,6 +217,7 @@ typedef struct Buffer {
 	BufferLine* first, *last; 
 	
 	int64_t numLines;
+	_Atomic u64 lineChangeCounter; // incremented (wraps) every time there is an addition or deletion of lines.
 	
 	int watchDesc;
 	int gccWatchDesc;
@@ -399,7 +400,7 @@ typedef struct GUIBufferEditControl {
 	int linesOnScreen; // number of *full* lines that fit on screen
 	int colsOnScreen; // number of *full* columns that fit on screen
 	
-	
+	u64 lastLineChangeCounter; // used to know when we need to recalc offsets due to line changes
 	VEC(uint64_t) lineOffsets; // how far IN PIXELS a line is from the top of the BUFFER.
 	                           //   this includes ALL annotations and other visual offsets.
 	
@@ -604,7 +605,7 @@ struct GUIManager;
 typedef struct GUIManager GUIManager;
 
 
-
+//-------------
 // these are raw functions and should not be used directly by Buffer_ operations
 // they are internal functions used by Buffer_raw_ operations
 BufferLine* BufferLine_New(Buffer* b);
@@ -620,10 +621,10 @@ void BufferLine_SetText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendText(BufferLine* l, char* text, intptr_t len);
 void BufferLine_AppendLine(BufferLine* l, BufferLine* src);
 int BufferLine_IsInRange(BufferLine* bl, BufferRange* sel);
+//-------------
 
 
-
-
+//-------------
 // these functions will NOT interact with the undo stack
 // they should never use functions below them
 // functions below these should only use them and not functions above
@@ -639,7 +640,7 @@ void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl);
 
 void Buffer_raw_InsertChars(Buffer* b, BufferLine* bl, char* txt, intptr_t offset, intptr_t len);
 void Buffer_raw_DeleteChars(Buffer* b, BufferLine* bl, intptr_t offset, intptr_t len);
-
+//-------------
 
 
 // undo stack processing
@@ -1032,12 +1033,14 @@ ThemeSettings* ThemeSettings_Copy(void* useless, ThemeSettings* s);
 void ThemeSettings_Free(void* useless, ThemeSettings* s);
 void ThemeSettings_LoadDefaults(void* useless, ThemeSettings* s);
 void ThemeSettings_LoadJSON(void* useless, ThemeSettings* s, struct json_value* jsv);
+void ThemeSettings_SaveJSON(void* useless, ThemeSettings* s, struct json_value* jsv);
 
 BufferSettings* BufferSettings_Alloc(void* useless);
 BufferSettings* BufferSettings_Copy(void* useless, BufferSettings* s);
 void BufferSettings_Free(void* useless, BufferSettings* s);
 void BufferSettings_LoadDefaults(void* useless, BufferSettings* s);
 void BufferSettings_LoadJSON(void* useless, BufferSettings* s, struct json_value* jsv);
+void BufferSettings_SaveJSON(void* useless, BufferSettings* s, struct json_value* jsv);
 
 
 #endif // __gpuedit_buffer_h__

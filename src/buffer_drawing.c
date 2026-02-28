@@ -95,9 +95,16 @@ void GUIBufferEditControl_Draw(GUIBufferEditControl* gbe, GUIManager* gm, Vector
 	
 	// scroll down
 	// TODO: cache a pointer
+	
+	if(gbe->lastLineChangeCounter != atomic_load(&b->lineChangeCounter)) {
+		GBEC_RecalcLineOffsets(gbe);
+	}
+	
 	long scrollPixels = gbe->scrollLines * gbe->bs->lineHeight;
 	linenum_t sl = 0;
-	for(; VEC_item(&gbe->lineOffsets, sl) < scrollPixels; sl++); 
+	
+	assert(VEC_len(&gbe->lineOffsets) == b->numLines);	
+	for(; sl < VEC_len(&gbe->lineOffsets) && VEC_item(&gbe->lineOffsets, sl) < scrollPixels; sl++); 
 	for(intptr_t i = 0; i < sl && bl->next; i++) bl = bl->next; 
 	
 	

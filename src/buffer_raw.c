@@ -71,6 +71,8 @@ BufferLine* Buffer_raw_InsertLineAfter(Buffer* b, BufferLine* before) {
 	}
 	
 	b->numLines++;
+	atomic_fetch_add(&b->lineChangeCounter, 1);
+	
 	BufferLine* after = BufferLine_New(b);
 		
 	if(b->first == NULL) {
@@ -105,6 +107,8 @@ BufferLine* Buffer_raw_InsertLineBefore(Buffer* b, BufferLine* after) {
 	}
 	
 	b->numLines++;
+	atomic_fetch_add(&b->lineChangeCounter, 1);
+	
 	BufferLine* before = BufferLine_New(b);
 	
 	if(b->first == NULL) {
@@ -133,6 +137,8 @@ BufferLine* Buffer_raw_InsertLineBefore(Buffer* b, BufferLine* after) {
 
 void Buffer_raw_DeleteLine(Buffer* b, BufferLine* bl) {
 	if(bl == NULL) return;
+	
+	atomic_fetch_add(&b->lineChangeCounter, 1);
 	
 	if(bl == b->first) b->first = bl->next;
 	if(bl == b->last) b->last = bl->prev;
