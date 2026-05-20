@@ -119,16 +119,31 @@ void AppState_Init(AppState* as, int argc, char* argv[]) {
 	
 //	printf("err path: %s\n", as->gs->gccErrorJSONPath);
 	
-	if(as->no_sessions) as->gs->enableSessions = 0;
 	
+	if(Settings_LoadFile(as->globalSettings, as->gs->Theme_path, SETTINGS_Theme | SETTINGS_GUI)) {
+		// failed to read the theme file as an absolute path, so check the search dirs
+		
+		VEC_EACH(&as->gs->themeSearchPaths, i, p) {
+			char* dir = resolve_path(p);
+			if(!dir) continue;
+			
+			char* file = path_join(dir, as->gs->Theme_path);
+			int ret = Settings_LoadFile(as->globalSettings, file, SETTINGS_Theme | SETTINGS_GUI);
+			free(file);
+			free(dir);
+			
+			if(!ret) break;
+		}
+		
+	
+	}
+
 	ThemeSettings* theme = Settings_GetSection(as->globalSettings, SETTINGS_Theme);
-	char* tmp = path_join(homedir, "/.gpuedit/themes/", as->gs->Theme_path);
-	Settings_LoadFile(as->globalSettings, tmp, SETTINGS_ALL);
-	free(tmp);
-
-
+	
 	BufferSettings* bs = Settings_GetSection(as->globalSettings, SETTINGS_Buffer);
 	FontManager_AssertBitmapSize(as->gui->fm, bs->font, bs->fontSize);
+
+	if(as->no_sessions) as->gs->enableSessions = 0;
 	
 	
 	FontManager_AssertDefaultCodeRange(as->gui->fm, ' ', '~'); // all of printable 7-bit ascii

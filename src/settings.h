@@ -99,6 +99,7 @@ typedef struct WidgetSpec {
 	SETTING(charp, commandsPath,       "/usr/local/share/gpuedit/commands.json", NULL, NULL) \
 	SETTING(charp, highlightersPath,   "/usr/local/lib/gpuedit/highlighters/", NULL, NULL) \
 	SETTING(charp, highlightStylesPath,"/usr/local/share/gpuedit/highlight_styles/", NULL, NULL) \
+	SETTING(strvec,themeSearchPaths,   ((char*[]){"/usr/local/share/gpuedit/themes/", "~/.gpuedit/themes/", NULL}), NULL, NULL) \
 	SETTING(bool,  enableVSync,        false,   NULL, NULL) \
 	SETTING(bool,  enableSessions,     true,    NULL, NULL) \
 	SETTING(int,   sessionFileHistory, 100,     0, 1000) \

@@ -32,6 +32,9 @@ void GUIManager_Init(GUIManager* gm, GUISettings* gs) {
 	gm->gs = gs;
 
 	GUIManager_InitCommands(gm);
+	GUISettings_LoadDefaults(gm, &gm->defaults); // BUGGED: this ignores the settings in GS
+	
+	// todo: propagate settings
 	
 	FontManager_init(gm->fm, gs);
 	
@@ -54,6 +57,11 @@ void GUIManager_Init(GUIManager* gm, GUISettings* gs) {
 	gm->tripleClickTime = 1.000;
 	gm->quadClickTime = 1.500;
 	gm->multiClickDist = 2.000;
+	
+}
+
+void GUIManager_PropagateSettings(GUIManager* gm, GUISettings* gs) {
+	gm->gs = gs;
 	
 }
 
@@ -99,7 +107,7 @@ void GUIManager_InitGL(GUIManager* gm) {
 // 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
 // 	TextureAtlas_finalize(gm->ta);
 	
-	GUISettings_LoadDefaults(gm, &gm->defaults);
+	
 		
 	// TEMP HACK 
 	gm->defaults.font = FontManager_findFont(gm->fm, gm->defaults.fontName);

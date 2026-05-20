@@ -24,6 +24,7 @@
 #define set_double(x) x;
 #define set_charp(x) safe_strdup(x);
 #define set_charpp(x) strlistdup(x);
+#define set_strvec(x) strvecset(x);
 #define set_Color4(x) x;
 #define set_tabsp(x) tabspeclistdup(x);
 #define set_scrollfn(x) x;
@@ -35,6 +36,7 @@
 #define free_double(x)
 #define free_charp(x) if(x) free(x);
 #define free_charpp(x) freeptrlist(x);
+#define free_strvec(x) freestrvec(x);
 #define free_tabsp(x) freetabspeclist(x);
 #define free_Color4(x)
 #define free_scrollfn(x)
@@ -47,6 +49,7 @@
 #define copy_double(x) x;
 #define copy_charp(x) safe_strdup(x);
 #define copy_charpp(x) strlistdup(x);
+#define copy_strvec(x) strveccopy(x);
 #define copy_Color4(x) x;
 #define copy_tabsp(x) tabspeclistdup(x);
 #define copy_scrollfn(x) x;

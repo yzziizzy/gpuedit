@@ -10,6 +10,7 @@ general: {
 	commandsPath: "./config/commands.json",
 	highlightersPath: "./src/highlighters/",
 	highlightStylesPath: "./config/",
+	themeSearchPaths: ["./config/themes/"],
 
 	sessionFileHistory: 100,
 
@@ -41,7 +42,7 @@ general: {
 	MainControl_tabNameScrollAnimTime: 3.0,
 	
 	// Theme Settings
-	"Theme_path": "default_dark.json",	
+	"Theme_file": "./config/themes/default_dark.json",	
 },
 
 buffer: {

@@ -218,6 +218,7 @@ static void store_double(double* in, json_value_t* obj, char* prop) {
 }
 
 
+
 static void store_tabsp(TabSpec** in, json_value_t* obj, char* prop) {
 	size_t i;
 	
@@ -425,6 +426,23 @@ static void grab_charpp(char*** out, json_value_t* obj, char* prop) {
 	}
 }
 
+static void grab_strvec(strvec* out, json_value_t* obj, char* prop) {
+	json_value_t* v;
+	if(!json_obj_get_key(obj, prop, &v) && v != NULL) {
+		if(v->type == JSON_TYPE_ARRAY) {
+//			VEC_trunc(out); // this is an appending type
+			
+			json_link_t* link = v->arr.head;
+			for(long i = 0; link; i++) {
+				dbgv(link->v->s)
+				VEC_push(out, json_as_strdup(link->v));
+				
+				link = link->next;
+			}
+		}
+	}
+
+}
 
 static void grab_tabsp(TabSpec** out, json_value_t* obj, char* prop) {
 	json_value_t* v;

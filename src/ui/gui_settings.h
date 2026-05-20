@@ -47,9 +47,9 @@ typedef GUIButtonOpts GUIToggleButtonOpts;
 	SETTING(Color4, statusBarTextColor,            C4H(c8c8c8ff), NULL, NULL) \
 	\
 	SETTING(charpp, fileBrowserColumnOrder,        ((char*[]){"icon","name","size","mtime", NULL}), NULL, NULL) \
-	SETTING(charp,  fileBrowserATimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
-	SETTING(charp,  fileBrowserMTimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
-	SETTING(charp,  fileBrowserCTimeFmt,           "%Y/%m/%d  %H:%M:%S", NULL, NULL) \
+	SETTING(charp,  fileBrowserATimeFmt,           "%H:%M:%S  %d/%m/%Y", NULL, NULL) \
+	SETTING(charp,  fileBrowserMTimeFmt,           "%H:%M:%S  %d/%m/%Y", NULL, NULL) \
+	SETTING(charp,  fileBrowserCTimeFmt,           "%H:%M:%S  %d/%m/%Y", NULL, NULL) \
 	SETTING(float,  fileBrowserHeaderHeight,       25,          10,   9999) \
 	SETTING(Color4, fileBrowserHeaderTextColor,    C4H(ff00ffff), NULL, NULL) \
 	SETTING(Color4, fileBrowserHeaderBgColor,      C4H(fff00fff), NULL, NULL) \

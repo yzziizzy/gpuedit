@@ -2278,7 +2278,7 @@ void GBEC_MoveCursorHSel(GUIBufferEditControl* w, colnum_t cols) {
 // absolute move
 void GBEC_MoveRangeCursorTo(GUIBufferEditControl* w, BufferRange* r, BufferLine* bl, colnum_t col) {
 	// TODO: undo
-	
+	if(!bl) return;
 	/*
 	if(PIVOT_LINE(r) == bl && PIVOT_COL(r) == col) {
 		r->cursor = !r->cursor;

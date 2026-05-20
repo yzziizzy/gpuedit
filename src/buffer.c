@@ -116,6 +116,7 @@ void Buffer_InitEmpty(Buffer* b) {
 	b->first = BufferLine_New(b);
 	b->last = b->first;
 	b->first->lineNum = 1;
+	b->numLines = 1;
 }
 
 
@@ -1657,14 +1658,21 @@ int Buffer_LoadFromFile(Buffer* b, char* path) {
 	
 	fseek(f, 0, SEEK_END); 
 	size_t len = ftell(f);
-	fseek(f, 0, SEEK_SET);
 	
-	o = malloc(len + 1);
-	o[len] = 0;
-	fread(o, 1, len, f);
-	Buffer_AppendRawText(b, o, len);
+	if(len) {
+		fseek(f, 0, SEEK_SET);
+		
+		o = malloc(len + 1);
+		o[len] = 0;
+		fread(o, 1, len, f);
+		Buffer_AppendRawText(b, o, len);
+		
+		free(o);
+	}
+	else {
+		Buffer_InitEmpty(b);
+	}
 	
-	free(o);
 	fclose(f);
 	
 	Buffer_UndoTruncateStack(b);

@@ -1,6 +1,69 @@
+proper english dictionary for spellchecking
+
+hotkey to make a new file in the same directory as the current one and open it in a tab.
+same, but copy the selection into it.
+
 Plugins for image decoding, with priority cascade
+
 Horizontal GBEC scrollbar
 
+Ctrl-delete doesn't work right with a selection
 
+grep the project for a simple regex, then jump to line, with inline dropdown like AC
 
+Highlighters should have different terminals for different number literal types
 
+Command to append trailing slash with non-indent trailing ws squashing to every selected line
+
+Move cursor to end of next/prev line
+   mode to make this automatic, or something
+
+Jump f/b to unmatched brace (to fix it)
+
+More text options for highlight styles
+
+Clear line except indent
+
+Fix search not searching sometimes
+Fix search not re-highlighting the search term when ctrl+f is pressed
+
+Have a special fast key where a prediction, potentiall of a whole phrase/expression, 
+from the same line will autocomplete with priority:  
+u->s  = read_f32(buf, u->speed.x); <
+    ^  "speed.x"
+
+Cheapo regex highlighter
+
+Cheapo detection of typedefs for coloring
+Easy adding of typedefs to a list or config file for type highlighting
+
+Better highlighting inside macros
+
+Different tab colors for c/h/etc
+
+Show indent ws types
+
+Automatically make c/h together, move them together, 
+   show border around both to indicate grouping
+   key to ungroup them
+
+Show stale (not edited recently) tabs, button to close all
+
+Shift+enter on fuzzy matcher to open c/h pair togetehr
+
+Fix comment/uncomment
+
+Automatically fix indents when:
+	tabs/spaces mixed
+	blank lines inside block missing indent up to block
+
+Highlight indent block based only on indent
+
+Highlight pairs of parens/braces/brackets based on simple text search
+	command to delete both of the current highlighted pair
+
+Option to make themes unable to override GUI settings
+
+option to change tab color or row/tier or include prefix based on dir; client/linux/main.c, client/sdl/main.c
+
+Numbers next to entries in lists/arrays
